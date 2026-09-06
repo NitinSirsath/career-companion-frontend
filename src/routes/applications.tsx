@@ -53,7 +53,7 @@ function ApplicationsPage() {
         <h3 className="text-lg font-medium mb-4">New Application</h3>
         
         <form onSubmit={onSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="companyName">Company Name *</Label>
               <Input

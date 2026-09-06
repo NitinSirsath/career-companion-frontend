@@ -6,9 +6,12 @@ export class ApiClient {
   constructor() {
     this.defaultHeaders = {
       'Content-Type': 'application/json',
-      // Development authentication header as mandated by COM-13
-      'X-Development-User': 'dev@career-companion.local',
     };
+    
+    const devUser = import.meta.env.VITE_DEV_USER;
+    if (devUser) {
+      this.defaultHeaders['X-Development-User'] = devUser;
+    }
   }
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
