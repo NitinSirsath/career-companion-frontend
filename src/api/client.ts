@@ -23,6 +23,7 @@ export class ApiClient {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const response = await fetch(endpoint, {
       ...options,
+      credentials: 'include',
       headers: {
         ...this.defaultHeaders,
         ...options.headers,
@@ -35,6 +36,18 @@ export class ApiClient {
     }
 
     return response.json();
+  }
+
+  async get<T>(endpoint: string, options?: RequestInit): Promise<T> {
+    return this.request<T>(endpoint, { ...options, method: 'GET' });
+  }
+
+  async post<T>(endpoint: string, body?: any, options?: RequestInit): Promise<T> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: 'POST',
+      body: body ? JSON.stringify(body) : undefined,
+    });
   }
 
   async createApplication(data: CreateApplicationRequest): Promise<ApplicationResponse> {
