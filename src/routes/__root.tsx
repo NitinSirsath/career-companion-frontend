@@ -9,6 +9,7 @@ export const Route = createRootRoute({
         <div className="text-sm opacity-80 flex gap-4">
           <Link to="/" className="[&.active]:font-bold">Home</Link>
           <Link to="/applications" className="[&.active]:font-bold">Applications</Link>
+          <Link to="/gmail" className="[&.active]:font-bold">Gmail</Link>
         </div>
       </div>
       <div className="flex-1 p-4">

@@ -1,5 +1,11 @@
-import { CreateApplicationRequest, ApplicationResponse, ListApplicationsResponse } from '../contracts';
-
+import { 
+  CreateApplicationRequest, 
+  ApplicationResponse, 
+  ListApplicationsResponse,
+  GmailStatusResponse,
+  SyncResponse,
+  MessagesListResponse 
+} from '../contracts';
 export class ApiClient {
   private defaultHeaders: Record<string, string>;
 
@@ -41,6 +47,39 @@ export class ApiClient {
   async listApplications(): Promise<ListApplicationsResponse> {
     return this.request<ListApplicationsResponse>('/api/applications', {
       method: 'GET',
+    });
+  }
+
+  // --- Gmail Integration (COM-21) ---
+
+  async getGmailStatus(): Promise<GmailStatusResponse> {
+    return this.request<GmailStatusResponse>('/api/gmail/status', {
+      method: 'GET',
+    });
+  }
+
+  async triggerSync(): Promise<SyncResponse> {
+    return this.request<SyncResponse>('/api/gmail/sync', {
+      method: 'POST',
+    });
+  }
+
+  async getMessages(params?: { limit?: number; offset?: number }): Promise<MessagesListResponse> {
+    const urlParams = new URLSearchParams();
+    if (params?.limit !== undefined) urlParams.append('limit', params.limit.toString());
+    if (params?.offset !== undefined) urlParams.append('offset', params.offset.toString());
+    
+    const queryString = urlParams.toString();
+    const endpoint = `/api/gmail/messages${queryString ? `?${queryString}` : ''}`;
+    
+    return this.request<MessagesListResponse>(endpoint, {
+      method: 'GET',
+    });
+  }
+
+  async disconnectGmail(): Promise<{ disconnected: boolean }> {
+    return this.request<{ disconnected: boolean }>('/api/gmail/disconnect', {
+      method: 'POST',
     });
   }
 }
