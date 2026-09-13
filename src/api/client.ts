@@ -6,7 +6,9 @@ import {
   ListApplicationActionsResponse,
   GmailStatusResponse,
   SyncResponse,
-  MessagesListResponse 
+  MessagesListResponse,
+  AmbiguousMatchResponse,
+  ResolveAmbiguityRequest,
 } from '../contracts';
 
 export class ApiClient {
@@ -80,6 +82,21 @@ export class ApiClient {
       `/api/applications/${applicationId}/actions`,
       { method: 'GET' }
     );
+  }
+
+  // --- Email Ambiguity (COM-32) ---
+
+  async getAmbiguousEmails(): Promise<AmbiguousMatchResponse[]> {
+    return this.request<AmbiguousMatchResponse[]>('/api/emails/ambiguous', {
+      method: 'GET',
+    });
+  }
+
+  async resolveAmbiguousEmail(emailId: string, data: ResolveAmbiguityRequest): Promise<{ success: boolean }> {
+    return this.request<{ success: boolean }>(`/api/emails/${emailId}/resolve`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
   }
 
   // --- Gmail Integration (COM-21) ---

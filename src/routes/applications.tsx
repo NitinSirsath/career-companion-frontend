@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { api } from '../api/client';
 import { CreateApplicationRequestSchema, CreateApplicationRequest, ApplicationStatus, ApplicationResponse } from '../contracts/application';
+
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -116,7 +117,86 @@ function ApplicationCard({ app }: { app: ApplicationResponse }) {
   );
 }
 
+
+// ─── Ambiguous Matches Section ────────────────────────────────────────────────
+
+function AmbiguousMatchesSection({ applications }: { applications: ApplicationResponse[] }) {
+  const queryClient = useQueryClient();
+  const { data: ambiguousEmails, isLoading } = useQuery({
+    queryKey: ['ambiguous-emails'],
+    queryFn: () => api.getAmbiguousEmails(),
+  });
+
+  const resolveMutation = useMutation({
+    mutationFn: ({ emailId, applicationId }: { emailId: string, applicationId: string | null }) => 
+      api.resolveAmbiguousEmail(emailId, { applicationId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ambiguous-emails'] });
+      queryClient.invalidateQueries({ queryKey: ['applications'] });
+    }
+  });
+
+  if (isLoading || !ambiguousEmails || ambiguousEmails.length === 0) return null;
+
+  return (
+    <div className="space-y-4 mb-8">
+      <h3 className="text-lg font-medium text-orange-600 dark:text-orange-400">Needs Review ({ambiguousEmails.length})</h3>
+      <div className="space-y-3">
+        {ambiguousEmails.map(email => (
+          <div key={email.id} className="rounded-xl border border-orange-200 dark:border-orange-900/50 bg-orange-50/50 dark:bg-orange-950/20 p-5 shadow-sm">
+            <div className="flex flex-col md:flex-row gap-6 justify-between">
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-orange-800 dark:text-orange-300">Uncertain Email Match</p>
+                <div className="mt-2 space-y-1">
+                  <p className="text-xs text-muted-foreground"><span className="font-medium">From:</span> {email.sender}</p>
+                  {email.subject && <p className="text-xs text-muted-foreground"><span className="font-medium">Subject:</span> {email.subject}</p>}
+                </div>
+                
+                {email.aiProcessingResult && (
+                  <div className="mt-3 text-sm bg-background/60 p-3 rounded-lg border border-orange-200/50 dark:border-orange-900/30">
+                    <p className="text-xs font-semibold text-foreground/70 mb-1">AI Extracted:</p>
+                    <p className="font-medium">{email.aiProcessingResult.companyName || 'Unknown Company'}
+                    {email.aiProcessingResult.jobTitle ? ` - ${email.aiProcessingResult.jobTitle}` : ''}</p>
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex flex-col gap-2 shrink-0 md:w-[280px]">
+                <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wider">Select Application</p>
+                <div className="flex flex-col gap-1.5 max-h-[200px] overflow-y-auto pr-1">
+                  {applications.map(app => (
+                    <Button 
+                      key={app.id} 
+                      variant="outline" 
+                      size="sm" 
+                      className="justify-start truncate w-full"
+                      disabled={resolveMutation.isPending}
+                      onClick={() => resolveMutation.mutate({ emailId: email.id, applicationId: app.id })}
+                    >
+                      {app.companyName} {app.jobTitle ? `— ${app.jobTitle}` : ''}
+                    </Button>
+                  ))}
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-muted-foreground mt-1 w-full"
+                  disabled={resolveMutation.isPending}
+                  onClick={() => resolveMutation.mutate({ emailId: email.id, applicationId: null })}
+                >
+                  Not related to any application
+                </Button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
+
 
 function ApplicationsDashboard() {
   const queryClient = useQueryClient();
@@ -217,6 +297,9 @@ function ApplicationsDashboard() {
           </div>
         </form>
       </div>
+
+      {/* Ambiguous Matches */}
+      {applications && <AmbiguousMatchesSection applications={applications} />}
 
       {/* Application List */}
       <div className="space-y-4">
