@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { api } from '../api/client';
 import { ApplicationStatus, ApplicationEventResponse, ApplicationActionResponse } from '../contracts/application';
+import { Button } from '../components/ui/button';
 
 export const Route = createFileRoute('/applications/$id')({
   component: ApplicationDetailPage,
@@ -105,6 +106,17 @@ function TimelineEventItem({ event }: { event: ApplicationEventResponse }) {
 
 function ActionItem({ action }: { action: ApplicationActionResponse }) {
   const isPending = action.status === 'PENDING';
+  const queryClient = useQueryClient();
+  
+  const updateMutation = useMutation({
+    mutationFn: ({ status }: { status: 'COMPLETED' | 'DISMISSED' }) =>
+      api.updateAction(action.id, { status }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['application-actions', action.applicationId] });
+      queryClient.invalidateQueries({ queryKey: ['applications'] });
+    },
+  });
+
   return (
     <div className={`flex items-start gap-3 p-3 rounded-lg border ${isPending ? 'border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/10' : 'border-border bg-muted/30'}`}>
       <span
@@ -126,6 +138,28 @@ function ActionItem({ action }: { action: ApplicationActionResponse }) {
           )}
         </div>
       </div>
+      {isPending && (
+        <div className="flex gap-2 shrink-0 self-center">
+          <Button
+            variant="default"
+            size="sm"
+            className="h-7 text-xs px-2"
+            disabled={updateMutation.isPending}
+            onClick={() => updateMutation.mutate({ status: 'COMPLETED' })}
+          >
+            Complete
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 text-xs px-2 text-muted-foreground"
+            disabled={updateMutation.isPending}
+            onClick={() => updateMutation.mutate({ status: 'DISMISSED' })}
+          >
+            Dismiss
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
