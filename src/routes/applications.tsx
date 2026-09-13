@@ -2,9 +2,10 @@ import { createFileRoute, Link, Outlet, useRouterState } from '@tanstack/react-r
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { format } from 'date-fns';
+import { format, isPast } from 'date-fns';
 import { api } from '../api/client';
 import { CreateApplicationRequestSchema, CreateApplicationRequest, ApplicationStatus, ApplicationResponse } from '../contracts/application';
+import { ActionWithContextResponse } from '../contracts/action';
 
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -118,7 +119,125 @@ function ApplicationCard({ app }: { app: ApplicationResponse }) {
 }
 
 
+
+// ─── Action Queue Section ─────────────────────────────────────────────────────
+
+function ActionQueueSection() {
+  const queryClient = useQueryClient();
+  const { data: actions, isLoading } = useQuery({
+    queryKey: ['actions', { status: 'PENDING' }],
+    queryFn: () => api.getActions('PENDING'),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ actionId, status }: { actionId: string; status: 'COMPLETED' | 'DISMISSED' }) =>
+      api.updateAction(actionId, { status }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['actions'] });
+      queryClient.invalidateQueries({ queryKey: ['applications'] }); // update pendingActionCount
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="p-8 text-center text-muted-foreground border rounded-xl border-dashed mb-8">
+        Loading action queue...
+      </div>
+    );
+  }
+
+  if (!actions || actions.length === 0) {
+    return null;
+  }
+
+  const overdueActions = actions.filter(a => a.deadline && isPast(new Date(a.deadline)));
+  const upcomingActions = actions.filter(a => a.deadline && !isPast(new Date(a.deadline)));
+  const pendingActions = actions.filter(a => !a.deadline);
+
+  const renderActionItem = (action: ActionWithContextResponse, isOverdue: boolean) => (
+    <div key={action.id} className={`rounded-xl border p-5 shadow-sm flex flex-col md:flex-row gap-4 justify-between ${isOverdue ? 'border-destructive/30 bg-destructive/5' : 'border-border bg-card'}`}>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-1">
+          {isOverdue && <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold bg-destructive text-destructive-foreground">Overdue</span>}
+          <span className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            {action.type.replace(/_/g, ' ')}
+          </span>
+          {action.deadline && (
+            <span className={`text-xs ${isOverdue ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
+              Due: {format(new Date(action.deadline), 'MMM d, yyyy h:mm a')}
+            </span>
+          )}
+        </div>
+        
+        <p className="font-medium text-lg mt-1">{action.description || 'Follow up required'}</p>
+        
+        <div className="mt-2 text-sm text-muted-foreground">
+          <Link to="/applications/$id" params={{ id: action.applicationId }} className="font-medium text-primary hover:underline">
+            {action.application.companyName} {action.application.jobTitle ? `— ${action.application.jobTitle}` : ''}
+          </Link>
+        </div>
+
+        {action.email && (
+          <div className="mt-3 text-xs bg-background/50 p-2 rounded border border-border/50">
+            <span className="font-semibold">Source Email: </span>
+            {action.email.subject || 'No Subject'} <span className="text-muted-foreground">(from {action.email.sender})</span>
+          </div>
+        )}
+      </div>
+
+      <div className="flex flex-row md:flex-col gap-2 shrink-0 md:min-w-[150px] justify-end md:justify-start mt-2 md:mt-0">
+        <Button
+          variant="default"
+          size="sm"
+          className="w-full"
+          disabled={updateMutation.isPending}
+          onClick={() => updateMutation.mutate({ actionId: action.id, status: 'COMPLETED' })}
+        >
+          Mark Complete
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full text-muted-foreground"
+          disabled={updateMutation.isPending}
+          onClick={() => updateMutation.mutate({ actionId: action.id, status: 'DISMISSED' })}
+        >
+          Dismiss
+        </Button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-6 mb-8">
+      <h2 className="text-2xl font-semibold tracking-tight">Next Steps</h2>
+      
+      {overdueActions.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold text-destructive uppercase tracking-wider">Overdue</h3>
+          {overdueActions.map(a => renderActionItem(a, true))}
+        </div>
+      )}
+
+      {upcomingActions.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Upcoming</h3>
+          {upcomingActions.map(a => renderActionItem(a, false))}
+        </div>
+      )}
+
+      {pendingActions.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Pending</h3>
+          {pendingActions.map(a => renderActionItem(a, false))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Ambiguous Matches Section ────────────────────────────────────────────────
+
 
 function AmbiguousMatchesSection({ applications }: { applications: ApplicationResponse[] }) {
   const queryClient = useQueryClient();
@@ -297,6 +416,9 @@ function ApplicationsDashboard() {
           </div>
         </form>
       </div>
+
+      {/* Action Queue */}
+      <ActionQueueSection />
 
       {/* Ambiguous Matches */}
       {applications && <AmbiguousMatchesSection applications={applications} />}

@@ -9,6 +9,8 @@ import {
   MessagesListResponse,
   AmbiguousMatchResponse,
   ResolveAmbiguityRequest,
+  ActionWithContextResponse,
+  UpdateActionRequest,
 } from '../contracts';
 
 export class ApiClient {
@@ -95,6 +97,22 @@ export class ApiClient {
   async resolveAmbiguousEmail(emailId: string, data: ResolveAmbiguityRequest): Promise<{ success: boolean }> {
     return this.request<{ success: boolean }>(`/api/emails/${emailId}/resolve`, {
       method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // --- Action Management (COM-33) ---
+
+  async getActions(status?: string): Promise<ActionWithContextResponse[]> {
+    const url = status ? `/api/actions?status=${status}` : '/api/actions';
+    return this.request<ActionWithContextResponse[]>(url, {
+      method: 'GET',
+    });
+  }
+
+  async updateAction(actionId: string, data: UpdateActionRequest): Promise<ActionWithContextResponse> {
+    return this.request<ActionWithContextResponse>(`/api/actions/${actionId}`, {
+      method: 'PATCH',
       body: JSON.stringify(data),
     });
   }
