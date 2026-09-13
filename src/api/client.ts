@@ -2,10 +2,13 @@ import {
   CreateApplicationRequest, 
   ApplicationResponse, 
   ListApplicationsResponse,
+  ListApplicationEventsResponse,
+  ListApplicationActionsResponse,
   GmailStatusResponse,
   SyncResponse,
   MessagesListResponse 
 } from '../contracts';
+
 export class ApiClient {
   private defaultHeaders: Record<string, string>;
 
@@ -42,7 +45,7 @@ export class ApiClient {
     return this.request<T>(endpoint, { ...options, method: 'GET' });
   }
 
-  async post<T>(endpoint: string, body?: any, options?: RequestInit): Promise<T> {
+  async post<T>(endpoint: string, body?: unknown, options?: RequestInit): Promise<T> {
     return this.request<T>(endpoint, {
       ...options,
       method: 'POST',
@@ -61,6 +64,22 @@ export class ApiClient {
     return this.request<ListApplicationsResponse>('/api/applications', {
       method: 'GET',
     });
+  }
+
+  /** Fetch timeline events for one application. Ordered createdAt ASC. */
+  async getApplicationEvents(applicationId: string): Promise<ListApplicationEventsResponse> {
+    return this.request<ListApplicationEventsResponse>(
+      `/api/applications/${applicationId}/events`,
+      { method: 'GET' }
+    );
+  }
+
+  /** Fetch actions for one application. */
+  async getApplicationActions(applicationId: string): Promise<ListApplicationActionsResponse> {
+    return this.request<ListApplicationActionsResponse>(
+      `/api/applications/${applicationId}/actions`,
+      { method: 'GET' }
+    );
   }
 
   // --- Gmail Integration (COM-21) ---

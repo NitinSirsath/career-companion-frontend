@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApplicationsRouteImport } from './routes/applications'
 import { Route as GmailRouteImport } from './routes/gmail'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ApplicationsIdRouteImport } from './routes/applications.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,37 +35,51 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApplicationsIdRoute = ApplicationsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApplicationsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/applications': typeof ApplicationsRoute
+  '/applications': typeof ApplicationsRouteWithChildren
   '/gmail': typeof GmailRoute
   '/login': typeof LoginRoute
+  '/applications/$id': typeof ApplicationsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/applications': typeof ApplicationsRoute
+  '/applications': typeof ApplicationsRouteWithChildren
   '/gmail': typeof GmailRoute
   '/login': typeof LoginRoute
+  '/applications/$id': typeof ApplicationsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/applications': typeof ApplicationsRoute
+  '/applications': typeof ApplicationsRouteWithChildren
   '/gmail': typeof GmailRoute
   '/login': typeof LoginRoute
+  '/applications/$id': typeof ApplicationsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/applications' | '/gmail' | '/login'
+  fullPaths: '/' | '/applications' | '/gmail' | '/login' | '/applications/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/applications' | '/gmail' | '/login'
-  id: '__root__' | '/' | '/applications' | '/gmail' | '/login'
+  to: '/' | '/applications' | '/gmail' | '/login' | '/applications/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/applications'
+    | '/gmail'
+    | '/login'
+    | '/applications/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ApplicationsRoute: typeof ApplicationsRoute
+  ApplicationsRoute: typeof ApplicationsRouteWithChildren
   GmailRoute: typeof GmailRoute
   LoginRoute: typeof LoginRoute
 }
@@ -99,12 +114,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/applications/$id': {
+      id: '/applications/$id'
+      path: '/$id'
+      fullPath: '/applications/$id'
+      preLoaderRoute: typeof ApplicationsIdRouteImport
+      parentRoute: typeof ApplicationsRoute
+    }
   }
 }
 
+interface ApplicationsRouteChildren {
+  ApplicationsIdRoute: typeof ApplicationsIdRoute
+}
+
+const ApplicationsRouteChildren: ApplicationsRouteChildren = {
+  ApplicationsIdRoute: ApplicationsIdRoute,
+}
+
+const ApplicationsRouteWithChildren = ApplicationsRoute._addFileChildren(
+  ApplicationsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ApplicationsRoute: ApplicationsRoute,
+  ApplicationsRoute: ApplicationsRouteWithChildren,
   GmailRoute: GmailRoute,
   LoginRoute: LoginRoute,
 }

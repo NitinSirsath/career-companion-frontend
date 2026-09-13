@@ -1,6 +1,5 @@
-import { createRootRouteWithContext, Outlet, Link, redirect, useRouter } from '@tanstack/react-router';
-import { User, getCurrentUser, logout } from '../api/auth';
-import { useEffect, useState } from 'react';
+import { createRootRouteWithContext, Outlet, Link, redirect } from '@tanstack/react-router';
+import { User, logout } from '../api/auth';
 
 interface RouterContext {
   user: User | null;
@@ -25,7 +24,6 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 });
 
 function RootComponent() {
-  const router = useRouter();
   const context = Route.useRouteContext();
 
   const handleLogout = async () => {

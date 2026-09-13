@@ -4,19 +4,18 @@ import './index.css'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { routeTree } from './routeTree.gen'
-import { getCurrentUser, User } from './api/auth';
+import { getCurrentUser } from './api/auth';
 
 const queryClient = new QueryClient()
 
 function App() {
-  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  // Router is created once after user fetch; using any avoids complex generic inference
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [router, setRouter] = useState<any>(null);
 
   useEffect(() => {
     getCurrentUser().then((u) => {
-      setUser(u);
-      
       const r = createRouter({
         routeTree,
         context: { user: u },
