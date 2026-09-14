@@ -8,19 +8,20 @@ import { getCurrentUser } from './api/auth';
 
 const queryClient = new QueryClient()
 
+// Create router outside the component tree
+const router = createRouter({
+  routeTree,
+  context: { user: null },
+});
+
 function App() {
   const [loading, setLoading] = useState(true);
-  // Router is created once after user fetch; using any avoids complex generic inference
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [router, setRouter] = useState<any>(null);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
     getCurrentUser().then((u) => {
-      const r = createRouter({
-        routeTree,
-        context: { user: u },
-      });
-      setRouter(r);
+      setUser(u);
       setLoading(false);
     });
   }, []);
@@ -29,7 +30,8 @@ function App() {
     return <div className="p-8">Loading...</div>;
   }
 
-  return <RouterProvider router={router} />;
+  // Pass the dynamic context to the router provider
+  return <RouterProvider router={router} context={{ user }} />;
 }
 
 createRoot(document.getElementById('root')!).render(

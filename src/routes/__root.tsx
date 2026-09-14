@@ -10,12 +10,12 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     // Only fetch user if not present, and let context handle it.
     // We will do actual fetch in main.tsx or app root to inject context.
     if (!context.user && location.pathname !== '/login') {
-      throw redirect({
+      console.log("redirecting to login"); throw redirect({
         to: '/login',
       });
     }
     if (context.user && location.pathname === '/login') {
-      throw redirect({
+      console.log("redirecting to login"); throw redirect({
         to: '/',
       });
     }
