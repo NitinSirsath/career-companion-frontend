@@ -9,9 +9,6 @@ export interface User {
 export async function getCurrentUser(): Promise<User | null> {
   try {
     const headers: Record<string, string> = {};
-    if (import.meta.env.VITE_DEV_USER) {
-      headers['X-Development-User'] = import.meta.env.VITE_DEV_USER;
-    }
     
     // using raw fetch directly to bypass throwing error on 401
     const response = await fetch('/api/auth/me', { 

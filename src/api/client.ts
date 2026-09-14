@@ -21,10 +21,6 @@ export class ApiClient {
       'Content-Type': 'application/json',
     };
     
-    const devUser = import.meta.env.VITE_DEV_USER;
-    if (devUser) {
-      this.defaultHeaders['X-Development-User'] = devUser;
-    }
   }
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
