@@ -6,8 +6,8 @@ export const Route = createFileRoute('/login')({
 
 function Login() {
   const handleLogin = () => {
-    // Redirects to backend auth connect
-    window.location.href = 'http://localhost:3000/api/auth/connect';
+    // Redirects to backend auth connect through Vite proxy
+    window.location.href = '/api/auth/connect';
   };
 
   return (
