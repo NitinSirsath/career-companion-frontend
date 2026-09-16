@@ -54,9 +54,11 @@ function GmailPage() {
     mutationFn: () => api.triggerSync(),
     onSuccess: (data) => {
       setSyncResult({ ingested: data.messagesIngested, skipped: data.messagesSkipped });
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['gmailStatus'] });
       queryClient.invalidateQueries({ queryKey: ['gmailMessages'] });
-    },
+    }
   });
 
   const handleConnect = () => {

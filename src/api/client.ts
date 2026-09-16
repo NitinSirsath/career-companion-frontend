@@ -42,7 +42,7 @@ export class ApiClient {
   }
 
   async get<T>(endpoint: string, options?: RequestInit): Promise<T> {
-    return this.request<T>(endpoint, { ...options, method: 'GET' });
+    return this.request<T>(endpoint, { ...options, method: 'GET', cache: 'no-store' });
   }
 
   async post<T>(endpoint: string, body?: unknown, options?: RequestInit): Promise<T> {
@@ -116,9 +116,7 @@ export class ApiClient {
   // --- Gmail Integration (COM-21) ---
 
   async getGmailStatus(): Promise<GmailStatusResponse> {
-    return this.request<GmailStatusResponse>('/api/gmail/status', {
-      method: 'GET',
-    });
+    return this.get<GmailStatusResponse>('/api/gmail/status');
   }
 
   async triggerSync(): Promise<SyncResponse> {
@@ -135,9 +133,7 @@ export class ApiClient {
     const queryString = urlParams.toString();
     const endpoint = `/api/gmail/messages${queryString ? `?${queryString}` : ''}`;
     
-    return this.request<MessagesListResponse>(endpoint, {
-      method: 'GET',
-    });
+    return this.get<MessagesListResponse>(endpoint);
   }
 
   async disconnectGmail(): Promise<{ disconnected: boolean }> {

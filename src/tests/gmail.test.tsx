@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { api } from '../api/client';
@@ -32,6 +32,7 @@ describe('Gmail Route', () => {
   let queryClient: QueryClient;
 
   beforeEach(() => {
+    cleanup();
     vi.clearAllMocks();
     queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
@@ -152,5 +153,50 @@ describe('Gmail Route', () => {
     fireEvent.click(syncButton);
 
     expect(await screen.findByText('Synced 42 messages (skipped 7)')).toBeInTheDocument();
+  });
+
+  it('re-enables sync button after triggerSync fails (e.g. timeout or 409) via onSettled invalidation', async () => {
+    // 1. Initial state: connected, IDLE
+    vi.mocked(api.getGmailStatus).mockResolvedValue({
+      connected: true,
+      gmailEmail: 'user@gmail.com',
+      status: 'CONNECTED',
+      syncStatus: 'IDLE',
+      lastSyncedAt: null,
+    });
+
+    vi.mocked(api.getMessages).mockResolvedValue({
+      messages: [],
+      total: 0,
+      limit: 50,
+      offset: 0
+    });
+
+    renderWithProviders();
+
+    const syncButton = await screen.findByRole('button', { name: 'Sync Now' });
+    expect(syncButton).not.toBeDisabled();
+
+    // 2. Setup triggerSync to fail (simulate timeout or 409)
+    vi.mocked(api.triggerSync).mockRejectedValue(new Error('A sync is already in progress'));
+
+    // Setup the SUBSEQUENT getGmailStatus to return IDLE 
+    // (meaning the backend finally finished, and we want to ensure the UI recovers)
+    vi.mocked(api.getGmailStatus).mockResolvedValue({
+      connected: true,
+      gmailEmail: 'user@gmail.com',
+      status: 'CONNECTED',
+      syncStatus: 'IDLE',
+      lastSyncedAt: null,
+    });
+
+    // 3. Click sync
+    fireEvent.click(syncButton);
+
+    // 4. Verify it recovers and shows error
+    expect(await screen.findByText('Error syncing: A sync is already in progress')).toBeInTheDocument();
+    
+    // 5. Verify the button is re-enabled because onSettled invalidated the query and fetched IDLE
+    expect(await screen.findByRole('button', { name: 'Sync Now' })).not.toBeDisabled();
   });
 });
