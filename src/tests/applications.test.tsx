@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, cleanup } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { api } from '../api/client';
@@ -109,6 +109,60 @@ describe('Applications Dashboard (/applications)', () => {
     cleanup();
   });
 
+  // ─── UX hierarchy ──────────────────────────────────────────────────────────
+
+  it('does NOT show the create form by default (form is hidden on load)', async () => {
+    vi.mocked(api.listApplications).mockResolvedValue([]);
+
+    renderWithProviders(queryClient, '/applications');
+
+    // Form heading should not be visible until toggled
+    // Use findByText first to ensure the page has loaded
+    await screen.findByText(/no applications yet/i);
+    expect(screen.queryByText(/track new application/i)).not.toBeInTheDocument();
+  });
+
+  it('shows the "+ Add Application" button by default', async () => {
+    vi.mocked(api.listApplications).mockResolvedValue([]);
+
+    renderWithProviders(queryClient, '/applications');
+
+    await screen.findByRole('button', { name: /\+ add application/i });
+  });
+
+  it('reveals the create form when "+ Add Application" is clicked', async () => {
+    vi.mocked(api.listApplications).mockResolvedValue([]);
+
+    renderWithProviders(queryClient, '/applications');
+
+    const btn = await screen.findByRole('button', { name: /\+ add application/i });
+    fireEvent.click(btn);
+
+    expect(await screen.findByText(/track new application/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/company name/i)).toBeInTheDocument();
+  });
+
+  it('hides the create form again when "✕ Cancel" is clicked', async () => {
+    vi.mocked(api.listApplications).mockResolvedValue([]);
+
+    renderWithProviders(queryClient, '/applications');
+
+    // Open form
+    const addBtn = await screen.findByRole('button', { name: /\+ add application/i });
+    fireEvent.click(addBtn);
+
+    // Verify open
+    expect(await screen.findByText(/track new application/i)).toBeInTheDocument();
+
+    // Close form
+    const cancelBtn = screen.getByRole('button', { name: /✕ cancel/i });
+    fireEvent.click(cancelBtn);
+
+    expect(screen.queryByText(/track new application/i)).not.toBeInTheDocument();
+  });
+
+  // ─── Existing dashboard tests ──────────────────────────────────────────────
+
   it('shows loading state while fetching', async () => {
     // Never resolves during the test
     vi.mocked(api.listApplications).mockReturnValue(new Promise(() => {}));
@@ -207,6 +261,7 @@ describe('Applications Dashboard (/applications)', () => {
     expect(screen.getByText('Globex')).toBeInTheDocument();
   });
 });
+
 
 // ─── Application Detail / Timeline tests ──────────────────────────────────────
 

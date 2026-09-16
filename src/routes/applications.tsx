@@ -1,3 +1,4 @@
+import React from 'react';
 import { createFileRoute, Link, Outlet, useRouterState } from '@tanstack/react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -319,6 +320,7 @@ function AmbiguousMatchesSection({ applications }: { applications: ApplicationRe
 
 function ApplicationsDashboard() {
   const queryClient = useQueryClient();
+  const [showCreateForm, setShowCreateForm] = React.useState(false);
 
   const { data: applications, isLoading, error } = useQuery({
     queryKey: ['applications'],
@@ -330,6 +332,7 @@ function ApplicationsDashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['applications'] });
       form.reset();
+      setShowCreateForm(false); // collapse form after successful save
     },
   });
 
@@ -349,73 +352,88 @@ function ApplicationsDashboard() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
+      {/* Dashboard heading + primary action */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-semibold tracking-tight">Applications</h2>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowCreateForm((v) => !v)}
+          aria-expanded={showCreateForm}
+          aria-controls="create-application-form"
+        >
+          {showCreateForm ? '✕ Cancel' : '+ Add Application'}
+        </Button>
       </div>
 
-      {/* New Application Form */}
-      <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm p-6">
-        <h3 className="text-lg font-medium mb-4">Track New Application</h3>
-        
-        <form onSubmit={onSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="companyName">Company Name *</Label>
-              <Input
-                id="companyName"
-                placeholder="Linear"
-                {...form.register('companyName')}
-              />
-              {form.formState.errors.companyName && (
-                <p className="text-sm text-destructive font-medium">
-                  {form.formState.errors.companyName.message}
-                </p>
-              )}
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="jobTitle">Job Title</Label>
-              <Input
-                id="jobTitle"
-                placeholder="Frontend Engineer"
-                {...form.register('jobTitle')}
-              />
+      {/* New Application Form — secondary action, collapsed by default */}
+      {showCreateForm && (
+        <div
+          id="create-application-form"
+          className="rounded-xl border border-border bg-card text-card-foreground shadow-sm p-6"
+        >
+          <h3 className="text-lg font-medium mb-4">Track New Application</h3>
+
+          <form onSubmit={onSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="companyName">Company Name *</Label>
+                <Input
+                  id="companyName"
+                  placeholder="Linear"
+                  {...form.register('companyName')}
+                />
+                {form.formState.errors.companyName && (
+                  <p className="text-sm text-destructive font-medium">
+                    {form.formState.errors.companyName.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="jobTitle">Job Title</Label>
+                <Input
+                  id="jobTitle"
+                  placeholder="Frontend Engineer"
+                  {...form.register('jobTitle')}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="location">Location</Label>
+                <Input
+                  id="location"
+                  placeholder="Remote"
+                  {...form.register('location')}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="appliedAt">Applied At</Label>
+                <Input
+                  id="appliedAt"
+                  type="datetime-local"
+                  {...form.register('appliedAt', {
+                    setValueAs: (v: string) => v === "" ? undefined : new Date(v).toISOString()
+                  })}
+                />
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
-              <Input
-                id="location"
-                placeholder="Remote"
-                {...form.register('location')}
-              />
-            </div>
+            {createMutation.isError && (
+              <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm font-medium">
+                Error creating application: {createMutation.error.message}
+              </div>
+            )}
 
-            <div className="space-y-2">
-              <Label htmlFor="appliedAt">Applied At</Label>
-              <Input
-                id="appliedAt"
-                type="datetime-local"
-                {...form.register('appliedAt', {
-                  setValueAs: (v: string) => v === "" ? undefined : new Date(v).toISOString()
-                })}
-              />
+            <div className="flex justify-end">
+              <Button type="submit" disabled={createMutation.isPending}>
+                {createMutation.isPending ? 'Saving...' : 'Save Application'}
+              </Button>
             </div>
-          </div>
-
-          {createMutation.isError && (
-            <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm font-medium">
-              Error creating application: {createMutation.error.message}
-            </div>
-          )}
-
-          <div className="flex justify-end">
-            <Button type="submit" disabled={createMutation.isPending}>
-              {createMutation.isPending ? 'Saving...' : 'Save Application'}
-            </Button>
-          </div>
-        </form>
-      </div>
+          </form>
+        </div>
+      )}
 
       {/* Action Queue */}
       <ActionQueueSection />
@@ -448,7 +466,7 @@ function ApplicationsDashboard() {
             role="status"
           >
             <p className="text-base font-medium mb-1">No applications yet</p>
-            <p className="text-sm">Track your first job application above. AI-detected emails will appear automatically once Gmail is connected.</p>
+            <p className="text-sm">Add your first application above. AI-detected emails will appear automatically once Gmail is connected.</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -461,6 +479,7 @@ function ApplicationsDashboard() {
     </div>
   );
 }
+
 
 function ApplicationsPage() {
   const routerState = useRouterState();
