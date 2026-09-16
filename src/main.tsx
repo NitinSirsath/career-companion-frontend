@@ -4,24 +4,24 @@ import './index.css'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { routeTree } from './routeTree.gen'
-import { getCurrentUser, User } from './api/auth';
+import { getCurrentUser } from './api/auth';
 
 const queryClient = new QueryClient()
 
+// Create router outside the component tree
+const router = createRouter({
+  routeTree,
+  context: { user: null },
+});
+
 function App() {
-  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [router, setRouter] = useState<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
     getCurrentUser().then((u) => {
       setUser(u);
-      
-      const r = createRouter({
-        routeTree,
-        context: { user: u },
-      });
-      setRouter(r);
       setLoading(false);
     });
   }, []);
@@ -30,7 +30,8 @@ function App() {
     return <div className="p-8">Loading...</div>;
   }
 
-  return <RouterProvider router={router} />;
+  // Pass the dynamic context to the router provider
+  return <RouterProvider router={router} context={{ user }} />;
 }
 
 createRoot(document.getElementById('root')!).render(

@@ -1,6 +1,5 @@
-import { createRootRouteWithContext, Outlet, Link, redirect, useRouter } from '@tanstack/react-router';
-import { User, getCurrentUser, logout } from '../api/auth';
-import { useEffect, useState } from 'react';
+import { createRootRouteWithContext, Outlet, Link, redirect } from '@tanstack/react-router';
+import { User, logout } from '../api/auth';
 
 interface RouterContext {
   user: User | null;
@@ -11,12 +10,12 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     // Only fetch user if not present, and let context handle it.
     // We will do actual fetch in main.tsx or app root to inject context.
     if (!context.user && location.pathname !== '/login') {
-      throw redirect({
+      console.log("redirecting to login"); throw redirect({
         to: '/login',
       });
     }
     if (context.user && location.pathname === '/login') {
-      throw redirect({
+      console.log("redirecting to login"); throw redirect({
         to: '/',
       });
     }
@@ -25,7 +24,6 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 });
 
 function RootComponent() {
-  const router = useRouter();
   const context = Route.useRouteContext();
 
   const handleLogout = async () => {

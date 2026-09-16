@@ -18,11 +18,14 @@ vi.mock('../api/client', () => ({
 
 import { routeTree } from '../routeTree.gen';
 
+const MOCK_USER = { id: 'test-user', email: 'test@test.local', name: 'Test User' };
+
 function createTestRouter(initialPath = '/gmail') {
   const history = createMemoryHistory({
     initialEntries: [initialPath],
   });
-  return createRouter({ routeTree, history });
+  // Pass a mock authenticated user so the root route's beforeLoad doesn't redirect to /login
+  return createRouter({ routeTree, history, context: { user: MOCK_USER } });
 }
 
 describe('Gmail Route', () => {

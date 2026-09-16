@@ -2,10 +2,17 @@ import {
   CreateApplicationRequest, 
   ApplicationResponse, 
   ListApplicationsResponse,
+  ListApplicationEventsResponse,
+  ListApplicationActionsResponse,
   GmailStatusResponse,
   SyncResponse,
-  MessagesListResponse 
+  MessagesListResponse,
+  AmbiguousMatchResponse,
+  ResolveAmbiguityRequest,
+  ActionWithContextResponse,
+  UpdateActionRequest,
 } from '../contracts';
+
 export class ApiClient {
   private defaultHeaders: Record<string, string>;
 
@@ -14,10 +21,6 @@ export class ApiClient {
       'Content-Type': 'application/json',
     };
     
-    const devUser = import.meta.env.VITE_DEV_USER;
-    if (devUser) {
-      this.defaultHeaders['X-Development-User'] = devUser;
-    }
   }
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -42,7 +45,7 @@ export class ApiClient {
     return this.request<T>(endpoint, { ...options, method: 'GET' });
   }
 
-  async post<T>(endpoint: string, body?: any, options?: RequestInit): Promise<T> {
+  async post<T>(endpoint: string, body?: unknown, options?: RequestInit): Promise<T> {
     return this.request<T>(endpoint, {
       ...options,
       method: 'POST',
@@ -60,6 +63,53 @@ export class ApiClient {
   async listApplications(): Promise<ListApplicationsResponse> {
     return this.request<ListApplicationsResponse>('/api/applications', {
       method: 'GET',
+    });
+  }
+
+  /** Fetch timeline events for one application. Ordered createdAt ASC. */
+  async getApplicationEvents(applicationId: string): Promise<ListApplicationEventsResponse> {
+    return this.request<ListApplicationEventsResponse>(
+      `/api/applications/${applicationId}/events`,
+      { method: 'GET' }
+    );
+  }
+
+  /** Fetch actions for one application. */
+  async getApplicationActions(applicationId: string): Promise<ListApplicationActionsResponse> {
+    return this.request<ListApplicationActionsResponse>(
+      `/api/applications/${applicationId}/actions`,
+      { method: 'GET' }
+    );
+  }
+
+  // --- Email Ambiguity (COM-32) ---
+
+  async getAmbiguousEmails(): Promise<AmbiguousMatchResponse[]> {
+    return this.request<AmbiguousMatchResponse[]>('/api/emails/ambiguous', {
+      method: 'GET',
+    });
+  }
+
+  async resolveAmbiguousEmail(emailId: string, data: ResolveAmbiguityRequest): Promise<{ success: boolean }> {
+    return this.request<{ success: boolean }>(`/api/emails/${emailId}/resolve`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // --- Action Management (COM-33) ---
+
+  async getActions(status?: string): Promise<ActionWithContextResponse[]> {
+    const url = status ? `/api/actions?status=${status}` : '/api/actions';
+    return this.request<ActionWithContextResponse[]>(url, {
+      method: 'GET',
+    });
+  }
+
+  async updateAction(actionId: string, data: UpdateActionRequest): Promise<ActionWithContextResponse> {
+    return this.request<ActionWithContextResponse>(`/api/actions/${actionId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
     });
   }
 
