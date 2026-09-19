@@ -315,6 +315,74 @@ function AmbiguousMatchesSection({ applications }: { applications: ApplicationRe
   );
 }
 
+// ─── Unmatched Emails Section (COM-37) ────────────────────────────────────────
+
+function UnmatchedEmailsSection({ applications }: { applications: ApplicationResponse[] }) {
+  const queryClient = useQueryClient();
+  const { data: unmatchedEmails, isLoading } = useQuery({
+    queryKey: ['unmatched-emails'],
+    queryFn: () => api.getUnmatchedEmails(),
+  });
+
+  const resolveMutation = useMutation({
+    mutationFn: ({ emailId, applicationId }: { emailId: string; applicationId: string }) =>
+      api.resolveUnmatchedEmail(emailId, { applicationId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['unmatched-emails'] });
+      queryClient.invalidateQueries({ queryKey: ['applications'] });
+    },
+  });
+
+  if (isLoading || !unmatchedEmails || unmatchedEmails.length === 0) return null;
+
+  return (
+    <div className="space-y-4 mb-8">
+      <h3 className="text-lg font-medium text-blue-600 dark:text-blue-400">Unmatched Emails ({unmatchedEmails.length})</h3>
+      <div className="space-y-3">
+        {unmatchedEmails.map(email => (
+          <div key={email.id} className="rounded-xl border border-blue-200 dark:border-blue-900/50 bg-blue-50/50 dark:bg-blue-950/20 p-5 shadow-sm">
+            <div className="flex flex-col md:flex-row gap-6 justify-between">
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-blue-800 dark:text-blue-300">Needs Linking</p>
+                <div className="mt-2 space-y-1">
+                  <p className="text-xs text-muted-foreground"><span className="font-medium">From:</span> {email.sender}</p>
+                  {email.subject && <p className="text-xs text-muted-foreground"><span className="font-medium">Subject:</span> {email.subject}</p>}
+                </div>
+
+                {email.aiProcessingResult && (
+                  <div className="mt-3 text-sm bg-background/60 p-3 rounded-lg border border-blue-200/50 dark:border-blue-900/30">
+                    <p className="text-xs font-semibold text-foreground/70 mb-1">AI Extracted:</p>
+                    <p className="font-medium">{email.aiProcessingResult.companyName || 'Unknown Company'}
+                    {email.aiProcessingResult.jobTitle ? ` - ${email.aiProcessingResult.jobTitle}` : ''}</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-2 shrink-0 md:w-[280px]">
+                <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wider">Link to Application</p>
+                <div className="flex flex-col gap-1.5 max-h-[200px] overflow-y-auto pr-1">
+                  {applications.map(app => (
+                    <Button
+                      key={app.id}
+                      variant="outline"
+                      size="sm"
+                      className="justify-start truncate w-full"
+                      disabled={resolveMutation.isPending}
+                      onClick={() => resolveMutation.mutate({ emailId: email.id, applicationId: app.id })}
+                    >
+                      {app.companyName} {app.jobTitle ? `— ${app.jobTitle}` : ''}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 
@@ -437,6 +505,9 @@ function ApplicationsDashboard() {
 
       {/* Action Queue */}
       <ActionQueueSection />
+
+      {/* Unmatched Emails */}
+      {applications && <UnmatchedEmailsSection applications={applications} />}
 
       {/* Ambiguous Matches */}
       {applications && <AmbiguousMatchesSection applications={applications} />}

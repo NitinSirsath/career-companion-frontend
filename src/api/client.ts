@@ -97,6 +97,21 @@ export class ApiClient {
     });
   }
 
+  // --- Unmatched Emails (COM-37) ---
+
+  async getUnmatchedEmails(): Promise<AmbiguousMatchResponse[]> {
+    return this.request<AmbiguousMatchResponse[]>('/api/emails/unmatched', {
+      method: 'GET',
+    });
+  }
+
+  async resolveUnmatchedEmail(emailId: string, data: { applicationId: string }): Promise<{ success: boolean }> {
+    return this.request<{ success: boolean }>(`/api/emails/${emailId}/resolve`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   // --- Action Management (COM-33) ---
 
   async getActions(status?: string): Promise<ActionWithContextResponse[]> {

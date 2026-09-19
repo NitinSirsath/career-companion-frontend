@@ -1,0 +1,128 @@
+// @vitest-environment jsdom
+import '@testing-library/jest-dom/vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
+import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { api } from '../api/client';
+import { routeTree } from '../routeTree.gen';
+import { ApplicationResponse } from '../contracts/application';
+
+const MOCK_USER = { id: 'test-user', email: 'test@test.local', name: 'Test User' };
+
+function createTestRouter(initialPath = '/applications') {
+  const history = createMemoryHistory({
+    initialEntries: [initialPath],
+  });
+  return createRouter({ routeTree, history, context: { user: MOCK_USER } });
+}
+
+function renderWithProviders(queryClient: QueryClient, initialPath: string) {
+  const router = createTestRouter(initialPath);
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>
+  );
+}
+
+// Mocks
+vi.mock('../api/client', () => ({
+  api: {
+    listApplications: vi.fn(),
+    createApplication: vi.fn(),
+    getAmbiguousEmails: vi.fn(),
+    resolveAmbiguousEmail: vi.fn(),
+    getUnmatchedEmails: vi.fn(),
+    resolveUnmatchedEmail: vi.fn(),
+  }
+}));
+
+const makeApp = (overrides?: Partial<ApplicationResponse>): ApplicationResponse => ({
+  id: 'app-1',
+  companyName: 'Acme Corp',
+  jobTitle: 'Senior Engineer',
+  location: 'Remote',
+  aiStatus: 'APPLIED',
+  userStatus: null,
+  userStatusSetAt: null,
+  appliedAt: '2026-01-15T10:00:00.000Z',
+  createdAt: '2026-01-15T10:00:00.000Z',
+  updatedAt: '2026-01-15T10:00:00.000Z',
+  recentEvent: null,
+  pendingActionCount: 0,
+  ...overrides,
+});
+
+describe('Unmatched Emails (COM-37)', () => {
+  let queryClient: QueryClient;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    
+    // Default mocks for irrelevant sections to prevent them from rendering or throwing
+    vi.mocked(api.getAmbiguousEmails).mockResolvedValue([]);
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  it('renders unmatched emails when present', async () => {
+    vi.mocked(api.listApplications).mockResolvedValue([makeApp()]);
+    vi.mocked(api.getUnmatchedEmails).mockResolvedValue([
+      {
+        id: 'email-1',
+        sender: 'eng@startup.io',
+        subject: 'Interview schedule',
+        receivedAt: '2026-01-16T10:00:00Z',
+        aiProcessingResult: {
+          companyName: 'Startup',
+          jobTitle: null,
+          confidence: 0.9,
+          category: 'INTERVIEW',
+        }
+      }
+    ]);
+
+    renderWithProviders(queryClient, '/applications');
+
+    expect(await screen.findByText('Unmatched Emails (1)')).toBeInTheDocument();
+    expect(screen.getByText('Needs Linking')).toBeInTheDocument();
+    expect(screen.getByText('eng@startup.io')).toBeInTheDocument();
+    expect(screen.getByText('Interview schedule')).toBeInTheDocument();
+    expect(screen.getByText('Startup')).toBeInTheDocument();
+    
+    // Candidate applications render
+    expect(screen.getByRole('button', { name: /Acme Corp/ })).toBeInTheDocument();
+    
+    // Ignore button should NOT render for unmatched emails
+    expect(screen.queryByRole('button', { name: /Not related to any application/i })).not.toBeInTheDocument();
+  });
+
+  it('submits resolution request successfully to an application', async () => {
+    vi.mocked(api.listApplications).mockResolvedValue([makeApp()]);
+    vi.mocked(api.getUnmatchedEmails).mockResolvedValue([
+      {
+        id: 'email-1',
+        sender: 'eng@startup.io',
+        subject: 'Interview schedule',
+        receivedAt: '2026-01-16T10:00:00Z',
+        aiProcessingResult: null
+      }
+    ]);
+    vi.mocked(api.resolveUnmatchedEmail).mockResolvedValue({ success: true });
+
+    renderWithProviders(queryClient, '/applications');
+
+    const selectButton = await screen.findByRole('button', { name: /Acme Corp/ });
+    fireEvent.click(selectButton);
+
+    await waitFor(() => {
+      expect(api.resolveUnmatchedEmail).toHaveBeenCalledWith('email-1', { applicationId: 'app-1' });
+    });
+  });
+});
