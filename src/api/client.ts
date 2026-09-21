@@ -34,6 +34,13 @@ export class ApiClient {
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        // Prevent redirect loop if already on login page
+        if (!window.location.pathname.startsWith('/login')) {
+          window.location.href = '/login?error=expired';
+        }
+      }
+      
       const error = await response.json().catch(() => ({}));
       throw new Error(error?.error?.message || `API request failed with status ${response.status}`);
     }
