@@ -13,10 +13,11 @@ export const Route = createFileRoute('/')({
 
 function ActionQueueSection() {
   const queryClient = useQueryClient();
-  const { data: actions, isLoading } = useQuery({
+  const { data: actionsResponse, isLoading } = useQuery({
     queryKey: ['actions', { status: 'PENDING' }],
     queryFn: () => api.getActions('PENDING'),
   });
+  const actions = actionsResponse?.items;
 
   const updateMutation = useMutation({
     mutationFn: ({ actionId, status }: { actionId: string; status: 'COMPLETED' | 'DISMISSED' }) =>
@@ -102,7 +103,8 @@ function ActionQueueSection() {
 
 function AmbiguousMatchesSection({ applications }: { applications: ApplicationResponse[] }) {
   const queryClient = useQueryClient();
-  const { data: ambiguousEmails, isLoading } = useQuery({ queryKey: ['ambiguous-emails'], queryFn: () => api.getAmbiguousEmails() });
+  const { data: ambiguousEmailsResponse, isLoading } = useQuery({ queryKey: ['ambiguous-emails'], queryFn: () => api.getAmbiguousEmails() });
+  const ambiguousEmails = ambiguousEmailsResponse?.items;
   const resolveMutation = useMutation({
     mutationFn: ({ emailId, applicationId }: { emailId: string, applicationId: string | null }) => api.resolveAmbiguousEmail(emailId, { applicationId }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['ambiguous-emails'] }); queryClient.invalidateQueries({ queryKey: ['applications'] }); }
@@ -112,7 +114,7 @@ function AmbiguousMatchesSection({ applications }: { applications: ApplicationRe
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-medium text-warning">Needs Review ({ambiguousEmails.length})</h3>
+      <h3 className="text-lg font-medium text-warning">Needs Review ({ambiguousEmails.length}{ambiguousEmailsResponse?.metadata?.nextOffset ? '+' : ''})</h3>
       <div className="space-y-3">
         {ambiguousEmails.map(email => (
           <div key={email.id} className="border border-border-default border-l-4 border-l-status-warning bg-surface p-4">
@@ -147,7 +149,8 @@ function AmbiguousMatchesSection({ applications }: { applications: ApplicationRe
 
 function UnmatchedEmailsSection({ applications }: { applications: ApplicationResponse[] }) {
   const queryClient = useQueryClient();
-  const { data: unmatchedEmails, isLoading } = useQuery({ queryKey: ['unmatched-emails'], queryFn: () => api.getUnmatchedEmails() });
+  const { data: unmatchedEmailsResponse, isLoading } = useQuery({ queryKey: ['unmatched-emails'], queryFn: () => api.getUnmatchedEmails() });
+  const unmatchedEmails = unmatchedEmailsResponse?.items;
   const resolveMutation = useMutation({
     mutationFn: ({ emailId, applicationId }: { emailId: string; applicationId: string }) => api.resolveUnmatchedEmail(emailId, { applicationId }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['unmatched-emails'] }); queryClient.invalidateQueries({ queryKey: ['applications'] }); }
@@ -157,7 +160,7 @@ function UnmatchedEmailsSection({ applications }: { applications: ApplicationRes
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-medium text-info">Unmatched Emails ({unmatchedEmails.length})</h3>
+      <h3 className="text-lg font-medium text-info">Unmatched Emails ({unmatchedEmails.length}{unmatchedEmailsResponse?.metadata?.nextOffset ? '+' : ''})</h3>
       <div className="space-y-3">
         {unmatchedEmails.map(email => (
           <div key={email.id} className="border border-border-default border-l-4 border-l-status-info bg-surface p-4">
@@ -188,10 +191,11 @@ function UnmatchedEmailsSection({ applications }: { applications: ApplicationRes
 }
 
 function DashboardPage() {
-  const { data: applications } = useQuery({
+  const { data: applicationsResponse } = useQuery({
     queryKey: ['applications'],
     queryFn: () => api.listApplications(),
   });
+  const applications = applicationsResponse?.items;
 
   return (
     <div className="space-y-10">

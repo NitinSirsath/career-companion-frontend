@@ -109,11 +109,12 @@ function ApplicationsDashboard() {
   const queryClient = useQueryClient();
   const [showCreateForm, setShowCreateForm] = React.useState(false);
 
-  const { data: applications, isLoading, error } = useQuery({
+  const { data: applicationsResponse, isLoading, error } = useQuery({
     queryKey: ['applications'],
     queryFn: () => api.listApplications(),
   });
 
+  const applications = applicationsResponse?.items || [];
   const createMutation = useMutation({
     mutationFn: (data: CreateApplicationRequest) => api.createApplication(data),
     onSuccess: () => {

@@ -156,7 +156,7 @@ function GmailPage() {
       )}
 
       {/* Ingested Email List */}
-      {(statusData?.connected || (messagesData && messagesData.total > 0)) && (
+      {(statusData?.connected || (messagesData && messagesData?.items?.length > 0)) && (
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Ingested Emails</h3>
           {isLoadingMessages ? (
@@ -167,7 +167,7 @@ function GmailPage() {
             <div className="p-8 text-center text-destructive border-destructive/20 border rounded-xl bg-destructive/5">
               Failed to load emails: {messagesError.message}
             </div>
-          ) : !messagesData?.messages.length ? (
+          ) : !messagesData?.items.length ? (
             <div className="p-12 text-center text-muted-foreground border rounded-xl border-dashed">
               No emails synced yet. Click 'Sync Now' to begin.
             </div>
@@ -184,7 +184,7 @@ function GmailPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y">
-                    {messagesData.messages.map((msg) => (
+                    {messagesData.items.map((msg) => (
                       <tr key={msg.id} className="hover:bg-muted/50 transition-colors">
                         <td className="px-4 py-3 font-medium max-w-xs truncate" title={msg.subject || ''}>
                           {msg.subject || '(No Subject)'}

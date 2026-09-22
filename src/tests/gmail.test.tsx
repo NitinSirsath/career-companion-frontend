@@ -79,10 +79,8 @@ describe('Gmail Route', () => {
     });
 
     vi.mocked(api.getMessages).mockResolvedValue({
-      messages: [],
-      total: 0,
-      limit: 50,
-      offset: 0
+      items: [],
+      metadata: { limit: 50, offset: 0, nextOffset: null }
     });
 
     renderWithProviders();
@@ -134,10 +132,8 @@ describe('Gmail Route', () => {
     });
 
     vi.mocked(api.getMessages).mockResolvedValue({
-      messages: [],
-      total: 0,
-      limit: 50,
-      offset: 0
+      items: [],
+      metadata: { limit: 50, offset: 0, nextOffset: null }
     });
 
     vi.mocked(api.triggerSync).mockResolvedValue({
@@ -166,10 +162,8 @@ describe('Gmail Route', () => {
     });
 
     vi.mocked(api.getMessages).mockResolvedValue({
-      messages: [],
-      total: 0,
-      limit: 50,
-      offset: 0
+      items: [],
+      metadata: { limit: 50, offset: 0, nextOffset: null }
     });
 
     renderWithProviders();

@@ -11,6 +11,7 @@ import {
   ResolveAmbiguityRequest,
   ActionWithContextResponse,
   UpdateActionRequest,
+  PaginatedResponse,
 } from '../contracts';
 
 export class ApiClient {
@@ -67,8 +68,12 @@ export class ApiClient {
     });
   }
 
-  async listApplications(): Promise<ListApplicationsResponse> {
-    return this.request<ListApplicationsResponse>('/api/applications', {
+  async listApplications(params?: { limit?: number; offset?: number }): Promise<ListApplicationsResponse> {
+    const urlParams = new URLSearchParams();
+    if (params?.limit !== undefined) urlParams.append('limit', params.limit.toString());
+    if (params?.offset !== undefined) urlParams.append('offset', params.offset.toString());
+    const q = urlParams.toString();
+    return this.request<ListApplicationsResponse>(`/api/applications${q ? '?' + q : ''}`, {
       method: 'GET',
     });
   }
@@ -91,8 +96,12 @@ export class ApiClient {
 
   // --- Email Ambiguity (COM-32) ---
 
-  async getAmbiguousEmails(): Promise<AmbiguousMatchResponse[]> {
-    return this.request<AmbiguousMatchResponse[]>('/api/emails/ambiguous', {
+  async getAmbiguousEmails(params?: { limit?: number; offset?: number }): Promise<PaginatedResponse<AmbiguousMatchResponse>> {
+    const urlParams = new URLSearchParams();
+    if (params?.limit !== undefined) urlParams.append('limit', params.limit.toString());
+    if (params?.offset !== undefined) urlParams.append('offset', params.offset.toString());
+    const q = urlParams.toString();
+    return this.request<PaginatedResponse<AmbiguousMatchResponse>>(`/api/emails/ambiguous${q ? '?' + q : ''}`, {
       method: 'GET',
     });
   }
@@ -106,8 +115,12 @@ export class ApiClient {
 
   // --- Unmatched Emails (COM-37) ---
 
-  async getUnmatchedEmails(): Promise<AmbiguousMatchResponse[]> {
-    return this.request<AmbiguousMatchResponse[]>('/api/emails/unmatched', {
+  async getUnmatchedEmails(params?: { limit?: number; offset?: number }): Promise<PaginatedResponse<AmbiguousMatchResponse>> {
+    const urlParams = new URLSearchParams();
+    if (params?.limit !== undefined) urlParams.append('limit', params.limit.toString());
+    if (params?.offset !== undefined) urlParams.append('offset', params.offset.toString());
+    const q = urlParams.toString();
+    return this.request<PaginatedResponse<AmbiguousMatchResponse>>(`/api/emails/unmatched${q ? '?' + q : ''}`, {
       method: 'GET',
     });
   }
@@ -121,9 +134,13 @@ export class ApiClient {
 
   // --- Action Management (COM-33) ---
 
-  async getActions(status?: string): Promise<ActionWithContextResponse[]> {
-    const url = status ? `/api/actions?status=${status}` : '/api/actions';
-    return this.request<ActionWithContextResponse[]>(url, {
+  async getActions(status?: string, params?: { limit?: number; offset?: number }): Promise<PaginatedResponse<ActionWithContextResponse>> {
+    const urlParams = new URLSearchParams();
+    if (status) urlParams.append('status', status);
+    if (params?.limit !== undefined) urlParams.append('limit', params.limit.toString());
+    if (params?.offset !== undefined) urlParams.append('offset', params.offset.toString());
+    const q = urlParams.toString();
+    return this.request<PaginatedResponse<ActionWithContextResponse>>(`/api/actions${q ? '?' + q : ''}`, {
       method: 'GET',
     });
   }

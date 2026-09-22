@@ -1,3 +1,4 @@
+import { createPaginatedResponseSchema } from './pagination';
 import { z } from 'zod';
 
 export const ApplicationStatusSchema = z.enum([
@@ -48,7 +49,7 @@ export const ApplicationResponseSchema = z.object({
 
 export type ApplicationResponse = z.infer<typeof ApplicationResponseSchema>;
 
-export const ListApplicationsResponseSchema = z.array(ApplicationResponseSchema);
+export const ListApplicationsResponseSchema = createPaginatedResponseSchema(ApplicationResponseSchema);
 export type ListApplicationsResponse = z.infer<typeof ListApplicationsResponseSchema>;
 
 // ─── ApplicationEvent ────────────────────────────────────────────────────────

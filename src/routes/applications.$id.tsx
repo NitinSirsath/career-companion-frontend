@@ -170,12 +170,13 @@ function ApplicationDetailPage() {
   const { id } = Route.useParams();
 
   // Reuse list query (already cached from dashboard visit)
-  const { data: applications } = useQuery({
+  const { data: applicationsResponse } = useQuery({
     queryKey: ['applications'],
     queryFn: () => api.listApplications(),
     staleTime: 30_000,
   });
 
+  const applications = applicationsResponse?.items || [];
   const application = applications?.find((a) => a.id === id);
 
   const {

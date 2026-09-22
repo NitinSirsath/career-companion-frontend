@@ -7,6 +7,7 @@
  */
 
 import { z } from 'zod';
+import { createPaginatedResponseSchema } from './pagination';
 
 // ─── Shared enums (mirrors Prisma enums) ────────────────────────────────────
 
@@ -60,10 +61,5 @@ export const EmailMessageSchema = z.object({
 });
 export type EmailMessage = z.infer<typeof EmailMessageSchema>;
 
-export const MessagesListResponseSchema = z.object({
-  messages: z.array(EmailMessageSchema),
-  total: z.number(),
-  limit: z.number(),
-  offset: z.number(),
-});
+export const MessagesListResponseSchema = createPaginatedResponseSchema(EmailMessageSchema);
 export type MessagesListResponse = z.infer<typeof MessagesListResponseSchema>;
