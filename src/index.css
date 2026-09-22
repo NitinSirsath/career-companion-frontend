@@ -122,7 +122,7 @@
     --text-secondary: #c6c6c6;
     --text-tertiary: #a8a8a8;
     --text-disabled: #6f6f6f;
-    --text-inverse: #161616;
+    --text-inverse: #ffffff;
 
     --border-subtle: #393939;
     --border-default: #525252;
@@ -270,8 +270,4 @@
     font-family: var(--font-sans);
   }
   
-  /* Reset radius on buttons and inputs globally if needed, though utility classes should use --radius */
-  * {
-    border-radius: 0px !important;
-  }
 }
