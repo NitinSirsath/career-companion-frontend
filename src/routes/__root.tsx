@@ -1,5 +1,8 @@
-import { createRootRouteWithContext, Outlet, Link, redirect } from '@tanstack/react-router';
+import { createRootRouteWithContext, Outlet, redirect } from '@tanstack/react-router';
 import { User, logout } from '../api/auth';
+import { Sidebar } from '../components/layout/Sidebar';
+import { MobileNav } from '../components/layout/MobileNav';
+import { Briefcase, LogOut } from 'lucide-react';
 
 interface RouterContext {
   user: User | null;
@@ -7,17 +10,11 @@ interface RouterContext {
 
 export const Route = createRootRouteWithContext<RouterContext>()({
   beforeLoad: async ({ location, context }) => {
-    // Only fetch user if not present, and let context handle it.
-    // We will do actual fetch in main.tsx or app root to inject context.
     if (!context.user && location.pathname !== '/login') {
-      console.log("redirecting to login"); throw redirect({
-        to: '/login',
-      });
+      throw redirect({ to: '/login' });
     }
     if (context.user && location.pathname === '/login') {
-      console.log("redirecting to login"); throw redirect({
-        to: '/',
-      });
+      throw redirect({ to: '/' });
     }
   },
   component: RootComponent,
@@ -28,24 +25,37 @@ function RootComponent() {
 
   const handleLogout = async () => {
     await logout();
-    window.location.href = '/login'; // hard reload to clear context
+    window.location.href = '/login';
   };
 
+  // If not logged in (e.g. login page), just render Outlet without shell
+  if (!context.user) {
+    return <Outlet />;
+  }
+
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans">
-      <div className="p-4 border-b border-border flex justify-between items-center">
-        <h1 className="font-semibold text-lg">Career Companion</h1>
-        {context.user && (
-          <div className="text-sm opacity-80 flex gap-6 items-center">
-            <Link to="/" className="[&.active]:font-bold hover:underline">Home</Link>
-            <Link to="/applications" className="[&.active]:font-bold hover:underline">Applications</Link>
-            <Link to="/gmail" className="[&.active]:font-bold hover:underline">Gmail</Link>
-            <button onClick={handleLogout} className="ml-4 hover:underline text-red-500 font-medium">Logout</button>
+    <div className="min-h-screen bg-background text-foreground flex font-sans">
+      <Sidebar />
+      <div className="flex-1 flex flex-col min-w-0 pb-16 md:pb-0">
+        {/* Mobile Top Bar */}
+        <header className="md:hidden flex items-center justify-between p-4 border-b border-border bg-card">
+          <div className="flex items-center gap-2">
+            <Briefcase className="w-5 h-5 text-primary" />
+            <h1 className="font-semibold text-lg tracking-tight">Career Companion</h1>
           </div>
-        )}
-      </div>
-      <div className="flex-1 p-4">
-        <Outlet />
+          <button onClick={handleLogout} className="text-destructive p-2" aria-label="Logout">
+            <LogOut className="w-5 h-5" />
+          </button>
+        </header>
+
+        {/* Main Content Area */}
+        <main className="flex-1 p-4 md:p-8 overflow-auto">
+          <div className="max-w-6xl mx-auto">
+            <Outlet />
+          </div>
+        </main>
+        
+        <MobileNav />
       </div>
     </div>
   );

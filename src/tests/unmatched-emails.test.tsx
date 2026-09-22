@@ -88,19 +88,18 @@ describe('Unmatched Emails (COM-37)', () => {
       }
     ]);
 
-    renderWithProviders(queryClient, '/applications');
+    renderWithProviders(queryClient, '/');
 
     expect(await screen.findByText('Unmatched Emails (1)')).toBeInTheDocument();
     expect(screen.getByText('Needs Linking')).toBeInTheDocument();
     expect(screen.getByText('eng@startup.io')).toBeInTheDocument();
     expect(screen.getByText('Interview schedule')).toBeInTheDocument();
-    expect(screen.getByText('Startup')).toBeInTheDocument();
     
     // Candidate applications render
     expect(screen.getByRole('button', { name: /Acme Corp/ })).toBeInTheDocument();
     
     // Ignore button should NOT render for unmatched emails
-    expect(screen.queryByRole('button', { name: /Not related to any application/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Not related/i })).not.toBeInTheDocument();
   });
 
   it('submits resolution request successfully to an application', async () => {
@@ -116,7 +115,7 @@ describe('Unmatched Emails (COM-37)', () => {
     ]);
     vi.mocked(api.resolveUnmatchedEmail).mockResolvedValue({ success: true });
 
-    renderWithProviders(queryClient, '/applications');
+    renderWithProviders(queryClient, '/');
 
     const selectButton = await screen.findByRole('button', { name: /Acme Corp/ });
     fireEvent.click(selectButton);

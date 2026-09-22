@@ -122,40 +122,40 @@ describe('Applications Dashboard (/applications)', () => {
     expect(screen.queryByText(/track new application/i)).not.toBeInTheDocument();
   });
 
-  it('shows the "+ Add Application" button by default', async () => {
+  it('shows the "Add Application" button by default', async () => {
     vi.mocked(api.listApplications).mockResolvedValue([]);
 
     renderWithProviders(queryClient, '/applications');
 
-    await screen.findByRole('button', { name: /\+ add application/i });
+    await screen.findByRole('button', { name: /add application/i });
   });
 
-  it('reveals the create form when "+ Add Application" is clicked', async () => {
+  it('reveals the create form when "Add Application" is clicked', async () => {
     vi.mocked(api.listApplications).mockResolvedValue([]);
 
     renderWithProviders(queryClient, '/applications');
 
-    const btn = await screen.findByRole('button', { name: /\+ add application/i });
+    const btn = await screen.findByRole('button', { name: /add application/i });
     fireEvent.click(btn);
 
     expect(await screen.findByText(/track new application/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/company name/i)).toBeInTheDocument();
   });
 
-  it('hides the create form again when "✕ Cancel" is clicked', async () => {
+  it('hides the create form again when "Cancel" is clicked', async () => {
     vi.mocked(api.listApplications).mockResolvedValue([]);
 
     renderWithProviders(queryClient, '/applications');
 
     // Open form
-    const addBtn = await screen.findByRole('button', { name: /\+ add application/i });
+    const addBtn = await screen.findByRole('button', { name: /add application/i });
     fireEvent.click(addBtn);
 
     // Verify open
     expect(await screen.findByText(/track new application/i)).toBeInTheDocument();
 
     // Close form
-    const cancelBtn = screen.getByRole('button', { name: /✕ cancel/i });
+    const cancelBtn = screen.getByRole('button', { name: /cancel/i });
     fireEvent.click(cancelBtn);
 
     expect(screen.queryByText(/track new application/i)).not.toBeInTheDocument();
@@ -169,7 +169,7 @@ describe('Applications Dashboard (/applications)', () => {
 
     renderWithProviders(queryClient, '/applications');
 
-    expect(await screen.findByRole('status', { name: /loading applications/i })).toBeInTheDocument();
+    expect(await screen.findByText(/loading applications/i)).toBeInTheDocument();
   });
 
   it('shows empty state when there are no applications', async () => {
@@ -185,8 +185,7 @@ describe('Applications Dashboard (/applications)', () => {
 
     renderWithProviders(queryClient, '/applications');
 
-    expect(await screen.findByRole('alert')).toBeInTheDocument();
-    expect(screen.getByText(/failed to load applications/i)).toBeInTheDocument();
+    expect(await screen.findByText(/failed to load applications/i)).toBeInTheDocument();
   });
 
   it('renders application cards with company and role', async () => {

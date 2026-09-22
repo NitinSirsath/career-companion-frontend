@@ -68,12 +68,12 @@ describe('Action Queue (COM-33)', () => {
 
   it('does not render queue if no pending actions', async () => {
     vi.mocked(api.getActions).mockResolvedValue([]);
-    renderWithProviders(queryClient, '/applications');
+    renderWithProviders(queryClient, '/');
 
     await waitFor(() => {
       expect(screen.queryByText('Loading action queue...')).not.toBeInTheDocument();
     });
-    expect(screen.queryByText('Next Steps')).not.toBeInTheDocument();
+    expect(screen.queryByText('Action Center')).not.toBeInTheDocument();
   });
 
   it('renders pending actions grouped correctly', async () => {
@@ -89,9 +89,9 @@ describe('Action Queue (COM-33)', () => {
       makeAction({ id: 'a3', description: 'Pending task', deadline: null })
     ]);
 
-    renderWithProviders(queryClient, '/applications');
+    renderWithProviders(queryClient, '/');
 
-    expect(await screen.findByText('Next Steps')).toBeInTheDocument();
+    expect(await screen.findByText('Action Center')).toBeInTheDocument();
     expect(screen.getAllByText('Overdue').length).toBeGreaterThan(0);
     expect(screen.getByText('Overdue task')).toBeInTheDocument();
     
@@ -110,9 +110,9 @@ describe('Action Queue (COM-33)', () => {
     vi.mocked(api.getActions).mockResolvedValue([makeAction({ id: 'a1' })]);
     vi.mocked(api.updateAction).mockResolvedValue(makeAction({ id: 'a1', status: 'COMPLETED' }));
 
-    renderWithProviders(queryClient, '/applications');
+    renderWithProviders(queryClient, '/');
 
-    const completeBtn = await screen.findByRole('button', { name: /Mark Complete/i });
+    const completeBtn = await screen.findByRole('button', { name: /^Complete$/i });
     fireEvent.click(completeBtn);
 
     await waitFor(() => {
@@ -124,7 +124,7 @@ describe('Action Queue (COM-33)', () => {
     vi.mocked(api.getActions).mockResolvedValue([makeAction({ id: 'a1' })]);
     vi.mocked(api.updateAction).mockResolvedValue(makeAction({ id: 'a1', status: 'DISMISSED' }));
 
-    renderWithProviders(queryClient, '/applications');
+    renderWithProviders(queryClient, '/');
 
     const dismissBtn = await screen.findByRole('button', { name: /Dismiss/i });
     fireEvent.click(dismissBtn);

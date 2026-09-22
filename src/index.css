@@ -3,44 +3,88 @@
 @theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-surface: var(--surface);
-  --color-surface-elevated: var(--surface-elevated);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
-  --color-accent: var(--accent);
+  --color-border-strong: var(--border-strong);
   --color-success: var(--success);
   --color-warning: var(--warning);
-  --color-danger: var(--danger);
+  --color-destructive: var(--destructive);
   --color-info: var(--info);
+  
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --radius: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
 }
 
 @layer base {
   :root {
-    --background: #ffffff;
-    --foreground: #09090b;
-    --surface: #fafafa;
-    --surface-elevated: #ffffff;
-    --muted: #f4f4f5;
-    --border: #e4e4e7;
-    --accent: #18181b;
-    --success: #22c55e;
-    --warning: #f59e0b;
-    --danger: #ef4444;
-    --info: #3b82f6;
+    /* IBM Primitives mapped to semantics */
+    --background: #ffffff; /* Canvas */
+    --foreground: #161616; /* Ink */
+    
+    --card: #f4f4f4; /* Surface 1 */
+    --card-foreground: #161616; /* Ink */
+    
+    --surface-1: #f4f4f4;
+    --surface-2: #e0e0e0;
+    
+    --primary: #0f62fe; /* Primary */
+    --primary-foreground: #ffffff;
+    
+    --secondary: #e0e0e0; /* Surface 2 */
+    --secondary-foreground: #161616; /* Ink */
+    
+    --muted: #f4f4f4;
+    --muted-foreground: #525252; /* Ink muted */
+    
+    --border: #e0e0e0; /* Hairline */
+    --border-strong: #161616; /* Strong hairline */
+    
+    --success: #24a148;
+    --warning: #f1c21b;
+    --destructive: #da1e28; /* Error */
+    --info: #0f62fe;
   }
   
   .dark {
-    --background: #09090b;
-    --foreground: #fafafa;
-    --surface: #18181b;
-    --surface-elevated: #27272a;
-    --muted: #27272a;
-    --border: #3f3f46;
-    --accent: #fafafa;
-    --success: #22c55e;
-    --warning: #f59e0b;
-    --danger: #ef4444;
-    --info: #3b82f6;
+    /* Simple dark theme mapping */
+    --background: #161616;
+    --foreground: #f4f4f4;
+    
+    --card: #262626;
+    --card-foreground: #f4f4f4;
+    
+    --surface-1: #262626;
+    --surface-2: #393939;
+    
+    --primary: #0f62fe;
+    --primary-foreground: #ffffff;
+    
+    --secondary: #393939;
+    --secondary-foreground: #f4f4f4;
+    
+    --muted: #262626;
+    --muted-foreground: #8c8c8c;
+    
+    --border: #393939;
+    --border-strong: #8c8c8c;
+    
+    --success: #24a148;
+    --warning: #f1c21b;
+    --destructive: #da1e28;
+    --info: #0f62fe;
   }
 }
 
@@ -48,5 +92,11 @@
   body {
     background-color: var(--background);
     color: var(--foreground);
+    font-family: var(--font-sans);
+  }
+  
+  /* Reset radius on buttons and inputs globally if needed, though utility classes should use --radius */
+  * {
+    border-radius: 0px !important;
   }
 }

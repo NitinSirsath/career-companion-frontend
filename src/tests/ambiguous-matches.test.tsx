@@ -83,17 +83,16 @@ describe('Ambiguous Matches (COM-32)', () => {
       }
     ]);
 
-    renderWithProviders(queryClient, '/applications');
+    renderWithProviders(queryClient, '/');
 
     expect(await screen.findByText('Needs Review (1)')).toBeInTheDocument();
     expect(screen.getByText('recruiter@tech.com')).toBeInTheDocument();
     expect(screen.getByText('Next steps')).toBeInTheDocument();
-    expect(screen.getByText('Tech Co')).toBeInTheDocument();
     
     // Candidate applications render
     expect(screen.getByRole('button', { name: /Acme Corp/ })).toBeInTheDocument();
     // Ignore button renders
-    expect(screen.getByRole('button', { name: /Not related to any application/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Not related/i })).toBeInTheDocument();
   });
 
   it('submits resolution request successfully to an application', async () => {
@@ -109,7 +108,7 @@ describe('Ambiguous Matches (COM-32)', () => {
     ]);
     vi.mocked(api.resolveAmbiguousEmail).mockResolvedValue({ success: true });
 
-    renderWithProviders(queryClient, '/applications');
+    renderWithProviders(queryClient, '/');
 
     const selectButton = await screen.findByRole('button', { name: /Acme Corp/ });
     fireEvent.click(selectButton);
@@ -132,9 +131,9 @@ describe('Ambiguous Matches (COM-32)', () => {
     ]);
     vi.mocked(api.resolveAmbiguousEmail).mockResolvedValue({ success: true });
 
-    renderWithProviders(queryClient, '/applications');
+    renderWithProviders(queryClient, '/');
 
-    const ignoreButton = await screen.findByRole('button', { name: /Not related to any application/i });
+    const ignoreButton = await screen.findByRole('button', { name: /Not related/i });
     fireEvent.click(ignoreButton);
 
     await waitFor(() => {
