@@ -38,7 +38,7 @@ function ActionQueueSection() {
   const pendingActions = actions.filter(a => !a.deadline);
 
   const renderActionItem = (action: ActionWithContextResponse, isOverdue: boolean) => (
-    <div key={action.id} className={`border p-4 flex flex-col md:flex-row gap-4 justify-between bg-surface-1 ${isOverdue ? 'border-destructive' : 'border-border'}`}>
+    <div key={action.id} className={`border p-4 flex flex-col md:flex-row gap-4 justify-between bg-surface-1 ${isOverdue ? 'border-status-error' : 'border-border'}`}>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-2">
           {isOverdue && <Badge variant="destructive">Overdue</Badge>}
@@ -46,7 +46,7 @@ function ActionQueueSection() {
             {action.type.replace(/_/g, ' ')}
           </span>
           {action.deadline && (
-            <span className={`text-xs ${isOverdue ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
+            <span className={`text-xs ${isOverdue ? 'text-status-error font-medium' : 'text-muted-foreground'}`}>
               Due: {format(new Date(action.deadline), 'MMM d, yyyy h:mm a')}
             </span>
           )}
@@ -78,7 +78,7 @@ function ActionQueueSection() {
       
       {overdueActions.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-destructive uppercase tracking-wider">Overdue</h3>
+          <h3 className="text-sm font-semibold text-status-error uppercase tracking-wider">Overdue</h3>
           {overdueActions.map(a => renderActionItem(a, true))}
         </div>
       )}
@@ -115,7 +115,7 @@ function AmbiguousMatchesSection({ applications }: { applications: ApplicationRe
       <h3 className="text-lg font-medium text-warning">Needs Review ({ambiguousEmails.length})</h3>
       <div className="space-y-3">
         {ambiguousEmails.map(email => (
-          <div key={email.id} className="border border-warning bg-surface-1 p-4">
+          <div key={email.id} className="border border-status-warning bg-surface-1 p-4">
             <div className="flex flex-col md:flex-row gap-6 justify-between">
               <div className="flex-1">
                 <p className="text-sm font-semibold text-warning">Uncertain Email Match</p>
@@ -160,7 +160,7 @@ function UnmatchedEmailsSection({ applications }: { applications: ApplicationRes
       <h3 className="text-lg font-medium text-info">Unmatched Emails ({unmatchedEmails.length})</h3>
       <div className="space-y-3">
         {unmatchedEmails.map(email => (
-          <div key={email.id} className="border border-info bg-surface-1 p-4">
+          <div key={email.id} className="border border-status-info bg-surface-1 p-4">
             <div className="flex flex-col md:flex-row gap-6 justify-between">
               <div className="flex-1">
                 <p className="text-sm font-semibold text-info">Needs Linking</p>

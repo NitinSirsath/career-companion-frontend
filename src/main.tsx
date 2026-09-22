@@ -5,6 +5,7 @@ import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { routeTree } from './routeTree.gen'
 import { getCurrentUser } from './api/auth';
+import { ThemeProvider } from './components/ThemeProvider';
 
 const queryClient = new QueryClient()
 
@@ -37,7 +38,9 @@ function App() {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <App />
+      <ThemeProvider defaultTheme="light" storageKey="career-companion-theme">
+        <App />
+      </ThemeProvider>
     </QueryClientProvider>
   </StrictMode>,
 )

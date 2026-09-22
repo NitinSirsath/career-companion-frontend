@@ -133,7 +133,7 @@ function GmailPage() {
               </p>
               
               {syncResult && (
-                <p className="text-sm font-medium mt-2 text-green-600 dark:text-green-400">
+                <p className="text-sm font-medium mt-2 text-status-success">
                   Synced {syncResult.ingested} messages (skipped {syncResult.skipped})
                 </p>
               )}

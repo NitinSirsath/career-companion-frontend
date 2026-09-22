@@ -23,11 +23,11 @@ const STATUS_LABEL: Record<ApplicationStatus, string> = {
 
 const STATUS_COLORS: Record<ApplicationStatus, string> = {
   APPLIED: 'bg-secondary text-secondary-foreground',
-  RECRUITER_CONTACT: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
-  ASSESSMENT: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
-  INTERVIEW: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
-  OFFER: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
-  REJECTED: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
+  RECRUITER_CONTACT: 'bg-status-info-subtle text-status-info',
+  ASSESSMENT: 'bg-status-warning-subtle text-status-warning',
+  INTERVIEW: 'bg-status-neutral-subtle text-status-neutral',
+  OFFER: 'bg-status-success-subtle text-status-success',
+  REJECTED: 'bg-status-error-subtle text-status-error',
   CLOSED: 'bg-muted text-muted-foreground',
 };
 
@@ -52,9 +52,9 @@ function formatEventType(type: string): string {
 
 function TimelineDot({ type }: { type: string }) {
   const colorMap: Record<string, string> = {
-    EMAIL_PROCESSED: 'bg-blue-400',
-    STATE_INFERRED: 'bg-purple-400',
-    NOTE_ADDED: 'bg-gray-400',
+    EMAIL_PROCESSED: 'bg-status-info',
+    STATE_INFERRED: 'bg-status-neutral',
+    NOTE_ADDED: 'bg-status-neutral',
   };
   const color = colorMap[type] ?? 'bg-muted-foreground';
   return <span className={`mt-1 shrink-0 h-2.5 w-2.5 rounded-full ${color}`} aria-hidden="true" />;
@@ -118,9 +118,9 @@ function ActionItem({ action }: { action: ApplicationActionResponse }) {
   });
 
   return (
-    <div className={`flex items-start gap-3 p-3 rounded-lg border ${isPending ? 'border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/10' : 'border-border bg-muted/30'}`}>
+    <div className={`flex items-start gap-3 p-3 rounded-lg border ${isPending ? 'border-status-warning bg-status-warning-subtle' : 'border-border bg-muted/30'}`}>
       <span
-        className={`mt-0.5 shrink-0 h-2 w-2 rounded-full ${isPending ? 'bg-orange-500' : 'bg-muted-foreground'}`}
+        className={`mt-0.5 shrink-0 h-2 w-2 rounded-full ${isPending ? 'bg-status-warning' : 'bg-muted-foreground'}`}
         aria-hidden="true"
       />
       <div className="flex-1 min-w-0">
@@ -128,7 +128,7 @@ function ActionItem({ action }: { action: ApplicationActionResponse }) {
           {action.description || action.type.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase())}
         </p>
         <div className="flex items-center gap-2 mt-1 flex-wrap">
-          <span className={`text-xs font-semibold ${isPending ? 'text-orange-700 dark:text-orange-300' : 'text-muted-foreground'}`}>
+          <span className={`text-xs font-semibold ${isPending ? 'text-status-warning' : 'text-muted-foreground'}`}>
             {action.status}
           </span>
           {action.deadline && (

@@ -29,14 +29,14 @@ function Login() {
     <div className="flex flex-col items-center justify-center min-h-[50vh]">
       <h1 className="text-2xl font-bold mb-6">Welcome to Career Companion</h1>
       {error && (
-        <div className="mb-6 p-4 bg-red-50 text-red-700 border border-red-200 rounded text-sm max-w-md text-center">
+        <div className="mb-6 p-4 bg-status-error-subtle text-status-error border border-status-error rounded text-sm max-w-md text-center">
           {getErrorMessage(error)}
         </div>
       )}
       <p className="mb-8 text-muted-foreground">Sign in to start tracking your job applications.</p>
       <button
         onClick={handleLogin}
-        className="px-4 py-2 bg-blue-600 text-white rounded font-medium hover:bg-blue-700 transition"
+        className="px-4 py-2 bg-action-primary text-text-inverse rounded-none font-medium hover:bg-action-primary-hover transition"
       >
         Sign in with Google
       </button>
