@@ -118,7 +118,7 @@ function ActionItem({ action }: { action: ApplicationActionResponse }) {
   });
 
   return (
-    <div className={`flex items-start gap-3 p-3 rounded-lg border ${isPending ? 'border-status-warning bg-status-warning-subtle' : 'border-border bg-muted/30'}`}>
+    <div className={`flex items-start gap-3 p-3 rounded-none border ${isPending ? 'border-border-default border-l-4 border-l-status-warning bg-surface' : 'border-border-default bg-surface-subtle'}`}>
       <span
         className={`mt-0.5 shrink-0 h-2 w-2 rounded-full ${isPending ? 'bg-status-warning' : 'bg-muted-foreground'}`}
         aria-hidden="true"

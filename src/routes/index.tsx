@@ -115,7 +115,7 @@ function AmbiguousMatchesSection({ applications }: { applications: ApplicationRe
       <h3 className="text-lg font-medium text-warning">Needs Review ({ambiguousEmails.length})</h3>
       <div className="space-y-3">
         {ambiguousEmails.map(email => (
-          <div key={email.id} className="border border-status-warning bg-surface-1 p-4">
+          <div key={email.id} className="border border-border-default border-l-4 border-l-status-warning bg-surface p-4">
             <div className="flex flex-col md:flex-row gap-6 justify-between">
               <div className="flex-1">
                 <p className="text-sm font-semibold text-warning">Uncertain Email Match</p>
@@ -160,7 +160,7 @@ function UnmatchedEmailsSection({ applications }: { applications: ApplicationRes
       <h3 className="text-lg font-medium text-info">Unmatched Emails ({unmatchedEmails.length})</h3>
       <div className="space-y-3">
         {unmatchedEmails.map(email => (
-          <div key={email.id} className="border border-status-info bg-surface-1 p-4">
+          <div key={email.id} className="border border-border-default border-l-4 border-l-status-info bg-surface p-4">
             <div className="flex flex-col md:flex-row gap-6 justify-between">
               <div className="flex-1">
                 <p className="text-sm font-semibold text-info">Needs Linking</p>

@@ -29,7 +29,7 @@ function Login() {
     <div className="flex flex-col items-center justify-center min-h-[50vh]">
       <h1 className="text-2xl font-bold mb-6">Welcome to Career Companion</h1>
       {error && (
-        <div className="mb-6 p-4 bg-status-error-subtle text-status-error border border-status-error rounded text-sm max-w-md text-center">
+        <div className="mb-6 p-4 bg-status-error-subtle text-status-error border border-border-default border-l-4 border-l-status-error rounded text-sm max-w-md text-center">
           {getErrorMessage(error)}
         </div>
       )}
