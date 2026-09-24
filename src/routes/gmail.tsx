@@ -5,6 +5,8 @@ import { api } from '../api/client';
 import { Button } from '../components/ui/button';
 import { z } from 'zod';
 import { useEffect, useState } from 'react';
+import { ExternalLink } from 'lucide-react';
+import { getGmailConversationUrl } from '../utils/gmail';
 
 const gmailSearchSchema = z.object({
   gmailError: z.string().optional(),
@@ -192,7 +194,20 @@ function GmailPage() {
                     {messagesData.items.map((msg) => (
                       <tr key={msg.id} className="hover:bg-muted/50 transition-colors">
                         <td className="px-4 py-3 font-medium max-w-xs truncate" title={msg.subject || ''}>
-                          {msg.subject || '(No Subject)'}
+                          {msg.threadId ? (
+                            <a
+                              href={getGmailConversationUrl(msg.threadId)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 hover:underline text-primary"
+                              aria-label={`Open email "${msg.subject || '(No Subject)'}" in Gmail`}
+                            >
+                              <span className="truncate">{msg.subject || '(No Subject)'}</span>
+                              <ExternalLink className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
+                            </a>
+                          ) : (
+                            <span>{msg.subject || '(No Subject)'}</span>
+                          )}
                         </td>
                         <td className="px-4 py-3 text-muted-foreground max-w-xs truncate" title={msg.sender || ''}>
                           {msg.sender || '-'}
