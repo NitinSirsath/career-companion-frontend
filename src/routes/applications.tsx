@@ -1,4 +1,5 @@
-import React from "react";
+import { useState } from 'react';
+
 import { createFileRoute, Link, Outlet, useRouterState } from '@tanstack/react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -11,6 +12,8 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Badge } from '../components/ui/badge';
+
+import { Pagination } from '../components/ui/pagination';
 
 export const Route = createFileRoute('/applications')({
   component: ApplicationsPage,
@@ -107,14 +110,18 @@ function ApplicationCard({ app }: { app: ApplicationResponse }) {
 
 function ApplicationsDashboard() {
   const queryClient = useQueryClient();
-  const [showCreateForm, setShowCreateForm] = React.useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [offset, setOffset] = useState(0);
+  const limit = 20;
 
   const { data: applicationsResponse, isLoading, error } = useQuery({
-    queryKey: ['applications'],
-    queryFn: () => api.listApplications(),
+    queryKey: ['applications', { offset, limit }],
+    queryFn: () => api.listApplications({ offset, limit }),
   });
 
   const applications = applicationsResponse?.items || [];
+  const nextOffset = applicationsResponse?.metadata?.nextOffset;
+  
   const createMutation = useMutation({
     mutationFn: (data: CreateApplicationRequest) => api.createApplication(data),
     onSuccess: () => {
@@ -195,9 +202,20 @@ function ApplicationsDashboard() {
             <p className="text-sm text-muted-foreground">Add your first application to get started. AI-detected emails will link automatically.</p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {applications.map((app) => <ApplicationCard key={app.id} app={app} />)}
-          </div>
+          <>
+            <div className="space-y-3">
+              {applications.map((app) => <ApplicationCard key={app.id} app={app} />)}
+            </div>
+            {(offset > 0 || nextOffset) && (
+              <Pagination 
+                offset={offset} 
+                limit={limit} 
+                hasNext={!!nextOffset} 
+                onPrevious={() => setOffset(Math.max(0, offset - limit))}
+                onNext={() => nextOffset && setOffset(nextOffset)}
+              />
+            )}
+          </>
         )}
       </div>
     </div>

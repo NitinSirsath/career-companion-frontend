@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, isPast } from 'date-fns';
@@ -7,17 +8,23 @@ import { ActionWithContextResponse } from '../contracts/action';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 
+import { Pagination } from '../components/ui/pagination';
+
 export const Route = createFileRoute('/')({
   component: DashboardPage,
 });
 
 function ActionQueueSection() {
   const queryClient = useQueryClient();
+  const [offset, setOffset] = useState(0);
+  const limit = 20;
+
   const { data: actionsResponse, isLoading } = useQuery({
-    queryKey: ['actions', { status: 'PENDING' }],
-    queryFn: () => api.getActions('PENDING'),
+    queryKey: ['actions', { status: 'PENDING', offset, limit }],
+    queryFn: () => api.getActions('PENDING', { offset, limit }),
   });
   const actions = actionsResponse?.items;
+  const nextOffset = actionsResponse?.metadata?.nextOffset;
 
   const updateMutation = useMutation({
     mutationFn: ({ actionId, status }: { actionId: string; status: 'COMPLETED' | 'DISMISSED' }) =>
@@ -97,14 +104,31 @@ function ActionQueueSection() {
           {pendingActions.map(a => renderActionItem(a, false))}
         </div>
       )}
+
+      {(offset > 0 || nextOffset) && (
+        <Pagination 
+          offset={offset} 
+          limit={limit} 
+          hasNext={!!nextOffset} 
+          onPrevious={() => setOffset(Math.max(0, offset - limit))}
+          onNext={() => nextOffset && setOffset(nextOffset)}
+        />
+      )}
     </div>
   );
 }
 
 function AmbiguousMatchesSection({ applications }: { applications: ApplicationResponse[] }) {
   const queryClient = useQueryClient();
-  const { data: ambiguousEmailsResponse, isLoading } = useQuery({ queryKey: ['ambiguous-emails'], queryFn: () => api.getAmbiguousEmails() });
+  const [offset, setOffset] = useState(0);
+  const limit = 20;
+
+  const { data: ambiguousEmailsResponse, isLoading } = useQuery({ 
+    queryKey: ['ambiguous-emails', { offset, limit }], 
+    queryFn: () => api.getAmbiguousEmails({ offset, limit }) 
+  });
   const ambiguousEmails = ambiguousEmailsResponse?.items;
+  const nextOffset = ambiguousEmailsResponse?.metadata?.nextOffset;
   const resolveMutation = useMutation({
     mutationFn: ({ emailId, applicationId }: { emailId: string, applicationId: string | null }) => api.resolveAmbiguousEmail(emailId, { applicationId }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['ambiguous-emails'] }); queryClient.invalidateQueries({ queryKey: ['applications'] }); }
@@ -114,7 +138,7 @@ function AmbiguousMatchesSection({ applications }: { applications: ApplicationRe
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-medium text-warning">Needs Review ({ambiguousEmails.length}{ambiguousEmailsResponse?.metadata?.nextOffset ? '+' : ''})</h3>
+      <h3 className="text-lg font-medium text-warning">Needs Review</h3>
       <div className="space-y-3">
         {ambiguousEmails.map(email => (
           <div key={email.id} className="border border-border-default border-l-4 border-l-status-warning bg-surface p-4">
@@ -143,14 +167,31 @@ function AmbiguousMatchesSection({ applications }: { applications: ApplicationRe
           </div>
         ))}
       </div>
+
+      {(offset > 0 || nextOffset) && (
+        <Pagination 
+          offset={offset} 
+          limit={limit} 
+          hasNext={!!nextOffset} 
+          onPrevious={() => setOffset(Math.max(0, offset - limit))}
+          onNext={() => nextOffset && setOffset(nextOffset)}
+        />
+      )}
     </div>
   );
 }
 
 function UnmatchedEmailsSection({ applications }: { applications: ApplicationResponse[] }) {
   const queryClient = useQueryClient();
-  const { data: unmatchedEmailsResponse, isLoading } = useQuery({ queryKey: ['unmatched-emails'], queryFn: () => api.getUnmatchedEmails() });
+  const [offset, setOffset] = useState(0);
+  const limit = 20;
+
+  const { data: unmatchedEmailsResponse, isLoading } = useQuery({ 
+    queryKey: ['unmatched-emails', { offset, limit }], 
+    queryFn: () => api.getUnmatchedEmails({ offset, limit }) 
+  });
   const unmatchedEmails = unmatchedEmailsResponse?.items;
+  const nextOffset = unmatchedEmailsResponse?.metadata?.nextOffset;
   const resolveMutation = useMutation({
     mutationFn: ({ emailId, applicationId }: { emailId: string; applicationId: string }) => api.resolveUnmatchedEmail(emailId, { applicationId }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['unmatched-emails'] }); queryClient.invalidateQueries({ queryKey: ['applications'] }); }
@@ -160,7 +201,7 @@ function UnmatchedEmailsSection({ applications }: { applications: ApplicationRes
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-medium text-info">Unmatched Emails ({unmatchedEmails.length}{unmatchedEmailsResponse?.metadata?.nextOffset ? '+' : ''})</h3>
+      <h3 className="text-lg font-medium text-info">Unmatched Emails</h3>
       <div className="space-y-3">
         {unmatchedEmails.map(email => (
           <div key={email.id} className="border border-border-default border-l-4 border-l-status-info bg-surface p-4">
@@ -186,6 +227,16 @@ function UnmatchedEmailsSection({ applications }: { applications: ApplicationRes
           </div>
         ))}
       </div>
+
+      {(offset > 0 || nextOffset) && (
+        <Pagination 
+          offset={offset} 
+          limit={limit} 
+          hasNext={!!nextOffset} 
+          onPrevious={() => setOffset(Math.max(0, offset - limit))}
+          onNext={() => nextOffset && setOffset(nextOffset)}
+        />
+      )}
     </div>
   );
 }

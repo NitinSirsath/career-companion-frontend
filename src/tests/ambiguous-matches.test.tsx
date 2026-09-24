@@ -85,7 +85,7 @@ describe('Ambiguous Matches (COM-32)', () => {
 
     renderWithProviders(queryClient, '/');
 
-    expect(await screen.findByText('Needs Review (1)')).toBeInTheDocument();
+    expect(await screen.findByText('Needs Review')).toBeInTheDocument();
     expect(screen.getByText('recruiter@tech.com')).toBeInTheDocument();
     expect(screen.getByText('Next steps')).toBeInTheDocument();
     

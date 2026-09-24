@@ -90,7 +90,7 @@ describe('Unmatched Emails (COM-37)', () => {
 
     renderWithProviders(queryClient, '/');
 
-    expect(await screen.findByText('Unmatched Emails (1)')).toBeInTheDocument();
+    expect(await screen.findByText('Unmatched Emails')).toBeInTheDocument();
     expect(screen.getByText('Needs Linking')).toBeInTheDocument();
     expect(screen.getByText('eng@startup.io')).toBeInTheDocument();
     expect(screen.getByText('Interview schedule')).toBeInTheDocument();

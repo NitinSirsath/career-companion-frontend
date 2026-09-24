@@ -10,6 +10,8 @@ const gmailSearchSchema = z.object({
   gmailError: z.string().optional(),
 });
 
+import { Pagination } from '../components/ui/pagination';
+
 export const Route = createFileRoute('/gmail')({
   validateSearch: gmailSearchSchema,
   component: GmailPage,
@@ -20,6 +22,8 @@ function GmailPage() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: '/gmail' });
   const [syncResult, setSyncResult] = useState<{ ingested: number; skipped: number } | null>(null);
+  const [offset, setOffset] = useState(0);
+  const limit = 20;
   const [showError, setShowError] = useState(false);
 
   useEffect(() => {
@@ -36,8 +40,8 @@ function GmailPage() {
   });
 
   const { data: messagesData, isLoading: isLoadingMessages, error: messagesError } = useQuery({
-    queryKey: ['gmailMessages'],
-    queryFn: () => api.getMessages(),
+    queryKey: ['gmailMessages', { offset, limit }],
+    queryFn: () => api.getMessages({ offset, limit }),
     enabled: !!statusData?.connected, // Only fetch if connected
   });
 
@@ -172,6 +176,7 @@ function GmailPage() {
               No emails synced yet. Click 'Sync Now' to begin.
             </div>
           ) : (
+            <>
             <div className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left">
@@ -206,6 +211,19 @@ function GmailPage() {
                 </table>
               </div>
             </div>
+            
+            {(offset > 0 || messagesData?.metadata?.nextOffset) && (
+              <div className="mt-4">
+                <Pagination 
+                  offset={offset} 
+                  limit={limit} 
+                  hasNext={!!messagesData?.metadata?.nextOffset} 
+                  onPrevious={() => setOffset(Math.max(0, offset - limit))}
+                  onNext={() => messagesData?.metadata?.nextOffset && setOffset(messagesData.metadata.nextOffset)}
+                />
+              </div>
+            )}
+          </>
           )}
         </div>
       )}
