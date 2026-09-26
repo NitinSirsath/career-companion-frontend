@@ -78,18 +78,22 @@ export class ApiClient {
     });
   }
 
+  async getApplication(id: string): Promise<ApplicationResponse> {
+    return this.get<ApplicationResponse>(`/api/applications/${id}`);
+  }
+
   /** Fetch timeline events for one application. Ordered createdAt ASC. */
-  async getApplicationEvents(applicationId: string): Promise<ListApplicationEventsResponse> {
+  async getApplicationEvents(applicationId: string, params: { offset?: number; limit?: number } = {}): Promise<ListApplicationEventsResponse> {
     return this.request<ListApplicationEventsResponse>(
-      `/api/applications/${applicationId}/events`,
+      `/api/applications/${applicationId}/events?offset=${params.offset ?? 0}&limit=${params.limit ?? 20}`,
       { method: 'GET' }
     );
   }
 
   /** Fetch actions for one application. */
-  async getApplicationActions(applicationId: string): Promise<ListApplicationActionsResponse> {
+  async getApplicationActions(applicationId: string, params: { offset?: number; limit?: number } = {}): Promise<ListApplicationActionsResponse> {
     return this.request<ListApplicationActionsResponse>(
-      `/api/applications/${applicationId}/actions`,
+      `/api/applications/${applicationId}/actions?offset=${params.offset ?? 0}&limit=${params.limit ?? 20}`,
       { method: 'GET' }
     );
   }

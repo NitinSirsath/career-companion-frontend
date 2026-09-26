@@ -58,8 +58,8 @@ describe('Action Queue (COM-33)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-    vi.mocked(api.listApplications).mockResolvedValue({ items: [], metadata: { limit: 50, offset: 0, nextOffset: null } });
-    vi.mocked(api.getAmbiguousEmails).mockResolvedValue({ items: [], metadata: { limit: 50, offset: 0, nextOffset: null } });
+    vi.mocked(api.listApplications).mockResolvedValue({ items: [], metadata: { limit: 20, offset: 0, nextOffset: null } });
+    vi.mocked(api.getAmbiguousEmails).mockResolvedValue({ items: [], metadata: { limit: 20, offset: 0, nextOffset: null } });
   });
 
   afterEach(() => {
@@ -67,7 +67,7 @@ describe('Action Queue (COM-33)', () => {
   });
 
   it('does not render queue if no pending actions', async () => {
-    vi.mocked(api.getActions).mockResolvedValue({ items: [], metadata: { limit: 50, offset: 0, nextOffset: null } });
+    vi.mocked(api.getActions).mockResolvedValue({ items: [], metadata: { limit: 20, offset: 0, nextOffset: null } });
     renderWithProviders(queryClient, '/');
 
     await waitFor(() => {
@@ -87,7 +87,7 @@ describe('Action Queue (COM-33)', () => {
       makeAction({ id: 'a1', description: 'Overdue task', deadline: overdueDate.toISOString() }),
       makeAction({ id: 'a2', description: 'Upcoming task', deadline: upcomingDate.toISOString() }),
       makeAction({ id: 'a3', description: 'Pending task', deadline: null })
-    ], metadata: { limit: 50, offset: 0, nextOffset: null } });
+    ], metadata: { limit: 20, offset: 0, nextOffset: null } });
 
     renderWithProviders(queryClient, '/');
 
@@ -107,7 +107,7 @@ describe('Action Queue (COM-33)', () => {
   });
 
   it('submits Complete correctly', async () => {
-    vi.mocked(api.getActions).mockResolvedValue({ items: [makeAction({ id: 'a1' })], metadata: { limit: 50, offset: 0, nextOffset: null } });
+    vi.mocked(api.getActions).mockResolvedValue({ items: [makeAction({ id: 'a1' })], metadata: { limit: 20, offset: 0, nextOffset: null } });
     vi.mocked(api.updateAction).mockResolvedValue(makeAction({ id: 'a1', status: 'COMPLETED' }));
 
     renderWithProviders(queryClient, '/');
@@ -121,7 +121,7 @@ describe('Action Queue (COM-33)', () => {
   });
 
   it('submits Dismiss correctly', async () => {
-    vi.mocked(api.getActions).mockResolvedValue({ items: [makeAction({ id: 'a1' })], metadata: { limit: 50, offset: 0, nextOffset: null } });
+    vi.mocked(api.getActions).mockResolvedValue({ items: [makeAction({ id: 'a1' })], metadata: { limit: 20, offset: 0, nextOffset: null } });
     vi.mocked(api.updateAction).mockResolvedValue(makeAction({ id: 'a1', status: 'DISMISSED' }));
 
     renderWithProviders(queryClient, '/');

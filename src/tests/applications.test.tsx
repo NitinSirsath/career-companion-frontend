@@ -11,6 +11,7 @@ import type { ApplicationResponse, ApplicationEventResponse, ApplicationActionRe
 vi.mock('../api/client', () => ({
   api: {
     listApplications: vi.fn(),
+    getApplication: vi.fn(),
     createApplication: vi.fn(),
     getApplicationEvents: vi.fn(),
     getApplicationActions: vi.fn(),
@@ -100,6 +101,7 @@ describe('Applications Dashboard (/applications)', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(api.getApplication).mockResolvedValue(makeApp());
     queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     });
@@ -112,7 +114,7 @@ describe('Applications Dashboard (/applications)', () => {
   // ─── UX hierarchy ──────────────────────────────────────────────────────────
 
   it('does NOT show the create form by default (form is hidden on load)', async () => {
-    vi.mocked(api.listApplications).mockResolvedValue({ items: [], metadata: { limit: 50, offset: 0, nextOffset: null } });
+    vi.mocked(api.listApplications).mockResolvedValue({ items: [], metadata: { limit: 20, offset: 0, nextOffset: null } });
 
     renderWithProviders(queryClient, '/applications');
 
@@ -123,7 +125,7 @@ describe('Applications Dashboard (/applications)', () => {
   });
 
   it('shows the "Add Application" button by default', async () => {
-    vi.mocked(api.listApplications).mockResolvedValue({ items: [], metadata: { limit: 50, offset: 0, nextOffset: null } });
+    vi.mocked(api.listApplications).mockResolvedValue({ items: [], metadata: { limit: 20, offset: 0, nextOffset: null } });
 
     renderWithProviders(queryClient, '/applications');
 
@@ -131,7 +133,7 @@ describe('Applications Dashboard (/applications)', () => {
   });
 
   it('reveals the create form when "Add Application" is clicked', async () => {
-    vi.mocked(api.listApplications).mockResolvedValue({ items: [], metadata: { limit: 50, offset: 0, nextOffset: null } });
+    vi.mocked(api.listApplications).mockResolvedValue({ items: [], metadata: { limit: 20, offset: 0, nextOffset: null } });
 
     renderWithProviders(queryClient, '/applications');
 
@@ -143,7 +145,7 @@ describe('Applications Dashboard (/applications)', () => {
   });
 
   it('hides the create form again when "Cancel" is clicked', async () => {
-    vi.mocked(api.listApplications).mockResolvedValue({ items: [], metadata: { limit: 50, offset: 0, nextOffset: null } });
+    vi.mocked(api.listApplications).mockResolvedValue({ items: [], metadata: { limit: 20, offset: 0, nextOffset: null } });
 
     renderWithProviders(queryClient, '/applications');
 
@@ -173,7 +175,7 @@ describe('Applications Dashboard (/applications)', () => {
   });
 
   it('shows empty state when there are no applications', async () => {
-    vi.mocked(api.listApplications).mockResolvedValue({ items: [], metadata: { limit: 50, offset: 0, nextOffset: null } });
+    vi.mocked(api.listApplications).mockResolvedValue({ items: [], metadata: { limit: 20, offset: 0, nextOffset: null } });
 
     renderWithProviders(queryClient, '/applications');
 
@@ -189,7 +191,7 @@ describe('Applications Dashboard (/applications)', () => {
   });
 
   it('renders application cards with company and role', async () => {
-    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 50, offset: 0, nextOffset: null } });
+    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 20, offset: 0, nextOffset: null } });
 
     renderWithProviders(queryClient, '/applications');
 
@@ -200,7 +202,7 @@ describe('Applications Dashboard (/applications)', () => {
   it('displays AI status when available', async () => {
     vi.mocked(api.listApplications).mockResolvedValue({ items: [
       makeApp({ aiStatus: 'INTERVIEW', userStatus: 'APPLIED' })
-    ], metadata: { limit: 50, offset: 0, nextOffset: null } });
+    ], metadata: { limit: 20, offset: 0, nextOffset: null } });
 
     renderWithProviders(queryClient, '/applications');
 
@@ -211,7 +213,7 @@ describe('Applications Dashboard (/applications)', () => {
   it('falls back to user status when AI status is null', async () => {
     vi.mocked(api.listApplications).mockResolvedValue({ items: [
       makeApp({ aiStatus: null, userStatus: 'RECRUITER_CONTACT' })
-    ], metadata: { limit: 50, offset: 0, nextOffset: null } });
+    ], metadata: { limit: 20, offset: 0, nextOffset: null } });
 
     renderWithProviders(queryClient, '/applications');
 
@@ -221,7 +223,7 @@ describe('Applications Dashboard (/applications)', () => {
   it('shows pending action indicator when pendingActionCount > 0', async () => {
     vi.mocked(api.listApplications).mockResolvedValue({ items: [
       makeApp({ pendingActionCount: 2 })
-    ], metadata: { limit: 50, offset: 0, nextOffset: null } });
+    ], metadata: { limit: 20, offset: 0, nextOffset: null } });
 
     renderWithProviders(queryClient, '/applications');
 
@@ -231,7 +233,7 @@ describe('Applications Dashboard (/applications)', () => {
   it('does not show action indicator when pendingActionCount is 0', async () => {
     vi.mocked(api.listApplications).mockResolvedValue({ items: [
       makeApp({ companyName: 'ZeroActions Inc', pendingActionCount: 0 })
-    ], metadata: { limit: 50, offset: 0, nextOffset: null } });
+    ], metadata: { limit: 20, offset: 0, nextOffset: null } });
     renderWithProviders(queryClient, '/applications');
     
     await screen.findByText('ZeroActions Inc');
@@ -241,7 +243,7 @@ describe('Applications Dashboard (/applications)', () => {
   it('shows recent event when present', async () => {
     vi.mocked(api.listApplications).mockResolvedValue({ items: [
       makeApp({ recentEvent: { type: 'EMAIL_PROCESSED', createdAt: '2026-02-01T10:00:00Z' } })
-    ], metadata: { limit: 50, offset: 0, nextOffset: null } });
+    ], metadata: { limit: 20, offset: 0, nextOffset: null } });
 
     renderWithProviders(queryClient, '/applications');
 
@@ -252,7 +254,7 @@ describe('Applications Dashboard (/applications)', () => {
     vi.mocked(api.listApplications).mockResolvedValue({ items: [
       makeApp({ id: 'app-1', companyName: 'Acme' }),
       makeApp({ id: 'app-2', companyName: 'Globex' }),
-    ], metadata: { limit: 50, offset: 0, nextOffset: null } });
+    ], metadata: { limit: 20, offset: 0, nextOffset: null } });
 
     renderWithProviders(queryClient, '/applications');
 
@@ -269,6 +271,7 @@ describe('Application Detail Page (/applications/$id)', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(api.getApplication).mockResolvedValue(makeApp());
     queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     });
@@ -279,7 +282,7 @@ describe('Application Detail Page (/applications/$id)', () => {
   });
 
   it('shows loading state while fetching events and actions', async () => {
-    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 50, offset: 0, nextOffset: null } });
+    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 20, offset: 0, nextOffset: null } });
     vi.mocked(api.getApplicationEvents).mockReturnValue(new Promise(() => {}));
     vi.mocked(api.getApplicationActions).mockReturnValue(new Promise(() => {}));
 
@@ -289,9 +292,9 @@ describe('Application Detail Page (/applications/$id)', () => {
   });
 
   it('shows error state when events API fails', async () => {
-    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 50, offset: 0, nextOffset: null } });
+    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 20, offset: 0, nextOffset: null } });
     vi.mocked(api.getApplicationEvents).mockRejectedValue(new Error('Forbidden'));
-    vi.mocked(api.getApplicationActions).mockResolvedValue([]);
+    vi.mocked(api.getApplicationActions).mockResolvedValue({ items: [], metadata: { limit: 20, offset: 0, nextOffset: null } });
 
     renderWithProviders(queryClient, '/applications/app-1');
 
@@ -299,9 +302,9 @@ describe('Application Detail Page (/applications/$id)', () => {
   });
 
   it('shows empty timeline when no events exist', async () => {
-    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 50, offset: 0, nextOffset: null } });
-    vi.mocked(api.getApplicationEvents).mockResolvedValue([]);
-    vi.mocked(api.getApplicationActions).mockResolvedValue([]);
+    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 20, offset: 0, nextOffset: null } });
+    vi.mocked(api.getApplicationEvents).mockResolvedValue({ items: [], metadata: { limit: 20, offset: 0, nextOffset: null } });
+    vi.mocked(api.getApplicationActions).mockResolvedValue({ items: [], metadata: { limit: 20, offset: 0, nextOffset: null } });
 
     renderWithProviders(queryClient, '/applications/app-1');
 
@@ -324,9 +327,9 @@ describe('Application Detail Page (/applications/$id)', () => {
       }),
     ];
 
-    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 50, offset: 0, nextOffset: null } });
-    vi.mocked(api.getApplicationEvents).mockResolvedValue(events);
-    vi.mocked(api.getApplicationActions).mockResolvedValue([]);
+    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 20, offset: 0, nextOffset: null } });
+    vi.mocked(api.getApplicationEvents).mockResolvedValue({ items: events, metadata: { limit: 20, offset: 0, nextOffset: null } });
+    vi.mocked(api.getApplicationActions).mockResolvedValue({ items: [], metadata: { limit: 20, offset: 0, nextOffset: null } });
 
     renderWithProviders(queryClient, '/applications/app-1');
 
@@ -338,11 +341,11 @@ describe('Application Detail Page (/applications/$id)', () => {
   });
 
   it('displays event type label', async () => {
-    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 50, offset: 0, nextOffset: null } });
-    vi.mocked(api.getApplicationEvents).mockResolvedValue([
+    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 20, offset: 0, nextOffset: null } });
+    vi.mocked(api.getApplicationEvents).mockResolvedValue({ items: [
       makeEvent({ type: 'INTERVIEW' })
-    ]);
-    vi.mocked(api.getApplicationActions).mockResolvedValue([]);
+    ], metadata: { limit: 20, offset: 0, nextOffset: null } });
+    vi.mocked(api.getApplicationActions).mockResolvedValue({ items: [], metadata: { limit: 20, offset: 0, nextOffset: null } });
 
     renderWithProviders(queryClient, '/applications/app-1');
 
@@ -350,11 +353,11 @@ describe('Application Detail Page (/applications/$id)', () => {
   });
 
   it('displays state transition badges', async () => {
-    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 50, offset: 0, nextOffset: null } });
-    vi.mocked(api.getApplicationEvents).mockResolvedValue([
+    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 20, offset: 0, nextOffset: null } });
+    vi.mocked(api.getApplicationEvents).mockResolvedValue({ items: [
       makeEvent({ oldState: 'RECRUITER_CONTACT', newState: 'ASSESSMENT' })
-    ]);
-    vi.mocked(api.getApplicationActions).mockResolvedValue([]);
+    ], metadata: { limit: 20, offset: 0, nextOffset: null } });
+    vi.mocked(api.getApplicationActions).mockResolvedValue({ items: [], metadata: { limit: 20, offset: 0, nextOffset: null } });
 
     renderWithProviders(queryClient, '/applications/app-1');
 
@@ -363,9 +366,9 @@ describe('Application Detail Page (/applications/$id)', () => {
   });
 
   it('displays pending actions with status indicator', async () => {
-    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 50, offset: 0, nextOffset: null } });
-    vi.mocked(api.getApplicationEvents).mockResolvedValue([]);
-    vi.mocked(api.getApplicationActions).mockResolvedValue([makeAction()]);
+    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 20, offset: 0, nextOffset: null } });
+    vi.mocked(api.getApplicationEvents).mockResolvedValue({ items: [], metadata: { limit: 20, offset: 0, nextOffset: null } });
+    vi.mocked(api.getApplicationActions).mockResolvedValue({ items: [makeAction()], metadata: { limit: 20, offset: 0, nextOffset: null } });
 
     renderWithProviders(queryClient, '/applications/app-1');
 
@@ -374,11 +377,11 @@ describe('Application Detail Page (/applications/$id)', () => {
   });
 
   it('displays provenance when available', async () => {
-    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 50, offset: 0, nextOffset: null } });
-    vi.mocked(api.getApplicationEvents).mockResolvedValue([
+    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 20, offset: 0, nextOffset: null } });
+    vi.mocked(api.getApplicationEvents).mockResolvedValue({ items: [
       makeEvent({ provenance: 'gemini-flash' })
-    ]);
-    vi.mocked(api.getApplicationActions).mockResolvedValue([]);
+    ], metadata: { limit: 20, offset: 0, nextOffset: null } });
+    vi.mocked(api.getApplicationActions).mockResolvedValue({ items: [], metadata: { limit: 20, offset: 0, nextOffset: null } });
 
     renderWithProviders(queryClient, '/applications/app-1');
 
@@ -386,9 +389,9 @@ describe('Application Detail Page (/applications/$id)', () => {
   });
 
   it('renders the company name in the header', async () => {
-    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 50, offset: 0, nextOffset: null } });
-    vi.mocked(api.getApplicationEvents).mockResolvedValue([]);
-    vi.mocked(api.getApplicationActions).mockResolvedValue([]);
+    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 20, offset: 0, nextOffset: null } });
+    vi.mocked(api.getApplicationEvents).mockResolvedValue({ items: [], metadata: { limit: 20, offset: 0, nextOffset: null } });
+    vi.mocked(api.getApplicationActions).mockResolvedValue({ items: [], metadata: { limit: 20, offset: 0, nextOffset: null } });
 
     renderWithProviders(queryClient, '/applications/app-1');
 
@@ -397,9 +400,9 @@ describe('Application Detail Page (/applications/$id)', () => {
   });
 
   it('shows the back link to applications list', async () => {
-    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 50, offset: 0, nextOffset: null } });
-    vi.mocked(api.getApplicationEvents).mockResolvedValue([]);
-    vi.mocked(api.getApplicationActions).mockResolvedValue([]);
+    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 20, offset: 0, nextOffset: null } });
+    vi.mocked(api.getApplicationEvents).mockResolvedValue({ items: [], metadata: { limit: 20, offset: 0, nextOffset: null } });
+    vi.mocked(api.getApplicationActions).mockResolvedValue({ items: [], metadata: { limit: 20, offset: 0, nextOffset: null } });
 
     renderWithProviders(queryClient, '/applications/app-1');
 

@@ -1,3 +1,4 @@
+import { createPaginatedResponseSchema } from './pagination';
 /**
  * Zod contracts for Gmail OAuth routes (COM-19).
  * These types are shared via the sync-contracts script with the frontend.
@@ -7,7 +8,6 @@
  */
 
 import { z } from 'zod';
-import { createPaginatedResponseSchema } from './pagination';
 
 // ─── Shared enums (mirrors Prisma enums) ────────────────────────────────────
 
@@ -24,6 +24,7 @@ export const GmailStatusResponseSchema = z.object({
   gmailEmail: z.string().nullable(),
   status: GmailConnectionStatusSchema.nullable(),
   syncStatus: GmailSyncStatusSchema.nullable(),
+  syncError: z.string().nullable().optional(),
   lastSyncedAt: z.date().nullable().or(z.string().nullable()),
 });
 export type GmailStatusResponse = z.infer<typeof GmailStatusResponseSchema>;
@@ -37,12 +38,7 @@ export type GmailDisconnectResponse = z.infer<typeof GmailDisconnectResponseSche
 
 // ─── POST /api/gmail/sync ───────────────────────────────────────────────────
 
-export const SyncResponseSchema = z.object({
-  synced: z.boolean(),
-  messagesIngested: z.number(),
-  messagesSkipped: z.number(),
-  lastSyncedAt: z.union([z.string(), z.date()]).nullable(),
-});
+export const SyncResponseSchema = z.object({ accepted: z.literal(true) });
 export type SyncResponse = z.infer<typeof SyncResponseSchema>;
 
 // ─── GET /api/gmail/messages ────────────────────────────────────────────────
@@ -58,6 +54,7 @@ export const EmailMessageSchema = z.object({
   receivedAt: z.union([z.string(), z.date()]).nullable(),
   relevanceState: EmailRelevanceStateSchema,
   matchState: EmailMatchStateSchema,
+  processingState: z.enum(['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED']).optional(),
 });
 export type EmailMessage = z.infer<typeof EmailMessageSchema>;
 
