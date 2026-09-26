@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { Pagination } from '../components/ui/pagination';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
@@ -114,6 +116,8 @@ function ActionItem({ action }: { action: ApplicationActionResponse }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['application-actions', action.applicationId] });
       queryClient.invalidateQueries({ queryKey: ['applications'] });
+      queryClient.invalidateQueries({ queryKey: ['application', action.applicationId] });
+      queryClient.invalidateQueries({ queryKey: ['actions'] });
     },
   });
 
@@ -138,6 +142,7 @@ function ActionItem({ action }: { action: ApplicationActionResponse }) {
           )}
         </div>
       </div>
+      {updateMutation.isError && <p role="alert">Could not update action: {updateMutation.error.message}</p>}
       {isPending && (
         <div className="flex gap-2 shrink-0 self-center">
           <Button
@@ -169,36 +174,34 @@ function ActionItem({ action }: { action: ApplicationActionResponse }) {
 function ApplicationDetailPage() {
   const { id } = Route.useParams();
 
-  // Reuse list query (already cached from dashboard visit)
-  const { data: applicationsResponse } = useQuery({
-    queryKey: ['applications'],
-    queryFn: () => api.listApplications(),
-    staleTime: 30_000,
+  const [eventsOffset, setEventsOffset] = useState(0);
+  const [actionsOffset, setActionsOffset] = useState(0);
+  const { data: application, isLoading: applicationLoading, error: applicationError } = useQuery({
+    queryKey: ['application', id], queryFn: () => api.getApplication(id),
   });
 
-  const applications = applicationsResponse?.items || [];
-  const application = applications?.find((a) => a.id === id);
-
   const {
-    data: events,
+    data: eventsResponse,
     isLoading: eventsLoading,
     error: eventsError,
   } = useQuery({
-    queryKey: ['application-events', id],
-    queryFn: () => api.getApplicationEvents(id),
+    queryKey: ['application-events', id, eventsOffset],
+    queryFn: () => api.getApplicationEvents(id, { offset: eventsOffset }),
   });
 
   const {
-    data: actions,
+    data: actionsResponse,
     isLoading: actionsLoading,
     error: actionsError,
   } = useQuery({
-    queryKey: ['application-actions', id],
-    queryFn: () => api.getApplicationActions(id),
+    queryKey: ['application-actions', id, actionsOffset],
+    queryFn: () => api.getApplicationActions(id, { offset: actionsOffset }),
   });
 
-  const isLoading = eventsLoading || actionsLoading;
-  const hasError = !!(eventsError || actionsError);
+  const events = eventsResponse?.items;
+  const actions = actionsResponse?.items;
+  const isLoading = applicationLoading || eventsLoading || actionsLoading;
+  const hasError = !!(applicationError || eventsError || actionsError);
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
@@ -227,8 +230,8 @@ function ApplicationDetailPage() {
               )}
             </div>
             <div className="flex flex-col items-end gap-1.5">
-              {(application.aiStatus ?? application.userStatus) && (
-                <StatusBadge status={(application.aiStatus ?? application.userStatus)!} />
+              {(application.userStatus ?? application.aiStatus) && (
+                <StatusBadge status={(application.userStatus ?? application.aiStatus)!} />
               )}
               {application.appliedAt && (
                 <p className="text-xs text-muted-foreground">
@@ -257,19 +260,23 @@ function ApplicationDetailPage() {
           className="p-8 text-center text-destructive border-destructive/20 border rounded-xl bg-destructive/5"
           role="alert"
         >
-          Failed to load application data: {(eventsError ?? actionsError)?.message}
+          Failed to load application data: {(applicationError ?? eventsError ?? actionsError)?.message}
         </div>
       )}
 
       {/* Actions section */}
-      {!isLoading && !hasError && actions && actions.length > 0 && (
+      {!isLoading && !hasError && actions && (actions.length > 0 || actionsOffset > 0) && (
         <div className="space-y-3">
           <h3 className="text-lg font-semibold">Actions</h3>
           <div className="space-y-2">
+            {actions.length === 0 && <p>No actions on this page.</p>}
             {actions.map((action) => (
               <ActionItem key={action.id} action={action} />
             ))}
           </div>
+          <Pagination offset={actionsOffset} limit={20} hasNext={actionsResponse?.metadata.nextOffset != null}
+            onPrevious={() => setActionsOffset(Math.max(0, actionsOffset - 20))}
+            onNext={() => actionsResponse?.metadata.nextOffset != null && setActionsOffset(actionsResponse.metadata.nextOffset)} />
         </div>
       )}
 
@@ -301,6 +308,9 @@ function ApplicationDetailPage() {
               </div>
             </div>
           )}
+          <Pagination offset={eventsOffset} limit={20} hasNext={eventsResponse?.metadata.nextOffset != null}
+            onPrevious={() => setEventsOffset(Math.max(0, eventsOffset - 20))}
+            onNext={() => eventsResponse?.metadata.nextOffset != null && setEventsOffset(eventsResponse.metadata.nextOffset)} />
         </div>
       )}
     </div>

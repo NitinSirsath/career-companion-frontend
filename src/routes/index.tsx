@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { format, isPast } from 'date-fns';
 import { api } from '../api/client';
 import { ApplicationResponse } from '../contracts/application';
@@ -19,7 +19,7 @@ function ActionQueueSection() {
   const [offset, setOffset] = useState(0);
   const limit = 20;
 
-  const { data: actionsResponse, isLoading } = useQuery({
+  const { data: actionsResponse, isLoading, error } = useQuery({
     queryKey: ['actions', { status: 'PENDING', offset, limit }],
     queryFn: () => api.getActions('PENDING', { offset, limit }),
   });
@@ -30,7 +30,10 @@ function ActionQueueSection() {
     mutationFn: ({ actionId, status }: { actionId: string; status: 'COMPLETED' | 'DISMISSED' }) =>
       api.updateAction(actionId, { status }),
     onSuccess: () => {
+      setOffset(0);
       queryClient.invalidateQueries({ queryKey: ['actions'] });
+      queryClient.invalidateQueries({ queryKey: ['application-actions'] });
+      queryClient.invalidateQueries({ queryKey: ['application'] });
       queryClient.invalidateQueries({ queryKey: ['applications'] });
     },
   });
@@ -39,7 +42,8 @@ function ActionQueueSection() {
     return <div className="p-8 text-center text-muted-foreground border border-border bg-surface-1">Loading action queue...</div>;
   }
 
-  if (!actions || actions.length === 0) return null;
+  if (error) return <p role="alert">Could not load actions: {error.message}</p>;
+  if (!actions || (actions.length === 0 && offset === 0)) return null;
 
   const overdueActions = actions.filter(a => a.deadline && isPast(new Date(a.deadline)));
   const upcomingActions = actions.filter(a => a.deadline && !isPast(new Date(a.deadline)));
@@ -83,6 +87,8 @@ function ActionQueueSection() {
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-semibold tracking-tight border-b border-border pb-2">Action Center</h2>
+      {updateMutation.isError && <p role="alert">Could not update action: {updateMutation.error.message}</p>}
+      {actions.length === 0 && <p>No actions on this page.</p>}
       
       {overdueActions.length > 0 && (
         <div className="space-y-3">
@@ -123,7 +129,7 @@ function AmbiguousMatchesSection({ applications }: { applications: ApplicationRe
   const [offset, setOffset] = useState(0);
   const limit = 20;
 
-  const { data: ambiguousEmailsResponse, isLoading } = useQuery({ 
+  const { data: ambiguousEmailsResponse, isLoading, error } = useQuery({
     queryKey: ['ambiguous-emails', { offset, limit }], 
     queryFn: () => api.getAmbiguousEmails({ offset, limit }) 
   });
@@ -131,14 +137,17 @@ function AmbiguousMatchesSection({ applications }: { applications: ApplicationRe
   const nextOffset = ambiguousEmailsResponse?.metadata?.nextOffset;
   const resolveMutation = useMutation({
     mutationFn: ({ emailId, applicationId }: { emailId: string, applicationId: string | null }) => api.resolveAmbiguousEmail(emailId, { applicationId }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['ambiguous-emails'] }); queryClient.invalidateQueries({ queryKey: ['applications'] }); }
+    onSuccess: () => { setOffset(0); for (const key of ['actions', 'application', 'application-actions', 'application-events', 'gmailMessages']) queryClient.invalidateQueries({ queryKey: [key] }); queryClient.invalidateQueries({ queryKey: ['ambiguous-emails'] }); queryClient.invalidateQueries({ queryKey: ['applications'] }); }
   });
 
-  if (isLoading || !ambiguousEmails || ambiguousEmails.length === 0) return null;
+  if (error) return <p role="alert">Could not load emails: {error.message}</p>;
+  if (isLoading || !ambiguousEmails || (ambiguousEmails.length === 0 && offset === 0)) return null;
 
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium text-warning">Needs Review</h3>
+      {resolveMutation.isError && <p role="alert">Could not resolve email: {resolveMutation.error.message}</p>}
+      {ambiguousEmails.length === 0 && <p>No emails on this page.</p>}
       <div className="space-y-3">
         {ambiguousEmails.map(email => (
           <div key={email.id} className="border border-border-default border-l-4 border-l-status-warning bg-surface p-4">
@@ -186,7 +195,7 @@ function UnmatchedEmailsSection({ applications }: { applications: ApplicationRes
   const [offset, setOffset] = useState(0);
   const limit = 20;
 
-  const { data: unmatchedEmailsResponse, isLoading } = useQuery({ 
+  const { data: unmatchedEmailsResponse, isLoading, error } = useQuery({
     queryKey: ['unmatched-emails', { offset, limit }], 
     queryFn: () => api.getUnmatchedEmails({ offset, limit }) 
   });
@@ -194,14 +203,17 @@ function UnmatchedEmailsSection({ applications }: { applications: ApplicationRes
   const nextOffset = unmatchedEmailsResponse?.metadata?.nextOffset;
   const resolveMutation = useMutation({
     mutationFn: ({ emailId, applicationId }: { emailId: string; applicationId: string }) => api.resolveUnmatchedEmail(emailId, { applicationId }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['unmatched-emails'] }); queryClient.invalidateQueries({ queryKey: ['applications'] }); }
+    onSuccess: () => { setOffset(0); for (const key of ['actions', 'application', 'application-actions', 'application-events', 'gmailMessages']) queryClient.invalidateQueries({ queryKey: [key] }); queryClient.invalidateQueries({ queryKey: ['unmatched-emails'] }); queryClient.invalidateQueries({ queryKey: ['applications'] }); }
   });
 
-  if (isLoading || !unmatchedEmails || unmatchedEmails.length === 0) return null;
+  if (error) return <p role="alert">Could not load emails: {error.message}</p>;
+  if (isLoading || !unmatchedEmails || (unmatchedEmails.length === 0 && offset === 0)) return null;
 
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium text-info">Unmatched Emails</h3>
+      {resolveMutation.isError && <p role="alert">Could not link email: {resolveMutation.error.message}</p>}
+      {unmatchedEmails.length === 0 && <p>No emails on this page.</p>}
       <div className="space-y-3">
         {unmatchedEmails.map(email => (
           <div key={email.id} className="border border-border-default border-l-4 border-l-status-info bg-surface p-4">
@@ -242,9 +254,11 @@ function UnmatchedEmailsSection({ applications }: { applications: ApplicationRes
 }
 
 function DashboardPage() {
-  const { data: applicationsResponse } = useQuery({
-    queryKey: ['applications'],
-    queryFn: () => api.listApplications(),
+  const [applicationOffset, setApplicationOffset] = useState(0);
+  const { data: applicationsResponse, error: applicationError, isFetching } = useQuery({
+    queryKey: ['applications', { offset: applicationOffset, limit: 20 }],
+    queryFn: () => api.listApplications({ offset: applicationOffset, limit: 20 }),
+    placeholderData: keepPreviousData,
   });
   const applications = applicationsResponse?.items;
 
@@ -257,6 +271,15 @@ function DashboardPage() {
 
       <ActionQueueSection />
 
+      {applicationError && <p role="alert">Could not load applications: {applicationError.message}</p>}
+      {(applicationOffset > 0 || applicationsResponse?.metadata.nextOffset != null) && (
+        <section aria-label="Applications for matching">
+          <p className="text-sm">Browse applications available in the email matching lists below.</p>
+          <Pagination offset={applicationOffset} limit={20} hasNext={!isFetching && applicationsResponse?.metadata.nextOffset != null}
+            onPrevious={() => setApplicationOffset(Math.max(0, applicationOffset - 20))}
+            onNext={() => applicationsResponse?.metadata.nextOffset != null && setApplicationOffset(applicationsResponse.metadata.nextOffset)} />
+        </section>
+      )}
       {applications && (
         <div className="space-y-10">
           <UnmatchedEmailsSection applications={applications} />

@@ -67,7 +67,7 @@ describe('Ambiguous Matches (COM-32)', () => {
   });
 
   it('renders ambiguous matches when present', async () => {
-    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 50, offset: 0, nextOffset: null } });
+    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 20, offset: 0, nextOffset: null } });
     vi.mocked(api.getAmbiguousEmails).mockResolvedValue({ items: [
       {
         id: 'email-1',
@@ -81,7 +81,7 @@ describe('Ambiguous Matches (COM-32)', () => {
           category: 'INTERVIEW',
         }
       }
-    ], metadata: { limit: 50, offset: 0, nextOffset: null } });
+    ], metadata: { limit: 20, offset: 0, nextOffset: null } });
 
     renderWithProviders(queryClient, '/');
 
@@ -96,7 +96,7 @@ describe('Ambiguous Matches (COM-32)', () => {
   });
 
   it('submits resolution request successfully to an application', async () => {
-    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 50, offset: 0, nextOffset: null } });
+    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 20, offset: 0, nextOffset: null } });
     vi.mocked(api.getAmbiguousEmails).mockResolvedValue({ items: [
       {
         id: 'email-1',
@@ -105,7 +105,7 @@ describe('Ambiguous Matches (COM-32)', () => {
         receivedAt: '2026-01-16T10:00:00Z',
         aiProcessingResult: null
       }
-    ], metadata: { limit: 50, offset: 0, nextOffset: null } });
+    ], metadata: { limit: 20, offset: 0, nextOffset: null } });
     vi.mocked(api.resolveAmbiguousEmail).mockResolvedValue({ success: true });
 
     renderWithProviders(queryClient, '/');
@@ -119,7 +119,7 @@ describe('Ambiguous Matches (COM-32)', () => {
   });
 
   it('submits resolution request successfully as not related (null)', async () => {
-    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 50, offset: 0, nextOffset: null } });
+    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 20, offset: 0, nextOffset: null } });
     vi.mocked(api.getAmbiguousEmails).mockResolvedValue({ items: [
       {
         id: 'email-1',
@@ -128,7 +128,7 @@ describe('Ambiguous Matches (COM-32)', () => {
         receivedAt: '2026-01-16T10:00:00Z',
         aiProcessingResult: null
       }
-    ], metadata: { limit: 50, offset: 0, nextOffset: null } });
+    ], metadata: { limit: 20, offset: 0, nextOffset: null } });
     vi.mocked(api.resolveAmbiguousEmail).mockResolvedValue({ success: true });
 
     renderWithProviders(queryClient, '/');

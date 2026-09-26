@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { api } from '../api/client';
 import { Button } from '../components/ui/button';
 import { z } from 'zod';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ExternalLink } from 'lucide-react';
 import { getGmailConversationUrl } from '../utils/gmail';
 
@@ -23,7 +23,7 @@ function GmailPage() {
   const queryClient = useQueryClient();
   const search = Route.useSearch();
   const navigate = useNavigate({ from: '/gmail' });
-  const [syncResult, setSyncResult] = useState<{ ingested: number; skipped: number } | null>(null);
+  const lastSync = useRef<string | null>(null);
   const [offset, setOffset] = useState(0);
   const limit = 20;
   const [showError, setShowError] = useState(false);
@@ -39,11 +39,13 @@ function GmailPage() {
   const { data: statusData, isLoading: isLoadingStatus, error: statusError } = useQuery({
     queryKey: ['gmailStatus'],
     queryFn: () => api.getGmailStatus(),
+    refetchInterval: query => query.state.data?.syncStatus === 'SYNCING' ? 2000 : false,
   });
 
   const { data: messagesData, isLoading: isLoadingMessages, error: messagesError } = useQuery({
     queryKey: ['gmailMessages', { offset, limit }],
     queryFn: () => api.getMessages({ offset, limit }),
+    refetchInterval: query => query.state.data?.items.some(message => message.processingState === 'PENDING' || message.processingState === 'PROCESSING') ? 2000 : false,
     enabled: !!statusData?.connected, // Only fetch if connected
   });
 
@@ -52,20 +54,28 @@ function GmailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['gmailStatus'] });
       queryClient.invalidateQueries({ queryKey: ['gmailMessages'] });
-      setSyncResult(null);
+      setOffset(0);
     },
   });
 
   const syncMutation = useMutation({
     mutationFn: () => api.triggerSync(),
-    onSuccess: (data) => {
-      setSyncResult({ ingested: data.messagesIngested, skipped: data.messagesSkipped });
-    },
+    onSuccess: () => { setOffset(0); },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['gmailStatus'] });
       queryClient.invalidateQueries({ queryKey: ['gmailMessages'] });
     }
   });
+
+  useEffect(() => {
+    const completed = statusData?.lastSyncedAt ? String(statusData.lastSyncedAt) : null;
+    if (completed && completed !== lastSync.current) {
+      lastSync.current = completed;
+      for (const key of ['gmailMessages', 'applications', 'application', 'application-events', 'application-actions', 'actions', 'unmatched-emails', 'ambiguous-emails']) {
+        queryClient.invalidateQueries({ queryKey: [key] });
+      }
+    }
+  }, [statusData?.lastSyncedAt, queryClient]);
 
   const handleConnect = () => {
     window.location.href = '/api/gmail/connect';
@@ -77,9 +87,9 @@ function GmailPage() {
         <h2 className="text-2xl font-semibold tracking-tight">Gmail Integration</h2>
       </div>
 
-      {showError && (
+      {(showError || search.gmailError) && (
         <div className="p-4 text-sm font-medium text-destructive bg-destructive/10 border border-destructive/20 rounded-xl mb-4">
-          Gmail access was not granted. You can connect Gmail at any time.
+          {search.gmailError === 'account_change' ? 'Reconnect the same Gmail account. Connecting a different mailbox is not supported yet.' : 'Gmail connection did not complete. Please try again.'}
         </div>
       )}
 
@@ -138,11 +148,8 @@ function GmailPage() {
                 Fetch the latest emails from your Gmail inbox.
               </p>
               
-              {syncResult && (
-                <p className="text-sm font-medium mt-2 text-status-success">
-                  Synced {syncResult.ingested} messages (skipped {syncResult.skipped})
-                </p>
-              )}
+              {statusData.syncStatus === 'FAILED' && <p role="alert" className="text-destructive">Sync could not finish. Try again, or reconnect if access was revoked.</p>}
+              {statusData.lastSyncedAt && <p className="text-sm mt-2">Last synced {format(new Date(statusData.lastSyncedAt), 'MMM d, yyyy h:mm a')}</p>}
               {syncMutation.isError && (
                 <p className="text-sm font-medium mt-2 text-destructive">
                   Error syncing: {syncMutation.error.message}
@@ -214,7 +221,7 @@ function GmailPage() {
                         </td>
                         <td className="px-4 py-3">
                           <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-secondary-foreground">
-                            {msg.relevanceState}
+                            {msg.processingState && msg.processingState !== 'COMPLETED' ? msg.processingState : msg.relevanceState}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
@@ -227,6 +234,8 @@ function GmailPage() {
               </div>
             </div>
             
+          </>
+          )}
             {(offset > 0 || messagesData?.metadata?.nextOffset) && (
               <div className="mt-4">
                 <Pagination 
@@ -238,8 +247,7 @@ function GmailPage() {
                 />
               </div>
             )}
-          </>
-          )}
+
         </div>
       )}
     </div>

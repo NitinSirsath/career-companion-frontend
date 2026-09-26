@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { api } from '../api/client';
@@ -80,7 +80,7 @@ describe('Gmail Route', () => {
 
     vi.mocked(api.getMessages).mockResolvedValue({
       items: [],
-      metadata: { limit: 50, offset: 0, nextOffset: null }
+      metadata: { limit: 20, offset: 0, nextOffset: null }
     });
 
     renderWithProviders();
@@ -119,10 +119,10 @@ describe('Gmail Route', () => {
 
     renderWithProviders('/gmail?gmailError=denied');
 
-    expect(await screen.findByText('Gmail access was not granted. You can connect Gmail at any time.')).toBeInTheDocument();
+    expect(await screen.findByText('Gmail connection did not complete. Please try again.')).toBeInTheDocument();
   });
 
-  it('displays sync result after successful sync call', async () => {
+  it('waits for background status after a sync is accepted', async () => {
     vi.mocked(api.getGmailStatus).mockResolvedValue({
       connected: true,
       gmailEmail: 'user@gmail.com',
@@ -133,22 +133,19 @@ describe('Gmail Route', () => {
 
     vi.mocked(api.getMessages).mockResolvedValue({
       items: [],
-      metadata: { limit: 50, offset: 0, nextOffset: null }
+      metadata: { limit: 20, offset: 0, nextOffset: null }
     });
 
-    vi.mocked(api.triggerSync).mockResolvedValue({
-      synced: true,
-      messagesIngested: 42,
-      messagesSkipped: 7,
-      lastSyncedAt: new Date().toISOString()
-    });
+    vi.mocked(api.triggerSync).mockResolvedValue({ accepted: true });
+
 
     renderWithProviders();
 
     const syncButton = await screen.findByRole('button', { name: 'Sync Now' });
     fireEvent.click(syncButton);
 
-    expect(await screen.findByText('Synced 42 messages (skipped 7)')).toBeInTheDocument();
+    await waitFor(() => expect(api.triggerSync).toHaveBeenCalledTimes(1));
+    expect(screen.queryByText(/Synced 42/)).not.toBeInTheDocument();
   });
 
   it('re-enables sync button after triggerSync fails (e.g. timeout or 409) via onSettled invalidation', async () => {
@@ -163,7 +160,7 @@ describe('Gmail Route', () => {
 
     vi.mocked(api.getMessages).mockResolvedValue({
       items: [],
-      metadata: { limit: 50, offset: 0, nextOffset: null }
+      metadata: { limit: 20, offset: 0, nextOffset: null }
     });
 
     renderWithProviders();

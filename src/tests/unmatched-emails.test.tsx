@@ -64,7 +64,7 @@ describe('Unmatched Emails (COM-37)', () => {
     });
     
     // Default mocks for irrelevant sections to prevent them from rendering or throwing
-    vi.mocked(api.getAmbiguousEmails).mockResolvedValue({ items: [], metadata: { limit: 50, offset: 0, nextOffset: null } });
+    vi.mocked(api.getAmbiguousEmails).mockResolvedValue({ items: [], metadata: { limit: 20, offset: 0, nextOffset: null } });
   });
 
   afterEach(() => {
@@ -72,7 +72,7 @@ describe('Unmatched Emails (COM-37)', () => {
   });
 
   it('renders unmatched emails when present', async () => {
-    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 50, offset: 0, nextOffset: null } });
+    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 20, offset: 0, nextOffset: null } });
     vi.mocked(api.getUnmatchedEmails).mockResolvedValue({ items: [
       {
         id: 'email-1',
@@ -86,7 +86,7 @@ describe('Unmatched Emails (COM-37)', () => {
           category: 'INTERVIEW',
         }
       }
-    ], metadata: { limit: 50, offset: 0, nextOffset: null } });
+    ], metadata: { limit: 20, offset: 0, nextOffset: null } });
 
     renderWithProviders(queryClient, '/');
 
@@ -103,7 +103,7 @@ describe('Unmatched Emails (COM-37)', () => {
   });
 
   it('submits resolution request successfully to an application', async () => {
-    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 50, offset: 0, nextOffset: null } });
+    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 20, offset: 0, nextOffset: null } });
     vi.mocked(api.getUnmatchedEmails).mockResolvedValue({ items: [
       {
         id: 'email-1',
@@ -112,7 +112,7 @@ describe('Unmatched Emails (COM-37)', () => {
         receivedAt: '2026-01-16T10:00:00Z',
         aiProcessingResult: null
       }
-    ], metadata: { limit: 50, offset: 0, nextOffset: null } });
+    ], metadata: { limit: 20, offset: 0, nextOffset: null } });
     vi.mocked(api.resolveUnmatchedEmail).mockResolvedValue({ success: true });
 
     renderWithProviders(queryClient, '/');

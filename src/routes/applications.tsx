@@ -126,6 +126,7 @@ function ApplicationsDashboard() {
     mutationFn: (data: CreateApplicationRequest) => api.createApplication(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['applications'] });
+      setOffset(0);
       form.reset();
       setShowCreateForm(false);
     },

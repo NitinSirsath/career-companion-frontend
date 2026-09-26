@@ -1,4 +1,4 @@
-import { createPaginatedResponseSchema } from './pagination';
+import { createPaginatedResponseSchema, PaginatedResponse } from './pagination';
 import { z } from 'zod';
 
 export const ApplicationStatusSchema = z.enum([
@@ -14,7 +14,7 @@ export const ApplicationStatusSchema = z.enum([
 export type ApplicationStatus = z.infer<typeof ApplicationStatusSchema>;
 
 export const CreateApplicationRequestSchema = z.object({
-  companyName: z.string().min(1, 'Company name is required'),
+  companyName: z.string().trim().min(1, 'Company name is required').max(200),
   jobTitle: z.string().optional(),
   location: z.string().optional(),
   appliedAt: z.string().datetime().optional().or(z.date().optional()),
@@ -26,11 +26,11 @@ export type CreateApplicationRequest = z.infer<typeof CreateApplicationRequestSc
 
 export const RecentEventSchema = z.object({
   type: z.string(),
-  createdAt: z.string().or(z.date()),
+  createdAt: z.union([z.date(), z.string()]),
 });
 export type RecentEvent = z.infer<typeof RecentEventSchema>;
 
-// ─── ApplicationResponse ────────────────────────────────────────────────────
+// ─── ApplicationResponse (list + single) ───────────────────────────────────
 
 export const ApplicationResponseSchema = z.object({
   id: z.string(),
@@ -39,10 +39,11 @@ export const ApplicationResponseSchema = z.object({
   location: z.string().nullable(),
   aiStatus: ApplicationStatusSchema.nullable(),
   userStatus: ApplicationStatusSchema.nullable(),
-  userStatusSetAt: z.string().nullable(),
-  appliedAt: z.string().nullable(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
+  userStatusSetAt: z.union([z.date(), z.string()]).nullable(),
+  appliedAt: z.union([z.date(), z.string()]).nullable(),
+  createdAt: z.union([z.date(), z.string()]),
+  updatedAt: z.union([z.date(), z.string()]),
+  // Intelligence enrichment
   recentEvent: RecentEventSchema.nullable(),
   pendingActionCount: z.number(),
 });
@@ -63,11 +64,11 @@ export const ApplicationEventResponseSchema = z.object({
   newState: ApplicationStatusSchema.nullable(),
   description: z.string().nullable(),
   provenance: z.string().nullable(),
-  createdAt: z.string(),
+  createdAt: z.union([z.date(), z.string()]),
 });
 
 export type ApplicationEventResponse = z.infer<typeof ApplicationEventResponseSchema>;
-export type ListApplicationEventsResponse = ApplicationEventResponse[];
+export type ListApplicationEventsResponse = PaginatedResponse<ApplicationEventResponse>;
 
 // ─── Action ─────────────────────────────────────────────────────────────────
 
@@ -77,10 +78,10 @@ export const ApplicationActionResponseSchema = z.object({
   emailId: z.string().nullable(),
   type: z.string(),
   description: z.string().nullable(),
-  deadline: z.string().nullable(),
+  deadline: z.union([z.date(), z.string()]).nullable(),
   status: z.string(),
-  createdAt: z.string(),
+  createdAt: z.union([z.date(), z.string()]),
 });
 
 export type ApplicationActionResponse = z.infer<typeof ApplicationActionResponseSchema>;
-export type ListApplicationActionsResponse = ApplicationActionResponse[];
+export type ListApplicationActionsResponse = PaginatedResponse<ApplicationActionResponse>;
