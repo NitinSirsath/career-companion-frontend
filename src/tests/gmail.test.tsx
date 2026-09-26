@@ -190,4 +190,52 @@ describe('Gmail Route', () => {
     // 5. Verify the button is re-enabled because onSettled invalidated the query and fetched IDLE
     expect(await screen.findByRole('button', { name: 'Sync Now' })).not.toBeDisabled();
   });
+
+  it('renders a Gmail link when threadId is provided', async () => {
+    vi.mocked(api.getGmailStatus).mockResolvedValue({
+      connected: true,
+      gmailEmail: 'user@gmail.com',
+      status: 'CONNECTED',
+      syncStatus: 'IDLE',
+      lastSyncedAt: null,
+    });
+
+    vi.mocked(api.getMessages).mockResolvedValue({
+      items: [
+        {
+          id: '1',
+          gmailMessageId: 'msg-1',
+          threadId: 'thread-123',
+          subject: 'Email with threadId',
+          sender: 'sender@test.com',
+          receivedAt: new Date().toISOString(),
+          relevanceState: 'UNPROCESSED',
+          matchState: 'UNMATCHED',
+        },
+        {
+          id: '2',
+          gmailMessageId: 'msg-2',
+          threadId: null, // No thread ID
+          subject: 'Email without threadId',
+          sender: 'sender@test.com',
+          receivedAt: new Date().toISOString(),
+          relevanceState: 'UNPROCESSED',
+          matchState: 'UNMATCHED',
+        }
+      ],
+      metadata: { limit: 50, offset: 0, nextOffset: null }
+    });
+
+    renderWithProviders();
+
+    // The first email should be a link
+    const link = await screen.findByRole('link', { name: /Open email "Email with threadId" in Gmail/i });
+    expect(link).toHaveAttribute('href', 'https://mail.google.com/mail/u/0/#all/thread-123');
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+
+    // The second email should NOT be a link (just text)
+    expect(screen.getByText('Email without threadId')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Open email "Email without threadId" in Gmail/i })).not.toBeInTheDocument();
+  });
 });
