@@ -43,7 +43,7 @@ function RootComponent() {
             <Briefcase className="w-5 h-5 text-primary" />
             <div className="font-semibold text-lg tracking-tight">Career Companion</div>
           </div>
-          <button onClick={handleLogout} className="text-destructive p-2" aria-label="Logout">
+          <button onClick={handleLogout} className="text-status-error p-2 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-border-focus rounded-none" aria-label="Logout">
             <LogOut className="w-5 h-5" />
           </button>
         </header>

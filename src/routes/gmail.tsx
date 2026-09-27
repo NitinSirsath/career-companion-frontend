@@ -5,7 +5,7 @@ import { api } from '../api/client';
 import { Button } from '../components/ui/button';
 import { z } from 'zod';
 import { useEffect, useRef, useState } from 'react';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Info, RotateCcw } from 'lucide-react';
 import { getGmailConversationUrl } from '../utils/gmail';
 
 const gmailSearchSchema = z.object({
@@ -13,6 +13,8 @@ const gmailSearchSchema = z.object({
 });
 
 import { Pagination } from '../components/ui/pagination';
+
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '../components/ui/tooltip';
 
 export const Route = createFileRoute('/gmail')({
   validateSearch: gmailSearchSchema,
@@ -45,7 +47,14 @@ function GmailPage() {
   const { data: messagesData, isLoading: isLoadingMessages, error: messagesError } = useQuery({
     queryKey: ['gmailMessages', { offset, limit }],
     queryFn: () => api.getMessages({ offset, limit }),
-    refetchInterval: query => query.state.data?.items.some(message => message.processingState === 'PENDING' || message.processingState === 'PROCESSING') ? 2000 : false,
+    refetchInterval: query => {
+      const items = query.state.data?.items || [];
+      const hasActive = items.some(m => m.processingState === 'PENDING' || (m.processingState === 'PROCESSING' && !m.processingRetryable));
+      if (hasActive) return 2000;
+      const hasRetrying = items.some(m => m.processingState === 'PROCESSING' && m.processingRetryable);
+      if (hasRetrying) return 15000;
+      return false;
+    },
     enabled: !!statusData?.connected, // Only fetch if connected
   });
 
@@ -67,6 +76,13 @@ function GmailPage() {
     }
   });
 
+  const retryMutation = useMutation({
+    mutationFn: (emailId: string) => api.retryEmail(emailId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gmailMessages'] });
+    }
+  });
+
   useEffect(() => {
     const completed = statusData?.lastSyncedAt ? String(statusData.lastSyncedAt) : null;
     if (completed && completed !== lastSync.current) {
@@ -82,7 +98,8 @@ function GmailPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <TooltipProvider>
+      <div className="max-w-6xl mx-auto space-y-8 px-4 md:px-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-semibold tracking-tight">Gmail Integration</h2>
       </div>
@@ -224,6 +241,7 @@ function GmailPage() {
                       <th className="px-4 py-3 font-medium">Subject</th>
                       <th className="px-4 py-3 font-medium">Sender</th>
                       <th className="px-4 py-3 font-medium">State</th>
+                      <th className="px-4 py-3 font-medium">AI Status</th>
                       <th className="px-4 py-3 font-medium">Received</th>
                     </tr>
                   </thead>
@@ -251,8 +269,57 @@ function GmailPage() {
                         </td>
                         <td className="px-4 py-3">
                           <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-secondary-foreground">
-                            {msg.processingState && msg.processingState !== 'COMPLETED' ? msg.processingState : msg.relevanceState}
+                            {msg.relevanceState}
                           </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-1.5">
+                            <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${msg.processingState === 'FAILED' ? 'bg-destructive/10 text-destructive border-destructive/20' : 'bg-secondary text-secondary-foreground'}`}>
+                              {msg.processingState || 'PENDING'}
+                            </span>
+                            {msg.processingErrorDetails && (
+                              <Tooltip>
+                                <TooltipTrigger className="text-muted-foreground hover:text-foreground cursor-help transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-full">
+                                  <Info className="h-4 w-4 text-destructive" />
+                                </TooltipTrigger>
+                                <TooltipContent className="p-0 overflow-hidden">
+                                  <div className={`px-3 py-2 border-b ${msg.processingRetryable ? 'bg-status-warning-subtle border-status-warning/20' : 'bg-status-error-subtle border-status-error/20'}`}>
+                                    <div className={`font-semibold text-[13px] flex items-center gap-2 ${msg.processingRetryable ? 'text-status-warning' : 'text-status-error'}`}>
+                                      {msg.processingRetryable ? 'Retrying (Rate Limited)' : 'Processing Error'}
+                                    </div>
+                                  </div>
+                                  <div className="p-3 flex flex-col gap-2">
+                                    <div className="text-muted-foreground">{msg.processingErrorDetails}</div>
+                                    <div className="grid grid-cols-[max-content_1fr] gap-x-2 gap-y-0.5 mt-1 text-xs text-muted-foreground/80">
+                                      <span className="font-medium">Stage:</span>
+                                      <span>{msg.processingErrorStage || 'unknown'}</span>
+                                      {msg.processingFailedAt && (
+                                        <>
+                                          <span className="font-medium">Failed:</span>
+                                          <span>{format(new Date(msg.processingFailedAt), 'MMM d, yyyy h:mm a')}</span>
+                                        </>
+                                      )}
+                                    </div>
+                                    <div className="mt-2 pt-2 border-t border-border flex justify-end">
+                                      <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        className="h-7 text-xs px-2 cursor-pointer"
+                                        disabled={retryMutation.isPending}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          retryMutation.mutate(msg.id);
+                                        }}
+                                      >
+                                        <RotateCcw className={`mr-1.5 h-3 w-3 ${retryMutation.isPending ? 'animate-spin' : ''}`} />
+                                        Manual Retry
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </TooltipContent>
+                              </Tooltip>
+                            )}
+                          </div>
                         </td>
                         <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
                           {msg.receivedAt ? format(new Date(msg.receivedAt), 'MMM d, yyyy') : '-'}
@@ -281,5 +348,6 @@ function GmailPage() {
         </div>
       )}
     </div>
+    </TooltipProvider>
   );
 }

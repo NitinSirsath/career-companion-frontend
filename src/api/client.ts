@@ -136,6 +136,12 @@ export class ApiClient {
     });
   }
 
+  async retryEmail(emailId: string): Promise<{ success: boolean }> {
+    return this.request<{ success: boolean }>(`/api/emails/${emailId}/retry`, {
+      method: 'POST',
+    });
+  }
+
   // --- Action Management (COM-33) ---
 
   async getActions(status?: string, params?: { limit?: number; offset?: number }): Promise<PaginatedResponse<ActionWithContextResponse>> {

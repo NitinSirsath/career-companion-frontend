@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
+import { Button } from '../components/ui/button';
 
 const loginSearchSchema = z.object({
   error: z.string().optional(),
@@ -34,12 +35,13 @@ function Login() {
         </div>
       )}
       <p className="mb-8 text-muted-foreground">Sign in to start tracking your job applications.</p>
-      <button
+      <Button
         onClick={handleLogin}
-        className="px-4 py-2 bg-action-primary text-text-inverse rounded-none font-medium hover:bg-action-primary-hover transition"
+        variant="primary"
+        size="default"
       >
         Sign in with Google
-      </button>
+      </Button>
     </div>
   );
 }

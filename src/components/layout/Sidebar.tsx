@@ -39,7 +39,7 @@ export function Sidebar() {
         <div className="border-t border-border-subtle pt-4">
           <button 
             onClick={handleLogout} 
-            className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-none text-status-error hover:bg-status-error-subtle transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-none text-status-error hover:bg-status-error-subtle transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:ring-offset-2"
           >
             <LogOut className="w-4 h-4" />
             Logout

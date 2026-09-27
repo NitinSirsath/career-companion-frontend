@@ -1,6 +1,6 @@
-import * as React from 'react';
-import { Dialog as BaseDialog } from '@base-ui/react/dialog';
-import { cn } from '../../lib/utils';
+import * as React from "react";
+import { Dialog as BaseDialog } from "@base-ui/react/dialog";
+import { cn } from "../../lib/utils";
 
 export function Dialog({
   open,
@@ -27,15 +27,9 @@ export function DialogTrigger({
   children: React.ReactNode;
 } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   if (asChild && React.isValidElement(children)) {
-    return (
-      <BaseDialog.Trigger render={children} {...props} />
-    );
+    return <BaseDialog.Trigger render={children} {...props} />;
   }
-  return (
-    <BaseDialog.Trigger {...props}>
-      {children}
-    </BaseDialog.Trigger>
-  );
+  return <BaseDialog.Trigger {...props}>{children}</BaseDialog.Trigger>;
 }
 
 export function DialogContent({
@@ -50,7 +44,7 @@ export function DialogContent({
         <BaseDialog.Popup
           className={cn(
             "relative w-full max-w-lg border border-border bg-surface p-6 shadow-lg overflow-y-auto max-h-[90vh] outline-none",
-            className
+            className,
           )}
           {...props}
         >
@@ -80,7 +74,10 @@ export function DialogTitle({
   return (
     <BaseDialog.Title
       render={<h3 />}
-      className={cn("text-lg font-medium leading-none tracking-tight", className)}
+      className={cn(
+        "text-lg font-medium leading-none tracking-tight",
+        className,
+      )}
       {...props}
     />
   );
@@ -92,7 +89,10 @@ export function DialogFooter({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 pt-4", className)}
+      className={cn(
+        "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 pt-4",
+        className,
+      )}
       {...props}
     />
   );
