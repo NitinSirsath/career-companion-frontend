@@ -162,6 +162,14 @@ export class ApiClient {
     return this.get<GmailStatusResponse>('/api/gmail/status');
   }
 
+  
+  async updateGmailSettings(settings: { syncLookbackDays: number }): Promise<{ success: boolean, syncLookbackDays: number }> {
+    return this.request<{ success: boolean, syncLookbackDays: number }>('/api/gmail/settings', {
+      method: 'PATCH',
+      body: JSON.stringify(settings),
+    });
+  }
+
   async triggerSync(): Promise<SyncResponse> {
     return this.request<SyncResponse>('/api/gmail/sync', {
       method: 'POST',

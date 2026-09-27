@@ -168,6 +168,36 @@ function GmailPage() {
         </div>
       )}
 
+      {/* Sync Settings Section */}
+      {statusData?.connected && (
+        <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm p-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-medium mb-1">Sync Settings</h3>
+              <p className="text-muted-foreground text-sm">
+                Control how far back to look for emails during sync.
+              </p>
+            </div>
+            <div>
+              <select 
+                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                value={statusData.syncLookbackDays || 1}
+                disabled={syncMutation.isPending || statusData.syncStatus === 'SYNCING'}
+                onChange={(e) => {
+                  api.updateGmailSettings({ syncLookbackDays: parseInt(e.target.value, 10) })
+                    .then(() => queryClient.invalidateQueries({ queryKey: ['gmailStatus'] }));
+                }}
+              >
+                <option value={1}>1 day (Default)</option>
+                <option value={7}>7 days</option>
+                <option value={14}>14 days</option>
+                <option value={30}>30 days</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Ingested Email List */}
       {(statusData?.connected || (messagesData && messagesData?.items?.length > 0)) && (
         <div className="space-y-4">
