@@ -14,29 +14,23 @@ export function ThemeSelector({ className }: { className?: string }) {
   ];
 
   return (
-    <div className={cn("flex flex-col gap-2", className)}>
-      <div className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-text-secondary uppercase tracking-wider">
+    <div className={cn("flex flex-col gap-2 px-3", className)}>
+      <div className="flex items-center gap-2 text-sm font-medium text-text-secondary">
         <Monitor className="w-4 h-4" />
-        <span>Theme</span>
+        <label htmlFor="theme-select">Theme</label>
       </div>
-      <div className="flex flex-col gap-1 px-2">
+      <select
+        id="theme-select"
+        value={theme}
+        onChange={(e) => setTheme(e.target.value as Theme)}
+        className="h-9 w-full rounded-none border border-border-default bg-surface px-3 py-1 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-border-focus"
+      >
         {themes.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setTheme(t.id)}
-            className={cn(
-              "text-left px-3 py-2 text-sm transition-colors rounded-none outline-none focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:ring-offset-1 focus-visible:ring-offset-background",
-              theme === t.id
-                ? "bg-surface-selected text-text-primary font-semibold border-l-2 border-border-focus"
-                : "text-text-secondary hover:bg-surface-subtle hover:text-text-primary border-l-2 border-transparent"
-            )}
-            aria-label={`Select ${t.label} theme`}
-            aria-pressed={theme === t.id}
-          >
+          <option key={t.id} value={t.id}>
             {t.label}
-          </button>
+          </option>
         ))}
-      </div>
+      </select>
     </div>
   );
 }

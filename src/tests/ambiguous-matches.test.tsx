@@ -90,7 +90,7 @@ describe('Ambiguous Matches (COM-32)', () => {
     expect(screen.getByText('Next steps')).toBeInTheDocument();
     
     // Candidate applications render
-    expect(screen.getByRole('button', { name: /Acme Corp/ })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: /Acme Corp/ })).toBeInTheDocument();
     // Ignore button renders
     expect(screen.getByRole('button', { name: /Not related/i })).toBeInTheDocument();
   });
@@ -110,8 +110,8 @@ describe('Ambiguous Matches (COM-32)', () => {
 
     renderWithProviders(queryClient, '/');
 
-    const selectButton = await screen.findByRole('button', { name: /Acme Corp/ });
-    fireEvent.click(selectButton);
+    const selectDropdown = await screen.findByRole('combobox', { name: /Select application to link/i });
+    fireEvent.change(selectDropdown, { target: { value: 'app-1' } });
 
     await waitFor(() => {
       expect(api.resolveAmbiguousEmail).toHaveBeenCalledWith('email-1', { applicationId: 'app-1' });

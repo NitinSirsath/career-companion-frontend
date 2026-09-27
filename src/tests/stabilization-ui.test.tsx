@@ -52,7 +52,9 @@ it('can select an application beyond the first 20 when linking an email', async 
   show('/');
   const selector = await screen.findByRole('region', { name: 'Applications for matching' });
   fireEvent.click(within(selector).getByRole('button', { name: 'Next' }));
-  fireEvent.click(await screen.findByRole('button', { name: 'Older Company' }));
+  await screen.findByRole('option', { name: 'Older Company' });
+  const selectDropdown = await screen.findByRole('combobox', { name: /Select application to link/i });
+  fireEvent.change(selectDropdown, { target: { value: 'older-app' } });
   await waitFor(() => expect(api.resolveUnmatchedEmail).toHaveBeenCalledWith('email', { applicationId: 'older-app' }));
 });
 it('shows a failed action mutation and permits retry', async () => {

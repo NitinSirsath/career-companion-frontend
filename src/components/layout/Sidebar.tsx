@@ -15,7 +15,7 @@ export function Sidebar() {
     <aside className="hidden md:flex flex-col w-64 border-r border-border-default bg-surface h-screen sticky top-0">
       <div className="p-4 border-b border-border-default flex items-center gap-3">
         <Briefcase className="w-6 h-6 text-action-primary" />
-        <h1 className="font-semibold text-lg tracking-tight">Career Companion</h1>
+        <div className="font-semibold text-lg tracking-tight">Career Companion</div>
       </div>
       
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">

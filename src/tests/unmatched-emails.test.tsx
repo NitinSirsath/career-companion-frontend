@@ -91,12 +91,11 @@ describe('Unmatched Emails (COM-37)', () => {
     renderWithProviders(queryClient, '/');
 
     expect(await screen.findByText('Unmatched Emails')).toBeInTheDocument();
-    expect(screen.getByText('Needs Linking')).toBeInTheDocument();
     expect(screen.getByText('eng@startup.io')).toBeInTheDocument();
     expect(screen.getByText('Interview schedule')).toBeInTheDocument();
     
     // Candidate applications render
-    expect(screen.getByRole('button', { name: /Acme Corp/ })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: /Acme Corp/ })).toBeInTheDocument();
     
     // Ignore button should NOT render for unmatched emails
     expect(screen.queryByRole('button', { name: /Not related/i })).not.toBeInTheDocument();
@@ -117,8 +116,8 @@ describe('Unmatched Emails (COM-37)', () => {
 
     renderWithProviders(queryClient, '/');
 
-    const selectButton = await screen.findByRole('button', { name: /Acme Corp/ });
-    fireEvent.click(selectButton);
+    const selectDropdown = await screen.findByRole('combobox', { name: /Select application to link/i });
+    fireEvent.change(selectDropdown, { target: { value: 'app-1' } });
 
     await waitFor(() => {
       expect(api.resolveUnmatchedEmail).toHaveBeenCalledWith('email-1', { applicationId: 'app-1' });

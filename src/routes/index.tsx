@@ -50,8 +50,8 @@ function ActionQueueSection() {
   const pendingActions = actions.filter(a => !a.deadline);
 
   const renderActionItem = (action: ActionWithContextResponse, isOverdue: boolean) => (
-    <div key={action.id} className={`border p-4 flex flex-col md:flex-row gap-4 justify-between bg-surface-1 ${isOverdue ? 'border-status-error' : 'border-border'}`}>
-      <div className="flex-1 min-w-0">
+    <div key={action.id} className={`max-w-4xl border p-4 flex flex-col md:flex-row items-center gap-4 justify-between bg-surface-1 ${isOverdue ? 'border-status-error' : 'border-border'}`}>
+      <div className="flex-1 min-w-0 w-full">
         <div className="flex items-center gap-2 mb-2">
           {isOverdue && <Badge variant="destructive">Overdue</Badge>}
           <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -73,11 +73,11 @@ function ActionQueueSection() {
         </div>
       </div>
 
-      <div className="flex flex-row md:flex-col gap-2 shrink-0 md:min-w-[140px] justify-end md:justify-start mt-2 md:mt-0">
+      <div className="flex flex-row md:flex-col gap-2 shrink-0 md:min-w-[140px] justify-end md:justify-center mt-2 md:mt-0 w-full md:w-auto">
         <Button variant="primary" size="sm" className="w-full" disabled={updateMutation.isPending} onClick={() => updateMutation.mutate({ actionId: action.id, status: 'COMPLETED' })}>
           Complete
         </Button>
-        <Button variant="ghost" size="sm" className="w-full text-muted-foreground" disabled={updateMutation.isPending} onClick={() => updateMutation.mutate({ actionId: action.id, status: 'DISMISSED' })}>
+        <Button variant="tertiary" size="sm" className="w-full text-muted-foreground" disabled={updateMutation.isPending} onClick={() => updateMutation.mutate({ actionId: action.id, status: 'DISMISSED' })}>
           Dismiss
         </Button>
       </div>
@@ -160,15 +160,21 @@ function AmbiguousMatchesSection({ applications }: { applications: ApplicationRe
                 </div>
               </div>
               <div className="flex flex-col gap-2 shrink-0 md:w-[280px]">
-                <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wider">Select Application</p>
-                <div className="flex flex-col gap-1 max-h-[150px] overflow-y-auto">
+                <select 
+                  aria-label="Select application to link"
+                  className="h-9 w-full rounded-none border border-border-default bg-surface px-3 py-1 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-border-focus"
+                  onChange={(e) => {
+                    if (e.target.value) resolveMutation.mutate({ emailId: email.id, applicationId: e.target.value });
+                  }}
+                  defaultValue=""
+                  disabled={resolveMutation.isPending}
+                >
+                  <option value="" disabled>Select application...</option>
                   {applications.map(app => (
-                    <Button key={app.id} variant="tertiary" size="sm" className="justify-start truncate w-full" disabled={resolveMutation.isPending} onClick={() => resolveMutation.mutate({ emailId: email.id, applicationId: app.id })}>
-                      {app.companyName}
-                    </Button>
+                    <option key={app.id} value={app.id}>{app.companyName}</option>
                   ))}
-                </div>
-                <Button variant="ghost" size="sm" className="mt-1 w-full" disabled={resolveMutation.isPending} onClick={() => resolveMutation.mutate({ emailId: email.id, applicationId: null })}>
+                </select>
+                <Button variant="tertiary" size="sm" className="w-full" disabled={resolveMutation.isPending} onClick={() => resolveMutation.mutate({ emailId: email.id, applicationId: null })}>
                   Not related
                 </Button>
               </div>
@@ -217,23 +223,28 @@ function UnmatchedEmailsSection({ applications }: { applications: ApplicationRes
       <div className="space-y-3">
         {unmatchedEmails.map(email => (
           <div key={email.id} className="border border-border-default border-l-4 border-l-status-info bg-surface p-4">
-            <div className="flex flex-col md:flex-row gap-6 justify-between">
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-info">Needs Linking</p>
-                <div className="mt-2 space-y-1">
+            <div className="flex flex-col md:flex-row gap-6 justify-between items-center">
+              <div className="flex-1 w-full">
+                <div className="space-y-1">
                   <p className="text-xs"><span className="font-medium text-muted-foreground">From:</span> {email.sender}</p>
                   {email.subject && <p className="text-xs"><span className="font-medium text-muted-foreground">Subject:</span> {email.subject}</p>}
                 </div>
               </div>
-              <div className="flex flex-col gap-2 shrink-0 md:w-[280px]">
-                <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wider">Link to Application</p>
-                <div className="flex flex-col gap-1 max-h-[150px] overflow-y-auto">
+              <div className="flex flex-col gap-2 shrink-0 md:w-[280px] w-full mt-2 md:mt-0">
+                <select 
+                  aria-label="Select application to link"
+                  className="h-9 w-full rounded-none border border-border-default bg-surface px-3 py-1 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-border-focus"
+                  onChange={(e) => {
+                    if (e.target.value) resolveMutation.mutate({ emailId: email.id, applicationId: e.target.value });
+                  }}
+                  defaultValue=""
+                  disabled={resolveMutation.isPending}
+                >
+                  <option value="" disabled>Select application...</option>
                   {applications.map(app => (
-                    <Button key={app.id} variant="tertiary" size="sm" className="justify-start truncate w-full" disabled={resolveMutation.isPending} onClick={() => resolveMutation.mutate({ emailId: email.id, applicationId: app.id })}>
-                      {app.companyName}
-                    </Button>
+                    <option key={app.id} value={app.id}>{app.companyName}</option>
                   ))}
-                </div>
+                </select>
               </div>
             </div>
           </div>
