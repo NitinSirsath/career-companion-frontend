@@ -84,7 +84,7 @@ describe('Action Queue (COM-33)', () => {
     upcomingDate.setDate(upcomingDate.getDate() + 1);
 
     vi.mocked(api.getActions).mockResolvedValue({ items: [
-      makeAction({ id: 'a1', description: 'Overdue task', deadline: overdueDate.toISOString() }),
+      makeAction({ id: 'a1', description: 'Overdue task', deadline: overdueDate.toISOString(), email: { subject: 'Overdue email', sender: 'test@example.com', threadId: 'thread-action' } }),
       makeAction({ id: 'a2', description: 'Upcoming task', deadline: upcomingDate.toISOString() }),
       makeAction({ id: 'a3', description: 'Pending task', deadline: null })
     ], metadata: { limit: 20, offset: 0, nextOffset: null } });
@@ -104,6 +104,11 @@ describe('Action Queue (COM-33)', () => {
     // Verify context is shown
     const companyNames = screen.getAllByText(/Acme Corp/);
     expect(companyNames.length).toBeGreaterThan(0);
+    
+    // Verify Gmail link is present
+    const gmailLink = screen.getByRole('link', { name: /Open email "Overdue email" in Gmail/i });
+    expect(gmailLink).toBeInTheDocument();
+    expect(gmailLink).toHaveAttribute('href', expect.stringContaining('thread-action'));
   });
 
   it('submits Complete correctly', async () => {

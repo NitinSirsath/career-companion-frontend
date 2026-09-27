@@ -9,6 +9,7 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 
 import { Pagination } from '../components/ui/pagination';
+import { GmailLink } from '../components/ui/GmailLink';
 
 export const Route = createFileRoute('/')({
   component: DashboardPage,
@@ -66,10 +67,13 @@ function ActionQueueSection() {
         
         <p className="font-medium text-base">{action.description || 'Follow up required'}</p>
         
-        <div className="mt-2 text-sm">
+        <div className="mt-2 text-sm flex items-center gap-4">
           <Link to="/applications/$id" params={{ id: action.applicationId }} className="font-medium text-primary hover:underline">
             {action.application.companyName} {action.application.jobTitle ? `— ${action.application.jobTitle}` : ''}
           </Link>
+          {action.email?.threadId && (
+            <GmailLink threadId={action.email.threadId} subject={action.email.subject} />
+          )}
         </div>
       </div>
 
@@ -157,6 +161,11 @@ function AmbiguousMatchesSection({ applications }: { applications: ApplicationRe
                 <div className="mt-2 space-y-1">
                   <p className="text-xs"><span className="font-medium text-muted-foreground">From:</span> {email.sender}</p>
                   {email.subject && <p className="text-xs"><span className="font-medium text-muted-foreground">Subject:</span> {email.subject}</p>}
+                  {email.threadId && (
+                    <div className="pt-1">
+                      <GmailLink threadId={email.threadId} subject={email.subject} />
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="flex flex-col gap-2 shrink-0 md:w-[280px]">
@@ -228,6 +237,11 @@ function UnmatchedEmailsSection({ applications }: { applications: ApplicationRes
                 <div className="space-y-1">
                   <p className="text-xs"><span className="font-medium text-muted-foreground">From:</span> {email.sender}</p>
                   {email.subject && <p className="text-xs"><span className="font-medium text-muted-foreground">Subject:</span> {email.subject}</p>}
+                  {email.threadId && (
+                    <div className="pt-1">
+                      <GmailLink threadId={email.threadId} subject={email.subject} />
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="flex flex-col gap-2 shrink-0 md:w-[280px] w-full mt-2 md:mt-0">

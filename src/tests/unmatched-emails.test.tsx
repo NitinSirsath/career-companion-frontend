@@ -78,6 +78,7 @@ describe('Unmatched Emails (COM-37)', () => {
         id: 'email-1',
         sender: 'eng@startup.io',
         subject: 'Interview schedule',
+        threadId: 'thread-123',
         receivedAt: '2026-01-16T10:00:00Z',
         aiProcessingResult: {
           companyName: 'Startup',
@@ -93,6 +94,10 @@ describe('Unmatched Emails (COM-37)', () => {
     expect(await screen.findByText('Unmatched Emails')).toBeInTheDocument();
     expect(screen.getByText('eng@startup.io')).toBeInTheDocument();
     expect(screen.getByText('Interview schedule')).toBeInTheDocument();
+    
+    const gmailLink = screen.getByRole('link', { name: /Open email "Interview schedule" in Gmail/i });
+    expect(gmailLink).toBeInTheDocument();
+    expect(gmailLink).toHaveAttribute('href', expect.stringContaining('thread-123'));
     
     // Candidate applications render
     expect(screen.getByRole('option', { name: /Acme Corp/ })).toBeInTheDocument();
