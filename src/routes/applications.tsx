@@ -14,6 +14,7 @@ import { Label } from '../components/ui/label';
 import { Badge } from '../components/ui/badge';
 
 import { Pagination } from '../components/ui/pagination';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
 
 export const Route = createFileRoute('/applications')({
   component: ApplicationsPage,
@@ -146,16 +147,17 @@ function ApplicationsDashboard() {
         <Button
           variant="tertiary"
           size="sm"
-          onClick={() => setShowCreateForm((v) => !v)}
-          aria-expanded={showCreateForm}
+          onClick={() => setShowCreateForm(true)}
         >
-          {showCreateForm ? 'Cancel' : 'Add Application'}
+          Add Application
         </Button>
       </div>
 
-      {showCreateForm && (
-        <div className="border border-border bg-surface-1 p-6">
-          <h3 className="text-lg font-medium mb-4">Track New Application</h3>
+      <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Track New Application</DialogTitle>
+          </DialogHeader>
           <form onSubmit={onSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -183,14 +185,17 @@ function ApplicationsDashboard() {
                 Error creating application: {createMutation.error.message}
               </div>
             )}
-            <div className="flex justify-end pt-2">
+            <DialogFooter>
+              <Button type="button" variant="secondary" onClick={() => setShowCreateForm(false)}>
+                Cancel
+              </Button>
               <Button type="submit" disabled={createMutation.isPending} variant="primary">
                 {createMutation.isPending ? 'Saving...' : 'Save'}
               </Button>
-            </div>
+            </DialogFooter>
           </form>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
 
       <div className="space-y-4">
         {isLoading ? (
