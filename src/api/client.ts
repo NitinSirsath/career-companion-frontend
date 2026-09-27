@@ -117,7 +117,7 @@ export class ApiClient {
     });
   }
 
-  // --- Unmatched Emails (COM-37) ---
+  // --- Unmatched Emails (COM-36) ---
 
   async getUnmatchedEmails(params?: { limit?: number; offset?: number }): Promise<PaginatedResponse<AmbiguousMatchResponse>> {
     const urlParams = new URLSearchParams();
