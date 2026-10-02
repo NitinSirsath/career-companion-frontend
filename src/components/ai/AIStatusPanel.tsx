@@ -47,7 +47,7 @@ export function AIStatusPanel({
     retry: false,
     onSuccess: ({ verification, ...next }) => {
       queryClient.setQueryData(['aiSettings'], next);
-      if (verification === 'VERIFIED') startProcessingRefresh();
+      if (verification === 'VERIFIED' && next.waitingEmails > 0) startProcessingRefresh();
       setCheckNote(
         verification === 'VERIFIED'
           ? `${name} confirmed your key and models.`

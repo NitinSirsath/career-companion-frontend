@@ -62,7 +62,7 @@ export function ProviderSetupForm({
 }: {
   provider: CatalogProvider;
   settings: AISettingsResponse;
-  onDone: (verification: 'VERIFIED' | 'INCONCLUSIVE') => void;
+  onDone: (verification: 'VERIFIED' | 'INCONCLUSIVE', waitingEmails: number) => void;
   onCancel: () => void;
 }) {
   const queryClient = useQueryClient();
@@ -109,8 +109,8 @@ export function ProviderSetupForm({
         ...(needsConsent ? { consentDisclosure: provider.disclosure.version } : {}),
       });
       queryClient.setQueryData(['aiSettings'], saved);
-      startProcessingRefresh(); // waiting emails resume
-      onDone(verification);
+      if (saved.waitingEmails > 0) startProcessingRefresh(); // waiting emails resume
+      onDone(verification, saved.waitingEmails);
     } catch (err) {
       setProblem(saveProblem(err, provider));
       if (isApiError(err) && err.outcomeUncertain) queryClient.invalidateQueries({ queryKey: ['aiSettings'] });

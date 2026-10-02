@@ -58,8 +58,11 @@ function AIProviderPage() {
           key={formProvider.id}
           provider={formProvider}
           settings={settings}
-          onDone={(verification) => {
-            setSavedNote(SAVED_NOTE[verification]);
+          onDone={(verification, waitingEmails) => {
+            const note = verification === 'VERIFIED'
+              ? (waitingEmails > 0 ? SAVED_NOTE.VERIFIED : 'Connected.')
+              : SAVED_NOTE.INCONCLUSIVE;
+            setSavedNote(note);
             setView({ kind: 'status' });
           }}
           onCancel={() => setView({ kind: 'status' })}

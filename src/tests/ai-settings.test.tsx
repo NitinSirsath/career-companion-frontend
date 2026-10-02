@@ -136,7 +136,7 @@ describe('AI provider page: choosing and setting up a provider', () => {
     });
     expect(key.value).toBe(''); // cleared while the request is in flight
     vi.mocked(api.getAISettings).mockResolvedValue(ready); // what the server now reports
-    resolveSave({ ...ready, verification: 'VERIFIED' });
+    resolveSave({ ...ready, waitingEmails: 1, verification: 'VERIFIED' });
     expect(await screen.findByText(/Connected. Waiting emails are being processed/)).toBeInTheDocument();
     expect(screen.getByText('Saved (hidden)')).toBeInTheDocument();
     expect(browserState()).not.toContain('SENTINEL');
