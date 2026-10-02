@@ -28,3 +28,4 @@ dist-ssr
 .env.*
 !.env.example
 *.tsbuildinfo
+smoke-timeout.png
