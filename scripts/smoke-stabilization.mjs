@@ -520,7 +520,8 @@ async function runBrowserScenarios({ user, foreign, target, paged, override }) {
     actionRequired: true, requestedAction: 'Confirm interview slot',
   }));
   ai.gates.set('MARKER-DELAYED', deferred());
-  await page.goto(`${origin}/gmail`); await hasText('Audit email 0');
+  await page.goto(`${origin}/gmail`); await hasText('Job Related');
+  await clickButton('Irrelevant'); await hasText('Audit email 0'); // Pagination fixtures are intentionally irrelevant.
   assert.equal(await page.$$eval('tbody tr', (rows) => rows.length), 20);
   await clickButton('Next'); await hasText('Audit email 25');
   assert.equal(await page.$$eval('tbody tr', (rows) => rows.length), 6);

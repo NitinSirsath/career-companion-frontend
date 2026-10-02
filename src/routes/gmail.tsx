@@ -215,6 +215,9 @@ function GmailPage() {
               
               {statusData.syncStatus === 'FAILED' && <p role="alert" className="text-destructive">Sync could not finish. Try again, or reconnect if access was revoked.</p>}
               {statusData.lastSyncedAt && <p className="text-sm mt-2">Last synced {format(new Date(statusData.lastSyncedAt), 'MMM d, yyyy h:mm a')}</p>}
+              {statusData.unscannedGap && <p className="text-sm mt-2 text-muted-foreground">
+                Mail received between {format(new Date(statusData.unscannedGap.from), 'MMM d, yyyy')} and {format(new Date(statusData.unscannedGap.until), 'MMM d, yyyy')} was not checked. A sync looks back at most 30 days. Check Gmail directly for job emails from those dates.
+              </p>}
               {syncMutation.isError && (
                 <p className="text-sm font-medium mt-2 text-destructive">
                   Error syncing: {syncMutation.error.message}
@@ -240,7 +243,7 @@ function GmailPage() {
             <div>
               <h3 className="text-lg font-medium mb-1">Sync Settings</h3>
               <p className="text-muted-foreground text-sm">
-                Control how far back to look for emails during sync.
+                How far back the first sync looks, and how far back a sync looks after you raise this setting. After that, each sync covers everything since the last successful sync, up to 30 days.
               </p>
             </div>
             <div>

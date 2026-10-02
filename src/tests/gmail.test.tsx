@@ -52,6 +52,20 @@ describe('Gmail Route', () => {
     );
   }
 
+  it.each([null, undefined, { from: '2026-01-01T12:00:00Z', until: '2026-01-15T12:00:00Z' }])('shows only a recorded capped gap: %s', async (unscannedGap) => {
+    vi.mocked(api.getGmailStatus).mockResolvedValue({ connected: true, gmailEmail: 'user@gmail.com', status: 'CONNECTED', syncStatus: 'IDLE', lastSyncedAt: null, unscannedGap });
+    vi.mocked(api.getMessages).mockResolvedValue({ items: [], metadata: { limit: 20, offset: 0, nextOffset: null } });
+    renderWithProviders();
+    await screen.findByText('Email Sync');
+    if (unscannedGap) {
+      const notice = screen.getByText(/Mail received between/);
+      expect(notice).toHaveTextContent('Jan 1, 2026');
+      expect(notice).toHaveTextContent('Jan 15, 2026');
+      expect(notice).not.toHaveAttribute('role', 'alert');
+    } else expect(screen.queryByText(/Mail received between/)).not.toBeInTheDocument();
+    expect(screen.getByText(/each sync covers everything since the last successful sync/)).toBeInTheDocument();
+  });
+
   it('renders "not connected" state correctly', async () => {
     vi.mocked(api.getGmailStatus).mockResolvedValue({
       connected: false,
