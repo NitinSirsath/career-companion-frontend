@@ -1,3 +1,4 @@
+import { deadlineLabel } from '../lib/deadline';
 import { useState } from 'react';
 import { Pagination } from '../components/ui/pagination';
 import { createFileRoute, Link } from '@tanstack/react-router';
@@ -150,7 +151,7 @@ function ActionItem({ action }: { action: ApplicationActionResponse }) {
           </span>
           {action.deadline && (
             <span className="text-xs text-muted-foreground">
-              Due {format(new Date(action.deadline), 'MMM d, yyyy')}
+              Due {deadlineLabel(action, true)}
             </span>
           )}
         </div>

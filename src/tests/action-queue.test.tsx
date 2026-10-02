@@ -42,6 +42,7 @@ const makeAction = (overrides?: Partial<ActionWithContextResponse>): ActionWithC
   type: 'ACTION_REQUIRED',
   description: 'Submit assignment',
   deadline: null,
+  deadlinePrecision: null,
   status: 'PENDING',
   createdAt: '2026-01-15T10:00:00.000Z',
   application: {
@@ -64,6 +65,16 @@ describe('Action Queue (COM-33)', () => {
 
   afterEach(() => {
     cleanup();
+  });
+
+  it('keeps a date-only deadline due today in Upcoming with no time', async () => {
+    const today = new Date();
+    const iso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}T00:00:00Z`;
+    vi.mocked(api.getActions).mockResolvedValue({ items: [makeAction({ deadline: iso, deadlinePrecision: 'DATE' })], metadata: { limit: 20, offset: 0, nextOffset: null } });
+    renderWithProviders(queryClient, '/');
+    expect(await screen.findByText('Upcoming')).toBeInTheDocument();
+    expect(screen.queryByText('Overdue')).not.toBeInTheDocument();
+    expect(screen.getByText(/^Due:/)).not.toHaveTextContent(/AM|PM/);
   });
 
   it('does not render queue if no pending actions', async () => {

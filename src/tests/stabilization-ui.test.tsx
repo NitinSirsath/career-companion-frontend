@@ -38,7 +38,7 @@ it('loads an application detail by ID even when it is absent from the first list
   expect(api.listApplications).not.toHaveBeenCalled();
 });
 it('keeps Previous available when a later action page becomes empty', async () => {
-  const action = { id: 'action-1', applicationId: 'older-app', emailId: null, type: 'ACTION_REQUIRED', description: 'Reply to recruiter', deadline: null, status: 'PENDING', createdAt: '2026-09-01', application: { companyName: 'Older Company', jobTitle: null }, email: null };
+  const action = { id: 'action-1', applicationId: 'older-app', emailId: null, type: 'ACTION_REQUIRED', description: 'Reply to recruiter', deadline: null, deadlinePrecision: null, status: 'PENDING', createdAt: '2026-09-01', application: { companyName: 'Older Company', jobTitle: null }, email: null };
   vi.mocked(api.getActions).mockImplementation(async (_status, params) => params?.offset ? page([], 20) : page([action], 0, 20));
   show('/');
   fireEvent.click(await screen.findByRole('button', { name: 'Next' }));
@@ -60,7 +60,7 @@ it('can select an application beyond the first 20 when linking an email', async 
   await waitFor(() => expect(api.resolveUnmatchedEmail).toHaveBeenCalledWith('email', { applicationId: 'older-app' }));
 });
 it('shows a failed action mutation and permits retry', async () => {
-  const action = { id: 'action-1', applicationId: 'older-app', emailId: null, type: 'ACTION_REQUIRED', description: 'Reply', deadline: null, status: 'PENDING', createdAt: '2026-09-01', application: { companyName: 'Older Company', jobTitle: null }, email: null };
+  const action = { id: 'action-1', applicationId: 'older-app', emailId: null, type: 'ACTION_REQUIRED', description: 'Reply', deadline: null, deadlinePrecision: null, status: 'PENDING', createdAt: '2026-09-01', application: { companyName: 'Older Company', jobTitle: null }, email: null };
   vi.mocked(api.getActions).mockResolvedValue(page([action]));
   vi.mocked(api.updateAction).mockRejectedValue(new Error('Network unavailable'));
   show('/');

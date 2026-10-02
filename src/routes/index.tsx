@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
-import { format, isPast } from 'date-fns';
+import { deadlineLabel, deadlineOverdue } from '../lib/deadline';
 import { api } from '../api/client';
 import { ApplicationResponse } from '../contracts/application';
 import { ActionWithContextResponse } from '../contracts/action';
@@ -50,8 +50,9 @@ function ActionQueueSection() {
   if (error) return <p role="alert">Could not load actions: {error.message}</p>;
   if (!actions || (actions.length === 0 && offset === 0)) return null;
 
-  const overdueActions = actions.filter(a => a.deadline && isPast(new Date(a.deadline)));
-  const upcomingActions = actions.filter(a => a.deadline && !isPast(new Date(a.deadline)));
+  const now = new Date();
+  const overdueActions = actions.filter(a => a.deadline && deadlineOverdue(a, now));
+  const upcomingActions = actions.filter(a => a.deadline && !deadlineOverdue(a, now));
   const pendingActions = actions.filter(a => !a.deadline);
 
   const renderActionItem = (action: ActionWithContextResponse, isOverdue: boolean) => (
@@ -64,7 +65,7 @@ function ActionQueueSection() {
           </span>
           {action.deadline && (
             <span className={`text-xs ${isOverdue ? 'text-status-error font-medium' : 'text-muted-foreground'}`}>
-              Due: {format(new Date(action.deadline), 'MMM d, yyyy h:mm a')}
+              Due: {deadlineLabel(action)}
             </span>
           )}
         </div>

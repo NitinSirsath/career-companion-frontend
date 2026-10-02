@@ -39,6 +39,7 @@ function makeAction(overrides: Partial<ApplicationActionResponse> = {}): Applica
     type: 'ACTION_REQUIRED',
     description: 'Submit portfolio',
     deadline: '2026-02-15T00:00:00Z',
+    deadlinePrecision: null,
     status: 'PENDING',
     createdAt: '2026-02-01T10:00:00Z',
     ...overrides,
@@ -355,11 +356,12 @@ describe('Application Detail Page (/applications/$id)', () => {
   it('displays pending actions with status indicator', async () => {
     vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 20, offset: 0, nextOffset: null } });
     vi.mocked(api.getApplicationEvents).mockResolvedValue({ items: [], metadata: { limit: 20, offset: 0, nextOffset: null } });
-    vi.mocked(api.getApplicationActions).mockResolvedValue({ items: [makeAction()], metadata: { limit: 20, offset: 0, nextOffset: null } });
+    vi.mocked(api.getApplicationActions).mockResolvedValue({ items: [makeAction({ deadlinePrecision: 'DATE' })], metadata: { limit: 20, offset: 0, nextOffset: null } });
 
     renderWithProviders(queryClient, '/applications/app-1');
 
     expect(await screen.findByText('Submit portfolio')).toBeInTheDocument();
+    expect(screen.getByText('Due Feb 15, 2026')).toBeInTheDocument();
     expect(screen.getByText('PENDING')).toBeInTheDocument();
   });
 
