@@ -300,6 +300,19 @@ describe('Application Detail Page (/applications/$id)', () => {
     expect(await screen.findByText(/no events yet/i)).toBeInTheDocument();
   });
 
+  it('marks retired evidence and offers correction only on the active source email', async () => {
+    const sourceEmail = { id: 'email-1', subject: 'Interview', sender: null, receivedAt: null };
+    vi.mocked(api.getApplicationEvents).mockResolvedValue({ items: [
+      makeEvent({ retiredAt: '2026-10-03T00:00:00Z', retiredReason: 'EMAIL_MOVED', sourceEmail }),
+      makeEvent({ id: 'event-2', sourceEmail: { ...sourceEmail, id: 'email-2' } }),
+    ], metadata: { limit: 20, offset: 0, nextOffset: null } });
+    vi.mocked(api.getApplicationActions).mockResolvedValue({ items: [], metadata: { limit: 20, offset: 0, nextOffset: null } });
+    renderWithProviders(queryClient, '/applications/app-1');
+    expect(await screen.findByText(/Moved to another application/)).toBeInTheDocument();
+    expect(screen.getByText(/No longer counts toward/)).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'Wrong application?' })).toHaveLength(1);
+  });
+
   it('renders timeline events in order (first event appears first in DOM)', async () => {
     const events = [
       makeEvent({

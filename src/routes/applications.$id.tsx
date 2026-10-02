@@ -1,3 +1,4 @@
+import { MatchCorrectionDialog } from '../components/MatchCorrectionDialog';
 import { deadlineLabel } from '../lib/deadline';
 import { useState } from 'react';
 import { Pagination } from '../components/ui/pagination';
@@ -74,7 +75,7 @@ function TimelineEventItem({ event }: { event: ApplicationEventResponse }) {
   const source = event.sourceEmail;
   const automation = event.type === AUTOMATION_SUBMITTED;
   return (
-    <li className="flex gap-4">
+    <li className={`flex gap-4 ${event.retiredAt ? 'text-text-secondary' : ''}`}>
       <div className="flex flex-col items-center">
         <TimelineDot type={event.type} />
       </div>
@@ -104,7 +105,11 @@ function TimelineEventItem({ event }: { event: ApplicationEventResponse }) {
         ) : (
           <p className="text-xs text-text-secondary">Source email unavailable</p>
         )}
-        {!automation && <AiStateChange event={event} />}
+        {event.retiredAt ? <div className="text-xs text-text-secondary">
+          <p>{event.retiredReason === 'EMAIL_MOVED' ? 'Moved to another application' : 'Unlinked from this application'} · {dateTime(event.retiredAt)}</p>
+          <p>No longer counts toward this application's AI status</p>
+        </div> : !automation && <AiStateChange event={event} />}
+        {!automation && !event.retiredAt && source && <MatchCorrectionDialog emailId={source.id} matchState="MATCHED" applicationId={event.applicationId} label="Wrong application?" />}
         {!automation && (event.description || event.provenance) && (
           <div className="text-xs text-text-secondary">
             <p className="font-medium">AI interpretation (not verified source text)</p>
@@ -127,7 +132,7 @@ function ActionItem({ action }: { action: ApplicationActionResponse }) {
   const updateMutation = useMutation({
     mutationFn: ({ status }: { status: 'COMPLETED' | 'DISMISSED' }) =>
       api.updateAction(action.id, { status }),
-    onSuccess: () => {
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['application-actions', action.applicationId] });
       queryClient.invalidateQueries({ queryKey: ['applications'] });
       queryClient.invalidateQueries({ queryKey: ['application', action.applicationId] });

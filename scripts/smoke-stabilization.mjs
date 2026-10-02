@@ -993,6 +993,55 @@ async function runBrowserScenarios({ user, foreign, target, paged, override }) {
   await assert.rejects(mcpConnect(mcpToken, 'legacy'), 'a revoked token must be refused');
   assert.equal((await submissionsOf()).length, 3, 'no duplicates after replays');
 
+  scenario('S8 email correction: move, unlink and restore without another AI call');
+  const callsBeforeCorrection = ai.classification + ai.extraction;
+  const originalUserStatus = await prisma.application.findUniqueOrThrow({ where: { id: fabrikam.id } });
+  async function chooseCorrection(targetId) {
+    await page.waitForSelector('[role="dialog"] select');
+    await lacksText('Loading applications…');
+    for (let n = 0; targetId !== 'unlink' && !await page.$(`[role="dialog"] option[value="${targetId}"]`); n++) {
+      assert(n < 10, 'correction target missing from paged picker');
+      assert(await page.$eval('[role="dialog"]', el => [...el.querySelectorAll('button')].some(b => b.textContent.trim() === 'Next' && !b.disabled)), 'correction target missing on last page');
+      const nextPage = page.waitForResponse(r => r.url().includes('/api/applications?') && r.request().method() === 'GET');
+      await click('[role="dialog"] button', 'Next');
+      assert.equal((await nextPage).status(), 200);
+      await lacksText('Loading applications…');
+    }
+    await page.focus('[role="dialog"] select');
+    await page.select('[role="dialog"] select', targetId);
+    await click('[role="dialog"] button', 'Save link');
+    await page.waitForSelector('[role="dialog"]', { hidden: true });
+  }
+  await page.goto(`${origin}/applications/${fabrikam.id}`);
+  await hasText('Wrong application?');
+  await clickButton('Wrong application?');
+  await chooseCorrection(contoso.id);
+  await hasText('Moved to another application');
+  assert.equal((await fixtureEmail('smoke-mcp-fabrikam')).applicationId, contoso.id);
+  await shot('corrected-email-timeline');
+  await page.goto(`${origin}/gmail`);
+  await hasText('Fabrikam — next steps');
+  async function openEmailCorrection() {
+    const rows = await page.$$('tr');
+    for (const row of rows) {
+      if ((await row.evaluate(el => el.textContent)).includes('Fabrikam — next steps')) {
+        const buttons = await row.$$('button');
+        for (const button of buttons) if ((await button.evaluate(el => el.textContent)).trim() === 'Change link') {
+          await button.focus(); await page.keyboard.press('Enter'); return;
+        }
+      }
+    }
+    throw new Error('Missing correction row button');
+  }
+  await openEmailCorrection(); await chooseCorrection('unlink');
+  assert.equal((await fixtureEmail('smoke-mcp-fabrikam')).matchState, 'IGNORED');
+  await openEmailCorrection(); await chooseCorrection(fabrikam.id);
+  assert.equal((await fixtureEmail('smoke-mcp-fabrikam')).applicationId, fabrikam.id);
+  assert.equal(ai.classification + ai.extraction, callsBeforeCorrection, 'correction must not call AI');
+  const afterCorrection = await prisma.application.findUniqueOrThrow({ where: { id: fabrikam.id } });
+  assert.deepEqual([afterCorrection.userStatus, afterCorrection.userStatusRevision], [originalUserStatus.userStatus, originalUserStatus.userStatusRevision]);
+  assert.equal(await prisma.applicationEvent.count({ where: { applicationId: fabrikam.id, type: 'AUTOMATION_SUBMITTED', retiredAt: null } }), 1);
+
   scenario('narrow viewport, editor included');
   await page.setViewport({ width: 390, height: 844 });
   await page.goto(`${origin}/applications/${target.id}`); await hasText('Delayed Co');

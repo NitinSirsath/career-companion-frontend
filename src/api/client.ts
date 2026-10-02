@@ -1,3 +1,4 @@
+import { CorrectEmailMatchResponseSchema, type CorrectEmailMatchRequest } from '../contracts/email';
 import type { z } from 'zod';
 import {
   AISampleTestResponseSchema,
@@ -219,6 +220,10 @@ export class ApiClient {
   }
 
   /** Fetch timeline events for one application, in recording order. */
+  async correctEmailMatch(emailId: string, body: CorrectEmailMatchRequest) {
+    return this.request(`/api/emails/${emailId}/match`, { method: 'PATCH', body: JSON.stringify(body) }, CorrectEmailMatchResponseSchema);
+  }
+
   async getApplicationEvents(
     applicationId: string,
     params: { offset?: number; limit?: number } = {},

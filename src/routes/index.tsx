@@ -34,7 +34,7 @@ function ActionQueueSection() {
   const updateMutation = useMutation({
     mutationFn: ({ actionId, status }: { actionId: string; status: 'COMPLETED' | 'DISMISSED' }) =>
       api.updateAction(actionId, { status }),
-    onSuccess: () => {
+    onSettled: () => {
       setOffset(0);
       queryClient.invalidateQueries({ queryKey: ['actions'] });
       queryClient.invalidateQueries({ queryKey: ['application-actions'] });

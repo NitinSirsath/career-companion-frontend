@@ -1,4 +1,5 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { MatchCorrectionDialog } from '../components/MatchCorrectionDialog';
+import { createFileRoute, useNavigate, Link } from '@tanstack/react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { api, isApiError } from '../api/client';
@@ -336,6 +337,7 @@ function GmailPage() {
                       <th className="px-4 py-3 font-medium">Subject</th>
                       <th className="px-4 py-3 font-medium">Sender</th>
                       <th className="px-4 py-3 font-medium">State</th>
+                      <th className="px-4 py-3 font-medium">Application</th>
                       <th className="px-4 py-3 font-medium">AI Status</th>
                       <th className="px-4 py-3 font-medium">Received</th>
                     </tr>
@@ -366,6 +368,11 @@ function GmailPage() {
                           <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-secondary-foreground">
                             {msg.relevanceState}
                           </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          {msg.application ? <p><Link to="/applications/$id" params={{ id: msg.application.id }} className="text-primary hover:underline">{msg.application.companyName}</Link> <span className="text-xs text-muted-foreground">{msg.matchConfirmedBy === 'USER_CONFIRMED' ? 'you' : 'auto'}</span></p>
+                            : msg.matchState === 'IGNORED' ? 'Ignored' : msg.matchState === 'AMBIGUOUS' ? 'Needs review' : msg.relevanceState === 'RELEVANT' ? 'Not linked' : '—'}
+                          {(msg.matchState === 'MATCHED' || msg.matchState === 'IGNORED') && <MatchCorrectionDialog emailId={msg.id} matchState={msg.matchState} applicationId={msg.applicationId ?? null} />}
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-1.5">

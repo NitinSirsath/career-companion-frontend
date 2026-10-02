@@ -38,6 +38,8 @@ export function makeEvent(overrides: Partial<ApplicationEventResponse> = {}): Ap
   const createdAt = (overrides.createdAt as string | undefined) ?? '2026-02-01T10:00:00.000Z';
   return {
     id: 'evt-1',
+    retiredAt: null,
+    retiredReason: null,
     applicationId: 'app-1',
     emailId: null,
     type: 'EMAIL_PROCESSED',
