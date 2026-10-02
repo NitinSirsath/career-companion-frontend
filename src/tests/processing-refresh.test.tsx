@@ -95,6 +95,20 @@ describe('authenticated-shell bounded refresh', () => {
     expect(getProcessingRefreshUntil()).toBeGreaterThan(Date.now());
   });
 
+  it('refreshes status a minute after the next automatic slot without a hot loop', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.mocked(api.getGmailStatus).mockResolvedValue({ ...status(null), nextScheduledSyncAt: new Date(Date.now() + 10000).toISOString() });
+    show('/applications/app-1');
+    await screen.findByRole('heading', { name: 'Delayed Co' });
+    const before = vi.mocked(api.getGmailStatus).mock.calls.length;
+    await act(() => vi.advanceTimersByTimeAsync(69000));
+    expect(vi.mocked(api.getGmailStatus).mock.calls.length).toBe(before);
+    await act(() => vi.advanceTimersByTimeAsync(2000));
+    expect(vi.mocked(api.getGmailStatus).mock.calls.length).toBe(before + 1);
+    await act(() => vi.advanceTimersByTimeAsync(10000));
+    expect(vi.mocked(api.getGmailStatus).mock.calls.length).toBe(before + 1);
+  });
+
   it('expires instead of polling forever', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     show('/applications/app-1');

@@ -66,6 +66,14 @@ describe('Gmail Route', () => {
     expect(screen.getByText(/each sync covers everything since the last successful sync/)).toBeInTheDocument();
   });
 
+  it.each([null, undefined, '2026-10-03T12:30:00Z'])('shows the next automatic sync or off: %s', async nextScheduledSyncAt => {
+    vi.mocked(api.getGmailStatus).mockResolvedValue({ connected: true, gmailEmail: 'user@gmail.com', status: 'CONNECTED', syncStatus: 'IDLE', lastSyncedAt: null, nextScheduledSyncAt });
+    vi.mocked(api.getMessages).mockResolvedValue({ items: [], metadata: { limit: 20, offset: 0, nextOffset: null } });
+    renderWithProviders();
+    if (nextScheduledSyncAt) expect(await screen.findByText(/Next automatic sync:/)).toBeInTheDocument();
+    else expect(await screen.findByText('Automatic sync is off.')).toBeInTheDocument();
+  });
+
   it('renders "not connected" state correctly', async () => {
     vi.mocked(api.getGmailStatus).mockResolvedValue({
       connected: false,

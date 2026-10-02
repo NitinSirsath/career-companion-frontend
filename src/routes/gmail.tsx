@@ -215,6 +215,9 @@ function GmailPage() {
               
               {statusData.syncStatus === 'FAILED' && <p role="alert" className="text-destructive">Sync could not finish. Try again, or reconnect if access was revoked.</p>}
               {statusData.lastSyncedAt && <p className="text-sm mt-2">Last synced {format(new Date(statusData.lastSyncedAt), 'MMM d, yyyy h:mm a')}</p>}
+              <p className="text-sm mt-2">{statusData.nextScheduledSyncAt
+                ? `Next automatic sync: ${format(new Date(statusData.nextScheduledSyncAt), 'MMM d, yyyy h:mm a')}`
+                : 'Automatic sync is off.'}</p>
               {statusData.unscannedGap && <p className="text-sm mt-2 text-muted-foreground">
                 Mail received between {format(new Date(statusData.unscannedGap.from), 'MMM d, yyyy')} and {format(new Date(statusData.unscannedGap.until), 'MMM d, yyyy')} was not checked. A sync looks back at most 30 days. Check Gmail directly for job emails from those dates.
               </p>}
