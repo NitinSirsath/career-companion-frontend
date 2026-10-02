@@ -97,7 +97,7 @@ export const PROCESSING_ERROR_LABELS: Record<string, string> = {
   OutcomeUnknown: 'Outcome unknown',
   SchemaValidationFailure: 'Unusable AI output',
   TerminalAIError: 'AI request failed',
-  RetryableAIError: 'Retrying',
+  RetryableAIError: 'Temporary error',
   AIProviderError: 'AI error',
   GmailRequestFailed: 'Gmail request failed',
   ProcessingError: 'Processing failed',

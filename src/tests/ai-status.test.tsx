@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ApiError, api } from '../api/client';
@@ -187,5 +187,42 @@ describe('provenance on the application timeline', () => {
     ]));
     show('/applications/app-1');
     expect(await screen.findByText('Analyzed by Google Gemini · Gemini 2.5 Flash')).toBeInTheDocument();
+  });
+});
+
+
+describe('stopped email recovery', () => {
+  it.each([null, 'Provider temporarily unavailable'])('offers visible retry for a stopped row with details %s', async processingErrorDetails => {
+    vi.mocked(api.getMessages).mockResolvedValue(page([message({ processingState: 'PROCESSING', processingStuck: true, processingErrorDetails })]));
+    vi.mocked(api.retryEmail).mockResolvedValue({ success: true });
+    show('/gmail');
+    expect(await screen.findByText('Stopped')).toBeInTheDocument();
+    expect(screen.getByText(/Processing stopped before it finished/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Manual Retry' }));
+    await waitFor(() => expect(api.retryEmail).toHaveBeenCalledTimes(1));
+  });
+
+  it.each([true, undefined])('does not poll outside the window when stuck is %s', async processingStuck => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.mocked(api.getMessages).mockResolvedValue(page([message({ processingState: 'PROCESSING', processingStuck })]));
+    show('/gmail');
+    await screen.findByText('Interview invite');
+    const count = vi.mocked(api.getMessages).mock.calls.length;
+    await act(() => vi.advanceTimersByTimeAsync(90000));
+    expect(vi.mocked(api.getMessages).mock.calls.length).toBe(count);
+  });
+
+  it('polls live processing at 15 seconds and stops when the server marks it stuck', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.mocked(api.getMessages).mockResolvedValue(page([message({ processingState: 'PROCESSING', processingStuck: false, processingRetryable: true })]));
+    show('/gmail');
+    await screen.findByText('Retry scheduled');
+    const count = vi.mocked(api.getMessages).mock.calls.length;
+    vi.mocked(api.getMessages).mockResolvedValue(page([message({ processingState: 'PROCESSING', processingStuck: true })]));
+    await act(() => vi.advanceTimersByTimeAsync(16000));
+    expect(screen.getByText('Stopped')).toBeInTheDocument();
+    expect(vi.mocked(api.getMessages).mock.calls.length).toBe(count + 1);
+    await act(() => vi.advanceTimersByTimeAsync(90000));
+    expect(vi.mocked(api.getMessages).mock.calls.length).toBe(count + 1);
   });
 });
