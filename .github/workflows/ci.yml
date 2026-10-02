@@ -1,0 +1,39 @@
+name: CI
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PUPPETEER_SKIP_DOWNLOAD: "true"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+  contract-drift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: frontend
+      - uses: actions/checkout@v7
+        with:
+          repository: NitinSirsath/career-companion-backend
+          ref: main
+          path: career-companion-backend
+      - name: Compare backend-authored contracts
+        run: |
+          diff -r career-companion-backend/src/contracts frontend/src/contracts || {
+            echo 'Frontend contracts differ from backend main. Run npm run sync-contracts and commit.'
+            exit 1
+          }
