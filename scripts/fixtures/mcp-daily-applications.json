@@ -1,0 +1,73 @@
+{
+  "date": "2026-10-01",
+  "note": "Tool calls an agent should make for mcp-daily-applications.md: applied entries only, answers and resume never sent.",
+  "seedApplications": [
+    { "companyName": "Northwind Traders", "jobTitle": "Data Engineer" },
+    { "companyName": "Contoso", "jobTitle": "UX Designer" }
+  ],
+  "entries": [
+    {
+      "heading": "09:15:00 — Fabrikam — Backend Engineer",
+      "status": "applied",
+      "expected": "created",
+      "arguments": {
+        "sourceRecordRef": "2026-10-01/09:15:00",
+        "platform": "company_direct",
+        "company": "Fabrikam",
+        "jobTitle": "Backend Engineer",
+        "submittedAt": "2026-10-01T09:15:00+05:30",
+        "jobUrl": "https://careers.fabrikam.example/jobs/123?utm_source=fixture#apply",
+        "portalJobId": "FAB-123",
+        "destinationHost": "careers.fabrikam.example",
+        "discoverySource": "we_work_remotely",
+        "location": "Pune",
+        "workMode": "hybrid",
+        "confirmationText": "Thank you for applying to Fabrikam."
+      }
+    },
+    {
+      "heading": "09:32:10 — Northwind Traders Ltd. — Data Engineer",
+      "status": "applied",
+      "expected": "linked",
+      "arguments": {
+        "sourceRecordRef": "2026-10-01/09:32:10",
+        "platform": "linkedin",
+        "company": "Northwind Traders Ltd.",
+        "jobTitle": "Data Engineer",
+        "submittedAt": "2026-10-01T09:32:10+05:30",
+        "jobUrl": "https://www.linkedin.com/jobs/view/987/?currentJobId=987&refId=fixture",
+        "portalJobId": "987",
+        "destinationHost": "www.linkedin.com",
+        "discoverySource": "linkedin",
+        "location": "Remote",
+        "workMode": "remote",
+        "confirmationText": "Your application was sent to Northwind Traders."
+      }
+    },
+    {
+      "heading": "10:05:45 — Contoso — Frontend Engineer",
+      "status": "applied",
+      "expected": "needs_review",
+      "arguments": {
+        "sourceRecordRef": "2026-10-01/10:05:45",
+        "platform": "workday",
+        "company": "Contoso",
+        "jobTitle": "Frontend Engineer",
+        "submittedAt": "2026-10-01T10:05:45+05:30",
+        "jobUrl": "https://contoso.wd1.myworkdayjobs.example/careers/job/R-55",
+        "portalJobId": "R-55",
+        "destinationHost": "contoso.wd1.myworkdayjobs.example",
+        "discoverySource": "indeed",
+        "location": "Bengaluru",
+        "workMode": "onsite",
+        "confirmationText": "Application submitted."
+      }
+    },
+    {
+      "heading": "10:20:00 — Skipped Labs — QA Engineer",
+      "status": "skipped",
+      "expected": null,
+      "arguments": null
+    }
+  ]
+}

@@ -10,6 +10,10 @@ import { Badge } from '../components/ui/badge';
 
 import { Pagination } from '../components/ui/pagination';
 import { GmailLink } from '../components/ui/GmailLink';
+import { fetchApplicationsPage } from '../lib/applicationCache';
+import { AIAccessNotice } from '../components/ai/AIAccessNotice';
+import { AnalyzedBy } from '../components/ai/AnalyzedBy';
+import { PendingSubmissionsSection } from '../components/automation/PendingSubmissionsSection';
 
 export const Route = createFileRoute('/')({
   component: DashboardPage,
@@ -161,6 +165,7 @@ function AmbiguousMatchesSection({ applications }: { applications: ApplicationRe
                 <div className="mt-2 space-y-1">
                   <p className="text-xs"><span className="font-medium text-muted-foreground">From:</span> {email.sender}</p>
                   {email.subject && <p className="text-xs"><span className="font-medium text-muted-foreground">Subject:</span> {email.subject}</p>}
+                  <AnalyzedBy provider={email.aiProcessingResult?.provider} model={email.aiProcessingResult?.model} />
                   {email.threadId && (
                     <div className="pt-1">
                       <GmailLink threadId={email.threadId} subject={email.subject} />
@@ -237,6 +242,7 @@ function UnmatchedEmailsSection({ applications }: { applications: ApplicationRes
                 <div className="space-y-1">
                   <p className="text-xs"><span className="font-medium text-muted-foreground">From:</span> {email.sender}</p>
                   {email.subject && <p className="text-xs"><span className="font-medium text-muted-foreground">Subject:</span> {email.subject}</p>}
+                  <AnalyzedBy provider={email.aiProcessingResult?.provider} model={email.aiProcessingResult?.model} />
                   {email.threadId && (
                     <div className="pt-1">
                       <GmailLink threadId={email.threadId} subject={email.subject} />
@@ -279,10 +285,12 @@ function UnmatchedEmailsSection({ applications }: { applications: ApplicationRes
 }
 
 function DashboardPage() {
+  const queryClient = useQueryClient();
   const [applicationOffset, setApplicationOffset] = useState(0);
   const { data: applicationsResponse, error: applicationError, isFetching } = useQuery({
     queryKey: ['applications', { offset: applicationOffset, limit: 20 }],
-    queryFn: () => api.listApplications({ offset: applicationOffset, limit: 20 }),
+    // Same cache key as the applications page, so use the same revision-guarded fetch.
+    queryFn: ({ signal }) => fetchApplicationsPage(queryClient, { offset: applicationOffset, limit: 20 }, signal),
     placeholderData: keepPreviousData,
   });
   const applications = applicationsResponse?.items;
@@ -294,12 +302,14 @@ function DashboardPage() {
         <p className="text-muted-foreground mt-2">Here is what needs your attention.</p>
       </div>
 
+      <AIAccessNotice />
+
       <ActionQueueSection />
 
       {applicationError && <p role="alert">Could not load applications: {applicationError.message}</p>}
       {(applicationOffset > 0 || applicationsResponse?.metadata.nextOffset != null) && (
         <section aria-label="Applications for matching">
-          <p className="text-sm">Browse applications available in the email matching lists below.</p>
+          <p className="text-sm">Browse applications available in the matching lists below.</p>
           <Pagination offset={applicationOffset} limit={20} hasNext={!isFetching && applicationsResponse?.metadata.nextOffset != null}
             onPrevious={() => setApplicationOffset(Math.max(0, applicationOffset - 20))}
             onNext={() => applicationsResponse?.metadata.nextOffset != null && setApplicationOffset(applicationsResponse.metadata.nextOffset)} />
@@ -307,6 +317,7 @@ function DashboardPage() {
       )}
       {applications && (
         <div className="space-y-10">
+          <PendingSubmissionsSection applications={applications} />
           <UnmatchedEmailsSection applications={applications} />
           <AmbiguousMatchesSection applications={applications} />
         </div>

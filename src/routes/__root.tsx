@@ -3,6 +3,7 @@ import { User, logout } from '../api/auth';
 import { Sidebar } from '../components/layout/Sidebar';
 import { MobileNav } from '../components/layout/MobileNav';
 import { Briefcase, LogOut } from 'lucide-react';
+import { ProcessingRefreshObserver } from '../components/ProcessingRefreshObserver';
 
 interface RouterContext {
   user: User | null;
@@ -35,6 +36,7 @@ function RootComponent() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex font-sans">
+      <ProcessingRefreshObserver />
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 pb-16 md:pb-0">
         {/* Mobile Top Bar */}

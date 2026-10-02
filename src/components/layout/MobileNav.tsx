@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { LayoutDashboard, FileText, Mail } from 'lucide-react';
+import { LayoutDashboard, FileText, Mail, Sparkles, Bot } from 'lucide-react';
 
 export function MobileNav() {
   const navLinkClass = "flex flex-col items-center justify-center w-full h-full text-text-secondary hover:bg-surface-subtle hover:text-text-primary [&.active]:bg-surface-selected [&.active]:text-action-primary transition-colors";
@@ -17,6 +17,14 @@ export function MobileNav() {
       <Link to="/gmail" className={navLinkClass}>
         <Mail className="w-5 h-5 mb-1" />
         <span className="text-[10px] font-medium">Gmail</span>
+      </Link>
+      <Link to="/ai" className={navLinkClass}>
+        <Sparkles className="w-5 h-5 mb-1" />
+        <span className="text-[10px] font-medium">AI</span>
+      </Link>
+      <Link to="/automation" className={navLinkClass}>
+        <Bot className="w-5 h-5 mb-1" />
+        <span className="text-[10px] font-medium">Automation</span>
       </Link>
     </nav>
   );

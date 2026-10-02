@@ -5,8 +5,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { api } from '../api/client';
-import { CreateApplicationRequestSchema, CreateApplicationRequest, ApplicationStatus, ApplicationResponse } from '../contracts/application';
+import { api, isApiError } from '../api/client';
+import { CreateApplicationRequestSchema, CreateApplicationRequest, ApplicationResponse } from '../contracts/application';
+import { EffectiveStatus } from '../components/ApplicationStatus';
+import { fetchApplicationsPage } from '../lib/applicationCache';
+import { eventLabel } from '../lib/eventLabels';
 
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -20,48 +23,7 @@ export const Route = createFileRoute('/applications')({
   component: ApplicationsPage,
 });
 
-const STATUS_LABEL: Record<ApplicationStatus, string> = {
-  APPLIED: 'Applied',
-  RECRUITER_CONTACT: 'Recruiter',
-  ASSESSMENT: 'Assessment',
-  INTERVIEW: 'Interview',
-  OFFER: 'Offer',
-  REJECTED: 'Rejected',
-  CLOSED: 'Closed',
-};
-
-function getBadgeVariant(status: ApplicationStatus): "default" | "success" | "warning" | "destructive" | "info" | "outline" | "secondary" {
-  switch (status) {
-    case 'APPLIED': return 'secondary';
-    case 'RECRUITER_CONTACT': return 'info';
-    case 'ASSESSMENT': return 'warning';
-    case 'INTERVIEW': return 'info';
-    case 'OFFER': return 'success';
-    case 'REJECTED': return 'destructive';
-    case 'CLOSED': return 'outline';
-    default: return 'outline';
-  }
-}
-
-function StatusBadge({ status }: { status: ApplicationStatus }) {
-  return (
-    <Badge variant={getBadgeVariant(status)}>
-      {STATUS_LABEL[status]}
-    </Badge>
-  );
-}
-
-function effectiveStatus(app: ApplicationResponse): ApplicationStatus | null {
-  return app.aiStatus ?? app.userStatus;
-}
-
-function formatEventType(type: string): string {
-  return type.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase());
-}
-
 function ApplicationCard({ app }: { app: ApplicationResponse }) {
-  const status = effectiveStatus(app);
-
   return (
     <Link
       to="/applications/$id"
@@ -72,7 +34,7 @@ function ApplicationCard({ app }: { app: ApplicationResponse }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 flex-wrap">
             <h3 className="font-semibold text-base">{app.companyName}</h3>
-            {status && <StatusBadge status={status} />}
+            <EffectiveStatus app={app} />
             {app.pendingActionCount > 0 && (
               <Badge variant="warning">
                 {app.pendingActionCount} action{app.pendingActionCount > 1 ? 's' : ''}
@@ -99,9 +61,9 @@ function ApplicationCard({ app }: { app: ApplicationResponse }) {
         <div className="mt-4 pt-3 border-t border-border flex items-center gap-2 text-xs text-muted-foreground">
           <span className="shrink-0 text-foreground">●</span>
           <span>
-            <span className="font-medium text-foreground">{formatEventType(app.recentEvent.type)}</span>
-            {' · '}
-            {format(new Date(app.recentEvent.createdAt as string), 'MMM d, yyyy')}
+            <span className="font-medium text-foreground">{eventLabel(app.recentEvent.type)}</span>
+            {' · Recorded '}
+            {format(new Date(app.recentEvent.recordedAt), 'MMM d, yyyy')}
           </span>
         </div>
       )}
@@ -109,27 +71,53 @@ function ApplicationCard({ app }: { app: ApplicationResponse }) {
   );
 }
 
+type CreationRecovery = { refresh: 'pending' | 'failed' | 'done' } | null;
+
 function ApplicationsDashboard() {
   const queryClient = useQueryClient();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [offset, setOffset] = useState(0);
+  // Set when a POST may have committed although its response was lost, timed out, failed with
+  // 5xx or was malformed. The draft is kept and ordinary submission stays blocked.
+  const [recovery, setRecovery] = useState<CreationRecovery>(null);
   const limit = 20;
 
   const { data: applicationsResponse, isLoading, error } = useQuery({
     queryKey: ['applications', { offset, limit }],
-    queryFn: () => api.listApplications({ offset, limit }),
+    queryFn: ({ signal }) => fetchApplicationsPage(queryClient, { offset, limit }, signal),
   });
 
   const applications = applicationsResponse?.items || [];
   const nextOffset = applicationsResponse?.metadata?.nextOffset;
-  
+
+  async function reconcileCreation() {
+    setRecovery({ refresh: 'pending' });
+    setOffset(0);
+    try {
+      await queryClient.fetchQuery({
+        queryKey: ['applications', { offset: 0, limit }],
+        queryFn: ({ signal }) => fetchApplicationsPage(queryClient, { offset: 0, limit }, signal),
+        staleTime: 0,
+      });
+      setRecovery({ refresh: 'done' });
+    } catch {
+      setRecovery({ refresh: 'failed' });
+    }
+  }
+
   const createMutation = useMutation({
     mutationFn: (data: CreateApplicationRequest) => api.createApplication(data),
+    retry: false, // never replay a POST automatically
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['applications'] });
       setOffset(0);
+      setRecovery(null);
       form.reset();
       setShowCreateForm(false);
+    },
+    onError: (err) => {
+      if (isApiError(err) && !err.outcomeUncertain) return; // definitive rejection: draft stays editable
+      void reconcileCreation();
     },
   });
 
@@ -138,7 +126,15 @@ function ApplicationsDashboard() {
     defaultValues: { companyName: '', jobTitle: '', location: '', appliedAt: '' },
   });
 
-  const onSubmit = form.handleSubmit((data) => createMutation.mutate(data));
+  const onSubmit = form.handleSubmit((data) => {
+    if (createMutation.isPending || recovery) return;
+    createMutation.mutate(data);
+  });
+  // Deliberate new POST after review; the earlier request may already have created a record.
+  const createAnyway = form.handleSubmit((data) => {
+    setRecovery(null);
+    createMutation.mutate(data);
+  });
 
   return (
     <div className="space-y-8">
@@ -180,16 +176,50 @@ function ApplicationsDashboard() {
                 <Input id="appliedAt" type="datetime-local" {...form.register('appliedAt', { setValueAs: (v: string) => v === "" ? undefined : new Date(v).toISOString() })} />
               </div>
             </div>
-            {createMutation.isError && (
-              <div className="p-3 bg-destructive/10 text-destructive text-sm font-medium">
+            {createMutation.isError && !recovery && (
+              <div role="alert" className="p-3 bg-destructive/10 text-destructive text-sm font-medium">
                 Error creating application: {createMutation.error.message}
+              </div>
+            )}
+            {recovery && (
+              <div role="alert" className="p-3 border border-status-warning bg-status-warning-subtle text-sm space-y-2">
+                <p className="font-semibold">Creation outcome unknown</p>
+                <p>
+                  We couldn't confirm whether this application was saved. It may already exist. Your
+                  details are kept below.
+                </p>
+                {recovery.refresh === 'pending' && <p role="status">Refreshing your applications…</p>}
+                {recovery.refresh === 'failed' && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span>Your applications could not be loaded.</span>
+                    <Button type="button" size="sm" variant="tertiary" onClick={() => void reconcileCreation()}>
+                      Retry refresh
+                    </Button>
+                  </div>
+                )}
+                {recovery.refresh === 'done' && (
+                  <>
+                    <p>
+                      Review your applications list before creating again. A similar entry does not prove
+                      which request created it, and a missing entry does not prove it failed.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <Button type="button" size="sm" variant="tertiary" onClick={() => setShowCreateForm(false)}>
+                        Review applications
+                      </Button>
+                      <Button type="button" size="sm" variant="secondary" disabled={createMutation.isPending} onClick={() => void createAnyway()}>
+                        Create anyway
+                      </Button>
+                    </div>
+                  </>
+                )}
               </div>
             )}
             <DialogFooter>
               <Button type="button" variant="secondary" onClick={() => setShowCreateForm(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={createMutation.isPending} variant="primary">
+              <Button type="submit" disabled={createMutation.isPending || !!recovery} variant="primary">
                 {createMutation.isPending ? 'Saving...' : 'Save'}
               </Button>
             </DialogFooter>

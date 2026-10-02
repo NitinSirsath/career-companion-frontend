@@ -5,7 +5,8 @@ import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { api } from '../api/client';
-import type { ApplicationResponse, ApplicationEventResponse, ApplicationActionResponse } from '../contracts/application';
+import type { ApplicationResponse, ApplicationActionResponse } from '../contracts/application';
+import { makeApplication, makeEvent } from './fixtures';
 
 // Mock the API client
 vi.mock('../api/client', () => ({
@@ -27,36 +28,7 @@ import { routeTree } from '../routeTree.gen';
 // ─── Helper factories ─────────────────────────────────────────────────────────
 
 function makeApp(overrides: Partial<ApplicationResponse> = {}): ApplicationResponse {
-  return {
-    id: 'app-1',
-    companyName: 'Acme Corp',
-    jobTitle: 'Senior Engineer',
-    location: 'Remote',
-    aiStatus: null,
-    userStatus: 'APPLIED',
-    userStatusSetAt: null,
-    appliedAt: '2026-01-15T00:00:00Z',
-    createdAt: '2026-01-15T00:00:00Z',
-    updatedAt: '2026-01-15T00:00:00Z',
-    recentEvent: null,
-    pendingActionCount: 0,
-    ...overrides,
-  };
-}
-
-function makeEvent(overrides: Partial<ApplicationEventResponse> = {}): ApplicationEventResponse {
-  return {
-    id: 'evt-1',
-    applicationId: 'app-1',
-    emailId: null,
-    type: 'EMAIL_PROCESSED',
-    oldState: null,
-    newState: 'RECRUITER_CONTACT',
-    description: 'Received recruiter email',
-    provenance: null,
-    createdAt: '2026-02-01T10:00:00Z',
-    ...overrides,
-  };
+  return makeApplication({ userStatus: 'APPLIED', ...overrides });
 }
 
 function makeAction(overrides: Partial<ApplicationActionResponse> = {}): ApplicationActionResponse {
@@ -199,25 +171,38 @@ describe('Applications Dashboard (/applications)', () => {
     expect(screen.getByText('Senior Engineer')).toBeInTheDocument();
   });
 
-  it('displays AI status when available', async () => {
+  it('shows the user status over a disagreeing AI status (canonical precedence)', async () => {
     vi.mocked(api.listApplications).mockResolvedValue({ items: [
       makeApp({ aiStatus: 'INTERVIEW', userStatus: 'APPLIED' })
     ], metadata: { limit: 20, offset: 0, nextOffset: null } });
 
     renderWithProviders(queryClient, '/applications');
 
-    // AI status takes precedence
-    expect(await screen.findByText('Interview')).toBeInTheDocument();
+    expect(await screen.findByText('Applied')).toBeInTheDocument();
+    expect(screen.getByText('Set by you')).toBeInTheDocument();
+    expect(screen.getByText(/AI suggests Interview/)).toBeInTheDocument();
   });
 
-  it('falls back to user status when AI status is null', async () => {
+  it('shows the AI status when the user has not set one', async () => {
     vi.mocked(api.listApplications).mockResolvedValue({ items: [
-      makeApp({ aiStatus: null, userStatus: 'RECRUITER_CONTACT' })
+      makeApp({ aiStatus: 'RECRUITER_CONTACT', userStatus: null })
     ], metadata: { limit: 20, offset: 0, nextOffset: null } });
 
     renderWithProviders(queryClient, '/applications');
 
-    expect(await screen.findByText('Recruiter')).toBeInTheDocument();
+    expect(await screen.findByText('Recruiter Contact')).toBeInTheDocument();
+    expect(screen.getByText('Inferred by AI')).toBeInTheDocument();
+  });
+
+  it('shows a neutral unknown instead of defaulting to Applied', async () => {
+    vi.mocked(api.listApplications).mockResolvedValue({ items: [
+      makeApp({ aiStatus: null, userStatus: null })
+    ], metadata: { limit: 20, offset: 0, nextOffset: null } });
+
+    renderWithProviders(queryClient, '/applications');
+
+    expect(await screen.findByText('Status unknown')).toBeInTheDocument();
+    expect(screen.queryByText('Applied')).not.toBeInTheDocument();
   });
 
   it('shows pending action indicator when pendingActionCount > 0', async () => {
@@ -242,7 +227,7 @@ describe('Applications Dashboard (/applications)', () => {
 
   it('shows recent event when present', async () => {
     vi.mocked(api.listApplications).mockResolvedValue({ items: [
-      makeApp({ recentEvent: { type: 'EMAIL_PROCESSED', createdAt: '2026-02-01T10:00:00Z' } })
+      makeApp({ recentEvent: { type: 'EMAIL_PROCESSED', createdAt: '2026-02-01T10:00:00Z', recordedAt: '2026-02-01T10:00:00.000Z', sourceEmail: null, sourceSubmission: null } })
     ], metadata: { limit: 20, offset: 0, nextOffset: null } });
 
     renderWithProviders(queryClient, '/applications');
@@ -298,7 +283,10 @@ describe('Application Detail Page (/applications/$id)', () => {
 
     renderWithProviders(queryClient, '/applications/app-1');
 
-    expect(await screen.findByText(/failed to load application data/i)).toBeInTheDocument();
+    expect(await screen.findByText(/failed to load history/i)).toBeInTheDocument();
+    // A history failure does not hide the application or block editing.
+    expect(screen.getByRole('heading', { name: 'Acme Corp' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Change status' })).toBeEnabled();
   });
 
   it('shows empty timeline when no events exist', async () => {
@@ -361,8 +349,7 @@ describe('Application Detail Page (/applications/$id)', () => {
 
     renderWithProviders(queryClient, '/applications/app-1');
 
-    expect(await screen.findByText('Recruiter Contact')).toBeInTheDocument();
-    expect(screen.getByText('Assessment')).toBeInTheDocument();
+    expect(await screen.findByText('AI status: Recruiter Contact → Assessment')).toBeInTheDocument();
   });
 
   it('displays pending actions with status indicator', async () => {
@@ -385,7 +372,8 @@ describe('Application Detail Page (/applications/$id)', () => {
 
     renderWithProviders(queryClient, '/applications/app-1');
 
-    expect(await screen.findByText(/source: gemini-flash/i)).toBeInTheDocument();
+    expect(await screen.findByText('gemini-flash')).toBeInTheDocument();
+    expect(screen.getByText(/AI interpretation/)).toBeInTheDocument();
   });
 
   it('renders the company name in the header', async () => {

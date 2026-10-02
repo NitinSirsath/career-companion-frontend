@@ -10,7 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AiRouteImport } from './routes/ai'
 import { Route as ApplicationsRouteImport } from './routes/applications'
+import { Route as AutomationRouteImport } from './routes/automation'
 import { Route as GmailRouteImport } from './routes/gmail'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ApplicationsIdRouteImport } from './routes/applications.$id'
@@ -20,9 +22,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AiRoute = AiRouteImport.update({
+  id: '/ai',
+  path: '/ai',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApplicationsRoute = ApplicationsRouteImport.update({
   id: '/applications',
   path: '/applications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AutomationRoute = AutomationRouteImport.update({
+  id: '/automation',
+  path: '/automation',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GmailRoute = GmailRouteImport.update({
@@ -43,14 +55,18 @@ const ApplicationsIdRoute = ApplicationsIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ai': typeof AiRoute
   '/applications': typeof ApplicationsRouteWithChildren
+  '/automation': typeof AutomationRoute
   '/gmail': typeof GmailRoute
   '/login': typeof LoginRoute
   '/applications/$id': typeof ApplicationsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ai': typeof AiRoute
   '/applications': typeof ApplicationsRouteWithChildren
+  '/automation': typeof AutomationRoute
   '/gmail': typeof GmailRoute
   '/login': typeof LoginRoute
   '/applications/$id': typeof ApplicationsIdRoute
@@ -58,20 +74,38 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ai': typeof AiRoute
   '/applications': typeof ApplicationsRouteWithChildren
+  '/automation': typeof AutomationRoute
   '/gmail': typeof GmailRoute
   '/login': typeof LoginRoute
   '/applications/$id': typeof ApplicationsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/applications' | '/gmail' | '/login' | '/applications/$id'
+  fullPaths:
+    | '/'
+    | '/ai'
+    | '/applications'
+    | '/automation'
+    | '/gmail'
+    | '/login'
+    | '/applications/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/applications' | '/gmail' | '/login' | '/applications/$id'
+  to:
+    | '/'
+    | '/ai'
+    | '/applications'
+    | '/automation'
+    | '/gmail'
+    | '/login'
+    | '/applications/$id'
   id:
     | '__root__'
     | '/'
+    | '/ai'
     | '/applications'
+    | '/automation'
     | '/gmail'
     | '/login'
     | '/applications/$id'
@@ -79,7 +113,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AiRoute: typeof AiRoute
   ApplicationsRoute: typeof ApplicationsRouteWithChildren
+  AutomationRoute: typeof AutomationRoute
   GmailRoute: typeof GmailRoute
   LoginRoute: typeof LoginRoute
 }
@@ -93,11 +129,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ai': {
+      id: '/ai'
+      path: '/ai'
+      fullPath: '/ai'
+      preLoaderRoute: typeof AiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/applications': {
       id: '/applications'
       path: '/applications'
       fullPath: '/applications'
       preLoaderRoute: typeof ApplicationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/automation': {
+      id: '/automation'
+      path: '/automation'
+      fullPath: '/automation'
+      preLoaderRoute: typeof AutomationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/gmail': {
@@ -138,7 +188,9 @@ const ApplicationsRouteWithChildren = ApplicationsRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AiRoute: AiRoute,
   ApplicationsRoute: ApplicationsRouteWithChildren,
+  AutomationRoute: AutomationRoute,
   GmailRoute: GmailRoute,
   LoginRoute: LoginRoute,
 }

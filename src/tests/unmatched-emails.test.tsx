@@ -5,6 +5,7 @@ import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/re
 import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { api } from '../api/client';
+import { makeApplication } from './fixtures';
 import { routeTree } from '../routeTree.gen';
 import { ApplicationResponse } from '../contracts/application';
 
@@ -34,11 +35,12 @@ vi.mock('../api/client', () => ({
     getAmbiguousEmails: vi.fn(),
     resolveAmbiguousEmail: vi.fn(),
     getUnmatchedEmails: vi.fn(),
+    getPendingSubmissions: vi.fn(),
     resolveUnmatchedEmail: vi.fn(),
   }
 }));
 
-const makeApp = (overrides?: Partial<ApplicationResponse>): ApplicationResponse => ({
+const makeApp = (overrides?: Partial<ApplicationResponse>): ApplicationResponse => makeApplication({
   id: 'app-1',
   companyName: 'Acme Corp',
   jobTitle: 'Senior Engineer',
@@ -59,6 +61,7 @@ describe('Unmatched Emails (COM-36)', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(api.getPendingSubmissions).mockResolvedValue({ items: [], metadata: { limit: 20, offset: 0, nextOffset: null } });
     queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     });
@@ -85,6 +88,8 @@ describe('Unmatched Emails (COM-36)', () => {
           jobTitle: null,
           confidence: 0.9,
           category: 'INTERVIEW',
+          provider: 'gemini',
+          model: 'gemini-2.5-flash',
         }
       }
     ], metadata: { limit: 20, offset: 0, nextOffset: null } });

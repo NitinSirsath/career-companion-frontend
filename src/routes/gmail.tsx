@@ -1,12 +1,18 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import { api } from '../api/client';
+import { api, isApiError } from '../api/client';
+import type { AIRetryApprovalDetails } from '../contracts/email';
+import { AIAccessNotice } from '../components/ai/AIAccessNotice';
+import { AnalyzedBy } from '../components/ai/AnalyzedBy';
+import { RetryAnywayDialog } from '../components/ai/RetryAnywayDialog';
+import { PROCESSING_ERROR_LABELS } from '../lib/aiLabels';
 import { Button } from '../components/ui/button';
 import { z } from 'zod';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ExternalLink, Info, RotateCcw } from 'lucide-react';
 import { getGmailConversationUrl } from '../utils/gmail';
+import { startProcessingRefresh } from '../lib/processingRefresh';
 
 const gmailSearchSchema = z.object({
   gmailError: z.string().optional(),
@@ -15,6 +21,24 @@ const gmailSearchSchema = z.object({
 import { Pagination } from '../components/ui/pagination';
 
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '../components/ui/tooltip';
+
+/** Definitive retry answers get their own message; only uncertain outcomes say "could not be confirmed". */
+function retryMessage(err: unknown): string {
+  if (!isApiError(err) || err.outcomeUncertain)
+    return `Retry could not be confirmed: ${err instanceof Error ? err.message : 'unknown error'} The list will refresh to show the current state.`;
+  switch (err.code) {
+    case 'AI_ACCESS_UNAVAILABLE':
+      return 'Fix AI access on the AI provider page before retrying.';
+    case 'AI_OPERATION_REQUIRES_REVIEW':
+      return 'This email needs review by Career Companion before it can be retried.';
+    case 'RETRY_RECENTLY_QUEUED':
+      return 'A retry was queued recently. Give it a few minutes.';
+    case 'AI_OPERATION_CHANGED':
+      return 'This email changed. The list will refresh.';
+    default:
+      return err.message;
+  }
+}
 
 export const Route = createFileRoute('/gmail')({
   validateSearch: gmailSearchSchema,
@@ -25,7 +49,6 @@ function GmailPage() {
   const queryClient = useQueryClient();
   const search = Route.useSearch();
   const navigate = useNavigate({ from: '/gmail' });
-  const lastSync = useRef<string | null>(null);
   const [offset, setOffset] = useState(0);
   const limit = 20;
   const [showError, setShowError] = useState(false);
@@ -40,16 +63,24 @@ function GmailPage() {
 
   const { data: statusData, isLoading: isLoadingStatus, error: statusError } = useQuery({
     queryKey: ['gmailStatus'],
-    queryFn: () => api.getGmailStatus(),
+    queryFn: ({ signal }) => api.getGmailStatus({ signal }),
     refetchInterval: query => query.state.data?.syncStatus === 'SYNCING' ? 2000 : false,
   });
+
+  // Emails can wait as PENDING for the user's AI access; that is not active processing.
+  const { data: aiSettings } = useQuery({
+    queryKey: ['aiSettings'],
+    queryFn: ({ signal }) => api.getAISettings({ signal }),
+  });
+  const aiWaiting = !!aiSettings && aiSettings.access.state !== 'READY';
+  const [approval, setApproval] = useState<{ emailId: string; details: AIRetryApprovalDetails } | null>(null);
 
   const { data: messagesData, isLoading: isLoadingMessages, error: messagesError } = useQuery({
     queryKey: ['gmailMessages', { offset, limit }],
     queryFn: () => api.getMessages({ offset, limit }),
     refetchInterval: query => {
       const items = query.state.data?.items || [];
-      const hasActive = items.some(m => m.processingState === 'PENDING' || (m.processingState === 'PROCESSING' && !m.processingRetryable));
+      const hasActive = items.some(m => (m.processingState === 'PENDING' && !aiWaiting) || (m.processingState === 'PROCESSING' && !m.processingRetryable));
       if (hasActive) return 2000;
       const hasRetrying = items.some(m => m.processingState === 'PROCESSING' && m.processingRetryable);
       if (hasRetrying) return 15000;
@@ -67,31 +98,45 @@ function GmailPage() {
     },
   });
 
+  // An accepted request, or one whose response was lost/timed out, may still run on the server:
+  // reconcile through the shell's bounded refresh instead of relying on the response.
   const syncMutation = useMutation({
     mutationFn: () => api.triggerSync(),
     onSuccess: () => { setOffset(0); },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['gmailStatus'] });
       queryClient.invalidateQueries({ queryKey: ['gmailMessages'] });
+      startProcessingRefresh();
     }
   });
 
   const retryMutation = useMutation({
     mutationFn: (emailId: string) => api.retryEmail(emailId),
-    onSuccess: () => {
+    retry: false,
+    onError: (err, emailId) => {
+      // An uncertain earlier AI attempt: ask the user who pays before one more call.
+      if (isApiError(err) && err.code === 'AI_RETRY_NEEDS_APPROVAL')
+        setApproval({ emailId, details: err.details as AIRetryApprovalDetails });
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['gmailMessages'] });
+      startProcessingRefresh();
     }
   });
 
-  useEffect(() => {
-    const completed = statusData?.lastSyncedAt ? String(statusData.lastSyncedAt) : null;
-    if (completed && completed !== lastSync.current) {
-      lastSync.current = completed;
-      for (const key of ['gmailMessages', 'applications', 'application', 'application-events', 'application-actions', 'actions', 'unmatched-emails', 'ambiguous-emails']) {
-        queryClient.invalidateQueries({ queryKey: [key] });
-      }
-    }
-  }, [statusData?.lastSyncedAt, queryClient]);
+  // Sent only after the user confirmed in the dialog; never resent automatically.
+  const approveMutation = useMutation({
+    mutationFn: (emailId: string) => api.retryEmail(emailId, { acceptPossibleDuplicateCharge: true }),
+    retry: false,
+    onSuccess: () => setApproval(null),
+    onError: (err) => {
+      if (isApiError(err) && err.outcomeUncertain) setApproval(null);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['gmailMessages'] });
+      startProcessingRefresh();
+    },
+  });
 
   const handleConnect = () => {
     window.location.href = '/api/gmail/connect';
@@ -103,6 +148,8 @@ function GmailPage() {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-semibold tracking-tight">Gmail Integration</h2>
       </div>
+
+      <AIAccessNotice />
 
       {(showError || search.gmailError) && (
         <div className="p-4 text-sm font-medium text-destructive bg-destructive/10 border border-destructive/20 rounded-xl mb-4">
@@ -219,6 +266,26 @@ function GmailPage() {
       {(statusData?.connected || (messagesData && messagesData?.items?.length > 0)) && (
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Ingested Emails</h3>
+          {retryMutation.isError && !(isApiError(retryMutation.error) && retryMutation.error.code === 'AI_RETRY_NEEDS_APPROVAL') && (
+            <p role="alert" className="text-sm font-medium text-destructive">
+              {retryMessage(retryMutation.error)}
+            </p>
+          )}
+          {approveMutation.isError && !approval && (
+            <p role="alert" className="text-sm font-medium text-destructive">
+              {retryMessage(approveMutation.error)}
+            </p>
+          )}
+          <RetryAnywayDialog
+            details={approval?.details ?? null}
+            pending={approveMutation.isPending}
+            problem={approveMutation.isError && approval ? retryMessage(approveMutation.error) : null}
+            onConfirm={() => approval && approveMutation.mutate(approval.emailId)}
+            onCancel={() => {
+              setApproval(null);
+              approveMutation.reset();
+            }}
+          />
           {isLoadingMessages ? (
             <div className="p-8 text-center text-muted-foreground border rounded-xl border-dashed">
               Loading emails...
@@ -275,7 +342,7 @@ function GmailPage() {
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-1.5">
                             <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${msg.processingState === 'FAILED' ? 'bg-destructive/10 text-destructive border-destructive/20' : 'bg-secondary text-secondary-foreground'}`}>
-                              {msg.processingState || 'PENDING'}
+                              {(msg.processingState ?? 'PENDING') === 'PENDING' && aiWaiting ? 'Waiting for AI' : msg.processingState || 'PENDING'}
                             </span>
                             {msg.processingErrorDetails && (
                               <Tooltip>
@@ -285,7 +352,7 @@ function GmailPage() {
                                 <TooltipContent className="p-0 overflow-hidden">
                                   <div className={`px-3 py-2 border-b ${msg.processingRetryable ? 'bg-status-warning-subtle border-status-warning/20' : 'bg-status-error-subtle border-status-error/20'}`}>
                                     <div className={`font-semibold text-[13px] flex items-center gap-2 ${msg.processingRetryable ? 'text-status-warning' : 'text-status-error'}`}>
-                                      {msg.processingRetryable ? 'Retrying (Rate Limited)' : 'Processing Error'}
+                                      {msg.processingRetryable ? 'Retrying' : (msg.processingErrorCategory && PROCESSING_ERROR_LABELS[msg.processingErrorCategory]) || 'Processing Error'}
                                     </div>
                                   </div>
                                   <div className="p-3 flex flex-col gap-2">
@@ -320,6 +387,9 @@ function GmailPage() {
                               </Tooltip>
                             )}
                           </div>
+                          {msg.processingState === 'COMPLETED' && (
+                            <AnalyzedBy provider={msg.aiProcessingResult?.provider} model={msg.aiProcessingResult?.model} />
+                          )}
                         </td>
                         <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
                           {msg.receivedAt ? format(new Date(msg.receivedAt), 'MMM d, yyyy') : '-'}

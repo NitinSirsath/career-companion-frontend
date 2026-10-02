@@ -5,6 +5,7 @@ import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/re
 import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { api } from '../api/client';
+import { makeApplication } from './fixtures';
 import { routeTree } from '../routeTree.gen';
 import { ApplicationResponse } from '../contracts/application';
 
@@ -36,7 +37,7 @@ vi.mock('../api/client', () => ({
   }
 }));
 
-const makeApp = (overrides?: Partial<ApplicationResponse>): ApplicationResponse => ({
+const makeApp = (overrides?: Partial<ApplicationResponse>): ApplicationResponse => makeApplication({
   id: 'app-1',
   companyName: 'Acme Corp',
   jobTitle: 'Senior Engineer',
@@ -79,6 +80,8 @@ describe('Ambiguous Matches (COM-32)', () => {
           jobTitle: null,
           confidence: 0.5,
           category: 'INTERVIEW',
+          provider: 'gemini',
+          model: 'gemini-2.5-flash',
         }
       }
     ], metadata: { limit: 20, offset: 0, nextOffset: null } });

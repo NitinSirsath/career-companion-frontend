@@ -1,8 +1,25 @@
-import { 
-  CreateApplicationRequest, 
-  ApplicationResponse, 
+import type { z } from 'zod';
+import {
+  AISampleTestResponseSchema,
+  AISettingsResponseSchema,
+  ApplicationResponseSchema,
+  CheckAISettingsResponseSchema,
+  CreateIntegrationTokenResponseSchema,
+  IntegrationTokenSchema,
+  ListApplicationsResponseSchema,
+  ListIntegrationTokensResponseSchema,
+  ListPendingSubmissionsResponseSchema,
+  ResolveSubmissionResponseSchema,
+  ListApplicationEventsResponseSchema,
+  RemoveAISettingsResponseSchema,
+  SaveAISettingsResponseSchema,
+} from '../contracts';
+import type {
+  CreateApplicationRequest,
+  ApplicationResponse,
   ListApplicationsResponse,
   ListApplicationEventsResponse,
+  UpdateApplicationStatusRequest,
   ListApplicationActionsResponse,
   GmailStatusResponse,
   SyncResponse,
@@ -12,7 +29,53 @@ import {
   ActionWithContextResponse,
   UpdateActionRequest,
   PaginatedResponse,
+  AISettingsResponse,
+  AISampleTestResponse,
+  CheckAISettingsResponse,
+  SaveAISettingsRequest,
+  SaveAISettingsResponse,
+  CreateIntegrationTokenRequest,
+  CreateIntegrationTokenResponse,
+  IntegrationToken,
+  ListIntegrationTokensResponse,
+  ListPendingSubmissionsResponse,
+  ResolveSubmissionRequest,
+  ResolveSubmissionResponse,
 } from '../contracts';
+
+/** Shared client deadline (Sprint 5). Mutations reuse it; do not add competing timeouts. */
+export const REQUEST_TIMEOUT_MS = 15_000;
+
+export type ApiErrorKind = 'http' | 'timeout' | 'network' | 'contract';
+
+/**
+ * Keeps HTTP status, the server's machine-readable code and its structured details; messages are
+ * safe to display. Never holds the request payload.
+ */
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly kind: ApiErrorKind,
+    readonly status?: number,
+    readonly code?: string,
+    readonly details?: unknown,
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+
+  /** A write may have been applied: timeout, network failure, 5xx or a malformed success body. */
+  get outcomeUncertain(): boolean {
+    return this.kind !== 'http' || (this.status ?? 0) >= 500;
+  }
+}
+
+export const isApiError = (err: unknown): err is ApiError => err instanceof ApiError;
+
+type RequestOptions = { signal?: AbortSignal };
+
+/** The sample test makes two real provider calls in sequence; it may outlast the shared deadline. */
+export const SAMPLE_TEST_TIMEOUT_MS = 75_000;
 
 export class ApiClient {
   private defaultHeaders: Record<string, string>;
@@ -24,29 +87,80 @@ export class ApiClient {
     
   }
 
-  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const response = await fetch(endpoint, {
-      ...options,
-      credentials: 'include',
-      headers: {
-        ...this.defaultHeaders,
-        ...options.headers,
-      },
-    });
+  private async request<T>(
+    endpoint: string,
+    options: RequestInit = {},
+    schema?: z.ZodType<T>,
+    timeoutMs = REQUEST_TIMEOUT_MS,
+  ): Promise<T> {
+    // Every request is bounded. A caller/query AbortSignal is forwarded to fetch as well.
+    const controller = new AbortController();
+    const external = options.signal;
+    let timedOut = false;
+    const timer = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, timeoutMs);
+    const forwardAbort = () => controller.abort();
+    if (external?.aborted) controller.abort();
+    else external?.addEventListener('abort', forwardAbort, { once: true });
 
-    if (!response.ok) {
-      if (response.status === 401) {
-        // Prevent redirect loop if already on login page
-        if (!window.location.pathname.startsWith('/login')) {
-          window.location.href = '/login?error=expired';
-        }
+    try {
+      let response: Response;
+      try {
+        response = await fetch(endpoint, {
+          ...options,
+          signal: controller.signal,
+          credentials: 'include',
+          headers: {
+            ...this.defaultHeaders,
+            ...options.headers,
+          },
+        });
+      } catch (err) {
+        if (timedOut || external?.aborted) throw err;
+        throw new ApiError('Network error. Check your connection and try again.', 'network');
       }
-      
-      const error = await response.json().catch(() => ({}));
-      throw new Error(error?.error?.message || `API request failed with status ${response.status}`);
-    }
 
-    return response.json();
+      if (!response.ok) {
+        if (response.status === 401) {
+          // Prevent redirect loop if already on login page
+          if (!window.location.pathname.startsWith('/login')) {
+            window.location.href = '/login?error=expired';
+          }
+        }
+
+        const error = await response.json().catch(() => ({}));
+        throw new ApiError(
+          error?.error?.message || `API request failed with status ${response.status}`,
+          'http',
+          response.status,
+          typeof error?.error?.code === 'string' ? error.error.code : undefined,
+          error?.error?.details,
+        );
+      }
+
+      let body: unknown;
+      try {
+        body = await response.json();
+      } catch (err) {
+        if (timedOut || external?.aborted) throw err;
+        throw new ApiError('The server returned an unexpected response.', 'contract', response.status);
+      }
+      if (!schema) return body as T;
+      const parsed = schema.safeParse(body);
+      // Never echo the payload: it may contain application or email metadata.
+      if (!parsed.success)
+        throw new ApiError('The server returned an unexpected response.', 'contract', response.status);
+      return parsed.data;
+    } catch (err) {
+      if (timedOut)
+        throw new ApiError('The request timed out. Check your connection and try again.', 'timeout');
+      throw err;
+    } finally {
+      clearTimeout(timer);
+      external?.removeEventListener('abort', forwardAbort);
+    }
   }
 
   async get<T>(endpoint: string, options?: RequestInit): Promise<T> {
@@ -62,39 +176,66 @@ export class ApiClient {
   }
 
   async createApplication(data: CreateApplicationRequest): Promise<ApplicationResponse> {
-    return this.request<ApplicationResponse>('/api/applications', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
+    return this.request(
+      '/api/applications',
+      { method: 'POST', body: JSON.stringify(data) },
+      ApplicationResponseSchema,
+    );
   }
 
-  async listApplications(params?: { limit?: number; offset?: number }): Promise<ListApplicationsResponse> {
+  async listApplications(
+    params?: { limit?: number; offset?: number },
+    options?: RequestOptions,
+  ): Promise<ListApplicationsResponse> {
     const urlParams = new URLSearchParams();
     if (params?.limit !== undefined) urlParams.append('limit', params.limit.toString());
     if (params?.offset !== undefined) urlParams.append('offset', params.offset.toString());
     const q = urlParams.toString();
-    return this.request<ListApplicationsResponse>(`/api/applications${q ? '?' + q : ''}`, {
-      method: 'GET',
-    });
+    return this.request(
+      `/api/applications${q ? '?' + q : ''}`,
+      { method: 'GET', cache: 'no-store', signal: options?.signal },
+      ListApplicationsResponseSchema,
+    );
   }
 
-  async getApplication(id: string): Promise<ApplicationResponse> {
-    return this.get<ApplicationResponse>(`/api/applications/${id}`);
+  async getApplication(id: string, options?: RequestOptions): Promise<ApplicationResponse> {
+    return this.request(
+      `/api/applications/${id}`,
+      { method: 'GET', cache: 'no-store', signal: options?.signal },
+      ApplicationResponseSchema,
+    );
   }
 
-  /** Fetch timeline events for one application. Ordered createdAt ASC. */
-  async getApplicationEvents(applicationId: string, params: { offset?: number; limit?: number } = {}): Promise<ListApplicationEventsResponse> {
-    return this.request<ListApplicationEventsResponse>(
+  /** Owned manual status set/change/clear. Never retried automatically by callers. */
+  async updateApplicationStatus(
+    id: string,
+    data: UpdateApplicationStatusRequest,
+  ): Promise<ApplicationResponse> {
+    return this.request(
+      `/api/applications/${id}/status`,
+      { method: 'PATCH', body: JSON.stringify(data) },
+      ApplicationResponseSchema,
+    );
+  }
+
+  /** Fetch timeline events for one application, in recording order. */
+  async getApplicationEvents(
+    applicationId: string,
+    params: { offset?: number; limit?: number } = {},
+    options?: RequestOptions,
+  ): Promise<ListApplicationEventsResponse> {
+    return this.request(
       `/api/applications/${applicationId}/events?offset=${params.offset ?? 0}&limit=${params.limit ?? 20}`,
-      { method: 'GET' }
+      { method: 'GET', cache: 'no-store', signal: options?.signal },
+      ListApplicationEventsResponseSchema,
     );
   }
 
   /** Fetch actions for one application. */
-  async getApplicationActions(applicationId: string, params: { offset?: number; limit?: number } = {}): Promise<ListApplicationActionsResponse> {
+  async getApplicationActions(applicationId: string, params: { offset?: number; limit?: number } = {}, options?: RequestOptions): Promise<ListApplicationActionsResponse> {
     return this.request<ListApplicationActionsResponse>(
       `/api/applications/${applicationId}/actions?offset=${params.offset ?? 0}&limit=${params.limit ?? 20}`,
-      { method: 'GET' }
+      { method: 'GET', signal: options?.signal }
     );
   }
 
@@ -136,10 +277,113 @@ export class ApiClient {
     });
   }
 
-  async retryEmail(emailId: string): Promise<{ success: boolean }> {
+  /**
+   * Retries a failed email. `acceptPossibleDuplicateCharge` is sent only after the user approved
+   * one more AI attempt for an uncertain outcome (409 AI_RETRY_NEEDS_APPROVAL). Never resent
+   * automatically.
+   */
+  async retryEmail(
+    emailId: string,
+    options: { acceptPossibleDuplicateCharge?: true } = {},
+  ): Promise<{ success: boolean }> {
     return this.request<{ success: boolean }>(`/api/emails/${emailId}/retry`, {
       method: 'POST',
+      body: JSON.stringify(options),
     });
+  }
+
+  // --- User-provided AI (ADR-0001) ---
+
+  async getAISettings(options?: RequestOptions): Promise<AISettingsResponse> {
+    return this.request(
+      '/api/ai/settings',
+      { method: 'GET', cache: 'no-store', signal: options?.signal },
+      AISettingsResponseSchema,
+    );
+  }
+
+  /**
+   * Saves (verifying first). The key is sent once in this request body and never comes back.
+   * Call it directly from an event handler, not through a cached mutation: TanStack's mutation
+   * cache keeps variables, and the key must not be kept anywhere in the browser.
+   */
+  async saveAISettings(data: SaveAISettingsRequest): Promise<SaveAISettingsResponse> {
+    return this.request(
+      '/api/ai/settings',
+      { method: 'PUT', body: JSON.stringify(data) },
+      SaveAISettingsResponseSchema,
+    );
+  }
+
+  async checkAISettings(): Promise<CheckAISettingsResponse> {
+    return this.request(
+      '/api/ai/settings/check',
+      { method: 'POST', body: '{}' },
+      CheckAISettingsResponseSchema,
+    );
+  }
+
+  async runAISampleTest(): Promise<AISampleTestResponse> {
+    return this.request(
+      '/api/ai/settings/sample-test',
+      { method: 'POST', body: '{}' },
+      AISampleTestResponseSchema,
+      SAMPLE_TEST_TIMEOUT_MS,
+    );
+  }
+
+  async removeAISettings(): Promise<{ removed: true }> {
+    return this.request('/api/ai/settings', { method: 'DELETE' }, RemoveAISettingsResponseSchema);
+  }
+
+  // --- Automation submissions through MCP (ADR-0002) ---
+
+  async listIntegrationTokens(
+    params: { offset?: number; limit?: number } = {},
+    options?: RequestOptions,
+  ): Promise<ListIntegrationTokensResponse> {
+    return this.request(
+      `/api/integration-tokens?offset=${params.offset ?? 0}&limit=${params.limit ?? 20}`,
+      { method: 'GET', cache: 'no-store', signal: options?.signal },
+      ListIntegrationTokensResponseSchema,
+    );
+  }
+
+  /**
+   * The only response that carries a plaintext token. Call it directly from an event handler, not
+   * through a cached mutation, and keep the result only in component state: TanStack's caches keep
+   * results, and the token must not be kept anywhere in the browser. Never retried automatically.
+   */
+  async createIntegrationToken(data: CreateIntegrationTokenRequest): Promise<CreateIntegrationTokenResponse> {
+    return this.request(
+      '/api/integration-tokens',
+      { method: 'POST', body: JSON.stringify(data) },
+      CreateIntegrationTokenResponseSchema,
+    );
+  }
+
+  async revokeIntegrationToken(id: string): Promise<IntegrationToken> {
+    return this.request(`/api/integration-tokens/${id}`, { method: 'DELETE' }, IntegrationTokenSchema);
+  }
+
+  async getPendingSubmissions(
+    params: { offset?: number; limit?: number } = {},
+    options?: RequestOptions,
+  ): Promise<ListPendingSubmissionsResponse> {
+    return this.request(
+      `/api/submissions/pending?offset=${params.offset ?? 0}&limit=${params.limit ?? 20}`,
+      { method: 'GET', cache: 'no-store', signal: options?.signal },
+      ListPendingSubmissionsResponseSchema,
+    );
+  }
+
+  /** Final; never retried automatically by callers. */
+  async resolveSubmission(id: string, data: ResolveSubmissionRequest): Promise<ResolveSubmissionResponse> {
+    return this.request(
+      `/api/submissions/${id}/resolve`,
+      { method: 'POST', body: JSON.stringify(data) },
+      ResolveSubmissionResponseSchema,
+    );
   }
 
   // --- Action Management (COM-33) ---
@@ -164,8 +408,8 @@ export class ApiClient {
 
   // --- Gmail Integration (COM-21) ---
 
-  async getGmailStatus(): Promise<GmailStatusResponse> {
-    return this.get<GmailStatusResponse>('/api/gmail/status');
+  async getGmailStatus(options?: { signal?: AbortSignal }): Promise<GmailStatusResponse> {
+    return this.get<GmailStatusResponse>('/api/gmail/status', { signal: options?.signal });
   }
 
   

@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { LayoutDashboard, FileText, Mail, LogOut, Briefcase } from 'lucide-react';
+import { LayoutDashboard, FileText, Mail, LogOut, Briefcase, Sparkles, Bot } from 'lucide-react';
 import { logout } from '../../api/auth';
 import { ThemeSelector } from '../ThemeSelector';
 
@@ -30,6 +30,14 @@ export function Sidebar() {
         <Link to="/gmail" className={navLinkClass}>
           <Mail className="w-4 h-4" />
           Gmail Sync
+        </Link>
+        <Link to="/ai" className={navLinkClass}>
+          <Sparkles className="w-4 h-4" />
+          AI Provider
+        </Link>
+        <Link to="/automation" className={navLinkClass}>
+          <Bot className="w-4 h-4" />
+          Automation
         </Link>
       </nav>
       
