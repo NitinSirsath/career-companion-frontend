@@ -50,6 +50,7 @@ function GmailPage() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: '/gmail' });
   const [offset, setOffset] = useState(0);
+  const [activeTab, setActiveTab] = useState<'job_related' | 'irrelevant'>('job_related');
   const limit = 20;
   const [showError, setShowError] = useState(false);
 
@@ -76,8 +77,8 @@ function GmailPage() {
   const [approval, setApproval] = useState<{ emailId: string; details: AIRetryApprovalDetails } | null>(null);
 
   const { data: messagesData, isLoading: isLoadingMessages, error: messagesError } = useQuery({
-    queryKey: ['gmailMessages', { offset, limit }],
-    queryFn: () => api.getMessages({ offset, limit }),
+    queryKey: ['gmailMessages', { offset, limit, activeTab }],
+    queryFn: () => api.getMessages({ offset, limit, relevance: activeTab }),
     refetchInterval: query => {
       const items = query.state.data?.items || [];
       const hasActive = items.some(m => (m.processingState === 'PENDING' && !aiWaiting) || (m.processingState === 'PROCESSING' && !m.processingRetryable));
@@ -265,7 +266,30 @@ function GmailPage() {
       {/* Ingested Email List */}
       {(statusData?.connected || (messagesData && messagesData?.items?.length > 0)) && (
         <div className="space-y-4">
-          <h3 className="text-lg font-medium">Ingested Emails</h3>
+          <div className="border-b mb-4">
+            <div className="flex space-x-6">
+              <button
+                onClick={() => { setActiveTab('job_related'); setOffset(0); }}
+                className={`pb-2 text-sm font-medium transition-colors border-b-2 ${
+                  activeTab === 'job_related' 
+                    ? 'border-foreground text-foreground' 
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Job Related
+              </button>
+              <button
+                onClick={() => { setActiveTab('irrelevant'); setOffset(0); }}
+                className={`pb-2 text-sm font-medium transition-colors border-b-2 ${
+                  activeTab === 'irrelevant' 
+                    ? 'border-foreground text-foreground' 
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Irrelevant
+              </button>
+            </div>
+          </div>
           {retryMutation.isError && !(isApiError(retryMutation.error) && retryMutation.error.code === 'AI_RETRY_NEEDS_APPROVAL') && (
             <p role="alert" className="text-sm font-medium text-destructive">
               {retryMessage(retryMutation.error)}
@@ -296,7 +320,7 @@ function GmailPage() {
             </div>
           ) : !messagesData?.items.length ? (
             <div className="p-12 text-center text-muted-foreground border rounded-xl border-dashed">
-              No emails synced yet. Click 'Sync Now' to begin.
+              {activeTab === 'job_related' ? 'No job-related emails found.' : 'No irrelevant emails found.'}
             </div>
           ) : (
             <>

@@ -238,4 +238,50 @@ describe('Gmail Route', () => {
     expect(screen.getByText('Email without threadId')).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /Open email "Email without threadId" in Gmail/i })).not.toBeInTheDocument();
   });
+
+  it('switches between Job Related and Irrelevant tabs and filters correctly', async () => {
+    vi.mocked(api.getGmailStatus).mockResolvedValue({
+      connected: true,
+      syncStatus: 'IDLE',
+      syncLookbackDays: 1,
+      status: 'CONNECTED',
+      gmailEmail: 'test@example.com',
+      lastSyncedAt: null,
+    });
+    vi.mocked(api.getMessages).mockImplementation(async (params) => {
+      if (params?.relevance === 'irrelevant') {
+        return { items: [], metadata: { limit: 20, offset: 0, nextOffset: null } };
+      }
+      return {
+        items: [
+          {
+            id: 'job-msg',
+            gmailMessageId: 'msg1',
+            threadId: null,
+            subject: 'Job Alert',
+            sender: 'jobs@linkedin.com',
+            receivedAt: new Date().toISOString(),
+            processingState: 'COMPLETED',
+            relevanceState: 'RELEVANT',
+            matchState: 'UNMATCHED',
+          }
+        ],
+        metadata: { limit: 20, offset: 0, nextOffset: null }
+      };
+    });
+
+    renderWithProviders();
+
+    // Default tab should be job_related and show the job alert
+    expect(await screen.findByText('Job Alert')).toBeInTheDocument();
+    expect(api.getMessages).toHaveBeenCalledWith({ limit: 20, offset: 0, relevance: 'job_related' });
+
+    // Switch to irrelevant tab
+    const irrelevantTab = screen.getByRole('button', { name: /Irrelevant/i });
+    fireEvent.click(irrelevantTab);
+
+    // Empty state for irrelevant tab
+    expect(await screen.findByText('No irrelevant emails found.')).toBeInTheDocument();
+    expect(api.getMessages).toHaveBeenCalledWith({ limit: 20, offset: 0, relevance: 'irrelevant' });
+  });
 });
