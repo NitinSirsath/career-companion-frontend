@@ -7,15 +7,19 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { api } from '../api/client';
 import { routeTree } from '../routeTree.gen';
 import type { ApplicationResponse, PaginatedResponse } from '../contracts';
-import { makeApplication } from './fixtures';
-vi.mock('../api/client', () => ({ api: {
+import { workspacePage, makeApplication } from './fixtures';
+vi.mock('../api/client', async (importOriginal) => ({ ...await importOriginal<typeof import('../api/client')>(), api: {
   listApplications: vi.fn(), getApplication: vi.fn(), getApplicationActions: vi.fn(), getApplicationEvents: vi.fn(),
-  getActions: vi.fn(), updateAction: vi.fn(), getAmbiguousEmails: vi.fn(), getUnmatchedEmails: vi.fn(), getPendingSubmissions: vi.fn(), resolveUnmatchedEmail: vi.fn(),
+  getActions: vi.fn(), getWorkspaceActions: vi.fn(), getWorkspaceReview: vi.fn(), getGmailStatus: vi.fn(), getAISettings: vi.fn(), updateAction: vi.fn(), getAmbiguousEmails: vi.fn(), getUnmatchedEmails: vi.fn(), getPendingSubmissions: vi.fn(), resolveUnmatchedEmail: vi.fn(),
 } }));
 const page = <T,>(items: T[], offset = 0, nextOffset: number | null = null): PaginatedResponse<T> => ({ items, metadata: { limit: 20, offset, nextOffset } });
 const application: ApplicationResponse = makeApplication({ id: 'older-app', companyName: 'Older Company', jobTitle: 'Engineer', location: null, appliedAt: null, createdAt: '2026-09-01', updatedAt: '2026-09-01' });
 beforeEach(() => {
   vi.resetAllMocks();
+  vi.mocked(api.getWorkspaceActions).mockResolvedValue(workspacePage());
+  vi.mocked(api.getWorkspaceReview).mockResolvedValue({ generatedAt: new Date().toISOString(), unmatched: 0, ambiguous: 0, pendingSubmissions: 0 });
+  vi.mocked(api.getGmailStatus).mockResolvedValue({ connected: false, gmailEmail: null, status: null, syncStatus: null, lastSyncedAt: null });
+  vi.mocked(api.getAISettings).mockRejectedValue(new Error('fixture unavailable'));
   vi.mocked(api.listApplications).mockResolvedValue(page([]));
   vi.mocked(api.getApplication).mockResolvedValue(application);
   vi.mocked(api.getApplicationEvents).mockResolvedValue(page([]));
@@ -37,14 +41,13 @@ it('loads an application detail by ID even when it is absent from the first list
   expect(api.getApplication).toHaveBeenCalledWith('older-app', expect.objectContaining({ signal: expect.any(AbortSignal) }));
   expect(api.listApplications).not.toHaveBeenCalled();
 });
-it('keeps Previous available when a later action page becomes empty', async () => {
-  const action = { id: 'action-1', applicationId: 'older-app', emailId: null, type: 'ACTION_REQUIRED', description: 'Reply to recruiter', deadline: null, deadlinePrecision: null, status: 'PENDING', createdAt: '2026-09-01', application: { companyName: 'Older Company', jobTitle: null }, email: null };
-  vi.mocked(api.getActions).mockImplementation(async (_status, params) => params?.offset ? page([], 20) : page([action], 0, 20));
+it('recovers to page one when a later action page becomes empty', async () => {
+  const action = { id: 'action-1', applicationId: 'older-app', emailId: null, origin: null, actionRevision: 0, clientRequestId: null, snoozedUntil: null, type: 'ACTION_REQUIRED', description: 'Reply to recruiter', deadline: null, deadlinePrecision: null, status: 'PENDING', createdAt: '2026-09-01', application: { companyName: 'Older Company', jobTitle: null }, email: null };
+  vi.mocked(api.getWorkspaceActions).mockImplementation(async params => workspacePage(params.offset ? [] : [action], { metadata: { limit: 20, offset: params.offset, nextOffset: params.offset ? null : 20 } }));
   show('/');
   fireEvent.click(await screen.findByRole('button', { name: 'Next' }));
-  expect(await screen.findByText('No actions on this page.')).toBeInTheDocument();
-  const previous = screen.getByRole('button', { name: 'Previous' });
-  expect(previous).toBeEnabled(); fireEvent.click(previous);
+  await waitFor(() => expect(api.getWorkspaceActions).toHaveBeenCalledWith(expect.objectContaining({ offset: 20 }), expect.anything()));
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Previous' })).toBeDisabled());
   expect(await screen.findByText('Reply to recruiter')).toBeInTheDocument();
 });
 it('can select an application beyond the first 20 when linking an email', async () => {
@@ -60,11 +63,11 @@ it('can select an application beyond the first 20 when linking an email', async 
   await waitFor(() => expect(api.resolveUnmatchedEmail).toHaveBeenCalledWith('email', { applicationId: 'older-app' }));
 });
 it('shows a failed action mutation and permits retry', async () => {
-  const action = { id: 'action-1', applicationId: 'older-app', emailId: null, type: 'ACTION_REQUIRED', description: 'Reply', deadline: null, deadlinePrecision: null, status: 'PENDING', createdAt: '2026-09-01', application: { companyName: 'Older Company', jobTitle: null }, email: null };
-  vi.mocked(api.getActions).mockResolvedValue(page([action]));
+  const action = { id: 'action-1', applicationId: 'older-app', emailId: null, origin: null, actionRevision: 0, clientRequestId: null, snoozedUntil: null, type: 'ACTION_REQUIRED', description: 'Reply', deadline: null, deadlinePrecision: null, status: 'PENDING', createdAt: '2026-09-01', application: { companyName: 'Older Company', jobTitle: null }, email: null };
+  vi.mocked(api.getWorkspaceActions).mockResolvedValue(workspacePage([action]));
   vi.mocked(api.updateAction).mockRejectedValue(new Error('Network unavailable'));
   show('/');
   fireEvent.click(await screen.findByRole('button', { name: 'Complete' }));
-  expect(await screen.findByRole('alert')).toHaveTextContent('Network unavailable');
+  expect(await screen.findByText(/action update could not be confirmed/)).toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Complete' })).toBeEnabled();
 });

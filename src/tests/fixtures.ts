@@ -8,6 +8,7 @@ import {
 export function makeApplication(overrides: Partial<ApplicationResponse> = {}): ApplicationResponse {
   const base = {
     id: 'app-1',
+    archivedAt: null, archiveRevision: 0,
     companyName: 'Acme Corp',
     jobTitle: 'Senior Engineer',
     location: 'Remote',
@@ -54,4 +55,10 @@ export function makeEvent(overrides: Partial<ApplicationEventResponse> = {}): Ap
     sourceSubmission: null,
     ...overrides,
   };
+}
+
+/** Workspace fixture counts are deliberately independent of page length when overridden. */
+export function workspacePage(items: import('../contracts').ActionWithContextResponse[] = [], overrides: Partial<import('../contracts').WorkspaceActionsResponse> = {}): import('../contracts').WorkspaceActionsResponse {
+  return { items, metadata: { limit: 20, offset: 0, nextOffset: null }, generatedAt: new Date().toISOString(), timeZone: 'Asia/Kolkata', nextTransitionAt: null,
+    counts: { snoozed: 0, overdue: 0, today: 0, later: 0, undated: items.length, totalPending: items.length }, ...overrides };
 }

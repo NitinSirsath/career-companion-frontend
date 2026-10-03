@@ -23,9 +23,9 @@ export function StatusBadge({ status }: { status: ApplicationStatus | null }) {
 const SOURCE_LABEL = { USER: 'Set by you', AI: 'Inferred by AI', UNKNOWN: 'No status yet' } as const;
 
 /**
- * Effective status with its provenance, shared by the list and detail views. A submission reported
- * by the user's automation is shown only while there is no status at all (ADR-0002 decision 8):
- * it is a fact about the application, never a status, so a user or AI status always wins.
+ * Effective status with provenance, shared by list and detail. The 'Applied · via automation'
+ * badge appears only without user/AI status (ADR-0002 decision 8). Once status exists, it wins
+ * the badge while a separate source label retains the submission fact.
  */
 export function EffectiveStatus({ app, detailed = false }: { app: ApplicationResponse; detailed?: boolean }) {
   const viaAutomation = app.statusSource === 'UNKNOWN' && app.submittedVia === 'AUTOMATION';
@@ -39,6 +39,9 @@ export function EffectiveStatus({ app, detailed = false }: { app: ApplicationRes
       <span className="text-xs text-text-secondary">
         {viaAutomation ? 'Reported by your automation' : SOURCE_LABEL[app.statusSource]}
       </span>
+      {!viaAutomation && app.submittedVia === 'AUTOMATION' && (
+        <span className="text-xs text-text-secondary">Submitted via automation</span>
+      )}
       {detailed && app.statusSource === 'USER' && (
         <span className="text-xs text-text-secondary">
           {app.userStatusSetAt

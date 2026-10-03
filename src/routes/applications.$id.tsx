@@ -1,3 +1,4 @@
+import { FollowUpEditor, SnoozeControl, ArchiveControl } from '../components/FollowThrough';
 import { MatchCorrectionDialog } from '../components/MatchCorrectionDialog';
 import { deadlineLabel } from '../lib/deadline';
 import { useState } from 'react';
@@ -125,23 +126,25 @@ function TimelineEventItem({ event }: { event: ApplicationEventResponse }) {
 
 // ─── Action item ──────────────────────────────────────────────────────────────
 
-function ActionItem({ action }: { action: ApplicationActionResponse }) {
+function ActionItem({ action, archived }: { action: ApplicationActionResponse; archived: boolean }) {
   const isPending = action.status === 'PENDING';
   const queryClient = useQueryClient();
 
   const updateMutation = useMutation({
+    retry: false,
     mutationFn: ({ status }: { status: 'COMPLETED' | 'DISMISSED' }) =>
-      api.updateAction(action.id, { status }),
+      api.updateAction(action.id, { status, expectedActionRevision: action.actionRevision }),
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['application-actions', action.applicationId] });
       queryClient.invalidateQueries({ queryKey: ['applications'] });
       queryClient.invalidateQueries({ queryKey: ['application', action.applicationId] });
       queryClient.invalidateQueries({ queryKey: ['actions'] });
+      void queryClient.invalidateQueries({ queryKey: ['workspace'] });
     },
   });
 
   return (
-    <div className={`flex items-start gap-3 p-3 rounded-none border ${isPending ? 'border-border-default border-l-4 border-l-status-warning bg-surface' : 'border-border-default bg-surface-subtle'}`}>
+    <div className={`flex flex-col sm:flex-row items-start gap-3 p-3 rounded-none border ${isPending ? 'border-border-default border-l-4 border-l-status-warning bg-surface' : 'border-border-default bg-surface-subtle'}`}>
       <span
         className={`mt-0.5 shrink-0 h-2 w-2 rounded-full ${isPending ? 'bg-status-warning' : 'bg-muted-foreground'}`}
         aria-hidden="true"
@@ -150,6 +153,8 @@ function ActionItem({ action }: { action: ApplicationActionResponse }) {
         <p className="text-sm font-medium">
           {action.description || action.type.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase())}
         </p>
+        <p className="text-xs text-text-secondary">{action.origin === 'USER' ? 'Personal follow-up' : action.emailId ? 'From email' : 'Source unknown'}</p>
+        {action.snoozedUntil && <p className="text-xs">Snooze ends {new Date(action.snoozedUntil).toLocaleString()}. Original deadline unchanged.</p>}
         <div className="flex items-center gap-2 mt-1 flex-wrap">
           <span className={`text-xs font-semibold ${isPending ? 'text-status-warning' : 'text-muted-foreground'}`}>
             {action.status}
@@ -161,9 +166,10 @@ function ActionItem({ action }: { action: ApplicationActionResponse }) {
           )}
         </div>
       </div>
+      {action.origin === 'USER' && !archived && <FollowUpEditor applicationId={action.applicationId} action={action}/>}
       {updateMutation.isError && <p role="alert">Could not update action: {updateMutation.error.message}</p>}
-      {isPending && (
-        <div className="flex gap-2 shrink-0 self-center">
+      {isPending && !archived && (
+        <div className="flex flex-wrap gap-2 self-start">
           <Button
             variant="default"
             size="sm"
@@ -182,6 +188,7 @@ function ActionItem({ action }: { action: ApplicationActionResponse }) {
           >
             Dismiss
           </Button>
+          <SnoozeControl action={action}/>
         </div>
       )}
     </div>
@@ -266,12 +273,15 @@ function ApplicationDetailPage() {
             </div>
           </div>
           <div className="space-y-3">
+            {application.archivedAt && <p className="text-sm">Archived — history and linked mail are preserved. Restore to edit work.</p>}
             <EffectiveStatus app={application} detailed />
-            <StatusEditor key={application.id} application={application} canEdit={canEdit} />
+            <div className="flex flex-wrap gap-2"><ArchiveControl application={application} disabled={!canEdit}/>{!application.archivedAt && <FollowUpEditor applicationId={application.id} disabled={!canEdit}/>}</div>
+            {!application.archivedAt && <StatusEditor key={application.id} application={application} canEdit={canEdit} />}
           </div>
         </div>
       )}
 
+      <Link to="/agenda" className="inline-block underline text-sm">Open agenda</Link>
       {/* Actions section — independent of history and status editing */}
       <section className="space-y-3" aria-labelledby="actions-heading">
         <h3 id="actions-heading" className="text-lg font-semibold">Actions</h3>
@@ -284,7 +294,7 @@ function ApplicationDetailPage() {
             <div className="space-y-2">
               {actions.length === 0 && <p className="text-sm text-muted-foreground">{actionsOffset > 0 ? 'No actions on this page.' : 'No actions yet.'}</p>}
               {actions.map((action) => (
-                <ActionItem key={action.id} action={action} />
+                <ActionItem key={action.id} action={action} archived={!!application?.archivedAt} />
               ))}
             </div>
             {(actionsOffset > 0 || actionsQuery.data?.metadata.nextOffset != null) && (

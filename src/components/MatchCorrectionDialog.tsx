@@ -17,7 +17,7 @@ export function MatchCorrectionDialog({ emailId, matchState, applicationId, labe
   const [expected, setExpected] = useState({ expectedMatchState: matchState, expectedApplicationId: applicationId });
   const applications = useQuery({ queryKey: ['applications', 'match-picker', offset], queryFn: ({ signal }) => api.listApplications({ offset, limit: 20 }, { signal }), enabled: open });
   const refresh = async () => {
-    await Promise.all(['gmailMessages', 'applications', 'actions', 'application', 'application-events', 'application-actions', 'unmatched-emails', 'ambiguous-emails'].map(key => client.invalidateQueries({ queryKey: [key] })));
+    await Promise.all(['workspace', 'agenda', 'gmailMessages', 'applications', 'actions', 'application', 'application-events', 'application-actions', 'unmatched-emails', 'ambiguous-emails'].map(key => client.invalidateQueries({ queryKey: [key] })));
   };
   const mutation = useMutation({
     mutationFn: () => api.correctEmailMatch(emailId, { ...expected, applicationId: selected === 'unlink' ? null : selected }),

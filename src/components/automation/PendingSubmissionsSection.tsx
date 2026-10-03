@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
@@ -126,7 +127,10 @@ export function PendingSubmissionsSection({ applications }: { applications: Appl
         setNotice('This submission was already resolved. The list has been refreshed.');
       else setNotice(`Could not resolve the submission: ${err.message}`);
     },
-    onSettled: () => void queryClient.invalidateQueries({ queryKey: ['pending-submissions'] }),
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: ['pending-submissions'] });
+      void queryClient.invalidateQueries({ queryKey: ['workspace'] });
+    },
   });
 
   if (error) return <p role="alert">Could not load automation submissions: {error.message}</p>;
@@ -139,8 +143,9 @@ export function PendingSubmissionsSection({ applications }: { applications: Appl
         Automation submissions to review <Badge variant="secondary">{count}</Badge>
       </h3>
       <p className="text-xs text-text-secondary">
-        Your automation reported these applications, but Career Companion could not match them with certainty.
+        Your automation reported these applications, but Career Companion could not match them with certainty. If the application is archived, restore it before linking.
       </p>
+      <Link to="/applications" className="text-sm underline">Find and restore applications using the Archived filter</Link>
       {notice && (
         <p role="alert" className="text-sm">
           {notice}

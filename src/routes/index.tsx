@@ -1,137 +1,21 @@
 import { useState } from 'react';
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
-import { deadlineLabel, deadlineOverdue } from '../lib/deadline';
+import { AIAccessNotice } from '../components/ai/AIAccessNotice';
+import { DailyWorkspace } from '../components/DailyWorkspace';
 import { api } from '../api/client';
 import { ApplicationResponse } from '../contracts/application';
-import { ActionWithContextResponse } from '../contracts/action';
 import { Button } from '../components/ui/button';
-import { Badge } from '../components/ui/badge';
 
 import { Pagination } from '../components/ui/pagination';
 import { GmailLink } from '../components/ui/GmailLink';
 import { fetchApplicationsPage } from '../lib/applicationCache';
-import { AIAccessNotice } from '../components/ai/AIAccessNotice';
 import { AnalyzedBy } from '../components/ai/AnalyzedBy';
 import { PendingSubmissionsSection } from '../components/automation/PendingSubmissionsSection';
 
 export const Route = createFileRoute('/')({
   component: DashboardPage,
 });
-
-function ActionQueueSection() {
-  const queryClient = useQueryClient();
-  const [offset, setOffset] = useState(0);
-  const limit = 20;
-
-  const { data: actionsResponse, isLoading, error } = useQuery({
-    queryKey: ['actions', { status: 'PENDING', offset, limit }],
-    queryFn: () => api.getActions('PENDING', { offset, limit }),
-  });
-  const actions = actionsResponse?.items;
-  const nextOffset = actionsResponse?.metadata?.nextOffset;
-
-  const updateMutation = useMutation({
-    mutationFn: ({ actionId, status }: { actionId: string; status: 'COMPLETED' | 'DISMISSED' }) =>
-      api.updateAction(actionId, { status }),
-    onSettled: () => {
-      setOffset(0);
-      queryClient.invalidateQueries({ queryKey: ['actions'] });
-      queryClient.invalidateQueries({ queryKey: ['application-actions'] });
-      queryClient.invalidateQueries({ queryKey: ['application'] });
-      queryClient.invalidateQueries({ queryKey: ['applications'] });
-    },
-  });
-
-  if (isLoading) {
-    return <div className="p-8 text-center text-muted-foreground border border-border bg-surface-1">Loading action queue...</div>;
-  }
-
-  if (error) return <p role="alert">Could not load actions: {error.message}</p>;
-  if (!actions || (actions.length === 0 && offset === 0)) return null;
-
-  const now = new Date();
-  const overdueActions = actions.filter(a => a.deadline && deadlineOverdue(a, now));
-  const upcomingActions = actions.filter(a => a.deadline && !deadlineOverdue(a, now));
-  const pendingActions = actions.filter(a => !a.deadline);
-
-  const renderActionItem = (action: ActionWithContextResponse, isOverdue: boolean) => (
-    <div key={action.id} className={`max-w-4xl border p-4 flex flex-col md:flex-row items-center gap-4 justify-between bg-surface-1 ${isOverdue ? 'border-status-error' : 'border-border'}`}>
-      <div className="flex-1 min-w-0 w-full">
-        <div className="flex items-center gap-2 mb-2">
-          {isOverdue && <Badge variant="destructive">Overdue</Badge>}
-          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            {action.type.replace(/_/g, ' ')}
-          </span>
-          {action.deadline && (
-            <span className={`text-xs ${isOverdue ? 'text-status-error font-medium' : 'text-muted-foreground'}`}>
-              Due: {deadlineLabel(action)}
-            </span>
-          )}
-        </div>
-        
-        <p className="font-medium text-base">{action.description || 'Follow up required'}</p>
-        
-        <div className="mt-2 text-sm flex items-center gap-4">
-          <Link to="/applications/$id" params={{ id: action.applicationId }} className="font-medium text-primary hover:underline">
-            {action.application.companyName} {action.application.jobTitle ? `— ${action.application.jobTitle}` : ''}
-          </Link>
-          {action.email?.threadId && (
-            <GmailLink threadId={action.email.threadId} subject={action.email.subject} />
-          )}
-        </div>
-      </div>
-
-      <div className="flex flex-row md:flex-col gap-2 shrink-0 md:min-w-[140px] justify-end md:justify-center mt-2 md:mt-0 w-full md:w-auto">
-        <Button variant="primary" size="sm" className="w-full" disabled={updateMutation.isPending} onClick={() => updateMutation.mutate({ actionId: action.id, status: 'COMPLETED' })}>
-          Complete
-        </Button>
-        <Button variant="tertiary" size="sm" className="w-full text-muted-foreground" disabled={updateMutation.isPending} onClick={() => updateMutation.mutate({ actionId: action.id, status: 'DISMISSED' })}>
-          Dismiss
-        </Button>
-      </div>
-    </div>
-  );
-
-  return (
-    <div className="space-y-6">
-      <h2 className="text-xl font-semibold tracking-tight border-b border-border pb-2">Action Center</h2>
-      {updateMutation.isError && <p role="alert">Could not update action: {updateMutation.error.message}</p>}
-      {actions.length === 0 && <p>No actions on this page.</p>}
-      
-      {overdueActions.length > 0 && (
-        <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-status-error uppercase tracking-wider">Overdue</h3>
-          {overdueActions.map(a => renderActionItem(a, true))}
-        </div>
-      )}
-
-      {upcomingActions.length > 0 && (
-        <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Upcoming</h3>
-          {upcomingActions.map(a => renderActionItem(a, false))}
-        </div>
-      )}
-
-      {pendingActions.length > 0 && (
-        <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Pending</h3>
-          {pendingActions.map(a => renderActionItem(a, false))}
-        </div>
-      )}
-
-      {(offset > 0 || nextOffset) && (
-        <Pagination 
-          offset={offset} 
-          limit={limit} 
-          hasNext={!!nextOffset} 
-          onPrevious={() => setOffset(Math.max(0, offset - limit))}
-          onNext={() => nextOffset && setOffset(nextOffset)}
-        />
-      )}
-    </div>
-  );
-}
 
 function AmbiguousMatchesSection({ applications }: { applications: ApplicationResponse[] }) {
   const queryClient = useQueryClient();
@@ -146,7 +30,7 @@ function AmbiguousMatchesSection({ applications }: { applications: ApplicationRe
   const nextOffset = ambiguousEmailsResponse?.metadata?.nextOffset;
   const resolveMutation = useMutation({
     mutationFn: ({ emailId, applicationId }: { emailId: string, applicationId: string | null }) => api.resolveAmbiguousEmail(emailId, { applicationId }),
-    onSuccess: () => { setOffset(0); for (const key of ['actions', 'application', 'application-actions', 'application-events', 'gmailMessages']) queryClient.invalidateQueries({ queryKey: [key] }); queryClient.invalidateQueries({ queryKey: ['ambiguous-emails'] }); queryClient.invalidateQueries({ queryKey: ['applications'] }); }
+    onSuccess: () => { setOffset(0); for (const key of ['workspace', 'actions', 'application', 'application-actions', 'application-events', 'gmailMessages']) queryClient.invalidateQueries({ queryKey: [key] }); queryClient.invalidateQueries({ queryKey: ['ambiguous-emails'] }); queryClient.invalidateQueries({ queryKey: ['applications'] }); }
   });
 
   if (error) return <p role="alert">Could not load emails: {error.message}</p>;
@@ -224,7 +108,7 @@ function UnmatchedEmailsSection({ applications }: { applications: ApplicationRes
   const nextOffset = unmatchedEmailsResponse?.metadata?.nextOffset;
   const resolveMutation = useMutation({
     mutationFn: ({ emailId, applicationId }: { emailId: string; applicationId: string }) => api.resolveUnmatchedEmail(emailId, { applicationId }),
-    onSuccess: () => { setOffset(0); for (const key of ['actions', 'application', 'application-actions', 'application-events', 'gmailMessages']) queryClient.invalidateQueries({ queryKey: [key] }); queryClient.invalidateQueries({ queryKey: ['unmatched-emails'] }); queryClient.invalidateQueries({ queryKey: ['applications'] }); }
+    onSuccess: () => { setOffset(0); for (const key of ['workspace', 'actions', 'application', 'application-actions', 'application-events', 'gmailMessages']) queryClient.invalidateQueries({ queryKey: [key] }); queryClient.invalidateQueries({ queryKey: ['unmatched-emails'] }); queryClient.invalidateQueries({ queryKey: ['applications'] }); }
   });
 
   if (error) return <p role="alert">Could not load emails: {error.message}</p>;
@@ -304,8 +188,7 @@ function DashboardPage() {
       </div>
 
       <AIAccessNotice />
-
-      <ActionQueueSection />
+      <DailyWorkspace />
 
       {applicationError && <p role="alert">Could not load applications: {applicationError.message}</p>}
       {(applicationOffset > 0 || applicationsResponse?.metadata.nextOffset != null) && (
@@ -318,9 +201,9 @@ function DashboardPage() {
       )}
       {applications && (
         <div className="space-y-10">
-          <PendingSubmissionsSection applications={applications} />
-          <UnmatchedEmailsSection applications={applications} />
-          <AmbiguousMatchesSection applications={applications} />
+          <div id="submission-review" tabIndex={-1}><PendingSubmissionsSection applications={applications} /></div>
+          <div id="unmatched-review" tabIndex={-1}><UnmatchedEmailsSection applications={applications} /></div>
+          <div id="ambiguous-review" tabIndex={-1}><AmbiguousMatchesSection applications={applications} /></div>
         </div>
       )}
     </div>

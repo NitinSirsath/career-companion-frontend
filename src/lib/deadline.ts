@@ -1,10 +1,11 @@
 import { format } from 'date-fns';
 
 type Deadline = { deadline: string | Date | null; deadlinePrecision?: 'DATE' | 'DATETIME' | null };
-export function deadlineLabel(action: Deadline, detail = false): string {
+export function deadlineLabel(action: Deadline, detail = false, timeZone?: string): string {
   if (!action.deadline) return '';
   const date = new Date(action.deadline);
   if (action.deadlinePrecision === 'DATE') return date.toLocaleDateString('en-US', { timeZone: 'UTC', year: 'numeric', month: 'short', day: 'numeric' });
+  if (timeZone) return date.toLocaleString('en-US', { timeZone, year: 'numeric', month: 'short', day: 'numeric', ...(detail ? {} : { hour: 'numeric', minute: '2-digit' }) });
   return format(date, detail ? 'MMM d, yyyy' : 'MMM d, yyyy h:mm a');
 }
 export function deadlineOverdue(action: Deadline, now: Date): boolean {

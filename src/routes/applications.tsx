@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 
 import { createFileRoute, Link, Outlet, useRouterState } from '@tanstack/react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { api, isApiError } from '../api/client';
-import { CreateApplicationRequestSchema, CreateApplicationRequest, ApplicationResponse } from '../contracts/application';
+import { ApplicationStatusSchema, type ApplicationFilters, CreateApplicationRequestSchema, CreateApplicationRequest, ApplicationResponse } from '../contracts/application';
 import { EffectiveStatus } from '../components/ApplicationStatus';
 import { fetchApplicationsPage } from '../lib/applicationCache';
 import { eventLabel } from '../lib/eventLabels';
@@ -15,6 +15,8 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Badge } from '../components/ui/badge';
+import { NativeSelect } from '../components/ui/native-select';
+import { STATUS_LABEL } from '../lib/statusLabels';
 
 import { Pagination } from '../components/ui/pagination';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
@@ -28,13 +30,14 @@ function ApplicationCard({ app }: { app: ApplicationResponse }) {
     <Link
       to="/applications/$id"
       params={{ id: app.id }}
-      className="block border border-border bg-surface-1 hover:border-primary/50 transition-colors p-4"
+      className="block border border-border-default bg-surface hover:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus transition-colors p-4"
     >
       <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 flex-wrap">
-            <h3 className="font-semibold text-base">{app.companyName}</h3>
+            <h3 className="font-semibold text-base break-words">{app.companyName}</h3>
             <EffectiveStatus app={app} />
+            {app.archivedAt && <Badge>Archived</Badge>}
             {app.pendingActionCount > 0 && (
               <Badge variant="warning">
                 {app.pendingActionCount} action{app.pendingActionCount > 1 ? 's' : ''}
@@ -42,7 +45,7 @@ function ApplicationCard({ app }: { app: ApplicationResponse }) {
             )}
           </div>
 
-          <div className="mt-2 text-sm text-muted-foreground flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
+          <div className="mt-2 text-sm text-text-secondary break-words flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
             {app.jobTitle && <span>{app.jobTitle}</span>}
             {app.location && <span className="hidden sm:inline">•</span>}
             {app.location && <span>{app.location}</span>}
@@ -53,7 +56,8 @@ function ApplicationCard({ app }: { app: ApplicationResponse }) {
           {app.appliedAt && (
             <p>Applied {format(new Date(app.appliedAt), 'MMM d, yyyy')}</p>
           )}
-          <p className="mt-1">Added {format(new Date(app.createdAt), 'MMM d')}</p>
+          {!app.appliedAt && <p>Applied date unknown</p>}
+          <p className="mt-1">Added {format(new Date(app.createdAt), 'MMM d, yyyy')}</p>
         </div>
       </div>
 
@@ -73,30 +77,46 @@ function ApplicationCard({ app }: { app: ApplicationResponse }) {
 
 type CreationRecovery = { refresh: 'pending' | 'failed' | 'done' } | null;
 
-function ApplicationsDashboard() {
+type DiscoveryView = { offset: number; search: string } & Required<Pick<ApplicationFilters, 'archive' | 'sort'>> & {
+  effectiveStatus: NonNullable<ApplicationFilters['effectiveStatus']> | '';
+  submittedVia: NonNullable<ApplicationFilters['submittedVia']> | '';
+};
+const initialView: DiscoveryView = { offset: 0, search: '', archive: 'active', sort: 'added_desc', effectiveStatus: '', submittedVia: '' };
+
+function ApplicationsDashboard({ view, setView }: { view: DiscoveryView; setView: Dispatch<SetStateAction<DiscoveryView>> }) {
   const queryClient = useQueryClient();
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [offset, setOffset] = useState(0);
+  const { offset, search, effectiveStatus, archive, sort, submittedVia } = view;
+  const setOffset = (offset: number) => setView(current => ({ ...current, offset }));
+  const changeFilters = (changes: Partial<DiscoveryView>) => setView(current => ({ ...current, ...changes, offset: 0 }));
   // Set when a POST may have committed although its response was lost, timed out, failed with
   // 5xx or was malformed. The draft is kept and ordinary submission stays blocked.
   const [recovery, setRecovery] = useState<CreationRecovery>(null);
   const limit = 20;
+  const filters = { archive, ...(search.trim() ? { q: search.trim() } : {}), ...(effectiveStatus ? { effectiveStatus } : {}), ...(submittedVia ? { submittedVia } : {}), ...(sort !== 'added_desc' ? { sort } : {}) };
+  const hasFilters = !!(search.trim() || effectiveStatus || submittedVia || archive !== 'active');
+  const params = { offset, limit, ...filters };
 
-  const { data: applicationsResponse, isLoading, error } = useQuery({
-    queryKey: ['applications', { offset, limit }],
-    queryFn: ({ signal }) => fetchApplicationsPage(queryClient, { offset, limit }, signal),
+  const { data: applicationsResponse, isLoading, isFetching, error, refetch } = useQuery({
+    queryKey: ['applications', params],
+    queryFn: ({ signal }) => fetchApplicationsPage(queryClient, params, signal),
   });
 
   const applications = applicationsResponse?.items || [];
   const nextOffset = applicationsResponse?.metadata?.nextOffset;
+  useEffect(() => {
+    if (applicationsResponse && !isFetching && !error && applicationsResponse.items.length === 0 && offset > 0) {
+      setView(current => ({ ...current, offset: 0 }));
+    }
+  }, [applicationsResponse, isFetching, error, offset, setView]);
 
   async function reconcileCreation() {
     setRecovery({ refresh: 'pending' });
-    setOffset(0);
+    setView(initialView);
     try {
       await queryClient.fetchQuery({
-        queryKey: ['applications', { offset: 0, limit }],
-        queryFn: ({ signal }) => fetchApplicationsPage(queryClient, { offset: 0, limit }, signal),
+        queryKey: ['applications', { offset: 0, limit, archive: 'active' }],
+        queryFn: ({ signal }) => fetchApplicationsPage(queryClient, { offset: 0, limit, archive: 'active' }, signal),
         staleTime: 0,
       });
       setRecovery({ refresh: 'done' });
@@ -110,7 +130,7 @@ function ApplicationsDashboard() {
     retry: false, // never replay a POST automatically
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['applications'] });
-      setOffset(0);
+      setView(initialView);
       setRecovery(null);
       form.reset();
       setShowCreateForm(false);
@@ -138,15 +158,66 @@ function ApplicationsDashboard() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between border-b border-border pb-4">
-        <h2 className="text-2xl font-semibold tracking-tight">Applications</h2>
-        <Button
-          variant="tertiary"
-          size="sm"
-          onClick={() => setShowCreateForm(true)}
-        >
-          Add Application
-        </Button>
+      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border-default pb-4">
+        <div className="space-y-2">
+          <h2 className="text-2xl font-semibold tracking-tight">Applications</h2>
+          <p className="text-sm text-text-secondary">Your recorded applications, from submission through the next steps.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="secondary" size="sm" disabled={isFetching} onClick={() => void refetch()}>
+            {isFetching ? 'Refreshing…' : 'Refresh applications'}
+          </Button>
+          <Button variant="tertiary" size="sm" onClick={() => setShowCreateForm(true)}>Add Application</Button>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="application-search">Search company or job title</Label>
+          <Input id="application-search" type="search" maxLength={100} value={search}
+            onChange={(event) => changeFilters({ search: event.target.value })} placeholder="Company or job title" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="application-status-filter">Effective status</Label>
+            <NativeSelect id="application-status-filter" value={effectiveStatus}
+              onChange={(event) => changeFilters({ effectiveStatus: event.target.value as DiscoveryView['effectiveStatus'] })}>
+              <option value="">All statuses</option>
+              <option value="UNKNOWN">No user/AI status</option>
+              {ApplicationStatusSchema.options.map((status) => <option key={status} value={status}>{STATUS_LABEL[status]}</option>)}
+            </NativeSelect>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="application-source-filter">Submission source</Label>
+            <NativeSelect id="application-source-filter" value={submittedVia}
+              onChange={(event) => changeFilters({ submittedVia: event.target.value as DiscoveryView['submittedVia'] })}>
+              <option value="">All sources</option>
+              <option value="AUTOMATION">Via automation</option>
+            </NativeSelect>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="application-archive-filter">Application visibility</Label>
+            <NativeSelect id="application-archive-filter" value={archive}
+              onChange={(event) => changeFilters({ archive: event.target.value as DiscoveryView['archive'] })}>
+              <option value="active">Active</option><option value="archived">Archived</option><option value="all">All applications</option>
+            </NativeSelect>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="application-sort">Sort applications</Label>
+            <NativeSelect id="application-sort" value={sort}
+              onChange={(event) => changeFilters({ sort: event.target.value as DiscoveryView['sort'] })}>
+              <option value="added_desc">Newest added</option>
+              <option value="applied_desc">Applied date: newest first</option>
+              <option value="applied_asc">Applied date: oldest first</option>
+              <option value="company_asc">Company: A–Z</option>
+            </NativeSelect>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-text-secondary">
+          <p>Submissions awaiting a match are in <Link to="/automation" className="underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-border-focus">Automation review</Link>.</p>
+          {(hasFilters || sort !== 'added_desc') && <Button variant="ghost" size="sm" onClick={() => setView(initialView)}>Clear filters</Button>}
+        </div>
+        {effectiveStatus === 'UNKNOWN' && <p className="text-sm text-text-secondary">No user or AI status has been set. An automation submission can still be recorded.</p>}
       </div>
 
       <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
@@ -231,14 +302,18 @@ function ApplicationsDashboard() {
         {isLoading ? (
           <div className="p-8 text-center text-muted-foreground border border-border bg-surface-1">Loading applications...</div>
         ) : error ? (
-          <div className="p-8 text-center text-destructive border border-destructive bg-destructive/10">Failed to load applications: {error.message}</div>
+          <div role="alert" className="p-8 text-center text-status-error border border-status-error bg-status-error-subtle space-y-3">
+            <p>Failed to load applications: {error.message}</p>
+            <Button variant="secondary" disabled={isFetching} onClick={() => void refetch()}>Retry applications</Button>
+          </div>
         ) : !applications?.length ? (
           <div className="p-12 text-center border border-border bg-surface-1">
-            <p className="text-base font-medium mb-2">No applications yet</p>
-            <p className="text-sm text-muted-foreground">Add your first application to get started. AI-detected emails will link automatically.</p>
+            <p className="text-base font-medium mb-2">{hasFilters ? 'No matching applications' : 'No applications yet'}</p>
+            <p className="text-sm text-text-secondary">{hasFilters ? 'Try changing your search, status, source or visibility filters.' : 'Add an application, connect Gmail, or record a submission through your automation. Archived applications are available under Application visibility.'}</p>
           </div>
         ) : (
           <>
+            <p role="status" className="text-sm text-text-secondary">Showing {offset + 1}–{offset + applications.length}{isFetching ? ' · Refreshing…' : ''}</p>
             <div className="space-y-3">
               {applications.map((app) => <ApplicationCard key={app.id} app={app} />)}
             </div>
@@ -246,7 +321,7 @@ function ApplicationsDashboard() {
               <Pagination 
                 offset={offset} 
                 limit={limit} 
-                hasNext={!!nextOffset} 
+                hasNext={!isFetching && !!nextOffset}
                 onPrevious={() => setOffset(Math.max(0, offset - limit))}
                 onNext={() => nextOffset && setOffset(nextOffset)}
               />
@@ -259,8 +334,10 @@ function ApplicationsDashboard() {
 }
 
 function ApplicationsPage() {
+  // Keep private discovery state through child detail visits; do not persist it in URLs/storage.
+  const [view, setView] = useState<DiscoveryView>(initialView);
   const routerState = useRouterState();
   const isExact = routerState.location.pathname === '/applications'; 
   if (!isExact) return <Outlet />;
-  return <ApplicationsDashboard />;
+  return <ApplicationsDashboard view={view} setView={setView} />;
 }

@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { workspacePage } from './fixtures';
 import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
@@ -16,7 +17,7 @@ vi.mock('../api/client', async (importOriginal) => {
     ...actual,
     api: {
       getGmailStatus: vi.fn(), getMessages: vi.fn(), retryEmail: vi.fn(), triggerSync: vi.fn(), disconnectGmail: vi.fn(),
-      getAISettings: vi.fn(), listApplications: vi.fn(), getActions: vi.fn(), getAmbiguousEmails: vi.fn(),
+      getAISettings: vi.fn(), listApplications: vi.fn(), getActions: vi.fn(), getWorkspaceActions: vi.fn(), getWorkspaceReview: vi.fn(), getAmbiguousEmails: vi.fn(),
       getUnmatchedEmails: vi.fn(), getPendingSubmissions: vi.fn(), getApplication: vi.fn(), getApplicationEvents: vi.fn(), getApplicationActions: vi.fn(),
     },
   };
@@ -58,6 +59,8 @@ beforeEach(() => {
   cleanup();
   vi.clearAllMocks();
   resetProcessingRefresh();
+  vi.mocked(api.getWorkspaceActions).mockResolvedValue(workspacePage());
+  vi.mocked(api.getWorkspaceReview).mockResolvedValue({ generatedAt: new Date().toISOString(), unmatched: 0, ambiguous: 0, pendingSubmissions: 0 });
   queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   vi.mocked(api.getGmailStatus).mockResolvedValue({ connected: true, gmailEmail: 'u@example.com', status: 'CONNECTED', syncStatus: 'IDLE', lastSyncedAt: null });
   vi.mocked(api.getAISettings).mockResolvedValue(settings({}));

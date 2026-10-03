@@ -387,8 +387,8 @@ async function seed() {
 
 async function runBrowserScenarios({ user, foreign, target, paged, override }) {
   browser = await puppeteer.launch({ headless: true, executablePath: process.env.CHROME_BIN || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' });
-  const hooks = { dropPatch: false, holdPatch: null, holdDetailGet: null, failDetailGets: false, corruptDetail: false, corruptCreate: false };
-  const counts = { patch: 0, createPost: 0 };
+  const hooks = { failWorkspaceCoverage: false, dropPatch: false, holdPatch: null, holdDetailGet: null, failDetailGets: false, corruptDetail: false, corruptCreate: false };
+  const counts = { patch: 0, createPost: 0, followUpPost: 0 };
   // Performs the browser's request from the harness so the server really commits it.
   const forward = async (request) => fetch(request.url(), {
     method: request.method(), headers: devHeaders(user.email), body: request.postData(),
@@ -410,6 +410,8 @@ async function runBrowserScenarios({ user, foreign, target, paged, override }) {
       const pathname = new URL(url).pathname;
       const settle = (fn) => fn().catch(() => undefined); // the page may have cancelled it meanwhile
       try {
+        if (hooks.failWorkspaceCoverage && pathname === '/api/gmail/status')
+          return settle(() => request.respond({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: { code: 'FIXTURE_UNAVAILABLE', message: 'Fixture coverage unavailable' } }) }));
         if (method === 'PATCH' && /^\/api\/applications\/[^/]+\/status$/.test(pathname)) {
           counts.patch++;
           if (hooks.dropPatch) { // commit on the server, then lose the response
@@ -438,6 +440,10 @@ async function runBrowserScenarios({ user, foreign, target, paged, override }) {
             hold.started.resolve();
             await hold.release.promise;
           }
+        }
+        if (method === 'POST' && /^\/api\/applications\/[^/]+\/actions$/.test(pathname)) {
+          counts.followUpPost++;
+          if (hooks.dropFollowUp) { hooks.dropFollowUp=false; await forward(request); return settle(()=>request.abort('failed')); }
         }
         if (method === 'POST' && pathname === '/api/applications') {
           counts.createPost++;
@@ -576,7 +582,8 @@ async function runBrowserScenarios({ user, foreign, target, paged, override }) {
   const overrideCard = await cardText('Override Co');
   assert(overrideCard.includes('Offer') && overrideCard.includes('Set by you') && overrideCard.includes('AI suggests Interview'), overrideCard);
   const unknownCard = await cardText('Unknown Co');
-  assert(unknownCard.includes('Status unknown') && !unknownCard.includes('Applied'), unknownCard);
+  assert(unknownCard.includes('Status unknown') && !unknownCard.split('\n').some(line => line.trim() === 'Applied'), unknownCard);
+  assert(unknownCard.includes('Applied date unknown'), unknownCard);
   await page.click(`a[href="/applications/${override.id}"]`);
   await hasText('Set by you'); await hasText('AI suggests Interview'); await hasText('confirmed');
 
@@ -988,7 +995,9 @@ async function runBrowserScenarios({ user, foreign, target, paged, override }) {
   scenario('MCP: revoking the token on the page stops the client at once');
   await nav('Automation'); await hasText('Smoke laptop');
   await clickButton('Revoke');
+  const revokeAck=page.waitForResponse(r=>r.url().includes('/api/integration-tokens/')&&r.request().method()==='DELETE');
   await clickButton('Revoke now');
+  assert.equal((await revokeAck).status(),200);
   await hasText('Revoked');
   await assert.rejects(mcpConnect(mcpToken, 'legacy'), 'a revoked token must be refused');
   assert.equal((await submissionsOf()).length, 3, 'no duplicates after replays');
@@ -1041,6 +1050,222 @@ async function runBrowserScenarios({ user, foreign, target, paged, override }) {
   const afterCorrection = await prisma.application.findUniqueOrThrow({ where: { id: fabrikam.id } });
   assert.deepEqual([afterCorrection.userStatus, afterCorrection.userStatusRevision], [originalUserStatus.userStatus, originalUserStatus.userStatusRevision]);
   assert.equal(await prisma.applicationEvent.count({ where: { applicationId: fabrikam.id, type: 'AUTOMATION_SUBMITTED', retiredAt: null } }), 1);
+
+  scenario('S9: full action counts, keyboard buckets/completion, search/status, coverage and mobile');
+  const s9Calls = ai.classification + ai.extraction;
+  const s9SyncCalls = gmailState.historyCalls + gmailState.listCalls;
+  await page.emulateTimezone('Asia/Kolkata');
+  const localDate = new Date(Date.now() + 5.5 * 3600_000).toISOString().slice(0, 10);
+  const s9App = await prisma.application.create({ data: {
+    userId: user.id, companyName: 'S9 Workspace Fixture', jobTitle: 'Research Engineer',
+    createdAt: new Date('2020-01-01'), aiStatus: 'INTERVIEW', userStatus: 'REJECTED',
+  } });
+  await prisma.action.createMany({ data: Array.from({ length: 47 }, (_, i) => ({
+    applicationId: s9App.id, type: 'ACTION_REQUIRED', description: `S9 action ${i}`,
+    deadline: i < 25 ? new Date('2020-01-01') : i < 32 ? new Date(`${localDate}T00:00:00Z`) : i < 40 ? new Date('2099-01-01') : null,
+    deadlinePrecision: i < 40 ? 'DATE' : null,
+  })) });
+  const workspace = async (suffix = '') => {
+    const response = await fetch(`${origin}/api/workspace/actions?timeZone=Asia%2FKolkata${suffix}`, { headers: devHeaders(user.email) });
+    assert.equal(response.status, 200); return response.json();
+  };
+  const beforeWorkspace = await workspace();
+  assert.equal(beforeWorkspace.counts.totalPending, await prisma.action.count({ where: { application: { userId: user.id }, retiredAt: null, status: 'PENDING' } }));
+  assert.equal(beforeWorkspace.items.length, 20);
+  const overduePage = await workspace('&bucket=overdue&offset=20');
+  assert(overduePage.items.length >= 5 && overduePage.items.every(item => item.deadline));
+  await page.goto(origin); await hasText(`All (${beforeWorkspace.counts.totalPending})`);
+  await hasText('Processing completeness is unknown');
+  await page.waitForFunction(() => /Dates shown in Asia\/(Calcutta|Kolkata)/.test(document.body.innerText));
+  // Use real keyboard activation for the bucket and mutation controls.
+  async function keyboardButton(prefix) {
+    for (const button of await page.$$('section[aria-label="Daily workspace"] button')) {
+      if ((await button.evaluate(el => el.textContent.trim())).startsWith(prefix)) {
+        await button.focus(); await page.keyboard.press('Enter'); return;
+      }
+    }
+    throw new Error(`Missing workspace button ${prefix}`);
+  }
+  await keyboardButton('Today ('); await hasText('S9 action 25');
+  const s9Patch = page.waitForResponse(r => r.url().includes('/api/actions/') && r.request().method() === 'PATCH');
+  await keyboardButton('Complete'); assert.equal((await s9Patch).status(), 200);
+  await hasText(`All (${beforeWorkspace.counts.totalPending - 1})`);
+  assert.equal((await workspace()).counts.totalPending, beforeWorkspace.counts.totalPending - 1);
+  await shot('s9-workspace-desktop');
+  await keyboardButton('Undated (');
+  await page.setViewport({ width: 390, height: 844 });
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, 'S9 workspace overflows on mobile');
+  await shot('s9-workspace-mobile');
+  hooks.failWorkspaceCoverage = true;
+  await keyboardButton('Refresh workspace'); await hasText('Gmail coverage is unknown.');
+  assert(!(await text()).includes('all caught up'));
+  hooks.failWorkspaceCoverage = false;
+  await keyboardButton('Refresh workspace'); await lacksText('Gmail coverage is unknown.');
+  await page.setViewport({ width: 1280, height: 900 });
+  await page.goto(`${origin}/applications`); await page.waitForSelector('#application-search'); await page.focus('#application-search');
+  await page.keyboard.type('S9 Workspace'); await hasText('S9 Workspace Fixture');
+  await page.select('#application-status-filter', 'INTERVIEW'); await hasText('No matching applications');
+  await page.select('#application-status-filter', 'REJECTED'); await hasText('S9 Workspace Fixture');
+  await page.click(`a[href="/applications/${s9App.id}"]`);
+  await hasText('Change status'); await clickButton('Change status'); await selectStatus('__clear__');
+  await page.focus('form[aria-label="Edit application status"] button[type="submit"]'); await page.keyboard.press('Enter');
+  await page.waitForSelector('form[aria-label="Edit application status"]', { hidden: true });
+  const filtered = await fetch(`${origin}/api/applications?q=S9%20Workspace&effectiveStatus=INTERVIEW`, { headers: devHeaders(user.email) });
+  assert.equal((await filtered.json()).items[0].id, s9App.id);
+  assert.equal(ai.classification + ai.extraction, s9Calls, 'S9 reads/controls called AI');
+  assert.equal(gmailState.historyCalls + gmailState.listCalls, s9SyncCalls, 'S9 reads/controls triggered sync');
+
+  scenario('S10: agenda confirmation, editing, correction history and narrow viewport');
+  const s10Calls = ai.classification + ai.extraction;
+  process.env.AGENDA_EXTRACTION_V3_ENABLED = 'true';
+  const { candidateEnvelope } = requireBackend('./dist/services/ai/temporal');
+  const { MatcherService } = requireBackend('./dist/services/matcher');
+  const agendaEmail = await prisma.email.create({ data: { userId: user.id, gmailMessageId: 's10-agenda-fixture', subject: 'Synthetic agenda interview', applicationId: s9App.id, matchState: 'MATCHED', processingState: 'COMPLETED', relevanceState: 'RELEVANT' } });
+  await prisma.aIProcessingResult.create({ data: { emailId: agendaEmail.id, provider: 'fixture', model: 'fixture', contractVersion: 'extraction/v3', processingStatus: 'COMPLETED', relevanceDecision: 'RELEVANT', scheduleCandidates: candidateEnvelope([{ kind: 'INTERVIEW', change: 'SCHEDULED', date: localDate, time: null, sourceTimeZone: null, rawWhen: localDate, evidence: null }]) } });
+  await MatcherService.matchEmailToApplication(agendaEmail.id);
+  await page.goto(`${origin}/agenda`); await hasText('Earlier emails may have no agenda coverage');
+  await clickButton('Needs review'); await hasText('Time not specified');
+  await clickButton('Review / edit'); await page.waitForSelector('[role="dialog"]');
+  const agendaPatch = page.waitForResponse(r=>r.url().includes('/api/agenda/') && r.request().method()==='PATCH');
+  await page.focus('[role="dialog"] button[type="submit"]'); await page.keyboard.press('Enter');
+  assert.equal((await agendaPatch).status(),200); await page.waitForSelector('[role="dialog"]',{hidden:true});
+  await clickButton('Upcoming'); await hasText('Time not specified');
+  await clickButton('Review / edit');
+  await page.$eval('[role="dialog"] input[type="time"]',el=>{ const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set; setter.call(el,'18:00');el.dispatchEvent(new Event('input',{bubbles:true})); });
+  await page.$eval('[role="dialog"] input[placeholder]',el=>{ const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set; setter.call(el,'Asia/Kolkata');el.dispatchEvent(new Event('input',{bubbles:true})); });
+  await clickButton('Save item'); await page.waitForSelector('[role="dialog"]',{hidden:true});
+  const agendaRow=await prisma.agendaItem.findFirstOrThrow({where:{emailId:agendaEmail.id,applicationId:s9App.id}});
+  assert.equal(agendaRow.precision,'DATETIME');assert.equal(agendaRow.revision,2);
+  await shot('s10-agenda-desktop');
+  await page.setViewport({width:390,height:844});
+  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),'Agenda overflows on mobile');
+  await shot('s10-agenda-mobile');
+  await MatcherService.correctEmailMatch(user.id,agendaEmail.id,{expectedMatchState:'MATCHED',expectedApplicationId:s9App.id,applicationId:target.id});
+  await MatcherService.correctEmailMatch(user.id,agendaEmail.id,{expectedMatchState:'MATCHED',expectedApplicationId:target.id,applicationId:null});
+  await MatcherService.correctEmailMatch(user.id,agendaEmail.id,{expectedMatchState:'IGNORED',expectedApplicationId:null,applicationId:target.id});
+  await clickButton('History');await hasText('Retired after the email link was moved');
+  const restoredAgenda=await prisma.agendaItem.findFirstOrThrow({where:{emailId:agendaEmail.id,applicationId:target.id}});
+  assert.equal(restoredAgenda.state,'CONFIRMED');assert.equal(restoredAgenda.retiredAt,null);
+  assert.equal(ai.classification+ai.extraction,s10Calls,'Agenda called AI');
+  process.env.AGENDA_EXTRACTION_V3_ENABLED = 'false';
+
+  scenario('S11: personal receipt recovery, snooze, archive and restore with real APIs');
+  const s11Calls=ai.classification+ai.extraction;
+  await page.goto(`${origin}/applications/${s9App.id}`);await hasText('Add follow-up');
+  await clickButton('Add follow-up');await page.waitForSelector('[role="dialog"] textarea');
+  await page.type('[role="dialog"] textarea','S11 synthetic personal follow-up');
+  hooks.dropFollowUp=true;
+  await clickButton('Save follow-up');await hasText('Creation is uncertain.');
+  const s11Personal=await prisma.action.findFirstOrThrow({where:{applicationId:s9App.id,origin:'USER'}});
+  assert.equal(counts.followUpPost,1);
+  await clickButton('Check saved follow-up');await page.waitForSelector('[role="dialog"]',{hidden:true});
+  assert.equal(counts.followUpPost,1,'receipt reconciliation resubmitted the draft');
+  await page.goto(origin);await hasText('Undated (');await keyboardButton('Undated (');
+  await page.waitForFunction(()=>document.querySelector('section[aria-label="Daily workspace"]')?.textContent.includes('Audit task'));
+  await keyboardButton('Next');await hasText('S11 synthetic personal follow-up');
+  // Choose the control within the personal row, not another email action.
+  async function personalButton(label) {
+    for(const article of await page.$$('article')) {
+      if(!(await article.evaluate(el=>el.textContent)).includes('S11 synthetic personal follow-up'))continue;
+      for(const button of await article.$$('button'))if((await button.evaluate(el=>el.textContent.trim()))===label){await button.focus();await page.keyboard.press('Enter');return;}
+    }
+    throw Error('Missing personal control '+label);
+  }
+  await personalButton('Snooze');await page.waitForSelector('[role="dialog"] input[type="date"]');
+  const tomorrow=new Date(Date.now()+86400000).toISOString().slice(0,10);
+  await page.$eval('[role="dialog"] input[type="date"]',(el,value)=>{Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(el,value);el.dispatchEvent(new Event('input',{bubbles:true}));},tomorrow);
+  await page.$eval('[role="dialog"] input[type="time"]',el=>{Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(el,'12:00');el.dispatchEvent(new Event('input',{bubbles:true}));});
+  await clickButton('Save snooze');await page.waitForSelector('[role="dialog"]',{hidden:true});
+  await keyboardButton('Snoozed (');await hasText('S11 synthetic personal follow-up');await hasText('Original deadline unchanged.');
+  await page.setViewport({width:1280,height:900});await shot('s11-snoozed-desktop');
+  await page.goto(`${origin}/applications/${s9App.id}`);await hasText('Archive application');
+  await clickButton('Archive application');await clickButton('Archive');await page.waitForSelector('[role="dialog"]',{hidden:true});await hasText('Archived — history and linked mail are preserved');
+  assert.equal(await prisma.action.count({where:{id:s11Personal.id}}),1);
+  await page.goto(`${origin}/applications`);await page.waitForSelector('#application-archive-filter');await page.select('#application-archive-filter','archived');await hasText('S9 Workspace Fixture');
+  await page.click(`a[href="/applications/${s9App.id}"]`);await hasText('Restore application');
+  assert(!(await text()).includes('Editing is unavailable until this application loads correctly.'),'Archive must not masquerade as a load failure');
+  await page.setViewport({width:390,height:844});await shot('s11-archived-mobile');
+  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),'Follow-through overflows on mobile');
+  await clickButton('Restore application');await clickButton('Restore');await page.waitForSelector('[role="dialog"]',{hidden:true});await hasText('Add follow-up');
+  await page.goto(origin);await hasText('Snoozed (');await keyboardButton('Snoozed (');await hasText('S11 synthetic personal follow-up');
+  await personalButton('Change snooze');await clickButton('Unsnooze');await page.waitForSelector('[role="dialog"]',{hidden:true});
+  await keyboardButton('Undated (');
+  await page.waitForFunction(()=>document.querySelector('section[aria-label="Daily workspace"]')?.textContent.includes('Audit task'));
+  await keyboardButton('Next');await hasText('S11 synthetic personal follow-up');await personalButton('Complete');
+  await waitFor(async()=> (await prisma.action.findUniqueOrThrow({where:{id:s11Personal.id}})).status==='COMPLETED','personal completion');
+  assert.equal(ai.classification+ai.extraction,s11Calls,'S11 controls called AI');
+  assert.equal((await prisma.action.findUniqueOrThrow({where:{id:s11Personal.id}})).deadline,null,'Snooze changed deadline');
+  assert.equal(await prisma.action.count({where:{applicationId:s9App.id,origin:'USER'}}),1);
+
+  scenario('AD-03: discover SDK submissions through normal API filters, refresh and detail return');
+  const discoveryCalls = ai.classification + ai.extraction;
+  const discoveryToken = await requireBackend('./dist/services/integrationTokens').createIntegrationToken(user.id, { name: 'Discovery fixture' });
+  const discoveryClient = await mcpConnect(discoveryToken.plaintextToken, 'legacy');
+  try {
+    await page.setViewport({ width: 1280, height: 900 });
+    await page.goto(`${origin}/applications`);
+    await page.waitForSelector('#application-search');
+    await page.type('#application-search', 'Discovery');
+    await page.select('#application-source-filter', 'AUTOMATION');
+    await page.select('#application-status-filter', 'UNKNOWN');
+    await page.select('#application-sort', 'applied_desc');
+    await hasText('No matching applications');
+    const input = {
+      platform: 'company_direct', jobTitle: 'Product Engineer', location: 'Remote',
+      confirmationText: 'Synthetic submission confirmed',
+    };
+    for (const [company, ref, submittedAt] of [
+      ['Discovery Alpha', '2026-09-01/09:00:00', '2026-09-01T09:00:00+05:30'],
+      ['Discovery Beta', '2026-09-02/09:00:00', '2026-09-02T09:00:00+05:30'],
+    ]) {
+      const result = await discoveryClient.callTool({ name: 'record_application_submission', arguments: { ...input, company, sourceRecordRef: ref, submittedAt } });
+      assert.equal(result.structuredContent.result, 'created');
+      const refreshAck = page.waitForResponse(r => r.url().includes('/api/applications?') && r.request().method() === 'GET' && new URL(r.url()).searchParams.get('submittedVia') === 'AUTOMATION');
+      await clickButton('Refresh applications');
+      const response = await refreshAck;
+      assert.equal(response.status(), 200);
+      const params = new URL(response.url()).searchParams;
+      assert.equal(params.get('sort'), 'applied_desc');
+      assert.equal(params.get('effectiveStatus'), 'UNKNOWN');
+      await hasText(company);
+    }
+    const order = await page.$$eval('a[href^="/applications/"] h3', headings => headings.map(el => el.textContent));
+    assert.deepEqual(order, ['Discovery Beta', 'Discovery Alpha']);
+    await shot('applications-discovery-desktop');
+    const beta = await prisma.application.findFirstOrThrow({ where: { userId: user.id, companyName: 'Discovery Beta' } });
+    await page.click(`a[href="/applications/${beta.id}"]`);
+    await hasText('Synthetic submission confirmed');
+    await hasText('Change status');
+    // Client-side navigation keeps parent list context.
+    await nav('Applications');
+    await hasText('Discovery Beta');
+    assert.deepEqual(await page.evaluate(() => [
+      document.querySelector('#application-search').value,
+      document.querySelector('#application-source-filter').value,
+      document.querySelector('#application-status-filter').value,
+      document.querySelector('#application-sort').value,
+    ]), ['Discovery', 'AUTOMATION', 'UNKNOWN', 'applied_desc']);
+    await page.setViewport({ width: 390, height: 844 });
+    await page.waitForFunction(() => [...document.querySelectorAll('button')].some(button => button.textContent === 'Refresh applications' && !button.disabled));
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), 'Application discovery overflows on mobile');
+    await shot('applications-discovery-mobile');
+    await page.focus('#application-sort');
+    // Headless Chrome on macOS does not drive native popups with synthetic arrows.
+    // Native keyboard type-ahead exercises the same actual select/change path.
+    await page.keyboard.press('c');
+    assert.equal(await page.$eval('#application-sort', select => select.value), 'company_asc', 'keyboard sorting must change the native select');
+    await page.waitForFunction(() => document.querySelector('a[href^="/applications/"] h3')?.textContent === 'Discovery Alpha');
+    await clickButton('Clear filters');
+    await page.waitForFunction(() => document.querySelector('#application-source-filter').value === '' && document.querySelector('#application-sort').value === 'added_desc');
+    await page.select('#application-source-filter', 'AUTOMATION');
+    await page.type('#application-search', 'Fabrikam');
+    await hasText('Fabrikam');
+    const advancedCard = await cardText('Fabrikam');
+    assert(advancedCard.includes('Submitted via automation') && advancedCard.includes('Inferred by AI'), 'later status lost submission provenance');
+    assert.equal(ai.classification + ai.extraction, discoveryCalls, 'Application discovery called AI');
+  } finally {
+    await discoveryClient.close();
+  }
 
   scenario('narrow viewport, editor included');
   await page.setViewport({ width: 390, height: 844 });
@@ -1099,7 +1324,7 @@ try {
       : `FAIL: failed-run teardown was not safe ${JSON.stringify(report)}`);
   } else {
     ok = passed && report.cleaned && drainedInOrder && residueFree;
-    if (ok) console.log(`PASS: real API/PostgreSQL/pg-boss with real Gmail and email workers (fixture Gmail/Gemini adapters, AI calls ${ai.classification + ai.extraction}); Sprint 5 scenarios plus BYO AI (own setup, rate-limit wait/resume, setup through the form, Retry anyway) plus MCP (token by keyboard, SDK client replay in both eras, no duplicates, review by keyboard, Gmail match after automation, revoke) plus Sprint 6 canonical reads, keyboard correction, zero-side-effect manual interval, AI-after-correction, competing editors (409), clear, delayed read, uncertain/failed-reconciliation save, invalid contract, navigation, uncertain creation, delivery evidence, mobile; drained browser- and Node-originated in-flight writes and an active worker before cleanup; residue 0; outbound blocked.`);
+    if (ok) console.log(`PASS: real API/PostgreSQL/pg-boss with real Gmail and email workers (fixture Gmail/Gemini adapters, AI calls ${ai.classification + ai.extraction}); Sprint 5 scenarios plus BYO AI (own setup, rate-limit wait/resume, setup through the form, Retry anyway) plus MCP (token by keyboard, SDK client replay in both eras, no duplicates, review by keyboard, Gmail match after automation, revoke) plus Sprint 9 dataset counts/keyboard controls/search/status/coverage/mobile, Sprint 10 agenda confirmation/edit/correction/mobile, Sprint 11 receipt recovery/snooze/archive/restore/completion, plus Sprint 6 canonical reads, keyboard correction, zero-side-effect manual interval, AI-after-correction, competing editors (409), clear, delayed read, uncertain/failed-reconciliation save, invalid contract, navigation, uncertain creation, delivery evidence, mobile; drained browser- and Node-originated in-flight writes and an active worker before cleanup; residue 0; outbound blocked.`);
     else if (passed) console.error('FAIL: teardown ordering/cleanup was not proven', JSON.stringify(report));
   }
   process.exit(ok ? 0 : 1);

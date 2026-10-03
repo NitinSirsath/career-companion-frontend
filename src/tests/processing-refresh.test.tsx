@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { workspacePage } from './fixtures';
 import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
@@ -20,7 +21,7 @@ vi.mock('../api/client', async (importOriginal) => {
     api: {
       getGmailStatus: vi.fn(), getMessages: vi.fn(), retryEmail: vi.fn(), triggerSync: vi.fn(),
       listApplications: vi.fn(), getApplication: vi.fn(), getApplicationEvents: vi.fn(),
-      getApplicationActions: vi.fn(), getActions: vi.fn(), getAmbiguousEmails: vi.fn(), getUnmatchedEmails: vi.fn(), getPendingSubmissions: vi.fn(),
+      getApplicationActions: vi.fn(), getActions: vi.fn(), getWorkspaceActions: vi.fn(), getWorkspaceReview: vi.fn(), getAmbiguousEmails: vi.fn(), getUnmatchedEmails: vi.fn(), getPendingSubmissions: vi.fn(),
     },
   };
 });
@@ -34,6 +35,8 @@ const application = { id: 'app-1', companyName: 'Delayed Co' } as ApplicationRes
 beforeEach(() => {
   vi.resetAllMocks();
   resetProcessingRefresh();
+  vi.mocked(api.getWorkspaceActions).mockResolvedValue(workspacePage());
+  vi.mocked(api.getWorkspaceReview).mockResolvedValue({ generatedAt: new Date().toISOString(), unmatched: 0, ambiguous: 0, pendingSubmissions: 0 });
   vi.mocked(api.getGmailStatus).mockResolvedValue(status('2026-09-01T00:00:00.000Z'));
   vi.mocked(api.getMessages).mockResolvedValue(page([]));
   vi.mocked(api.getApplication).mockResolvedValue(application);

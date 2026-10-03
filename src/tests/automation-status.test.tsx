@@ -73,13 +73,14 @@ describe('status precedence with submittedVia', () => {
   it('keeps the plain unknown status without an automation submission', () => {
     render(<EffectiveStatus app={makeApplication({ submittedVia: null })} />);
     expect(screen.getByText('Status unknown')).toBeInTheDocument();
-    expect(screen.queryByText(/via automation/)).not.toBeInTheDocument();
+    expect(screen.queryByText('Applied · via automation')).not.toBeInTheDocument();
   });
 
   it.each(statuses)('an AI status (%s) always wins over submittedVia', (status) => {
     render(<EffectiveStatus app={makeApplication({ aiStatus: status, submittedVia: 'AUTOMATION' })} />);
     expect(screen.getByText('Inferred by AI')).toBeInTheDocument();
-    expect(screen.queryByText(/via automation/)).not.toBeInTheDocument();
+    expect(screen.queryByText('Applied · via automation')).not.toBeInTheDocument();
+    expect(screen.getAllByText('Submitted via automation')).toHaveLength(1);
   });
 
   it.each(statuses)('a user status (%s) always wins over submittedVia, with or without AI', (status) => {
@@ -90,7 +91,8 @@ describe('status precedence with submittedVia', () => {
       </>,
     );
     expect(screen.getAllByText('Set by you')).toHaveLength(2);
-    expect(screen.queryByText(/via automation/)).not.toBeInTheDocument();
+    expect(screen.queryByText('Applied · via automation')).not.toBeInTheDocument();
+    expect(screen.getAllByText('Submitted via automation')).toHaveLength(2);
   });
 });
 
