@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { api, isApiError } from '../api/client';
-import { ApplicationStatusSchema, type ApplicationFilters, CreateApplicationRequestSchema, CreateApplicationRequest, ApplicationResponse } from '../contracts/application';
+import { type ApplicationFilters, CreateApplicationRequestSchema, CreateApplicationRequest, ApplicationResponse } from '../contracts/application';
 import { EffectiveStatus } from '../components/ApplicationStatus';
 import { fetchApplicationsPage } from '../lib/applicationCache';
 import { eventLabel } from '../lib/eventLabels';
@@ -16,7 +16,6 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Badge } from '../components/ui/badge';
 import { NativeSelect } from '../components/ui/native-select';
-import { STATUS_LABEL } from '../lib/statusLabels';
 
 import { Pagination } from '../components/ui/pagination';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
@@ -77,24 +76,36 @@ function ApplicationCard({ app }: { app: ApplicationResponse }) {
 
 type CreationRecovery = { refresh: 'pending' | 'failed' | 'done' } | null;
 
-type DiscoveryView = { offset: number; search: string } & Required<Pick<ApplicationFilters, 'archive' | 'sort'>> & {
-  effectiveStatus: NonNullable<ApplicationFilters['effectiveStatus']> | '';
-  submittedVia: NonNullable<ApplicationFilters['submittedVia']> | '';
-};
-const initialView: DiscoveryView = { offset: 0, search: '', archive: 'active', sort: 'added_desc', effectiveStatus: '', submittedVia: '' };
+type TabKey = 'ALL' | 'RECEIVED' | 'SUBMITTED' | 'RECRUITER_CONTACT' | 'INTERVIEW' | 'ASSESSMENT' | 'OFFER' | 'REJECTED' | 'CLOSED';
+
+type DiscoveryView = { offset: number; search: string; tab: TabKey } & Required<Pick<ApplicationFilters, 'archive' | 'sort'>>;
+const initialView: DiscoveryView = { offset: 0, search: '', archive: 'active', sort: 'added_desc', tab: 'ALL' };
 
 function ApplicationsDashboard({ view, setView }: { view: DiscoveryView; setView: Dispatch<SetStateAction<DiscoveryView>> }) {
   const queryClient = useQueryClient();
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const { offset, search, effectiveStatus, archive, sort, submittedVia } = view;
+  const { offset, search, tab, archive, sort } = view;
   const setOffset = (offset: number) => setView(current => ({ ...current, offset }));
   const changeFilters = (changes: Partial<DiscoveryView>) => setView(current => ({ ...current, ...changes, offset: 0 }));
+  
+  let effectiveStatus: ApplicationFilters['effectiveStatus'] | undefined = undefined;
+  let submittedVia: ApplicationFilters['submittedVia'] | undefined = undefined;
+
+  if (tab === 'RECEIVED') {
+    effectiveStatus = 'APPLIED';
+  } else if (tab === 'SUBMITTED') {
+    effectiveStatus = 'UNKNOWN';
+    submittedVia = 'AUTOMATION';
+  } else if (tab !== 'ALL') {
+    effectiveStatus = tab as ApplicationFilters['effectiveStatus'];
+  }
+
   // Set when a POST may have committed although its response was lost, timed out, failed with
   // 5xx or was malformed. The draft is kept and ordinary submission stays blocked.
   const [recovery, setRecovery] = useState<CreationRecovery>(null);
   const limit = 20;
   const filters = { archive, ...(search.trim() ? { q: search.trim() } : {}), ...(effectiveStatus ? { effectiveStatus } : {}), ...(submittedVia ? { submittedVia } : {}), ...(sort !== 'added_desc' ? { sort } : {}) };
-  const hasFilters = !!(search.trim() || effectiveStatus || submittedVia || archive !== 'active');
+  const hasFilters = !!(search.trim() || tab !== 'ALL' || archive !== 'active');
   const params = { offset, limit, ...filters };
 
   const { data: applicationsResponse, isLoading, isFetching, error, refetch } = useQuery({
@@ -177,24 +188,34 @@ function ApplicationsDashboard({ view, setView }: { view: DiscoveryView; setView
           <Input id="application-search" type="search" maxLength={100} value={search}
             onChange={(event) => changeFilters({ search: event.target.value })} placeholder="Company or job title" />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="application-status-filter">Effective status</Label>
-            <NativeSelect id="application-status-filter" value={effectiveStatus}
-              onChange={(event) => changeFilters({ effectiveStatus: event.target.value as DiscoveryView['effectiveStatus'] })}>
-              <option value="">All statuses</option>
-              <option value="UNKNOWN">No user/AI status</option>
-              {ApplicationStatusSchema.options.map((status) => <option key={status} value={status}>{STATUS_LABEL[status]}</option>)}
-            </NativeSelect>
+        <div className="border-b border-border-default">
+          <div className="flex space-x-6 overflow-x-auto whitespace-nowrap">
+            {[
+              { id: 'ALL', label: 'All' },
+              { id: 'RECEIVED', label: 'Application Received' },
+              { id: 'SUBMITTED', label: 'Application Submitted' },
+              { id: 'RECRUITER_CONTACT', label: 'Recruiter Contact' },
+              { id: 'INTERVIEW', label: 'Interview' },
+              { id: 'ASSESSMENT', label: 'Assessment' },
+              { id: 'OFFER', label: 'Offer' },
+              { id: 'REJECTED', label: 'Rejected' },
+              { id: 'CLOSED', label: 'Closed' },
+            ].map(({ id, label }) => (
+              <button
+                key={id}
+                onClick={() => changeFilters({ tab: id as TabKey })}
+                className={`pb-2 text-sm font-medium transition-colors border-b-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus ${
+                  tab === id 
+                    ? 'border-foreground text-foreground' 
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="application-source-filter">Submission source</Label>
-            <NativeSelect id="application-source-filter" value={submittedVia}
-              onChange={(event) => changeFilters({ submittedVia: event.target.value as DiscoveryView['submittedVia'] })}>
-              <option value="">All sources</option>
-              <option value="AUTOMATION">Via automation</option>
-            </NativeSelect>
-          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 pt-4">
           <div className="space-y-2">
             <Label htmlFor="application-archive-filter">Application visibility</Label>
             <NativeSelect id="application-archive-filter" value={archive}
@@ -217,7 +238,7 @@ function ApplicationsDashboard({ view, setView }: { view: DiscoveryView; setView
           <p>Submissions awaiting a match are in <Link to="/automation" className="underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-border-focus">Automation review</Link>.</p>
           {(hasFilters || sort !== 'added_desc') && <Button variant="ghost" size="sm" onClick={() => setView(initialView)}>Clear filters</Button>}
         </div>
-        {effectiveStatus === 'UNKNOWN' && <p className="text-sm text-text-secondary">No user or AI status has been set. An automation submission can still be recorded.</p>}
+        {tab === 'SUBMITTED' && <p className="text-sm text-text-secondary">These applications were submitted by your automation but do not have a company confirmation yet.</p>}
       </div>
 
       <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>

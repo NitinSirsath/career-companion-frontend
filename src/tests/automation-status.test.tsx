@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// MCP-06: "Applied · via automation" precedence and the automation timeline entry (ADR-0002 §8–9).
+// MCP-06: "Application Submitted" precedence and the automation timeline entry (ADR-0002 §8–9).
 import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen, within } from '@testing-library/react';
@@ -61,11 +61,11 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe('status precedence with submittedVia', () => {
-  it('shows "Applied · via automation" only when there is no status at all', () => {
+  it('shows "Application Submitted" only when there is no status at all', () => {
     const app = makeApplication({ submittedVia: 'AUTOMATION' });
     expect(ApplicationResponseSchema.parse(app).statusSource).toBe('UNKNOWN');
     render(<EffectiveStatus app={app} />);
-    expect(screen.getByText('Applied · via automation')).toBeInTheDocument();
+    expect(screen.getByText('Application Submitted', { selector: 'div' })).toBeInTheDocument();
     expect(screen.getByText('Reported by your automation')).toBeInTheDocument();
     expect(screen.queryByText('Status unknown')).not.toBeInTheDocument();
   });
@@ -73,13 +73,13 @@ describe('status precedence with submittedVia', () => {
   it('keeps the plain unknown status without an automation submission', () => {
     render(<EffectiveStatus app={makeApplication({ submittedVia: null })} />);
     expect(screen.getByText('Status unknown')).toBeInTheDocument();
-    expect(screen.queryByText('Applied · via automation')).not.toBeInTheDocument();
+    expect(screen.queryByText('Application Submitted', { selector: 'div' })).not.toBeInTheDocument();
   });
 
   it.each(statuses)('an AI status (%s) always wins over submittedVia', (status) => {
     render(<EffectiveStatus app={makeApplication({ aiStatus: status, submittedVia: 'AUTOMATION' })} />);
     expect(screen.getByText('Inferred by AI')).toBeInTheDocument();
-    expect(screen.queryByText('Applied · via automation')).not.toBeInTheDocument();
+    expect(screen.queryByText('Application Submitted', { selector: 'div' })).not.toBeInTheDocument();
     expect(screen.getAllByText('Submitted via automation')).toHaveLength(1);
   });
 
@@ -91,7 +91,7 @@ describe('status precedence with submittedVia', () => {
       </>,
     );
     expect(screen.getAllByText('Set by you')).toHaveLength(2);
-    expect(screen.queryByText('Applied · via automation')).not.toBeInTheDocument();
+    expect(screen.queryByText('Application Submitted', { selector: 'div' })).not.toBeInTheDocument();
     expect(screen.getAllByText('Submitted via automation')).toHaveLength(2);
   });
 });
@@ -149,6 +149,6 @@ describe('timeline', () => {
     );
     renderRoute('/applications');
     expect(await screen.findByText('Submitted via automation')).toBeInTheDocument();
-    expect(screen.getByText('Applied · via automation')).toBeInTheDocument();
+    expect(screen.getByText('Application Submitted', { selector: 'div' })).toBeInTheDocument();
   });
 });

@@ -32,7 +32,7 @@ export function EffectiveStatus({ app, detailed = false }: { app: ApplicationRes
   return (
     <div className="flex flex-wrap items-center gap-2">
       {viaAutomation ? (
-        <Badge variant="secondary">Applied · via automation</Badge>
+        <Badge variant="secondary">Application Submitted</Badge>
       ) : (
         <StatusBadge status={app.effectiveStatus} />
       )}

@@ -180,7 +180,7 @@ describe('Applications Dashboard (/applications)', () => {
 
     renderWithProviders(queryClient, '/applications');
 
-    expect(await screen.findByText('Applied', { selector: 'div' })).toBeInTheDocument();
+    expect(await screen.findByText('Application Received', { selector: 'div' })).toBeInTheDocument();
     expect(screen.getByText('Set by you')).toBeInTheDocument();
     expect(screen.getByText(/AI suggests Interview/)).toBeInTheDocument();
   });
@@ -196,7 +196,7 @@ describe('Applications Dashboard (/applications)', () => {
     expect(screen.getByText('Inferred by AI')).toBeInTheDocument();
   });
 
-  it('shows a neutral unknown instead of defaulting to Applied', async () => {
+  it('shows a neutral unknown instead of defaulting to Application Received', async () => {
     vi.mocked(api.listApplications).mockResolvedValue({ items: [
       makeApp({ aiStatus: null, userStatus: null })
     ], metadata: { limit: 20, offset: 0, nextOffset: null } });
@@ -204,7 +204,7 @@ describe('Applications Dashboard (/applications)', () => {
     renderWithProviders(queryClient, '/applications');
 
     expect(await screen.findByText('Status unknown')).toBeInTheDocument();
-    expect(screen.queryByText('Applied', { selector: 'div' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Application Received', { selector: 'div' })).not.toBeInTheDocument();
   });
 
   it('shows pending action indicator when pendingActionCount > 0', async () => {
@@ -433,7 +433,7 @@ describe('application discovery controls (S9)', () => {
     await screen.findByText(/Search unavailable/);
     expect(api.listApplications).toHaveBeenLastCalledWith({ archive: 'active', q: 'Acme', limit: 20, offset: 0 }, expect.anything());
     expect(screen.getByLabelText('Search company or job title')).toHaveValue('Acme');
-    fireEvent.change(screen.getByLabelText('Effective status'), { target: { value: 'REJECTED' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Rejected' }));
     await waitFor(() => expect(api.listApplications).toHaveBeenLastCalledWith({ archive: 'active', q: 'Acme', effectiveStatus: 'REJECTED', limit: 20, offset: 0 }, expect.anything()));
   });
   it('ignores superseded search results and explains an empty filtered result', async () => {
@@ -468,8 +468,9 @@ describe('application discovery completion (AD-02)', () => {
     renderWithProviders(qc, '/applications');
     await screen.findByText('Automation target');
     fireEvent.change(screen.getByLabelText('Search company or job title'), { target: { value: 'target' } });
-    fireEvent.change(screen.getByLabelText('Effective status'), { target: { value: 'UNKNOWN' } });
-    fireEvent.change(screen.getByLabelText('Submission source'), { target: { value: 'AUTOMATION' } });
+    fireEvent.click(screen.getByRole('button', { name: 'All' })); // Was UNKNOWN status, but since we removed it, this test needs adjustment. Actually, UNKNOWN apps are in ALL.
+    // wait, how to filter UNKNOWN now? There is no tab for UNKNOWN.
+    fireEvent.click(screen.getByRole('button', { name: 'Application Submitted' }));
     fireEvent.change(screen.getByLabelText('Application visibility'), { target: { value: 'all' } });
     fireEvent.change(screen.getByLabelText('Sort applications'), { target: { value: 'applied_desc' } });
     await waitFor(() => expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled());
@@ -481,8 +482,7 @@ describe('application discovery completion (AD-02)', () => {
     fireEvent.click(screen.getAllByRole('link', { name: 'Applications' })[0]);
     await screen.findByLabelText('Sort applications');
     expect(screen.getByLabelText('Search company or job title')).toHaveValue('target');
-    expect(screen.getByLabelText('Effective status')).toHaveValue('UNKNOWN');
-    expect(screen.getByLabelText('Submission source')).toHaveValue('AUTOMATION');
+    expect(screen.getByRole('button', { name: 'Application Submitted' })).toHaveClass('border-foreground');
     expect(screen.getByLabelText('Application visibility')).toHaveValue('all');
     expect(screen.getByLabelText('Sort applications')).toHaveValue('applied_desc');
     await waitFor(() => expect(api.listApplications).toHaveBeenLastCalledWith({
@@ -498,12 +498,12 @@ describe('application discovery completion (AD-02)', () => {
     await screen.findByText('Showing 21–21');
     fireEvent.change(screen.getByLabelText('Sort applications'), { target: { value: 'applied_asc' } });
     await waitFor(() => expect(api.listApplications).toHaveBeenLastCalledWith({ offset: 0, limit: 20, archive: 'active', sort: 'applied_asc' }, expect.anything()));
-    fireEvent.change(screen.getByLabelText('Submission source'), { target: { value: 'AUTOMATION' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Application Submitted' }));
     await waitFor(() => expect(api.listApplications).toHaveBeenLastCalledWith(expect.objectContaining({ offset: 0, submittedVia: 'AUTOMATION' }), expect.anything()));
     fireEvent.click(screen.getByRole('button', { name: 'Clear filters' }));
     await waitFor(() => expect(api.listApplications).toHaveBeenLastCalledWith({ offset: 0, limit: 20, archive: 'active' }, expect.anything()));
     expect(screen.getByLabelText('Sort applications')).toHaveValue('added_desc');
-    expect(screen.getByLabelText('Submission source')).toHaveValue('');
+    expect(screen.getByRole('button', { name: 'All' })).toHaveClass('border-foreground');
   });
 
   it('retries a failed filtered read and refreshes newly recorded intake without posting', async () => {
@@ -513,9 +513,9 @@ describe('application discovery completion (AD-02)', () => {
     });
     renderWithProviders(qc, '/applications');
     await screen.findByText('No applications yet');
-    fireEvent.change(screen.getByLabelText('Submission source'), { target: { value: 'AUTOMATION' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Application Submitted' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Temporarily unavailable');
-    expect(screen.getByLabelText('Submission source')).toHaveValue('AUTOMATION');
+    expect(screen.getByRole('button', { name: 'Application Submitted' })).toHaveClass('border-foreground');
     vi.mocked(api.listApplications).mockResolvedValue(page([]));
     fireEvent.click(screen.getByRole('button', { name: 'Retry applications' }));
     await screen.findByText('No matching applications');
