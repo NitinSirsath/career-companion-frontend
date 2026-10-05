@@ -21,7 +21,13 @@ export function ProcessingRefreshObserver() {
   const { data: status } = useQuery({
     queryKey: ['gmailStatus'],
     queryFn: ({ signal }) => api.getGmailStatus({ signal }),
-    refetchInterval: (query) => (query.state.data?.syncStatus === 'SYNCING' ? 2000 : false),
+    refetchInterval: (query) => {
+      const current = query.state.data;
+      if (current?.syncStatus === 'SYNCING') return 2000;
+      if (!current?.nextScheduledSyncAt) return false;
+      const next = Date.parse(current.nextScheduledSyncAt);
+      return Number.isFinite(next) ? Math.max(60_000, next + 60_000 - Date.now()) : false;
+    },
   });
 
   const lastSyncedAt = status?.lastSyncedAt ? String(status.lastSyncedAt) : null;

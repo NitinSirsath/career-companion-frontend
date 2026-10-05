@@ -13,6 +13,8 @@ export const DOMAIN_QUERY_KEYS = [
   'application-events',
   'application-actions',
   'actions',
+  'workspace',
+  'agenda',
   'unmatched-emails',
   'ambiguous-emails',
   'aiSettings', // waiting count and access state change as emails are processed

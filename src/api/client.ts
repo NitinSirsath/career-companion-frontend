@@ -1,5 +1,13 @@
-import type { z } from 'zod';
+import type { CreateFollowUp, EditFollowUp, SnoozeAction } from '../contracts/action';
+import type { ArchiveApplication } from '../contracts/application';
+import { AgendaResponseSchema, AgendaItemSchema, type AgendaQuery, type UpdateAgenda } from '../contracts/agenda';
+import { WorkspaceActionsResponseSchema, WorkspaceReviewResponseSchema, type WorkspaceBucket } from '../contracts/workspace';
+import { GmailStatusResponseSchema } from '../contracts/gmail';
+import type { ApplicationFilters } from '../contracts/application';
+import { CorrectEmailMatchResponseSchema, type CorrectEmailMatchRequest } from '../contracts/email';
+import { z } from 'zod';
 import {
+  ActionWithContextResponseSchema,
   AISampleTestResponseSchema,
   AISettingsResponseSchema,
   ApplicationResponseSchema,
@@ -184,12 +192,17 @@ export class ApiClient {
   }
 
   async listApplications(
-    params?: { limit?: number; offset?: number },
+    params?: { limit?: number; offset?: number } & ApplicationFilters,
     options?: RequestOptions,
   ): Promise<ListApplicationsResponse> {
     const urlParams = new URLSearchParams();
     if (params?.limit !== undefined) urlParams.append('limit', params.limit.toString());
     if (params?.offset !== undefined) urlParams.append('offset', params.offset.toString());
+    if (params?.q) urlParams.append('q', params.q);
+    if (params?.archive) urlParams.append('archive', params.archive);
+    if (params?.effectiveStatus) urlParams.append('effectiveStatus', params.effectiveStatus);
+    if (params?.submittedVia) urlParams.append('submittedVia', params.submittedVia);
+    if (params?.sort) urlParams.append('sort', params.sort);
     const q = urlParams.toString();
     return this.request(
       `/api/applications${q ? '?' + q : ''}`,
@@ -219,6 +232,10 @@ export class ApiClient {
   }
 
   /** Fetch timeline events for one application, in recording order. */
+  async correctEmailMatch(emailId: string, body: CorrectEmailMatchRequest) {
+    return this.request(`/api/emails/${emailId}/match`, { method: 'PATCH', body: JSON.stringify(body) }, CorrectEmailMatchResponseSchema);
+  }
+
   async getApplicationEvents(
     applicationId: string,
     params: { offset?: number; limit?: number } = {},
@@ -400,16 +417,62 @@ export class ApiClient {
   }
 
   async updateAction(actionId: string, data: UpdateActionRequest): Promise<ActionWithContextResponse> {
-    return this.request<ActionWithContextResponse>(`/api/actions/${actionId}`, {
+    const result = await this.request(`/api/actions/${actionId}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
-    });
+    }, ActionWithContextResponseSchema);
+    if (result.id !== actionId) throw new ApiError('The server returned an unexpected response.', 'contract', 200);
+    return result;
+  }
+
+  async createFollowUp(applicationId: string, data: CreateFollowUp) {
+    const row = await this.request(`/api/applications/${applicationId}/actions`, { method: 'POST', body: JSON.stringify(data) }, ActionWithContextResponseSchema);
+    if (row.applicationId !== applicationId || row.clientRequestId !== data.clientRequestId) throw new ApiError('Unexpected receipt.', 'contract', 201);
+    return row;
+  }
+  async followUpByRequest(id: string) {
+    const row = await this.request(`/api/actions/by-request/${id}`, { method: 'GET' }, ActionWithContextResponseSchema);
+    if (row.clientRequestId !== id) throw new ApiError('Unexpected receipt.', 'contract', 200);
+    return row;
+  }
+  async editFollowUp(id: string, data: EditFollowUp) {
+    const row = await this.request(`/api/actions/${id}/personal`, { method: 'PATCH', body: JSON.stringify(data) }, ActionWithContextResponseSchema);
+    if (row.id !== id) throw new ApiError('Unexpected action.', 'contract', 200);
+    return row;
+  }
+  async snoozeAction(id: string, data: SnoozeAction) {
+    const row = await this.request(`/api/actions/${id}/snooze`, { method: 'PATCH', body: JSON.stringify(data) }, ActionWithContextResponseSchema);
+    if (row.id !== id) throw new ApiError('Unexpected action.', 'contract', 200);
+    return row;
+  }
+  async archiveApplication(id: string, data: ArchiveApplication) {
+    const row = await this.request(`/api/applications/${id}/archive`, { method: 'PATCH', body: JSON.stringify(data) }, ApplicationResponseSchema);
+    if (row.id !== id) throw new ApiError('Unexpected application.', 'contract', 200);
+    return row;
+  }
+  async getAgenda(params: Pick<AgendaQuery, 'view'|'timeZone'> & { archive?: 'active'|'archived'|'all' } & { limit: number; offset: number }, options?: RequestOptions) {
+    const query = new URLSearchParams({ ...params, limit: String(params.limit), offset: String(params.offset) });
+    return this.request(`/api/agenda?${query}`, { method: 'GET', signal: options?.signal }, AgendaResponseSchema);
+  }
+  async updateAgenda(id: string, data: UpdateAgenda) {
+    const result = await this.request(`/api/agenda/${id}`, { method: 'PATCH', body: JSON.stringify(data) }, AgendaItemSchema);
+    if (result.id !== id) throw new ApiError('The server returned an unexpected response.', 'contract', 200);
+    return result;
   }
 
   // --- Gmail Integration (COM-21) ---
 
+  async getWorkspaceActions(params: { bucket: WorkspaceBucket; timeZone: string; limit: number; offset: number }, options?: RequestOptions) {
+    const query = new URLSearchParams({ ...params, limit: String(params.limit), offset: String(params.offset) });
+    return this.request(`/api/workspace/actions?${query}`, { method: 'GET', signal: options?.signal }, WorkspaceActionsResponseSchema);
+  }
+
+  async getWorkspaceReview(options?: RequestOptions) {
+    return this.request('/api/workspace/review-summary', { method: 'GET', signal: options?.signal }, WorkspaceReviewResponseSchema);
+  }
+
   async getGmailStatus(options?: { signal?: AbortSignal }): Promise<GmailStatusResponse> {
-    return this.get<GmailStatusResponse>('/api/gmail/status', { signal: options?.signal });
+    return this.request('/api/gmail/status', { method: 'GET', signal: options?.signal }, GmailStatusResponseSchema.extend({ lastSyncedAt: z.iso.datetime({ offset: true }).nullable() }));
   }
 
   

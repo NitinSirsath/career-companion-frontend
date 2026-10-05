@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { workspacePage } from './fixtures';
 // MCP-07: dashboard panel for automation submissions that need review (ADR-0002 decision 7).
 import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -17,7 +18,7 @@ vi.mock('../api/client', async (importOriginal) => {
     api: {
       getGmailStatus: vi.fn(),
       listApplications: vi.fn(),
-      getActions: vi.fn(),
+      getActions: vi.fn(), getWorkspaceActions: vi.fn(), getWorkspaceReview: vi.fn(),
       getAmbiguousEmails: vi.fn(),
       getUnmatchedEmails: vi.fn(),
       getPendingSubmissions: vi.fn(),
@@ -66,6 +67,8 @@ const card = async (name = 'Submission: Acme Inc. — Backend Engineer') => with
 beforeEach(() => {
   cleanup();
   vi.clearAllMocks();
+  vi.mocked(api.getWorkspaceActions).mockResolvedValue(workspacePage());
+  vi.mocked(api.getWorkspaceReview).mockResolvedValue({ generatedAt: new Date().toISOString(), unmatched: 0, ambiguous: 0, pendingSubmissions: 0 });
   vi.mocked(api.getGmailStatus).mockResolvedValue({ connected: false } as never);
   vi.mocked(api.getAISettings).mockRejectedValue(new ApiError('n/a', 'http', 404));
   vi.mocked(api.listApplications).mockResolvedValue(page(apps));

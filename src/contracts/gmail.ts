@@ -9,6 +9,8 @@ import { createPaginatedResponseSchema } from './pagination';
 
 import { z } from 'zod';
 
+const IsoDateTime = z.iso.datetime({ offset: true });
+
 // ─── Shared enums (mirrors Prisma enums) ────────────────────────────────────
 
 export const GmailConnectionStatusSchema = z.enum(['NOT_CONNECTED', 'CONNECTED', 'REVOKED']);
@@ -27,6 +29,8 @@ export const GmailStatusResponseSchema = z.object({
   syncError: z.string().nullable().optional(),
   lastSyncedAt: z.date().nullable().or(z.string().nullable()),
   syncLookbackDays: z.number().optional(),
+  nextScheduledSyncAt: IsoDateTime.nullable().optional(),
+  unscannedGap: z.object({ from: IsoDateTime, until: IsoDateTime }).nullable().optional(),
 });
 export type GmailStatusResponse = z.infer<typeof GmailStatusResponseSchema>;
 
@@ -48,6 +52,12 @@ export const EmailRelevanceStateSchema = z.enum(['UNPROCESSED', 'RELEVANT', 'IRR
 export const EmailMatchStateSchema = z.enum(['UNMATCHED', 'MATCHED', 'AMBIGUOUS', 'IGNORED']);
 
 export const EmailMessageSchema = z.object({
+  applicationId: z.uuid().nullable().optional(),
+  matchConfirmedBy: z.enum(['AI_AUTO', 'USER_CONFIRMED']).nullable().optional(),
+  application: z
+    .object({ id: z.uuid(), companyName: z.string(), jobTitle: z.string().nullable() })
+    .nullable()
+    .optional(),
   id: z.string(),
   gmailMessageId: z.string(),
   threadId: z.string().nullable(),
@@ -56,6 +66,8 @@ export const EmailMessageSchema = z.object({
   receivedAt: z.union([z.string(), z.date()]).nullable(),
   relevanceState: EmailRelevanceStateSchema,
   matchState: EmailMatchStateSchema,
+  // Server-derived inactivity signal; timestamps remain private.
+  processingStuck: z.boolean().optional(),
   processingState: z.enum(['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED']).optional(),
   processingErrorCategory: z.string().nullable().optional(),
   processingErrorDetails: z.string().nullable().optional(),

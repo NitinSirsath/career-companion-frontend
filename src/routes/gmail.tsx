@@ -1,4 +1,5 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { MatchCorrectionDialog } from '../components/MatchCorrectionDialog';
+import { createFileRoute, useNavigate, Link } from '@tanstack/react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { api, isApiError } from '../api/client';
@@ -9,10 +10,10 @@ import { RetryAnywayDialog } from '../components/ai/RetryAnywayDialog';
 import { PROCESSING_ERROR_LABELS } from '../lib/aiLabels';
 import { Button } from '../components/ui/button';
 import { z } from 'zod';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import { ExternalLink, Info, RotateCcw } from 'lucide-react';
 import { getGmailConversationUrl } from '../utils/gmail';
-import { startProcessingRefresh } from '../lib/processingRefresh';
+import { startProcessingRefresh, getProcessingRefreshUntil, subscribeProcessingRefresh } from '../lib/processingRefresh';
 
 const gmailSearchSchema = z.object({
   gmailError: z.string().optional(),
@@ -47,6 +48,7 @@ export const Route = createFileRoute('/gmail')({
 
 function GmailPage() {
   const queryClient = useQueryClient();
+  const refreshUntil = useSyncExternalStore(subscribeProcessingRefresh, getProcessingRefreshUntil);
   const search = Route.useSearch();
   const navigate = useNavigate({ from: '/gmail' });
   const [offset, setOffset] = useState(0);
@@ -81,11 +83,8 @@ function GmailPage() {
     queryFn: () => api.getMessages({ offset, limit, relevance: activeTab }),
     refetchInterval: query => {
       const items = query.state.data?.items || [];
-      const hasActive = items.some(m => (m.processingState === 'PENDING' && !aiWaiting) || (m.processingState === 'PROCESSING' && !m.processingRetryable));
-      if (hasActive) return 2000;
-      const hasRetrying = items.some(m => m.processingState === 'PROCESSING' && m.processingRetryable);
-      if (hasRetrying) return 15000;
-      return false;
+      if (Date.now() < refreshUntil && items.some(m => m.processingState === 'PROCESSING' || (m.processingState === 'PENDING' && !aiWaiting))) return 2000;
+      return items.some(m => m.processingState === 'PROCESSING' && m.processingStuck === false) ? 15000 : false;
     },
     enabled: !!statusData?.connected, // Only fetch if connected
   });
@@ -215,6 +214,12 @@ function GmailPage() {
               
               {statusData.syncStatus === 'FAILED' && <p role="alert" className="text-destructive">Sync could not finish. Try again, or reconnect if access was revoked.</p>}
               {statusData.lastSyncedAt && <p className="text-sm mt-2">Last synced {format(new Date(statusData.lastSyncedAt), 'MMM d, yyyy h:mm a')}</p>}
+              <p className="text-sm mt-2">{statusData.nextScheduledSyncAt
+                ? `Next automatic sync: ${format(new Date(statusData.nextScheduledSyncAt), 'MMM d, yyyy h:mm a')}`
+                : 'Automatic sync is off.'}</p>
+              {statusData.unscannedGap && <p className="text-sm mt-2 text-muted-foreground">
+                Mail received between {format(new Date(statusData.unscannedGap.from), 'MMM d, yyyy')} and {format(new Date(statusData.unscannedGap.until), 'MMM d, yyyy')} was not checked. A sync looks back at most 30 days. Check Gmail directly for job emails from those dates.
+              </p>}
               {syncMutation.isError && (
                 <p className="text-sm font-medium mt-2 text-destructive">
                   Error syncing: {syncMutation.error.message}
@@ -240,7 +245,7 @@ function GmailPage() {
             <div>
               <h3 className="text-lg font-medium mb-1">Sync Settings</h3>
               <p className="text-muted-foreground text-sm">
-                Control how far back to look for emails during sync.
+                How far back the first sync looks, and how far back a sync looks after you raise this setting. After that, each sync covers everything since the last successful sync, up to 30 days.
               </p>
             </div>
             <div>
@@ -332,6 +337,7 @@ function GmailPage() {
                       <th className="px-4 py-3 font-medium">Subject</th>
                       <th className="px-4 py-3 font-medium">Sender</th>
                       <th className="px-4 py-3 font-medium">State</th>
+                      <th className="px-4 py-3 font-medium">Application</th>
                       <th className="px-4 py-3 font-medium">AI Status</th>
                       <th className="px-4 py-3 font-medium">Received</th>
                     </tr>
@@ -364,9 +370,14 @@ function GmailPage() {
                           </span>
                         </td>
                         <td className="px-4 py-3">
+                          {msg.application ? <p><Link to="/applications/$id" params={{ id: msg.application.id }} className="text-primary hover:underline">{msg.application.companyName}</Link> <span className="text-xs text-muted-foreground">{msg.matchConfirmedBy === 'USER_CONFIRMED' ? 'you' : 'auto'}</span></p>
+                            : msg.matchState === 'IGNORED' ? 'Ignored' : msg.matchState === 'AMBIGUOUS' ? 'Needs review' : msg.relevanceState === 'RELEVANT' ? 'Not linked' : '—'}
+                          {(msg.matchState === 'MATCHED' || msg.matchState === 'IGNORED') && <MatchCorrectionDialog emailId={msg.id} matchState={msg.matchState} applicationId={msg.applicationId ?? null} />}
+                        </td>
+                        <td className="px-4 py-3">
                           <div className="flex items-center gap-1.5">
-                            <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${msg.processingState === 'FAILED' ? 'bg-destructive/10 text-destructive border-destructive/20' : 'bg-secondary text-secondary-foreground'}`}>
-                              {(msg.processingState ?? 'PENDING') === 'PENDING' && aiWaiting ? 'Waiting for AI' : msg.processingState || 'PENDING'}
+                            <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${msg.processingStuck ? 'bg-status-warning-subtle text-status-warning border-status-warning/20' : msg.processingState === 'FAILED' ? 'bg-destructive/10 text-destructive border-destructive/20' : 'bg-secondary text-secondary-foreground'}`}>
+                              {msg.processingStuck ? 'Stopped' : msg.processingState === 'PROCESSING' && msg.processingRetryable ? 'Retry scheduled' : (msg.processingState ?? 'PENDING') === 'PENDING' && aiWaiting ? 'Waiting for AI' : msg.processingState || 'PENDING'}
                             </span>
                             {msg.processingErrorDetails && (
                               <Tooltip>
@@ -376,7 +387,7 @@ function GmailPage() {
                                 <TooltipContent className="p-0 overflow-hidden">
                                   <div className={`px-3 py-2 border-b ${msg.processingRetryable ? 'bg-status-warning-subtle border-status-warning/20' : 'bg-status-error-subtle border-status-error/20'}`}>
                                     <div className={`font-semibold text-[13px] flex items-center gap-2 ${msg.processingRetryable ? 'text-status-warning' : 'text-status-error'}`}>
-                                      {msg.processingRetryable ? 'Retrying' : (msg.processingErrorCategory && PROCESSING_ERROR_LABELS[msg.processingErrorCategory]) || 'Processing Error'}
+                                      {msg.processingStuck ? 'Processing stopped' : msg.processingState === 'PROCESSING' && msg.processingRetryable ? 'Retry scheduled' : (msg.processingErrorCategory && PROCESSING_ERROR_LABELS[msg.processingErrorCategory]) || 'Processing Error'}
                                     </div>
                                   </div>
                                   <div className="p-3 flex flex-col gap-2">
@@ -391,26 +402,18 @@ function GmailPage() {
                                         </>
                                       )}
                                     </div>
-                                    <div className="mt-2 pt-2 border-t border-border flex justify-end">
-                                      <Button 
-                                        variant="outline" 
-                                        size="sm" 
-                                        className="h-7 text-xs px-2 cursor-pointer"
-                                        disabled={retryMutation.isPending}
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          retryMutation.mutate(msg.id);
-                                        }}
-                                      >
-                                        <RotateCcw className={`mr-1.5 h-3 w-3 ${retryMutation.isPending ? 'animate-spin' : ''}`} />
-                                        Manual Retry
-                                      </Button>
-                                    </div>
+
                                   </div>
                                 </TooltipContent>
                               </Tooltip>
                             )}
                           </div>
+                          {msg.processingStuck && <p className="text-sm mt-2 text-muted-foreground">Processing stopped before it finished. Use Manual Retry to continue.</p>}
+                          {(msg.processingStuck || msg.processingErrorDetails) && (
+                            <Button variant="outline" size="sm" className="mt-2" disabled={retryMutation.isPending || approveMutation.isPending} onClick={() => retryMutation.mutate(msg.id)}>
+                              <RotateCcw className="mr-1.5 h-3 w-3" />Manual Retry
+                            </Button>
+                          )}
                           {msg.processingState === 'COMPLETED' && (
                             <AnalyzedBy provider={msg.aiProcessingResult?.provider} model={msg.aiProcessingResult?.model} />
                           )}

@@ -1,5 +1,5 @@
 {
-  "name": "temp-vite",
+  "name": "career-companion-frontend",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -45,5 +45,8 @@
     "typescript": "~6.0.2",
     "vite": "^8.2.2",
     "vitest": "^5.0.0"
+  },
+  "engines": {
+    "node": "^22.22.2 || ^24.15.0 || >=26"
   }
 }

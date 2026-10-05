@@ -97,6 +97,7 @@ export function StatusEditor({
       await queryClient.cancelQueries({ queryKey: applicationKey(vars.applicationId) });
       await queryClient.cancelQueries({ queryKey: ['applications'] });
       applyAcknowledgedApplication(queryClient, result);
+      void queryClient.invalidateQueries({ queryKey: ['workspace'] });
       void queryClient.invalidateQueries({ queryKey: applicationKey(vars.applicationId) });
       void queryClient.invalidateQueries({ queryKey: ['applications'] });
     },
