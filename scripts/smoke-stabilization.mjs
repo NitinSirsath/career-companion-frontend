@@ -464,7 +464,7 @@ async function runBrowserScenarios({ user, foreign, target, paged, override }) {
   const hold = () => ({ started: deferred(), release: deferred() });
   const page = await openPage();
   const text = (p = page) => p.$eval('body', (node) => node.innerText);
-  const hasText = (value, p = page, timeout = 30_000) => p.waitForFunction((v) => document.body.innerText.includes(v), { timeout }, value);
+  const hasText = async (value, p = page, timeout = 30_000) => { try { return await p.waitForFunction((v) => document.body.innerText.includes(v), { timeout }, value); } catch (e) { console.log("\n--- PAGE TEXT ---\n", await text(p)); await p.screenshot({path:"smoke-timeout.png"}); throw e; } };
   const lacksText = (value, p = page, timeout = 30_000) => p.waitForFunction((v) => !document.body.innerText.includes(v), { timeout }, value);
   async function click(selector, name, index = 0, p = page) {
     const handles = await p.$$(selector);
