@@ -232,7 +232,7 @@ describe('AI provider page: status and actions', () => {
     renderPage();
     fireEvent.click(await screen.findByRole('button', { name: 'Change models or key' }));
     const detailed = screen.getByLabelText('Detailed analysis') as HTMLSelectElement;
-    expect([...detailed.options].map((o) => o.value)).toEqual(['', 'gemini-2.5-flash']);
+    expect([...detailed.options].map((o) => o.value)).toEqual(['', 'gemini-2.5-flash', 'gemini-3.8-flash']);
   });
 
   it('runs the sample test and shows, without storing, the extracted result', async () => {
