@@ -15,10 +15,12 @@ import { RouteErrorPage } from './RouteErrorPage';
 describe('RouteErrorPage', () => {
   afterEach(() => {
     cleanup();
+    vi.unstubAllEnvs();
     vi.restoreAllMocks();
   });
 
   it('keeps the layout visible and retries a render error after it stops throwing', async () => {
+    vi.stubEnv('DEV', false);
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
     let shouldThrow = true;
 
