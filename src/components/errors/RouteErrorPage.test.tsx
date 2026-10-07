@@ -22,13 +22,13 @@ describe('RouteErrorPage', () => {
     let shouldThrow = true;
 
     const rootRoute = createRootRoute({
-      component: () => (
+      component: () => <Outlet />,
+      errorComponent: (props) => (
         <div>
           <nav aria-label="Test navigation">Navigation</nav>
-          <Outlet />
+          <RouteErrorPage {...props} />
         </div>
       ),
-      errorComponent: RouteErrorPage,
     });
 
     const childRoute = createRoute({
