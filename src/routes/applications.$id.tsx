@@ -1,3 +1,4 @@
+import { RouteErrorPage } from '../components/errors/RouteErrorPage';
 import { FollowUpEditor, SnoozeControl, ArchiveControl } from '../components/FollowThrough';
 import { MatchCorrectionDialog } from '../components/MatchCorrectionDialog';
 import { deadlineLabel } from '../lib/deadline';
@@ -17,6 +18,7 @@ import { AnalyzedBy } from '../components/ai/AnalyzedBy';
 import { AUTOMATION_SUBMITTED, eventLabel, platformLabel } from '../lib/eventLabels';
 
 export const Route = createFileRoute('/applications/$id')({
+  errorComponent: RouteErrorPage,
   component: ApplicationDetailPage,
 });
 
