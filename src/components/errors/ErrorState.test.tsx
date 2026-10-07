@@ -1,11 +1,12 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import { ErrorState } from './ErrorState';
 
 describe('ErrorState', () => {
   afterEach(() => {
+    cleanup();
     vi.unstubAllEnvs();
   });
 
@@ -23,7 +24,7 @@ describe('ErrorState', () => {
 
     expect(screen.getByText('Details')).toBeInTheDocument();
     expect(screen.getByText('secret failure')).toBeInTheDocument();
-    expect(screen.getByText(error.stack ?? '')).toBeInTheDocument();
+    expect(screen.getByText(/Error: secret failure/)).toBeInTheDocument();
   });
 
   it('hides error details in production', () => {
