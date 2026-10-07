@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import {
   Outlet,
   RouterProvider,
@@ -14,6 +14,7 @@ import { RouteErrorPage } from './RouteErrorPage';
 
 describe('RouteErrorPage', () => {
   afterEach(() => {
+    cleanup();
     vi.restoreAllMocks();
   });
 
@@ -22,18 +23,19 @@ describe('RouteErrorPage', () => {
     let shouldThrow = true;
 
     const rootRoute = createRootRoute({
-      component: () => <Outlet />,
-      errorComponent: (props) => (
+      component: () => (
         <div>
           <nav aria-label="Test navigation">Navigation</nav>
-          <RouteErrorPage {...props} />
+          <Outlet />
         </div>
       ),
+
     });
 
     const childRoute = createRoute({
       getParentRoute: () => rootRoute,
       path: '/',
+      errorComponent: RouteErrorPage,
       component: () => {
         if (shouldThrow) {
           throw new Error('render failure');
