@@ -1,3 +1,4 @@
+import { RouteErrorPage } from '../components/errors/RouteErrorPage';
 import { useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
@@ -14,6 +15,7 @@ import { AnalyzedBy } from '../components/ai/AnalyzedBy';
 import { PendingSubmissionsSection } from '../components/automation/PendingSubmissionsSection';
 
 export const Route = createFileRoute('/')({
+  errorComponent: RouteErrorPage,
   component: DashboardPage,
 });
 
