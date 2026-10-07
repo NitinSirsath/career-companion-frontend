@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { AppErrorBoundary } from './AppErrorBoundary';
 
 function ThrowingComponent(): never {
@@ -10,6 +10,7 @@ function ThrowingComponent(): never {
 
 describe('AppErrorBoundary', () => {
   afterEach(() => {
+    cleanup();
     vi.restoreAllMocks();
   });
 
