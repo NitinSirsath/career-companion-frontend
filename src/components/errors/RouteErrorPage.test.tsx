@@ -31,7 +31,6 @@ describe('RouteErrorPage', () => {
           <Outlet />
         </div>
       ),
-
     });
 
     const childRoute = createRoute({
@@ -65,5 +64,35 @@ describe('RouteErrorPage', () => {
     await waitFor(() => {
       expect(screen.getByText('Recovered page')).toBeInTheDocument();
     });
+  });
+
+  it('shows RouteErrorPage when a route loader throws', async () => {
+    vi.stubEnv('DEV', false);
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    const rootRoute = createRootRoute({
+      component: () => <Outlet />,
+    });
+
+    const loaderRoute = createRoute({
+      getParentRoute: () => rootRoute,
+      path: '/loader-failure',
+      loader: () => {
+        throw new Error('loader failure');
+      },
+      errorComponent: RouteErrorPage,
+      component: () => <div>Should not render</div>,
+    });
+
+    const router = createRouter({
+      routeTree: rootRoute.addChildren([loaderRoute]),
+      history: createMemoryHistory({ initialEntries: ['/loader-failure'] }),
+      defaultErrorComponent: RouteErrorPage,
+    });
+
+    render(<RouterProvider router={router} />);
+
+    expect(await screen.findByRole('heading', { name: 'Something went wrong' })).toBeInTheDocument();
+    expect(screen.queryByText('loader failure')).not.toBeInTheDocument();
   });
 });
