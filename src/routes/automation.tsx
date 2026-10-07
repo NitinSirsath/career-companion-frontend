@@ -1,8 +1,10 @@
+import { RouteErrorPage } from '../components/errors/RouteErrorPage';
 import { createFileRoute } from '@tanstack/react-router';
 import { CreateTokenForm } from '../components/automation/CreateTokenForm';
 import { TokenList } from '../components/automation/TokenList';
 
 export const Route = createFileRoute('/automation')({
+  errorComponent: RouteErrorPage,
   component: AutomationPage,
 });
 
