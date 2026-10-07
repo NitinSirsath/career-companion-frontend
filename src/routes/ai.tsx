@@ -1,3 +1,4 @@
+import { RouteErrorPage } from '../components/errors/RouteErrorPage';
 import { useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
@@ -8,6 +9,7 @@ import { ProviderPicker } from '../components/ai/ProviderPicker';
 import { ProviderSetupForm } from '../components/ai/ProviderSetupForm';
 
 export const Route = createFileRoute('/ai')({
+  errorComponent: RouteErrorPage,
   component: AIProviderPage,
 });
 
