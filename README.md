@@ -60,6 +60,10 @@ The detail page's "Change status" editor freezes its draft and base revision; ba
 - The Vite dev server proxies `/mcp` to the backend, like `/api`, so the URL on the page works locally.
 - Smoke: the MCP scenario uses `scripts/fixtures/mcp-daily-applications.{md,json}` and the official SDK client from the backend's dev dependencies.
 
+## Development error trigger
+
+Append `?__throw=render` to a development URL to intentionally trigger the render error boundary; this trigger is disabled in production builds.
+
 ## Verification
 
 ```bash

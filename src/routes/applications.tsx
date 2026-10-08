@@ -1,3 +1,4 @@
+import { RouteErrorPage } from '../components/errors/RouteErrorPage';
 import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 
 import { createFileRoute, Link, Outlet, useRouterState } from '@tanstack/react-router';
@@ -21,6 +22,7 @@ import { Pagination } from '../components/ui/pagination';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
 
 export const Route = createFileRoute('/applications')({
+  errorComponent: RouteErrorPage,
   component: ApplicationsPage,
 });
 

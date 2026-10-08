@@ -1,4 +1,5 @@
 import { MatchCorrectionDialog } from '../components/MatchCorrectionDialog';
+import { RouteErrorPage } from '../components/errors/RouteErrorPage';
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
@@ -42,6 +43,7 @@ function retryMessage(err: unknown): string {
 }
 
 export const Route = createFileRoute('/gmail')({
+  errorComponent: RouteErrorPage,
   validateSearch: gmailSearchSchema,
   component: GmailPage,
 });

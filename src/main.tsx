@@ -6,6 +6,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { routeTree } from './routeTree.gen'
 import { getCurrentUser } from './api/auth';
 import { ThemeProvider } from './components/ThemeProvider';
+import { AppErrorBoundary } from './components/errors/AppErrorBoundary';
+import { RouteErrorPage } from './components/errors/RouteErrorPage';
+import { NotFoundPage } from './components/errors/NotFoundPage';
 
 const queryClient = new QueryClient()
 
@@ -13,6 +16,8 @@ const queryClient = new QueryClient()
 const router = createRouter({
   routeTree,
   context: { user: null },
+  defaultErrorComponent: RouteErrorPage,
+  defaultNotFoundComponent: NotFoundPage,
 });
 
 function App() {
@@ -39,7 +44,9 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="career-companion-theme">
-        <App />
+        <AppErrorBoundary>
+          <App />
+        </AppErrorBoundary>
       </ThemeProvider>
     </QueryClientProvider>
   </StrictMode>,

@@ -1,3 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { Agenda } from '../components/Agenda';
-export const Route = createFileRoute('/agenda')({ component: Agenda });
+import { RouteErrorPage } from '../components/errors/RouteErrorPage';
+
+export const Route = createFileRoute('/agenda')({
+  errorComponent: RouteErrorPage,
+  component: Agenda,
+});
