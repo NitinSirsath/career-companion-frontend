@@ -45,17 +45,16 @@ export function ThemeProvider({
       'theme-grey',
       'theme-github',
       'theme-monokai',
-      'dark'
+      'dark',
     );
 
     // Add the selected theme class
     root.classList.add(`theme-${theme}`);
-    
+
     // For some legacy mapping that still might check .dark
     if (theme === 'dark' || theme === 'github' || theme === 'monokai') {
-        root.classList.add('dark');
+      root.classList.add('dark');
     }
-
   }, [theme]);
 
   const value = {
@@ -76,8 +75,7 @@ export function ThemeProvider({
 export const useTheme = () => {
   const context = useContext(ThemeProviderContext);
 
-  if (context === undefined)
-    throw new Error('useTheme must be used within a ThemeProvider');
+  if (context === undefined) throw new Error('useTheme must be used within a ThemeProvider');
 
   return context;
 };

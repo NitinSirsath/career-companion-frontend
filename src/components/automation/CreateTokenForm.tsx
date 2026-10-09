@@ -68,11 +68,14 @@ export function CreateTokenForm() {
 
   if (created)
     return (
-      <section aria-label="Token created" className="border border-status-warning bg-status-warning-subtle p-4 space-y-3">
+      <section
+        aria-label="Token created"
+        className="border border-status-warning bg-status-warning-subtle p-4 space-y-3"
+      >
         <p className="font-semibold">Copy your new token “{created.name}” now</p>
         <p className="text-sm">
-          It will not be shown again. Anyone who has it can add submissions to your account until it expires or you
-          revoke it. Keep it out of any repository.
+          It will not be shown again. Anyone who has it can add submissions to your account until it
+          expires or you revoke it. Keep it out of any repository.
         </p>
         <Label htmlFor="new-token" className="sr-only">
           New token
@@ -95,16 +98,26 @@ export function CreateTokenForm() {
           <Button type="button" size="sm" variant="tertiary" onClick={() => setCreated(null)}>
             Done, I saved it
           </Button>
-          {copied === 'yes' && <span role="status" className="text-sm">Copied.</span>}
+          {copied === 'yes' && (
+            <span role="status" className="text-sm">
+              Copied.
+            </span>
+          )}
           {copied === 'failed' && (
-            <span role="status" className="text-sm">Could not copy. Select the token and copy it yourself.</span>
+            <span role="status" className="text-sm">
+              Could not copy. Select the token and copy it yourself.
+            </span>
           )}
         </div>
       </section>
     );
 
   return (
-    <form onSubmit={submit} aria-label="Create a token" className="border border-border-default bg-surface p-4 space-y-4">
+    <form
+      onSubmit={submit}
+      aria-label="Create a token"
+      className="border border-border-default bg-surface p-4 space-y-4"
+    >
       <h3 className="text-lg font-semibold">Create a token</h3>
       <div className="grid gap-4 md:grid-cols-[1fr_200px]">
         <div className="space-y-1">
@@ -119,7 +132,11 @@ export function CreateTokenForm() {
         </div>
         <div className="space-y-1">
           <Label htmlFor="token-expiry">Expires after</Label>
-          <NativeSelect id="token-expiry" value={days} onChange={(e) => setDays(Number(e.target.value))}>
+          <NativeSelect
+            id="token-expiry"
+            value={days}
+            onChange={(e) => setDays(Number(e.target.value))}
+          >
             {EXPIRY_OPTIONS.map((d) => (
               <option key={d} value={d}>
                 {d} days
@@ -134,11 +151,15 @@ export function CreateTokenForm() {
         </p>
       )}
       {uncertain && (
-        <div role="alert" className="border border-status-warning bg-status-warning-subtle p-3 text-sm space-y-2">
+        <div
+          role="alert"
+          className="border border-status-warning bg-status-warning-subtle p-3 text-sm space-y-2"
+        >
           <p className="font-semibold">Token creation outcome unknown</p>
           <p>
-            We could not confirm whether the token was created. The list below has been refreshed. If a new token
-            appears there, revoke it: its value cannot be shown again. Then create a new one.
+            We could not confirm whether the token was created. The list below has been refreshed.
+            If a new token appears there, revoke it: its value cannot be shown again. Then create a
+            new one.
           </p>
           <Button type="button" size="sm" variant="tertiary" onClick={() => setUncertain(false)}>
             I checked the list

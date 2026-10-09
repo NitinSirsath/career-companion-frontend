@@ -44,7 +44,11 @@ let queryClient: QueryClient;
 let storageWrites: string[];
 
 function renderPage(path = '/automation') {
-  const router = createRouter({ routeTree, history: createMemoryHistory({ initialEntries: [path] }), context: { user: { id: 'u', email: 't@test.local', name: 'T' } } });
+  const router = createRouter({
+    routeTree,
+    history: createMemoryHistory({ initialEntries: [path] }),
+    context: { user: { id: 'u', email: 't@test.local', name: 'T' } },
+  });
   return render(
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
@@ -55,8 +59,14 @@ function renderPage(path = '/automation') {
 /** Everything the browser keeps: query data, mutation variables, storage writes, the URL. */
 const browserState = () =>
   JSON.stringify([
-    queryClient.getQueryCache().getAll().map((q) => q.state.data),
-    queryClient.getMutationCache().getAll().map((m) => [m.state.variables, m.state.data]),
+    queryClient
+      .getQueryCache()
+      .getAll()
+      .map((q) => q.state.data),
+    queryClient
+      .getMutationCache()
+      .getAll()
+      .map((m) => [m.state.variables, m.state.data]),
     storageWrites,
     window.location.href,
   ]);
@@ -95,12 +105,18 @@ describe('creating a token', () => {
   it('shows the plaintext once with a copy button and a warning, and keeps it out of every cache', async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     Object.assign(navigator, { clipboard: { writeText } });
-    vi.mocked(api.createIntegrationToken).mockResolvedValue({ integrationToken: token({ name: 'Work laptop' }), plaintextToken: PLAINTEXT });
+    vi.mocked(api.createIntegrationToken).mockResolvedValue({
+      integrationToken: token({ name: 'Work laptop' }),
+      plaintextToken: PLAINTEXT,
+    });
     renderPage();
     await createToken('  Work laptop ', '30');
 
     const shown = (await screen.findByLabelText('New token')) as HTMLInputElement;
-    expect(api.createIntegrationToken).toHaveBeenCalledWith({ name: 'Work laptop', expiresInDays: 30 });
+    expect(api.createIntegrationToken).toHaveBeenCalledWith({
+      name: 'Work laptop',
+      expiresInDays: 30,
+    });
     expect(shown.value).toBe(PLAINTEXT);
     expect(shown).toHaveAttribute('readonly');
     expect(screen.getByText(/It will not be shown again/)).toBeInTheDocument();
@@ -117,7 +133,10 @@ describe('creating a token', () => {
   });
 
   it('drops the plaintext when the page unmounts', async () => {
-    vi.mocked(api.createIntegrationToken).mockResolvedValue({ integrationToken: token(), plaintextToken: PLAINTEXT });
+    vi.mocked(api.createIntegrationToken).mockResolvedValue({
+      integrationToken: token(),
+      plaintextToken: PLAINTEXT,
+    });
     const view = renderPage();
     await createToken();
     await screen.findByLabelText('New token');
@@ -137,7 +156,12 @@ describe('creating a token', () => {
 
   it('shows a definitive refusal such as the active-token limit', async () => {
     vi.mocked(api.createIntegrationToken).mockRejectedValue(
-      new ApiError('You can have at most 5 active tokens. Revoke one first.', 'http', 409, 'TOKEN_LIMIT_REACHED'),
+      new ApiError(
+        'You can have at most 5 active tokens. Revoke one first.',
+        'http',
+        409,
+        'TOKEN_LIMIT_REACHED',
+      ),
     );
     renderPage();
     await createToken();
@@ -146,7 +170,9 @@ describe('creating a token', () => {
   });
 
   it('an uncertain outcome refreshes the list and never resubmits automatically', async () => {
-    vi.mocked(api.createIntegrationToken).mockRejectedValue(new ApiError('The request timed out.', 'timeout'));
+    vi.mocked(api.createIntegrationToken).mockRejectedValue(
+      new ApiError('The request timed out.', 'timeout'),
+    );
     renderPage();
     await createToken();
     expect(await screen.findByText('Token creation outcome unknown')).toBeInTheDocument();
@@ -183,12 +209,16 @@ describe('token list', () => {
       expect(within(row).queryByRole('button', { name: /Revoke/ })).not.toBeInTheDocument();
     }
     expect(within(screen.getByText('Old').closest('li')!).getByText('Expired')).toBeInTheDocument();
-    expect(within(screen.getByText('Gone').closest('li')!).getByText('Revoked')).toBeInTheDocument();
+    expect(
+      within(screen.getByText('Gone').closest('li')!).getByText('Revoked'),
+    ).toBeInTheDocument();
   });
 
   it('revokes after a confirmation and refreshes the list', async () => {
     vi.mocked(api.listIntegrationTokens).mockResolvedValue(page([token()]));
-    vi.mocked(api.revokeIntegrationToken).mockResolvedValue(token({ status: 'revoked', revokedAt: iso(0) }));
+    vi.mocked(api.revokeIntegrationToken).mockResolvedValue(
+      token({ status: 'revoked', revokedAt: iso(0) }),
+    );
     renderPage();
     fireEvent.click(await screen.findByRole('button', { name: 'Revoke Laptop' }));
     expect(api.revokeIntegrationToken).not.toHaveBeenCalled();

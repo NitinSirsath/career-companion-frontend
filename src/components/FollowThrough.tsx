@@ -1,26 +1,23 @@
-import { useRef, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { api, isApiError } from "../api/client";
-import type {
-  ApplicationActionResponse,
-  ApplicationResponse,
-} from "../contracts/application";
-import type { CreateFollowUp } from "../contracts/action";
-import { resolveTemporal } from "../contracts/temporal";
-import { browserTimeZone } from "../lib/workspace";
-import { applyAcknowledgedApplication } from "../lib/applicationCache";
-import { Button } from "./ui/button";
-import { Dialog, DialogContent, DialogTitle } from "./ui/dialog";
+import { useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { api, isApiError } from '../api/client';
+import type { ApplicationActionResponse, ApplicationResponse } from '../contracts/application';
+import type { CreateFollowUp } from '../contracts/action';
+import { resolveTemporal } from '../contracts/temporal';
+import { browserTimeZone } from '../lib/workspace';
+import { applyAcknowledgedApplication } from '../lib/applicationCache';
+import { Button } from './ui/button';
+import { Dialog, DialogContent, DialogTitle } from './ui/dialog';
 
 const keys = [
-  "workspace",
-  "actions",
-  "application-actions",
-  "application",
-  "applications",
-  "agenda",
+  'workspace',
+  'actions',
+  'application-actions',
+  'application',
+  'applications',
+  'agenda',
 ];
-const inputClass = "block border border-border bg-background p-2 w-full";
+const inputClass = 'block border border-border bg-background p-2 w-full';
 function TimeFields({
   date,
   time,
@@ -58,32 +55,22 @@ function TimeFields({
       </label>
       <label className="block text-sm">
         Timezone or UTC offset
-        <input
-          className={inputClass}
-          value={zone}
-          onChange={(e) => setZone(e.target.value)}
-        />
+        <input className={inputClass} value={zone} onChange={(e) => setZone(e.target.value)} />
       </label>
     </>
   );
 }
-function manualDeadline(
-  date: string,
-  time: string,
-  zone: string,
-): CreateFollowUp["deadline"] {
+function manualDeadline(date: string, time: string, zone: string): CreateFollowUp['deadline'] {
   if (!date && !time) return null;
   const value = resolveTemporal({
     date: date || null,
     time: time || null,
     sourceTimeZone: zone || null,
   });
-  if (value.precision === "DATE")
-    return { precision: "DATE", value: value.date! };
-  if (value.precision === "DATETIME")
-    return { precision: "DATETIME", value: value.instant! };
+  if (value.precision === 'DATE') return { precision: 'DATE', value: value.date! };
+  if (value.precision === 'DATETIME') return { precision: 'DATETIME', value: value.instant! };
   throw Error(
-    "Enter a valid date and explicit timezone. Ambiguous daylight-saving times need a UTC offset.",
+    'Enter a valid date and explicit timezone. Ambiguous daylight-saving times need a UTC offset.',
   );
 }
 export function FollowUpEditor({
@@ -98,14 +85,14 @@ export function FollowUpEditor({
   const client = useQueryClient(),
     trigger = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false),
-    [description, setDescription] = useState(""),
-    [date, setDate] = useState(""),
-    [time, setTime] = useState(""),
+    [description, setDescription] = useState(''),
+    [date, setDate] = useState(''),
+    [time, setTime] = useState(''),
     [zone, setZone] = useState(browserTimeZone);
   const [revision, setRevision] = useState(0),
-    [requestId, setRequestId] = useState("");
+    [requestId, setRequestId] = useState('');
   const [pending, setPending] = useState(false),
-    [error, setError] = useState(""),
+    [error, setError] = useState(''),
     [frozen, setFrozen] = useState<CreateFollowUp | null>(null),
     [checkedAbsent, setCheckedAbsent] = useState(false),
     [editFailed, setEditFailed] = useState(false);
@@ -115,24 +102,20 @@ export function FollowUpEditor({
     queueMicrotask(() => trigger.current?.focus());
   };
   const refresh = () =>
-    Promise.all(
-      keys.map((key) => client.invalidateQueries({ queryKey: [key] })),
-    );
+    Promise.all(keys.map((key) => client.invalidateQueries({ queryKey: [key] })));
   const begin = () => {
     if (!frozen) {
-      setDescription(action?.description ?? "");
-      setDate(action?.deadline ? String(action.deadline).slice(0, 10) : "");
+      setDescription(action?.description ?? '');
+      setDate(action?.deadline ? String(action.deadline).slice(0, 10) : '');
       setTime(
-        action?.deadlinePrecision === "DATETIME"
+        action?.deadlinePrecision === 'DATETIME'
           ? new Date(action.deadline!).toISOString().slice(11, 16)
-          : "",
+          : '',
       );
-      setZone(
-        action?.deadlinePrecision === "DATETIME" ? "UTC" : browserTimeZone(),
-      );
+      setZone(action?.deadlinePrecision === 'DATETIME' ? 'UTC' : browserTimeZone());
       setRevision(action?.actionRevision ?? 0);
       setRequestId(crypto.randomUUID());
-      setError("");
+      setError('');
       setEditFailed(false);
     }
     setOpen(true);
@@ -147,13 +130,13 @@ export function FollowUpEditor({
         deadline: manualDeadline(date, time, zone),
       };
       if (!draft.description || draft.description.length > 500)
-        throw Error("Enter 1–500 characters.");
+        throw Error('Enter 1–500 characters.');
     } catch (e) {
       setError((e as Error).message);
       return;
     }
     setPending(true);
-    setError("");
+    setError('');
     try {
       if (action)
         await api.editFollowUp(action.id, {
@@ -171,13 +154,11 @@ export function FollowUpEditor({
         setFrozen(draft);
         setCheckedAbsent(false);
         setError(
-          "Creation is uncertain. Check the saved receipt before retrying. Your draft and request identity are retained.",
+          'Creation is uncertain. Check the saved receipt before retrying. Your draft and request identity are retained.',
         );
       } else {
         setEditFailed(Boolean(action));
-        setError(
-          "Could not save. Review the refreshed state before another attempt.",
-        );
+        setError('Could not save. Review the refreshed state before another attempt.');
       }
     } finally {
       setPending(false);
@@ -196,8 +177,8 @@ export function FollowUpEditor({
       setCheckedAbsent(isApiError(e) && e.status === 404);
       setError(
         isApiError(e) && e.status === 404
-          ? "No receipt is visible yet; the earlier request may still be running. Check again or deliberately retry the same request."
-          : "The receipt could not be checked. Keep this draft and try checking again.",
+          ? 'No receipt is visible yet; the earlier request may still be running. Check again or deliberately retry the same request.'
+          : 'The receipt could not be checked. Keep this draft and try checking again.',
       );
     } finally {
       setPending(false);
@@ -206,18 +187,8 @@ export function FollowUpEditor({
   };
   return (
     <>
-      <Button
-        ref={trigger}
-        size="sm"
-        variant="outline"
-        disabled={disabled}
-        onClick={begin}
-      >
-        {action
-          ? "Edit follow-up"
-          : frozen
-            ? "Resolve follow-up creation"
-            : "Add follow-up"}
+      <Button ref={trigger} size="sm" variant="outline" disabled={disabled} onClick={begin}>
+        {action ? 'Edit follow-up' : frozen ? 'Resolve follow-up creation' : 'Add follow-up'}
       </Button>
       <Dialog
         open={open}
@@ -226,9 +197,7 @@ export function FollowUpEditor({
         }}
       >
         <DialogContent>
-          <DialogTitle>
-            {action ? "Edit personal follow-up" : "Add personal follow-up"}
-          </DialogTitle>
+          <DialogTitle>{action ? 'Edit personal follow-up' : 'Add personal follow-up'}</DialogTitle>
           <p className="text-sm my-3">
             For your own tracking. This does not send an email or notification.
           </p>
@@ -239,10 +208,7 @@ export function FollowUpEditor({
               void save();
             }}
           >
-            <fieldset
-              disabled={pending || !!frozen || editFailed}
-              className="space-y-4"
-            >
+            <fieldset disabled={pending || !!frozen || editFailed} className="space-y-4">
               <label className="block text-sm">
                 Follow-up description
                 <textarea
@@ -256,35 +222,20 @@ export function FollowUpEditor({
               <p className="text-sm">
                 Optional deadline; leave date and time empty for undated work.
               </p>
-              <TimeFields
-                {...{ date, time, zone, setDate, setTime, setZone }}
-              />
+              <TimeFields {...{ date, time, zone, setDate, setTime, setZone }} />
             </fieldset>
             {error && <p role="alert">{error}</p>}
             <div className="flex flex-wrap gap-2 justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                disabled={pending}
-                onClick={close}
-              >
+              <Button type="button" variant="outline" disabled={pending} onClick={close}>
                 Close
               </Button>
               {frozen ? (
                 <>
-                  <Button
-                    type="button"
-                    disabled={pending}
-                    onClick={() => void reconcile()}
-                  >
+                  <Button type="button" disabled={pending} onClick={() => void reconcile()}>
                     Check saved follow-up
                   </Button>
                   {checkedAbsent && (
-                    <Button
-                      type="button"
-                      disabled={pending}
-                      onClick={() => void save(true)}
-                    >
+                    <Button type="button" disabled={pending} onClick={() => void save(true)}>
                       Retry same request
                     </Button>
                   )}
@@ -310,17 +261,14 @@ export function SnoozeControl({
 }) {
   const client = useQueryClient(),
     trigger = useRef<HTMLButtonElement>(null);
-  const [snapshot, setSnapshot] = useState<ApplicationActionResponse | null>(
-      null,
-    ),
+  const [snapshot, setSnapshot] = useState<ApplicationActionResponse | null>(null),
     [pending, setPending] = useState(false),
-    [error, setError] = useState(""),
+    [error, setError] = useState(''),
     [failed, setFailed] = useState(false);
-  const [date, setDate] = useState(""),
-    [time, setTime] = useState(""),
+  const [date, setDate] = useState(''),
+    [time, setTime] = useState(''),
     [zone, setZone] = useState(browserTimeZone);
-  const snoozed =
-    !!action.snoozedUntil;
+  const snoozed = !!action.snoozedUntil;
   const close = () => {
     if (!pending) {
       setSnapshot(null);
@@ -336,17 +284,17 @@ export function SnoozeControl({
     });
     if (
       !unsnooze &&
-      (timing.precision !== "DATETIME" ||
+      (timing.precision !== 'DATETIME' ||
         !timing.instant ||
         Date.parse(timing.instant) <= Date.now())
     ) {
       setError(
-        "Choose a future date, time and explicit timezone. Ambiguous times need a UTC offset.",
+        'Choose a future date, time and explicit timezone. Ambiguous times need a UTC offset.',
       );
       return;
     }
     setPending(true);
-    setError("");
+    setError('');
     try {
       await api.snoozeAction(snapshot.id, {
         expectedActionRevision: snapshot.actionRevision,
@@ -357,13 +305,11 @@ export function SnoozeControl({
     } catch {
       setFailed(true);
       setError(
-        "Save could not be confirmed. Close and review the refreshed action before retrying.",
+        'Save could not be confirmed. Close and review the refreshed action before retrying.',
       );
     } finally {
       setPending(false);
-      await Promise.all(
-        keys.map((key) => client.invalidateQueries({ queryKey: [key] })),
-      );
+      await Promise.all(keys.map((key) => client.invalidateQueries({ queryKey: [key] })));
     }
   };
   return (
@@ -372,16 +318,16 @@ export function SnoozeControl({
         ref={trigger}
         size="sm"
         variant="outline"
-        disabled={disabled || action.status !== "PENDING"}
+        disabled={disabled || action.status !== 'PENDING'}
         onClick={() => {
           setSnapshot(action);
           setFailed(false);
-          setError("");
-          setDate("");
-          setTime("");
+          setError('');
+          setDate('');
+          setTime('');
         }}
       >
-        {snoozed ? "Change snooze" : "Snooze"}
+        {snoozed ? 'Change snooze' : 'Snooze'}
       </Button>
       <Dialog
         open={!!snapshot}
@@ -392,8 +338,8 @@ export function SnoozeControl({
         <DialogContent>
           <DialogTitle>Snooze action</DialogTitle>
           <p className="text-sm my-3">
-            Hide this pending action until the chosen time. Its deadline stays
-            unchanged. No reminder is sent.
+            Hide this pending action until the chosen time. Its deadline stays unchanged. No
+            reminder is sent.
           </p>
           <form
             className="space-y-4"
@@ -405,12 +351,7 @@ export function SnoozeControl({
             <TimeFields {...{ date, time, zone, setDate, setTime, setZone }} />
             {error && <p role="alert">{error}</p>}
             <div className="flex flex-wrap gap-2 justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                disabled={pending}
-                onClick={close}
-              >
+              <Button type="button" variant="outline" disabled={pending} onClick={close}>
                 Close
               </Button>
               {snapshot?.snoozedUntil && (
@@ -444,7 +385,7 @@ export function ArchiveControl({
     trigger = useRef<HTMLButtonElement>(null);
   const [snapshot, setSnapshot] = useState<ApplicationResponse | null>(null),
     [pending, setPending] = useState(false),
-    [error, setError] = useState("");
+    [error, setError] = useState('');
   const close = () => {
     if (!pending) {
       setSnapshot(null);
@@ -464,13 +405,11 @@ export function ArchiveControl({
       queueMicrotask(() => trigger.current?.focus());
     } catch {
       setError(
-        "Save could not be confirmed. Close and review the refreshed application before retrying.",
+        'Save could not be confirmed. Close and review the refreshed application before retrying.',
       );
     } finally {
       setPending(false);
-      await Promise.all(
-        keys.map((key) => client.invalidateQueries({ queryKey: [key] })),
-      );
+      await Promise.all(keys.map((key) => client.invalidateQueries({ queryKey: [key] })));
     }
   };
   return (
@@ -482,10 +421,10 @@ export function ArchiveControl({
         disabled={disabled}
         onClick={() => {
           setSnapshot(application);
-          setError("");
+          setError('');
         }}
       >
-        {application.archivedAt ? "Restore application" : "Archive application"}
+        {application.archivedAt ? 'Restore application' : 'Archive application'}
       </Button>
       <Dialog
         open={!!snapshot}
@@ -495,14 +434,12 @@ export function ArchiveControl({
       >
         <DialogContent>
           <DialogTitle>
-            {snapshot?.archivedAt
-              ? "Restore application"
-              : "Archive application"}
+            {snapshot?.archivedAt ? 'Restore application' : 'Archive application'}
           </DialogTitle>
           <p className="my-4 text-sm">
             {snapshot?.archivedAt
-              ? "Return this application and its pending work to your active views. Prior notifications will not be replayed."
-              : "Hide this application from active lists, work and agenda. Status, history and linked emails are preserved; linked mail continues to be tracked. Restore before adding or editing work."}
+              ? 'Return this application and its pending work to your active views. Prior notifications will not be replayed.'
+              : 'Hide this application from active lists, work and agenda. Status, history and linked emails are preserved; linked mail continues to be tracked. Restore before adding or editing work.'}
           </p>
           {error && <p role="alert">{error}</p>}
           <div className="flex gap-3 justify-end">
@@ -510,7 +447,7 @@ export function ArchiveControl({
               Close
             </Button>
             <Button disabled={pending || !!error} onClick={() => void save()}>
-              {snapshot?.archivedAt ? "Restore" : "Archive"}
+              {snapshot?.archivedAt ? 'Restore' : 'Archive'}
             </Button>
           </div>
         </DialogContent>

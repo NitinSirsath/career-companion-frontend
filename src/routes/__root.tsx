@@ -1,4 +1,9 @@
-import { createRootRouteWithContext, Outlet, redirect, type ErrorComponentProps } from '@tanstack/react-router';
+import {
+  createRootRouteWithContext,
+  Outlet,
+  redirect,
+  type ErrorComponentProps,
+} from '@tanstack/react-router';
 import { User, logout } from '../api/auth';
 import { Sidebar } from '../components/layout/Sidebar';
 import { MobileNav } from '../components/layout/MobileNav';
@@ -60,7 +65,11 @@ function LoggedInShell({ children }: LoggedInShellProps) {
             <Briefcase className="w-5 h-5 text-primary" />
             <div className="font-semibold text-lg tracking-tight">Career Companion</div>
           </div>
-          <button onClick={handleLogout} className="text-status-error p-2 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-border-focus rounded-none" aria-label="Logout">
+          <button
+            onClick={handleLogout}
+            className="text-status-error p-2 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-border-focus rounded-none"
+            aria-label="Logout"
+          >
             <LogOut className="w-5 h-5" />
           </button>
         </header>

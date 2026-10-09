@@ -15,7 +15,7 @@ describe('Pagination UX (COM-48)', () => {
     const onNext = vi.fn();
     const onPrevious = vi.fn();
     render(
-      <Pagination offset={0} limit={20} hasNext={true} onNext={onNext} onPrevious={onPrevious} />
+      <Pagination offset={0} limit={20} hasNext={true} onNext={onNext} onPrevious={onPrevious} />,
     );
     expect(screen.getByText('Page 1')).toBeInTheDocument();
   });
@@ -24,7 +24,7 @@ describe('Pagination UX (COM-48)', () => {
     const onNext = vi.fn();
     const onPrevious = vi.fn();
     render(
-      <Pagination offset={0} limit={20} hasNext={true} onNext={onNext} onPrevious={onPrevious} />
+      <Pagination offset={0} limit={20} hasNext={true} onNext={onNext} onPrevious={onPrevious} />,
     );
     const nextBtn = screen.getByRole('button', { name: 'Next' });
     expect(nextBtn).toBeInTheDocument();
@@ -35,7 +35,7 @@ describe('Pagination UX (COM-48)', () => {
     const onNext = vi.fn();
     const onPrevious = vi.fn();
     render(
-      <Pagination offset={0} limit={20} hasNext={true} onNext={onNext} onPrevious={onPrevious} />
+      <Pagination offset={0} limit={20} hasNext={true} onNext={onNext} onPrevious={onPrevious} />,
     );
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     expect(onNext).toHaveBeenCalledTimes(1);
@@ -45,7 +45,7 @@ describe('Pagination UX (COM-48)', () => {
     const onNext = vi.fn();
     const onPrevious = vi.fn();
     render(
-      <Pagination offset={20} limit={20} hasNext={true} onNext={onNext} onPrevious={onPrevious} />
+      <Pagination offset={20} limit={20} hasNext={true} onNext={onNext} onPrevious={onPrevious} />,
     );
     fireEvent.click(screen.getByRole('button', { name: 'Previous' }));
     expect(onPrevious).toHaveBeenCalledTimes(1);
@@ -55,7 +55,7 @@ describe('Pagination UX (COM-48)', () => {
     const onNext = vi.fn();
     const onPrevious = vi.fn();
     render(
-      <Pagination offset={20} limit={20} hasNext={false} onNext={onNext} onPrevious={onPrevious} />
+      <Pagination offset={20} limit={20} hasNext={false} onNext={onNext} onPrevious={onPrevious} />,
     );
     const nextBtn = screen.getByRole('button', { name: 'Next' });
     expect(nextBtn).toBeDisabled();
@@ -65,7 +65,7 @@ describe('Pagination UX (COM-48)', () => {
     const onNext = vi.fn();
     const onPrevious = vi.fn();
     render(
-      <Pagination offset={0} limit={20} hasNext={true} onNext={onNext} onPrevious={onPrevious} />
+      <Pagination offset={0} limit={20} hasNext={true} onNext={onNext} onPrevious={onPrevious} />,
     );
     const prevBtn = screen.getByRole('button', { name: 'Previous' });
     expect(prevBtn).toBeDisabled();
@@ -75,7 +75,7 @@ describe('Pagination UX (COM-48)', () => {
     const onNext = vi.fn();
     const onPrevious = vi.fn();
     render(
-      <Pagination offset={20} limit={20} hasNext={true} onNext={onNext} onPrevious={onPrevious} />
+      <Pagination offset={20} limit={20} hasNext={true} onNext={onNext} onPrevious={onPrevious} />,
     );
     expect(screen.getByText('Page 2')).toBeInTheDocument();
   });

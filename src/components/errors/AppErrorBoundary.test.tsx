@@ -23,7 +23,9 @@ describe('AppErrorBoundary', () => {
       </AppErrorBoundary>,
     );
 
-    expect(screen.getByRole('heading', { name: 'Career Companion needs to restart' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Career Companion needs to restart' }),
+    ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument();
   });
 

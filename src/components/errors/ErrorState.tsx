@@ -67,7 +67,9 @@ export function ErrorState({
             <div className="border-t border-border-default p-4 text-xs text-text-secondary">
               <p className="break-words">{details.message}</p>
               {details.stack && (
-                <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap break-words font-mono">{details.stack}</pre>
+                <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap break-words font-mono">
+                  {details.stack}
+                </pre>
               )}
             </div>
           </details>

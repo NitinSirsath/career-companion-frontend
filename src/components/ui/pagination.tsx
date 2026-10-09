@@ -1,4 +1,3 @@
-
 import { Button } from './button';
 
 interface PaginationProps {
@@ -15,23 +14,11 @@ export function Pagination({ offset, limit, hasNext, onPrevious, onNext }: Pagin
 
   return (
     <div className="flex items-center justify-between border-t border-border pt-4 mt-6">
-      <Button 
-        variant="outline" 
-        size="sm" 
-        onClick={onPrevious} 
-        disabled={isFirstPage}
-      >
+      <Button variant="outline" size="sm" onClick={onPrevious} disabled={isFirstPage}>
         Previous
       </Button>
-      <span className="text-sm text-muted-foreground">
-        Page {currentPage}
-      </span>
-      <Button 
-        variant="outline" 
-        size="sm" 
-        onClick={onNext} 
-        disabled={!hasNext}
-      >
+      <span className="text-sm text-muted-foreground">Page {currentPage}</span>
+      <Button variant="outline" size="sm" onClick={onNext} disabled={!hasNext}>
         Next
       </Button>
     </div>

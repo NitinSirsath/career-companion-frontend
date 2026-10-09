@@ -55,7 +55,9 @@ describe('RouteErrorPage', () => {
     render(<RouterProvider router={router} />);
 
     expect(await screen.findByRole('navigation', { name: 'Test navigation' })).toBeInTheDocument();
-    expect(await screen.findByRole('heading', { name: 'Something went wrong' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'Something went wrong' }),
+    ).toBeInTheDocument();
     expect(screen.queryByText('render failure')).not.toBeInTheDocument();
 
     shouldThrow = false;
@@ -92,7 +94,9 @@ describe('RouteErrorPage', () => {
 
     render(<RouterProvider router={router} />);
 
-    expect(await screen.findByRole('heading', { name: 'Something went wrong' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'Something went wrong' }),
+    ).toBeInTheDocument();
     expect(screen.queryByText('loader failure')).not.toBeInTheDocument();
   });
 });

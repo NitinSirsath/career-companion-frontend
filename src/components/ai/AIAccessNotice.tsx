@@ -12,7 +12,11 @@ export function AIAccessNotice() {
   const copy = data ? accessCopy(data) : null;
   if (!copy) return null;
   return (
-    <section role="status" aria-label="AI status" className="border border-status-warning bg-status-warning-subtle p-4 space-y-1">
+    <section
+      role="status"
+      aria-label="AI status"
+      className="border border-status-warning bg-status-warning-subtle p-4 space-y-1"
+    >
       <p className="font-medium">{copy.title}</p>
       <p className="text-sm">{copy.detail}</p>
       <p className="flex flex-wrap gap-4 text-sm">

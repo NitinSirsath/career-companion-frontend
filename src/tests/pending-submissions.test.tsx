@@ -18,7 +18,9 @@ vi.mock('../api/client', async (importOriginal) => {
     api: {
       getGmailStatus: vi.fn(),
       listApplications: vi.fn(),
-      getActions: vi.fn(), getWorkspaceActions: vi.fn(), getWorkspaceReview: vi.fn(),
+      getActions: vi.fn(),
+      getWorkspaceActions: vi.fn(),
+      getWorkspaceReview: vi.fn(),
       getAmbiguousEmails: vi.fn(),
       getUnmatchedEmails: vi.fn(),
       getPendingSubmissions: vi.fn(),
@@ -30,7 +32,10 @@ vi.mock('../api/client', async (importOriginal) => {
 
 import { routeTree } from '../routeTree.gen';
 
-const page = <T,>(items: T[], nextOffset: number | null = null) => ({ items, metadata: { limit: 20, offset: 0, nextOffset } });
+const page = <T,>(items: T[], nextOffset: number | null = null) => ({
+  items,
+  metadata: { limit: 20, offset: 0, nextOffset },
+});
 const submission = (overrides: Partial<PendingSubmission> = {}): PendingSubmission => ({
   id: 's1',
   sourceRecordRef: '2026-10-01/10:00:00',
@@ -55,20 +60,30 @@ const apps = [
 
 function renderDashboard() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  const router = createRouter({ routeTree, history: createMemoryHistory({ initialEntries: ['/'] }), context: { user: { id: 'u', email: 't@test.local', name: 'T' } } });
+  const router = createRouter({
+    routeTree,
+    history: createMemoryHistory({ initialEntries: ['/'] }),
+    context: { user: { id: 'u', email: 't@test.local', name: 'T' } },
+  });
   render(
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
     </QueryClientProvider>,
   );
 }
-const card = async (name = 'Submission: Acme Inc. — Backend Engineer') => within(await screen.findByRole('article', { name }));
+const card = async (name = 'Submission: Acme Inc. — Backend Engineer') =>
+  within(await screen.findByRole('article', { name }));
 
 beforeEach(() => {
   cleanup();
   vi.clearAllMocks();
   vi.mocked(api.getWorkspaceActions).mockResolvedValue(workspacePage());
-  vi.mocked(api.getWorkspaceReview).mockResolvedValue({ generatedAt: new Date().toISOString(), unmatched: 0, ambiguous: 0, pendingSubmissions: 0 });
+  vi.mocked(api.getWorkspaceReview).mockResolvedValue({
+    generatedAt: new Date().toISOString(),
+    unmatched: 0,
+    ambiguous: 0,
+    pendingSubmissions: 0,
+  });
   vi.mocked(api.getGmailStatus).mockResolvedValue({ connected: false } as never);
   vi.mocked(api.getAISettings).mockRejectedValue(new ApiError('n/a', 'http', 404));
   vi.mocked(api.listApplications).mockResolvedValue(page(apps));
@@ -82,13 +97,28 @@ afterEach(() => vi.restoreAllMocks());
 describe('pending submissions panel', () => {
   it('lists submissions with a count and the reported fields as plain text', async () => {
     vi.mocked(api.getPendingSubmissions).mockResolvedValue(
-      page([submission(), submission({ id: 's2', company: '<img src=x onerror=alert(1)>', jobTitle: 'QA', confirmationText: '<script>x</script>' })], 20),
+      page(
+        [
+          submission(),
+          submission({
+            id: 's2',
+            company: '<img src=x onerror=alert(1)>',
+            jobTitle: 'QA',
+            confirmationText: '<script>x</script>',
+          }),
+        ],
+        20,
+      ),
     );
     renderDashboard();
-    const heading = await screen.findByRole('heading', { name: /Automation submissions to review/ });
+    const heading = await screen.findByRole('heading', {
+      name: /Automation submissions to review/,
+    });
     expect(heading).toHaveTextContent('2+');
     const first = await card();
-    expect(first.getByText(/Workday · acme\.wd1\.myworkdayjobs\.com · Pune · hybrid/)).toBeInTheDocument();
+    expect(
+      first.getByText(/Workday · acme\.wd1\.myworkdayjobs\.com · Pune · hybrid/),
+    ).toBeInTheDocument();
     expect(first.getByText('Thank you for applying')).toBeInTheDocument();
     const second = await card('Submission: <img src=x onerror=alert(1)> — QA');
     expect(second.getByText('<img src=x onerror=alert(1)> — QA')).toBeInTheDocument();
@@ -111,7 +141,11 @@ describe('pending submissions panel', () => {
   });
 
   it('links to a chosen application with an explicit Link button (keyboard friendly)', async () => {
-    vi.mocked(api.resolveSubmission).mockResolvedValue({ id: 's1', matchState: 'LINKED', applicationId: 'a2' });
+    vi.mocked(api.resolveSubmission).mockResolvedValue({
+      id: 's1',
+      matchState: 'LINKED',
+      applicationId: 'a2',
+    });
     renderDashboard();
     const c = await card();
     const select = c.getByRole('combobox', { name: 'Link to an existing application' });
@@ -121,7 +155,12 @@ describe('pending submissions panel', () => {
     expect(api.resolveSubmission).not.toHaveBeenCalled(); // choosing never submits by itself
     expect(linkButton).toBeEnabled();
     fireEvent.click(linkButton);
-    await waitFor(() => expect(api.resolveSubmission).toHaveBeenCalledWith('s1', { action: 'link', applicationId: 'a2' }));
+    await waitFor(() =>
+      expect(api.resolveSubmission).toHaveBeenCalledWith('s1', {
+        action: 'link',
+        applicationId: 'a2',
+      }),
+    );
     await waitFor(() => expect(api.getPendingSubmissions).toHaveBeenCalledTimes(2));
   });
 
@@ -129,7 +168,11 @@ describe('pending submissions panel', () => {
     ['Create application', { action: 'create' }],
     ['Ignore', { action: 'ignore' }],
   ])('%s resolves with %j', async (label, request) => {
-    vi.mocked(api.resolveSubmission).mockResolvedValue({ id: 's1', matchState: 'CREATED', applicationId: 'new' });
+    vi.mocked(api.resolveSubmission).mockResolvedValue({
+      id: 's1',
+      matchState: 'CREATED',
+      applicationId: 'new',
+    });
     renderDashboard();
     fireEvent.click((await card()).getByRole('button', { name: label }));
     await waitFor(() => expect(api.resolveSubmission).toHaveBeenCalledWith('s1', request));
@@ -145,7 +188,9 @@ describe('pending submissions panel', () => {
   });
 
   it('explains a submission that was already resolved elsewhere', async () => {
-    vi.mocked(api.resolveSubmission).mockRejectedValue(new ApiError('Not resolvable', 'http', 400, 'BAD_REQUEST'));
+    vi.mocked(api.resolveSubmission).mockRejectedValue(
+      new ApiError('Not resolvable', 'http', 400, 'BAD_REQUEST'),
+    );
     renderDashboard();
     fireEvent.click((await card()).getByRole('button', { name: 'Create application' }));
     expect(await screen.findByText(/already resolved/)).toBeInTheDocument();
@@ -156,6 +201,8 @@ describe('pending submissions panel', () => {
     renderDashboard();
     await screen.findByRole('heading', { name: 'Dashboard' });
     await waitFor(() => expect(api.getPendingSubmissions).toHaveBeenCalled());
-    expect(screen.queryByRole('heading', { name: /Automation submissions to review/ })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: /Automation submissions to review/ }),
+    ).not.toBeInTheDocument();
   });
 });

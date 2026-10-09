@@ -3,8 +3,10 @@ import { Badge } from './ui/badge';
 import type { ApplicationResponse, ApplicationStatus } from '../contracts/application';
 import { STATUS_LABEL } from '../lib/statusLabels';
 
-
-const VARIANT: Record<ApplicationStatus, 'secondary' | 'info' | 'warning' | 'success' | 'destructive' | 'outline'> = {
+const VARIANT: Record<
+  ApplicationStatus,
+  'secondary' | 'info' | 'warning' | 'success' | 'destructive' | 'outline'
+> = {
   APPLIED: 'secondary',
   RECRUITER_CONTACT: 'info',
   ASSESSMENT: 'warning',
@@ -20,14 +22,24 @@ export function StatusBadge({ status }: { status: ApplicationStatus | null }) {
   return <Badge variant={VARIANT[status]}>{STATUS_LABEL[status]}</Badge>;
 }
 
-const SOURCE_LABEL = { USER: 'Set by you', AI: 'Inferred by AI', UNKNOWN: 'No status yet' } as const;
+const SOURCE_LABEL = {
+  USER: 'Set by you',
+  AI: 'Inferred by AI',
+  UNKNOWN: 'No status yet',
+} as const;
 
 /**
  * Effective status with provenance, shared by list and detail. The 'Applied · via automation'
  * badge appears only without user/AI status (ADR-0002 decision 8). Once status exists, it wins
  * the badge while a separate source label retains the submission fact.
  */
-export function EffectiveStatus({ app, detailed = false }: { app: ApplicationResponse; detailed?: boolean }) {
+export function EffectiveStatus({
+  app,
+  detailed = false,
+}: {
+  app: ApplicationResponse;
+  detailed?: boolean;
+}) {
   const viaAutomation = app.statusSource === 'UNKNOWN' && app.submittedVia === 'AUTOMATION';
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -50,7 +62,9 @@ export function EffectiveStatus({ app, detailed = false }: { app: ApplicationRes
         </span>
       )}
       {app.hasStatusConflict && app.aiStatus && (
-        <span className="text-xs text-text-secondary">· AI suggests {STATUS_LABEL[app.aiStatus]}</span>
+        <span className="text-xs text-text-secondary">
+          · AI suggests {STATUS_LABEL[app.aiStatus]}
+        </span>
       )}
     </div>
   );

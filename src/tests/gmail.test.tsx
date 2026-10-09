@@ -13,7 +13,7 @@ vi.mock('../api/client', () => ({
     getMessages: vi.fn(),
     triggerSync: vi.fn(),
     disconnectGmail: vi.fn(),
-  }
+  },
 }));
 
 import { routeTree } from '../routeTree.gen';
@@ -37,7 +37,7 @@ describe('Gmail Route', () => {
     queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     });
-    
+
     // Mock window.location.href
     delete (window as any).location;
     window.location = { href: '' } as any;
@@ -48,31 +48,60 @@ describe('Gmail Route', () => {
     return render(
       <QueryClientProvider client={queryClient}>
         <RouterProvider router={router} />
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
   }
 
-  it.each([null, undefined, { from: '2026-01-01T12:00:00Z', until: '2026-01-15T12:00:00Z' }])('shows only a recorded capped gap: %s', async (unscannedGap) => {
-    vi.mocked(api.getGmailStatus).mockResolvedValue({ connected: true, gmailEmail: 'user@gmail.com', status: 'CONNECTED', syncStatus: 'IDLE', lastSyncedAt: null, unscannedGap });
-    vi.mocked(api.getMessages).mockResolvedValue({ items: [], metadata: { limit: 20, offset: 0, nextOffset: null } });
-    renderWithProviders();
-    await screen.findByText('Email Sync');
-    if (unscannedGap) {
-      const notice = screen.getByText(/Mail received between/);
-      expect(notice).toHaveTextContent('Jan 1, 2026');
-      expect(notice).toHaveTextContent('Jan 15, 2026');
-      expect(notice).not.toHaveAttribute('role', 'alert');
-    } else expect(screen.queryByText(/Mail received between/)).not.toBeInTheDocument();
-    expect(screen.getByText(/each sync covers everything since the last successful sync/)).toBeInTheDocument();
-  });
+  it.each([null, undefined, { from: '2026-01-01T12:00:00Z', until: '2026-01-15T12:00:00Z' }])(
+    'shows only a recorded capped gap: %s',
+    async (unscannedGap) => {
+      vi.mocked(api.getGmailStatus).mockResolvedValue({
+        connected: true,
+        gmailEmail: 'user@gmail.com',
+        status: 'CONNECTED',
+        syncStatus: 'IDLE',
+        lastSyncedAt: null,
+        unscannedGap,
+      });
+      vi.mocked(api.getMessages).mockResolvedValue({
+        items: [],
+        metadata: { limit: 20, offset: 0, nextOffset: null },
+      });
+      renderWithProviders();
+      await screen.findByText('Email Sync');
+      if (unscannedGap) {
+        const notice = screen.getByText(/Mail received between/);
+        expect(notice).toHaveTextContent('Jan 1, 2026');
+        expect(notice).toHaveTextContent('Jan 15, 2026');
+        expect(notice).not.toHaveAttribute('role', 'alert');
+      } else expect(screen.queryByText(/Mail received between/)).not.toBeInTheDocument();
+      expect(
+        screen.getByText(/each sync covers everything since the last successful sync/),
+      ).toBeInTheDocument();
+    },
+  );
 
-  it.each([null, undefined, '2026-10-03T12:30:00Z'])('shows the next automatic sync or off: %s', async nextScheduledSyncAt => {
-    vi.mocked(api.getGmailStatus).mockResolvedValue({ connected: true, gmailEmail: 'user@gmail.com', status: 'CONNECTED', syncStatus: 'IDLE', lastSyncedAt: null, nextScheduledSyncAt });
-    vi.mocked(api.getMessages).mockResolvedValue({ items: [], metadata: { limit: 20, offset: 0, nextOffset: null } });
-    renderWithProviders();
-    if (nextScheduledSyncAt) expect(await screen.findByText(/Next automatic sync:/)).toBeInTheDocument();
-    else expect(await screen.findByText('Automatic sync is off.')).toBeInTheDocument();
-  });
+  it.each([null, undefined, '2026-10-03T12:30:00Z'])(
+    'shows the next automatic sync or off: %s',
+    async (nextScheduledSyncAt) => {
+      vi.mocked(api.getGmailStatus).mockResolvedValue({
+        connected: true,
+        gmailEmail: 'user@gmail.com',
+        status: 'CONNECTED',
+        syncStatus: 'IDLE',
+        lastSyncedAt: null,
+        nextScheduledSyncAt,
+      });
+      vi.mocked(api.getMessages).mockResolvedValue({
+        items: [],
+        metadata: { limit: 20, offset: 0, nextOffset: null },
+      });
+      renderWithProviders();
+      if (nextScheduledSyncAt)
+        expect(await screen.findByText(/Next automatic sync:/)).toBeInTheDocument();
+      else expect(await screen.findByText('Automatic sync is off.')).toBeInTheDocument();
+    },
+  );
 
   it('renders "not connected" state correctly', async () => {
     vi.mocked(api.getGmailStatus).mockResolvedValue({
@@ -102,7 +131,7 @@ describe('Gmail Route', () => {
 
     vi.mocked(api.getMessages).mockResolvedValue({
       items: [],
-      metadata: { limit: 20, offset: 0, nextOffset: null }
+      metadata: { limit: 20, offset: 0, nextOffset: null },
     });
 
     renderWithProviders();
@@ -141,7 +170,9 @@ describe('Gmail Route', () => {
 
     renderWithProviders('/gmail?gmailError=denied');
 
-    expect(await screen.findByText('Gmail connection did not complete. Please try again.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Gmail connection did not complete. Please try again.'),
+    ).toBeInTheDocument();
   });
 
   it('waits for background status after a sync is accepted', async () => {
@@ -155,11 +186,10 @@ describe('Gmail Route', () => {
 
     vi.mocked(api.getMessages).mockResolvedValue({
       items: [],
-      metadata: { limit: 20, offset: 0, nextOffset: null }
+      metadata: { limit: 20, offset: 0, nextOffset: null },
     });
 
     vi.mocked(api.triggerSync).mockResolvedValue({ accepted: true });
-
 
     renderWithProviders();
 
@@ -182,7 +212,7 @@ describe('Gmail Route', () => {
 
     vi.mocked(api.getMessages).mockResolvedValue({
       items: [],
-      metadata: { limit: 20, offset: 0, nextOffset: null }
+      metadata: { limit: 20, offset: 0, nextOffset: null },
     });
 
     renderWithProviders();
@@ -193,7 +223,7 @@ describe('Gmail Route', () => {
     // 2. Setup triggerSync to fail (simulate timeout or 409)
     vi.mocked(api.triggerSync).mockRejectedValue(new Error('A sync is already in progress'));
 
-    // Setup the SUBSEQUENT getGmailStatus to return IDLE 
+    // Setup the SUBSEQUENT getGmailStatus to return IDLE
     // (meaning the backend finally finished, and we want to ensure the UI recovers)
     vi.mocked(api.getGmailStatus).mockResolvedValue({
       connected: true,
@@ -207,8 +237,10 @@ describe('Gmail Route', () => {
     fireEvent.click(syncButton);
 
     // 4. Verify it recovers and shows error
-    expect(await screen.findByText('Error syncing: A sync is already in progress')).toBeInTheDocument();
-    
+    expect(
+      await screen.findByText('Error syncing: A sync is already in progress'),
+    ).toBeInTheDocument();
+
     // 5. Verify the button is re-enabled because onSettled invalidated the query and fetched IDLE
     expect(await screen.findByRole('button', { name: 'Sync Now' })).not.toBeDisabled();
   });
@@ -243,22 +275,26 @@ describe('Gmail Route', () => {
           receivedAt: new Date().toISOString(),
           relevanceState: 'UNPROCESSED',
           matchState: 'UNMATCHED',
-        }
+        },
       ],
-      metadata: { limit: 50, offset: 0, nextOffset: null }
+      metadata: { limit: 50, offset: 0, nextOffset: null },
     });
 
     renderWithProviders();
 
     // The first email should be a link
-    const link = await screen.findByRole('link', { name: /Open email "Email with threadId" in Gmail/i });
+    const link = await screen.findByRole('link', {
+      name: /Open email "Email with threadId" in Gmail/i,
+    });
     expect(link).toHaveAttribute('href', 'https://mail.google.com/mail/u/0/#all/thread-123');
     expect(link).toHaveAttribute('target', '_blank');
     expect(link).toHaveAttribute('rel', 'noopener noreferrer');
 
     // The second email should NOT be a link (just text)
     expect(screen.getByText('Email without threadId')).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: /Open email "Email without threadId" in Gmail/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: /Open email "Email without threadId" in Gmail/i }),
+    ).not.toBeInTheDocument();
   });
 
   it('switches between Job Related and Irrelevant tabs and filters correctly', async () => {
@@ -286,9 +322,9 @@ describe('Gmail Route', () => {
             processingState: 'COMPLETED',
             relevanceState: 'RELEVANT',
             matchState: 'UNMATCHED',
-          }
+          },
         ],
-        metadata: { limit: 20, offset: 0, nextOffset: null }
+        metadata: { limit: 20, offset: 0, nextOffset: null },
       };
     });
 
@@ -296,7 +332,11 @@ describe('Gmail Route', () => {
 
     // Default tab should be job_related and show the job alert
     expect(await screen.findByText('Job Alert')).toBeInTheDocument();
-    expect(api.getMessages).toHaveBeenCalledWith({ limit: 20, offset: 0, relevance: 'job_related' });
+    expect(api.getMessages).toHaveBeenCalledWith({
+      limit: 20,
+      offset: 0,
+      relevance: 'job_related',
+    });
 
     // Switch to irrelevant tab
     const irrelevantTab = screen.getByRole('button', { name: /Irrelevant/i });

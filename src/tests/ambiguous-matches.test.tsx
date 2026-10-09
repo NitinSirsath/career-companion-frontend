@@ -23,7 +23,7 @@ function renderWithProviders(queryClient: QueryClient, initialPath: string) {
   return render(
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
-    </QueryClientProvider>
+    </QueryClientProvider>,
   );
 }
 
@@ -34,24 +34,25 @@ vi.mock('../api/client', () => ({
     createApplication: vi.fn(),
     getAmbiguousEmails: vi.fn(),
     resolveAmbiguousEmail: vi.fn(),
-  }
+  },
 }));
 
-const makeApp = (overrides?: Partial<ApplicationResponse>): ApplicationResponse => makeApplication({
-  id: 'app-1',
-  companyName: 'Acme Corp',
-  jobTitle: 'Senior Engineer',
-  location: 'Remote',
-  aiStatus: 'APPLIED',
-  userStatus: null,
-  userStatusSetAt: null,
-  appliedAt: '2026-01-15T10:00:00.000Z',
-  createdAt: '2026-01-15T10:00:00.000Z',
-  updatedAt: '2026-01-15T10:00:00.000Z',
-  recentEvent: null,
-  pendingActionCount: 0,
-  ...overrides,
-});
+const makeApp = (overrides?: Partial<ApplicationResponse>): ApplicationResponse =>
+  makeApplication({
+    id: 'app-1',
+    companyName: 'Acme Corp',
+    jobTitle: 'Senior Engineer',
+    location: 'Remote',
+    aiStatus: 'APPLIED',
+    userStatus: null,
+    userStatusSetAt: null,
+    appliedAt: '2026-01-15T10:00:00.000Z',
+    createdAt: '2026-01-15T10:00:00.000Z',
+    updatedAt: '2026-01-15T10:00:00.000Z',
+    recentEvent: null,
+    pendingActionCount: 0,
+    ...overrides,
+  });
 
 describe('Ambiguous Matches (COM-32)', () => {
   let queryClient: QueryClient;
@@ -68,30 +69,36 @@ describe('Ambiguous Matches (COM-32)', () => {
   });
 
   it('renders ambiguous matches when present', async () => {
-    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 20, offset: 0, nextOffset: null } });
-    vi.mocked(api.getAmbiguousEmails).mockResolvedValue({ items: [
-      {
-        id: 'email-1',
-        sender: 'recruiter@tech.com',
-        subject: 'Next steps',
-        receivedAt: '2026-01-16T10:00:00Z',
-        aiProcessingResult: {
-          companyName: 'Tech Co',
-          jobTitle: null,
-          confidence: 0.5,
-          category: 'INTERVIEW',
-          provider: 'gemini',
-          model: 'gemini-2.5-flash',
-        }
-      }
-    ], metadata: { limit: 20, offset: 0, nextOffset: null } });
+    vi.mocked(api.listApplications).mockResolvedValue({
+      items: [makeApp()],
+      metadata: { limit: 20, offset: 0, nextOffset: null },
+    });
+    vi.mocked(api.getAmbiguousEmails).mockResolvedValue({
+      items: [
+        {
+          id: 'email-1',
+          sender: 'recruiter@tech.com',
+          subject: 'Next steps',
+          receivedAt: '2026-01-16T10:00:00Z',
+          aiProcessingResult: {
+            companyName: 'Tech Co',
+            jobTitle: null,
+            confidence: 0.5,
+            category: 'INTERVIEW',
+            provider: 'gemini',
+            model: 'gemini-2.5-flash',
+          },
+        },
+      ],
+      metadata: { limit: 20, offset: 0, nextOffset: null },
+    });
 
     renderWithProviders(queryClient, '/');
 
     expect(await screen.findByText('Needs Review')).toBeInTheDocument();
     expect(screen.getByText('recruiter@tech.com')).toBeInTheDocument();
     expect(screen.getByText('Next steps')).toBeInTheDocument();
-    
+
     // Candidate applications render
     expect(screen.getByRole('option', { name: /Acme Corp/ })).toBeInTheDocument();
     // Ignore button renders
@@ -99,21 +106,29 @@ describe('Ambiguous Matches (COM-32)', () => {
   });
 
   it('submits resolution request successfully to an application', async () => {
-    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 20, offset: 0, nextOffset: null } });
-    vi.mocked(api.getAmbiguousEmails).mockResolvedValue({ items: [
-      {
-        id: 'email-1',
-        sender: 'recruiter@tech.com',
-        subject: 'Next steps',
-        receivedAt: '2026-01-16T10:00:00Z',
-        aiProcessingResult: null
-      }
-    ], metadata: { limit: 20, offset: 0, nextOffset: null } });
+    vi.mocked(api.listApplications).mockResolvedValue({
+      items: [makeApp()],
+      metadata: { limit: 20, offset: 0, nextOffset: null },
+    });
+    vi.mocked(api.getAmbiguousEmails).mockResolvedValue({
+      items: [
+        {
+          id: 'email-1',
+          sender: 'recruiter@tech.com',
+          subject: 'Next steps',
+          receivedAt: '2026-01-16T10:00:00Z',
+          aiProcessingResult: null,
+        },
+      ],
+      metadata: { limit: 20, offset: 0, nextOffset: null },
+    });
     vi.mocked(api.resolveAmbiguousEmail).mockResolvedValue({ success: true });
 
     renderWithProviders(queryClient, '/');
 
-    const selectDropdown = await screen.findByRole('combobox', { name: /Select application to link/i });
+    const selectDropdown = await screen.findByRole('combobox', {
+      name: /Select application to link/i,
+    });
     fireEvent.change(selectDropdown, { target: { value: 'app-1' } });
 
     await waitFor(() => {
@@ -122,16 +137,22 @@ describe('Ambiguous Matches (COM-32)', () => {
   });
 
   it('submits resolution request successfully as not related (null)', async () => {
-    vi.mocked(api.listApplications).mockResolvedValue({ items: [makeApp()], metadata: { limit: 20, offset: 0, nextOffset: null } });
-    vi.mocked(api.getAmbiguousEmails).mockResolvedValue({ items: [
-      {
-        id: 'email-1',
-        sender: 'recruiter@tech.com',
-        subject: 'Next steps',
-        receivedAt: '2026-01-16T10:00:00Z',
-        aiProcessingResult: null
-      }
-    ], metadata: { limit: 20, offset: 0, nextOffset: null } });
+    vi.mocked(api.listApplications).mockResolvedValue({
+      items: [makeApp()],
+      metadata: { limit: 20, offset: 0, nextOffset: null },
+    });
+    vi.mocked(api.getAmbiguousEmails).mockResolvedValue({
+      items: [
+        {
+          id: 'email-1',
+          sender: 'recruiter@tech.com',
+          subject: 'Next steps',
+          receivedAt: '2026-01-16T10:00:00Z',
+          aiProcessingResult: null,
+        },
+      ],
+      metadata: { limit: 20, offset: 0, nextOffset: null },
+    });
     vi.mocked(api.resolveAmbiguousEmail).mockResolvedValue({ success: true });
 
     renderWithProviders(queryClient, '/');

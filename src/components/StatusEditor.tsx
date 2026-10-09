@@ -72,7 +72,10 @@ export function StatusEditor({
   const reconcile = async (applicationId: string) => {
     setPhase({ kind: 'reconciling' });
     try {
-      await queryClient.fetchQuery({ ...applicationQueryOptions(queryClient, applicationId), staleTime: 0 });
+      await queryClient.fetchQuery({
+        ...applicationQueryOptions(queryClient, applicationId),
+        staleTime: 0,
+      });
       setPhase({ kind: 'review' });
     } catch {
       setPhase({ kind: 'unknown' });
@@ -157,9 +160,13 @@ export function StatusEditor({
           Change status
         </Button>
         {!canEdit && (
-          <p className="text-xs text-text-secondary">Editing is unavailable until this application loads correctly.</p>
+          <p className="text-xs text-text-secondary">
+            Editing is unavailable until this application loads correctly.
+          </p>
         )}
-        <p className="sr-only" role="status" aria-live="polite">{announcement}</p>
+        <p className="sr-only" role="status" aria-live="polite">
+          {announcement}
+        </p>
       </div>
     );
   }
@@ -169,7 +176,9 @@ export function StatusEditor({
     mutation.isPending ||
     !canEdit ||
     ['conflict', 'reconciling', 'review', 'unknown', 'unavailable'].includes(phase.kind);
-  const current = application.userStatus ? STATUS_LABEL[application.userStatus] : 'none (using AI status)';
+  const current = application.userStatus
+    ? STATUS_LABEL[application.userStatus]
+    : 'none (using AI status)';
   const aiLabel = application.aiStatus ? STATUS_LABEL[application.aiStatus] : 'unknown';
 
   return (
@@ -196,12 +205,15 @@ export function StatusEditor({
           onChange={(e) =>
             setSession({
               ...session,
-              draft: e.target.value === CLEAR ? null : ApplicationStatusSchema.parse(e.target.value),
+              draft:
+                e.target.value === CLEAR ? null : ApplicationStatusSchema.parse(e.target.value),
             })
           }
         >
           {ApplicationStatusSchema.options.map((status) => (
-            <option key={status} value={status}>{STATUS_LABEL[status]}</option>
+            <option key={status} value={status}>
+              {STATUS_LABEL[status]}
+            </option>
           ))}
           <option value={CLEAR}>Use AI status (clear my status)</option>
         </NativeSelect>
@@ -216,24 +228,31 @@ export function StatusEditor({
         {phase.kind === 'reconciling' && <p>Checking whether your change was saved…</p>}
       </div>
       <div role="alert" className="text-sm space-y-2">
-        {phase.kind === 'editing' && phase.message && <p className="text-status-error">{phase.message}</p>}
+        {phase.kind === 'editing' && phase.message && (
+          <p className="text-status-error">{phase.message}</p>
+        )}
         {phase.kind === 'editing' && stale && (
-          <p>This status changed after you started editing (now: {current}). Saving will be rejected until you review it.</p>
+          <p>
+            This status changed after you started editing (now: {current}). Saving will be rejected
+            until you review it.
+          </p>
         )}
         {phase.kind === 'conflict' && (
           <p>
-            This status was changed elsewhere, for example in another tab. Current status: {current}.
-            Your selection is kept. Review it, then choose “Use current version” to continue.
+            This status was changed elsewhere, for example in another tab. Current status: {current}
+            . Your selection is kept. Review it, then choose “Use current version” to continue.
           </p>
         )}
         {phase.kind === 'review' && (
           <p>
-            We couldn't confirm whether your change was saved. Current status: {current}. Review it, then
-            choose “Use current version” before saving again.
+            We couldn't confirm whether your change was saved. Current status: {current}. Review it,
+            then choose “Use current version” before saving again.
           </p>
         )}
         {phase.kind === 'unknown' && (
-          <p className="text-status-error">Save outcome unknown. The current status could not be loaded.</p>
+          <p className="text-status-error">
+            Save outcome unknown. The current status could not be loaded.
+          </p>
         )}
         {phase.kind === 'unavailable' && (
           <p className="text-status-error">This application is no longer available.</p>
@@ -256,11 +275,22 @@ export function StatusEditor({
           </Button>
         )}
         {phase.kind === 'unknown' && (
-          <Button type="button" size="sm" variant="tertiary" onClick={() => void reconcile(session.applicationId)}>
+          <Button
+            type="button"
+            size="sm"
+            variant="tertiary"
+            onClick={() => void reconcile(session.applicationId)}
+          >
             Retry loading status
           </Button>
         )}
-        <Button type="button" size="sm" variant="ghost" onClick={() => close()} disabled={mutation.isPending}>
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          onClick={() => close()}
+          disabled={mutation.isPending}
+        >
           Cancel
         </Button>
       </div>

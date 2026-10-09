@@ -7,7 +7,11 @@ import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/rea
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { api } from '../api/client';
 import { EffectiveStatus } from '../components/ApplicationStatus';
-import { ApplicationStatusSchema, ApplicationResponseSchema, type ApplicationStatus } from '../contracts/application';
+import {
+  ApplicationStatusSchema,
+  ApplicationResponseSchema,
+  type ApplicationStatus,
+} from '../contracts/application';
 import { makeApplication, makeEvent } from './fixtures';
 
 vi.mock('../api/client', () => ({
@@ -56,7 +60,13 @@ const automationEvent = makeEvent({
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(api.getGmailStatus).mockResolvedValue({ connected: false, gmailEmail: null, status: 'NOT_CONNECTED', syncStatus: 'IDLE', lastSyncedAt: null } as never);
+  vi.mocked(api.getGmailStatus).mockResolvedValue({
+    connected: false,
+    gmailEmail: null,
+    status: 'NOT_CONNECTED',
+    syncStatus: 'IDLE',
+    lastSyncedAt: null,
+  } as never);
 });
 afterEach(cleanup);
 
@@ -73,42 +83,70 @@ describe('status precedence with submittedVia', () => {
   it('keeps the plain unknown status without an automation submission', () => {
     render(<EffectiveStatus app={makeApplication({ submittedVia: null })} />);
     expect(screen.getByText('Status unknown')).toBeInTheDocument();
-    expect(screen.queryByText('Application Submitted', { selector: 'div' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('Application Submitted', { selector: 'div' }),
+    ).not.toBeInTheDocument();
   });
 
   it.each(statuses)('an AI status (%s) always wins over submittedVia', (status) => {
-    render(<EffectiveStatus app={makeApplication({ aiStatus: status, submittedVia: 'AUTOMATION' })} />);
+    render(
+      <EffectiveStatus app={makeApplication({ aiStatus: status, submittedVia: 'AUTOMATION' })} />,
+    );
     expect(screen.getByText('Inferred by AI')).toBeInTheDocument();
-    expect(screen.queryByText('Application Submitted', { selector: 'div' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('Application Submitted', { selector: 'div' }),
+    ).not.toBeInTheDocument();
     expect(screen.getAllByText('Submitted via automation')).toHaveLength(1);
   });
 
-  it.each(statuses)('a user status (%s) always wins over submittedVia, with or without AI', (status) => {
-    render(
-      <>
-        <EffectiveStatus app={makeApplication({ userStatus: status, submittedVia: 'AUTOMATION' })} />
-        <EffectiveStatus app={makeApplication({ userStatus: status, aiStatus: 'INTERVIEW', submittedVia: 'AUTOMATION' })} />
-      </>,
-    );
-    expect(screen.getAllByText('Set by you')).toHaveLength(2);
-    expect(screen.queryByText('Application Submitted', { selector: 'div' })).not.toBeInTheDocument();
-    expect(screen.getAllByText('Submitted via automation')).toHaveLength(2);
-  });
+  it.each(statuses)(
+    'a user status (%s) always wins over submittedVia, with or without AI',
+    (status) => {
+      render(
+        <>
+          <EffectiveStatus
+            app={makeApplication({ userStatus: status, submittedVia: 'AUTOMATION' })}
+          />
+          <EffectiveStatus
+            app={makeApplication({
+              userStatus: status,
+              aiStatus: 'INTERVIEW',
+              submittedVia: 'AUTOMATION',
+            })}
+          />
+        </>,
+      );
+      expect(screen.getAllByText('Set by you')).toHaveLength(2);
+      expect(
+        screen.queryByText('Application Submitted', { selector: 'div' }),
+      ).not.toBeInTheDocument();
+      expect(screen.getAllByText('Submitted via automation')).toHaveLength(2);
+    },
+  );
 });
 
 describe('timeline', () => {
   it('renders the automation event as "Submitted via automation", never as AI or email evidence', async () => {
-    vi.mocked(api.getApplication).mockResolvedValue(makeApplication({ submittedVia: 'AUTOMATION' }));
-    vi.mocked(api.getApplicationEvents).mockResolvedValue(page([automationEvent, makeEvent({ id: 'evt-email', description: null })]));
+    vi.mocked(api.getApplication).mockResolvedValue(
+      makeApplication({ submittedVia: 'AUTOMATION' }),
+    );
+    vi.mocked(api.getApplicationEvents).mockResolvedValue(
+      page([automationEvent, makeEvent({ id: 'evt-email', description: null })]),
+    );
     vi.mocked(api.getApplicationActions).mockResolvedValue(page([]));
     renderRoute('/applications/app-1');
 
     const title = await screen.findByText('Submitted via automation');
     const item = title.closest('li')!;
     const scope = within(item);
-    expect(scope.getByText(/Reported by your automation · Company site · jobs\.lever\.co/)).toBeInTheDocument();
+    expect(
+      scope.getByText(/Reported by your automation · Company site · jobs\.lever\.co/),
+    ).toBeInTheDocument();
     // Submission time and recording time are labelled separately.
-    const times = [...item.querySelectorAll('time')].map((t) => [t.parentElement!.textContent!.split(' ')[0], t.getAttribute('dateTime')]);
+    const times = [...item.querySelectorAll('time')].map((t) => [
+      t.parentElement!.textContent!.split(' ')[0],
+      t.getAttribute('dateTime'),
+    ]);
     expect(times).toEqual([
       ['Recorded', '2026-10-02T09:00:00.000Z'],
       ['Submitted', '2026-10-01T03:00:00.000Z'],
@@ -125,7 +163,9 @@ describe('timeline', () => {
 
   it('says when submission details are unavailable', async () => {
     vi.mocked(api.getApplication).mockResolvedValue(makeApplication());
-    vi.mocked(api.getApplicationEvents).mockResolvedValue(page([{ ...automationEvent, sourceSubmission: null }]));
+    vi.mocked(api.getApplicationEvents).mockResolvedValue(
+      page([{ ...automationEvent, sourceSubmission: null }]),
+    );
     vi.mocked(api.getApplicationActions).mockResolvedValue(page([]));
     renderRoute('/applications/app-1');
     expect(await screen.findByText('Submission details unavailable')).toBeInTheDocument();

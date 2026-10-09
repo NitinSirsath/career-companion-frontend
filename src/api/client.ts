@@ -1,7 +1,16 @@
 import type { CreateFollowUp, EditFollowUp, SnoozeAction } from '../contracts/action';
 import type { ArchiveApplication } from '../contracts/application';
-import { AgendaResponseSchema, AgendaItemSchema, type AgendaQuery, type UpdateAgenda } from '../contracts/agenda';
-import { WorkspaceActionsResponseSchema, WorkspaceReviewResponseSchema, type WorkspaceBucket } from '../contracts/workspace';
+import {
+  AgendaResponseSchema,
+  AgendaItemSchema,
+  type AgendaQuery,
+  type UpdateAgenda,
+} from '../contracts/agenda';
+import {
+  WorkspaceActionsResponseSchema,
+  WorkspaceReviewResponseSchema,
+  type WorkspaceBucket,
+} from '../contracts/workspace';
 import { GmailStatusResponseSchema } from '../contracts/gmail';
 import type { ApplicationFilters } from '../contracts/application';
 import { CorrectEmailMatchResponseSchema, type CorrectEmailMatchRequest } from '../contracts/email';
@@ -92,7 +101,6 @@ export class ApiClient {
     this.defaultHeaders = {
       'Content-Type': 'application/json',
     };
-    
   }
 
   private async request<T>(
@@ -153,17 +161,28 @@ export class ApiClient {
         body = await response.json();
       } catch (err) {
         if (timedOut || external?.aborted) throw err;
-        throw new ApiError('The server returned an unexpected response.', 'contract', response.status);
+        throw new ApiError(
+          'The server returned an unexpected response.',
+          'contract',
+          response.status,
+        );
       }
       if (!schema) return body as T;
       const parsed = schema.safeParse(body);
       // Never echo the payload: it may contain application or email metadata.
       if (!parsed.success)
-        throw new ApiError('The server returned an unexpected response.', 'contract', response.status);
+        throw new ApiError(
+          'The server returned an unexpected response.',
+          'contract',
+          response.status,
+        );
       return parsed.data;
     } catch (err) {
       if (timedOut)
-        throw new ApiError('The request timed out. Check your connection and try again.', 'timeout');
+        throw new ApiError(
+          'The request timed out. Check your connection and try again.',
+          'timeout',
+        );
       throw err;
     } finally {
       clearTimeout(timer);
@@ -233,7 +252,11 @@ export class ApiClient {
 
   /** Fetch timeline events for one application, in recording order. */
   async correctEmailMatch(emailId: string, body: CorrectEmailMatchRequest) {
-    return this.request(`/api/emails/${emailId}/match`, { method: 'PATCH', body: JSON.stringify(body) }, CorrectEmailMatchResponseSchema);
+    return this.request(
+      `/api/emails/${emailId}/match`,
+      { method: 'PATCH', body: JSON.stringify(body) },
+      CorrectEmailMatchResponseSchema,
+    );
   }
 
   async getApplicationEvents(
@@ -249,26 +272,39 @@ export class ApiClient {
   }
 
   /** Fetch actions for one application. */
-  async getApplicationActions(applicationId: string, params: { offset?: number; limit?: number } = {}, options?: RequestOptions): Promise<ListApplicationActionsResponse> {
+  async getApplicationActions(
+    applicationId: string,
+    params: { offset?: number; limit?: number } = {},
+    options?: RequestOptions,
+  ): Promise<ListApplicationActionsResponse> {
     return this.request<ListApplicationActionsResponse>(
       `/api/applications/${applicationId}/actions?offset=${params.offset ?? 0}&limit=${params.limit ?? 20}`,
-      { method: 'GET', signal: options?.signal }
+      { method: 'GET', signal: options?.signal },
     );
   }
 
   // --- Email Ambiguity (COM-32) ---
 
-  async getAmbiguousEmails(params?: { limit?: number; offset?: number }): Promise<PaginatedResponse<AmbiguousMatchResponse>> {
+  async getAmbiguousEmails(params?: {
+    limit?: number;
+    offset?: number;
+  }): Promise<PaginatedResponse<AmbiguousMatchResponse>> {
     const urlParams = new URLSearchParams();
     if (params?.limit !== undefined) urlParams.append('limit', params.limit.toString());
     if (params?.offset !== undefined) urlParams.append('offset', params.offset.toString());
     const q = urlParams.toString();
-    return this.request<PaginatedResponse<AmbiguousMatchResponse>>(`/api/emails/ambiguous${q ? '?' + q : ''}`, {
-      method: 'GET',
-    });
+    return this.request<PaginatedResponse<AmbiguousMatchResponse>>(
+      `/api/emails/ambiguous${q ? '?' + q : ''}`,
+      {
+        method: 'GET',
+      },
+    );
   }
 
-  async resolveAmbiguousEmail(emailId: string, data: ResolveAmbiguityRequest): Promise<{ success: boolean }> {
+  async resolveAmbiguousEmail(
+    emailId: string,
+    data: ResolveAmbiguityRequest,
+  ): Promise<{ success: boolean }> {
     return this.request<{ success: boolean }>(`/api/emails/${emailId}/resolve`, {
       method: 'POST',
       body: JSON.stringify(data),
@@ -277,17 +313,26 @@ export class ApiClient {
 
   // --- Unmatched Emails (COM-36) ---
 
-  async getUnmatchedEmails(params?: { limit?: number; offset?: number }): Promise<PaginatedResponse<AmbiguousMatchResponse>> {
+  async getUnmatchedEmails(params?: {
+    limit?: number;
+    offset?: number;
+  }): Promise<PaginatedResponse<AmbiguousMatchResponse>> {
     const urlParams = new URLSearchParams();
     if (params?.limit !== undefined) urlParams.append('limit', params.limit.toString());
     if (params?.offset !== undefined) urlParams.append('offset', params.offset.toString());
     const q = urlParams.toString();
-    return this.request<PaginatedResponse<AmbiguousMatchResponse>>(`/api/emails/unmatched${q ? '?' + q : ''}`, {
-      method: 'GET',
-    });
+    return this.request<PaginatedResponse<AmbiguousMatchResponse>>(
+      `/api/emails/unmatched${q ? '?' + q : ''}`,
+      {
+        method: 'GET',
+      },
+    );
   }
 
-  async resolveUnmatchedEmail(emailId: string, data: { applicationId: string }): Promise<{ success: boolean }> {
+  async resolveUnmatchedEmail(
+    emailId: string,
+    data: { applicationId: string },
+  ): Promise<{ success: boolean }> {
     return this.request<{ success: boolean }>(`/api/emails/${emailId}/resolve`, {
       method: 'POST',
       body: JSON.stringify(data),
@@ -371,7 +416,9 @@ export class ApiClient {
    * through a cached mutation, and keep the result only in component state: TanStack's caches keep
    * results, and the token must not be kept anywhere in the browser. Never retried automatically.
    */
-  async createIntegrationToken(data: CreateIntegrationTokenRequest): Promise<CreateIntegrationTokenResponse> {
+  async createIntegrationToken(
+    data: CreateIntegrationTokenRequest,
+  ): Promise<CreateIntegrationTokenResponse> {
     return this.request(
       '/api/integration-tokens',
       { method: 'POST', body: JSON.stringify(data) },
@@ -380,7 +427,11 @@ export class ApiClient {
   }
 
   async revokeIntegrationToken(id: string): Promise<IntegrationToken> {
-    return this.request(`/api/integration-tokens/${id}`, { method: 'DELETE' }, IntegrationTokenSchema);
+    return this.request(
+      `/api/integration-tokens/${id}`,
+      { method: 'DELETE' },
+      IntegrationTokenSchema,
+    );
   }
 
   async getPendingSubmissions(
@@ -395,7 +446,10 @@ export class ApiClient {
   }
 
   /** Final; never retried automatically by callers. */
-  async resolveSubmission(id: string, data: ResolveSubmissionRequest): Promise<ResolveSubmissionResponse> {
+  async resolveSubmission(
+    id: string,
+    data: ResolveSubmissionRequest,
+  ): Promise<ResolveSubmissionResponse> {
     return this.request(
       `/api/submissions/${id}/resolve`,
       { method: 'POST', body: JSON.stringify(data) },
@@ -405,79 +459,155 @@ export class ApiClient {
 
   // --- Action Management (COM-33) ---
 
-  async getActions(status?: string, params?: { limit?: number; offset?: number }): Promise<PaginatedResponse<ActionWithContextResponse>> {
+  async getActions(
+    status?: string,
+    params?: { limit?: number; offset?: number },
+  ): Promise<PaginatedResponse<ActionWithContextResponse>> {
     const urlParams = new URLSearchParams();
     if (status) urlParams.append('status', status);
     if (params?.limit !== undefined) urlParams.append('limit', params.limit.toString());
     if (params?.offset !== undefined) urlParams.append('offset', params.offset.toString());
     const q = urlParams.toString();
-    return this.request<PaginatedResponse<ActionWithContextResponse>>(`/api/actions${q ? '?' + q : ''}`, {
-      method: 'GET',
-    });
+    return this.request<PaginatedResponse<ActionWithContextResponse>>(
+      `/api/actions${q ? '?' + q : ''}`,
+      {
+        method: 'GET',
+      },
+    );
   }
 
-  async updateAction(actionId: string, data: UpdateActionRequest): Promise<ActionWithContextResponse> {
-    const result = await this.request(`/api/actions/${actionId}`, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    }, ActionWithContextResponseSchema);
-    if (result.id !== actionId) throw new ApiError('The server returned an unexpected response.', 'contract', 200);
+  async updateAction(
+    actionId: string,
+    data: UpdateActionRequest,
+  ): Promise<ActionWithContextResponse> {
+    const result = await this.request(
+      `/api/actions/${actionId}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      },
+      ActionWithContextResponseSchema,
+    );
+    if (result.id !== actionId)
+      throw new ApiError('The server returned an unexpected response.', 'contract', 200);
     return result;
   }
 
   async createFollowUp(applicationId: string, data: CreateFollowUp) {
-    const row = await this.request(`/api/applications/${applicationId}/actions`, { method: 'POST', body: JSON.stringify(data) }, ActionWithContextResponseSchema);
-    if (row.applicationId !== applicationId || row.clientRequestId !== data.clientRequestId) throw new ApiError('Unexpected receipt.', 'contract', 201);
+    const row = await this.request(
+      `/api/applications/${applicationId}/actions`,
+      { method: 'POST', body: JSON.stringify(data) },
+      ActionWithContextResponseSchema,
+    );
+    if (row.applicationId !== applicationId || row.clientRequestId !== data.clientRequestId)
+      throw new ApiError('Unexpected receipt.', 'contract', 201);
     return row;
   }
   async followUpByRequest(id: string) {
-    const row = await this.request(`/api/actions/by-request/${id}`, { method: 'GET' }, ActionWithContextResponseSchema);
+    const row = await this.request(
+      `/api/actions/by-request/${id}`,
+      { method: 'GET' },
+      ActionWithContextResponseSchema,
+    );
     if (row.clientRequestId !== id) throw new ApiError('Unexpected receipt.', 'contract', 200);
     return row;
   }
   async editFollowUp(id: string, data: EditFollowUp) {
-    const row = await this.request(`/api/actions/${id}/personal`, { method: 'PATCH', body: JSON.stringify(data) }, ActionWithContextResponseSchema);
+    const row = await this.request(
+      `/api/actions/${id}/personal`,
+      { method: 'PATCH', body: JSON.stringify(data) },
+      ActionWithContextResponseSchema,
+    );
     if (row.id !== id) throw new ApiError('Unexpected action.', 'contract', 200);
     return row;
   }
   async snoozeAction(id: string, data: SnoozeAction) {
-    const row = await this.request(`/api/actions/${id}/snooze`, { method: 'PATCH', body: JSON.stringify(data) }, ActionWithContextResponseSchema);
+    const row = await this.request(
+      `/api/actions/${id}/snooze`,
+      { method: 'PATCH', body: JSON.stringify(data) },
+      ActionWithContextResponseSchema,
+    );
     if (row.id !== id) throw new ApiError('Unexpected action.', 'contract', 200);
     return row;
   }
   async archiveApplication(id: string, data: ArchiveApplication) {
-    const row = await this.request(`/api/applications/${id}/archive`, { method: 'PATCH', body: JSON.stringify(data) }, ApplicationResponseSchema);
+    const row = await this.request(
+      `/api/applications/${id}/archive`,
+      { method: 'PATCH', body: JSON.stringify(data) },
+      ApplicationResponseSchema,
+    );
     if (row.id !== id) throw new ApiError('Unexpected application.', 'contract', 200);
     return row;
   }
-  async getAgenda(params: Pick<AgendaQuery, 'view'|'timeZone'> & { archive?: 'active'|'archived'|'all' } & { limit: number; offset: number }, options?: RequestOptions) {
-    const query = new URLSearchParams({ ...params, limit: String(params.limit), offset: String(params.offset) });
-    return this.request(`/api/agenda?${query}`, { method: 'GET', signal: options?.signal }, AgendaResponseSchema);
+  async getAgenda(
+    params: Pick<AgendaQuery, 'view' | 'timeZone'> & { archive?: 'active' | 'archived' | 'all' } & {
+      limit: number;
+      offset: number;
+    },
+    options?: RequestOptions,
+  ) {
+    const query = new URLSearchParams({
+      ...params,
+      limit: String(params.limit),
+      offset: String(params.offset),
+    });
+    return this.request(
+      `/api/agenda?${query}`,
+      { method: 'GET', signal: options?.signal },
+      AgendaResponseSchema,
+    );
   }
   async updateAgenda(id: string, data: UpdateAgenda) {
-    const result = await this.request(`/api/agenda/${id}`, { method: 'PATCH', body: JSON.stringify(data) }, AgendaItemSchema);
-    if (result.id !== id) throw new ApiError('The server returned an unexpected response.', 'contract', 200);
+    const result = await this.request(
+      `/api/agenda/${id}`,
+      { method: 'PATCH', body: JSON.stringify(data) },
+      AgendaItemSchema,
+    );
+    if (result.id !== id)
+      throw new ApiError('The server returned an unexpected response.', 'contract', 200);
     return result;
   }
 
   // --- Gmail Integration (COM-21) ---
 
-  async getWorkspaceActions(params: { bucket: WorkspaceBucket; timeZone: string; limit: number; offset: number }, options?: RequestOptions) {
-    const query = new URLSearchParams({ ...params, limit: String(params.limit), offset: String(params.offset) });
-    return this.request(`/api/workspace/actions?${query}`, { method: 'GET', signal: options?.signal }, WorkspaceActionsResponseSchema);
+  async getWorkspaceActions(
+    params: { bucket: WorkspaceBucket; timeZone: string; limit: number; offset: number },
+    options?: RequestOptions,
+  ) {
+    const query = new URLSearchParams({
+      ...params,
+      limit: String(params.limit),
+      offset: String(params.offset),
+    });
+    return this.request(
+      `/api/workspace/actions?${query}`,
+      { method: 'GET', signal: options?.signal },
+      WorkspaceActionsResponseSchema,
+    );
   }
 
   async getWorkspaceReview(options?: RequestOptions) {
-    return this.request('/api/workspace/review-summary', { method: 'GET', signal: options?.signal }, WorkspaceReviewResponseSchema);
+    return this.request(
+      '/api/workspace/review-summary',
+      { method: 'GET', signal: options?.signal },
+      WorkspaceReviewResponseSchema,
+    );
   }
 
   async getGmailStatus(options?: { signal?: AbortSignal }): Promise<GmailStatusResponse> {
-    return this.request('/api/gmail/status', { method: 'GET', signal: options?.signal }, GmailStatusResponseSchema.extend({ lastSyncedAt: z.iso.datetime({ offset: true }).nullable() }));
+    return this.request(
+      '/api/gmail/status',
+      { method: 'GET', signal: options?.signal },
+      GmailStatusResponseSchema.extend({
+        lastSyncedAt: z.iso.datetime({ offset: true }).nullable(),
+      }),
+    );
   }
 
-  
-  async updateGmailSettings(settings: { syncLookbackDays: number }): Promise<{ success: boolean, syncLookbackDays: number }> {
-    return this.request<{ success: boolean, syncLookbackDays: number }>('/api/gmail/settings', {
+  async updateGmailSettings(settings: {
+    syncLookbackDays: number;
+  }): Promise<{ success: boolean; syncLookbackDays: number }> {
+    return this.request<{ success: boolean; syncLookbackDays: number }>('/api/gmail/settings', {
       method: 'PATCH',
       body: JSON.stringify(settings),
     });
@@ -489,15 +619,19 @@ export class ApiClient {
     });
   }
 
-  async getMessages(params?: { limit?: number; offset?: number; relevance?: string }): Promise<MessagesListResponse> {
+  async getMessages(params?: {
+    limit?: number;
+    offset?: number;
+    relevance?: string;
+  }): Promise<MessagesListResponse> {
     const urlParams = new URLSearchParams();
     if (params?.limit !== undefined) urlParams.append('limit', params.limit.toString());
     if (params?.offset !== undefined) urlParams.append('offset', params.offset.toString());
     if (params?.relevance !== undefined) urlParams.append('relevance', params.relevance);
-    
+
     const queryString = urlParams.toString();
     const endpoint = `/api/gmail/messages${queryString ? `?${queryString}` : ''}`;
-    
+
     return this.get<MessagesListResponse>(endpoint);
   }
 

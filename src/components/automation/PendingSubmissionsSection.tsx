@@ -28,7 +28,12 @@ function SubmissionCard({
 }) {
   const [applicationId, setApplicationId] = useState('');
   const jobUrl = safeHttpUrl(submission.jobUrl);
-  const where = [platformLabel(submission.platform), submission.destinationHost, submission.location, submission.workMode].filter(Boolean);
+  const where = [
+    platformLabel(submission.platform),
+    submission.destinationHost,
+    submission.location,
+    submission.workMode,
+  ].filter(Boolean);
   const selectId = `link-${submission.id}`;
   return (
     <article
@@ -42,8 +47,9 @@ function SubmissionCard({
           </p>
           <p className="text-xs text-text-secondary">{where.join(' · ')}</p>
           <p className="text-xs text-text-secondary">
-            Submitted <time dateTime={submission.submittedAt}>{dateTime(submission.submittedAt)}</time> · Recorded{' '}
-            <time dateTime={submission.receivedAt}>{dateTime(submission.receivedAt)}</time>
+            Submitted{' '}
+            <time dateTime={submission.submittedAt}>{dateTime(submission.submittedAt)}</time> ·
+            Recorded <time dateTime={submission.receivedAt}>{dateTime(submission.receivedAt)}</time>
           </p>
           {submission.confirmationText && (
             <p className="text-xs">
@@ -52,7 +58,12 @@ function SubmissionCard({
             </p>
           )}
           {jobUrl && (
-            <a href={jobUrl} target="_blank" rel="noopener noreferrer" className="text-xs underline text-action-primary">
+            <a
+              href={jobUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs underline text-action-primary"
+            >
               Open job posting
             </a>
           )}
@@ -86,10 +97,20 @@ function SubmissionCard({
               Link
             </Button>
           </div>
-          <Button size="sm" variant="secondary" disabled={disabled} onClick={() => onResolve({ action: 'create' })}>
+          <Button
+            size="sm"
+            variant="secondary"
+            disabled={disabled}
+            onClick={() => onResolve({ action: 'create' })}
+          >
             Create application
           </Button>
-          <Button size="sm" variant="tertiary" disabled={disabled} onClick={() => onResolve({ action: 'ignore' })}>
+          <Button
+            size="sm"
+            variant="tertiary"
+            disabled={disabled}
+            onClick={() => onResolve({ action: 'ignore' })}
+          >
             Ignore
           </Button>
         </div>
@@ -102,7 +123,11 @@ function SubmissionCard({
  * Automation submissions that Career Companion could not match with certainty (ADR-0002 decision 7).
  * Resolution is final. An uncertain outcome refreshes the list and is never resent automatically.
  */
-export function PendingSubmissionsSection({ applications }: { applications: ApplicationResponse[] }) {
+export function PendingSubmissionsSection({
+  applications,
+}: {
+  applications: ApplicationResponse[];
+}) {
   const queryClient = useQueryClient();
   const [offset, setOffset] = useState(0);
   const [notice, setNotice] = useState<string | null>(null);
@@ -112,7 +137,8 @@ export function PendingSubmissionsSection({ applications }: { applications: Appl
     queryFn: ({ signal }) => api.getPendingSubmissions({ offset, limit }, { signal }),
   });
   const resolve = useMutation({
-    mutationFn: ({ id, request }: { id: string; request: ResolveSubmissionRequest }) => api.resolveSubmission(id, request),
+    mutationFn: ({ id, request }: { id: string; request: ResolveSubmissionRequest }) =>
+      api.resolveSubmission(id, request),
     retry: false, // never replay a resolution automatically
     onMutate: () => setNotice(null),
     onSuccess: () => {
@@ -122,7 +148,9 @@ export function PendingSubmissionsSection({ applications }: { applications: Appl
     },
     onError: (err) => {
       if (isApiError(err) && err.outcomeUncertain)
-        setNotice('We could not confirm whether this was saved. The list has been refreshed: check it before trying again.');
+        setNotice(
+          'We could not confirm whether this was saved. The list has been refreshed: check it before trying again.',
+        );
       else if (isApiError(err) && err.code === 'BAD_REQUEST')
         setNotice('This submission was already resolved. The list has been refreshed.');
       else setNotice(`Could not resolve the submission: ${err.message}`);
@@ -143,9 +171,12 @@ export function PendingSubmissionsSection({ applications }: { applications: Appl
         Automation submissions to review <Badge variant="secondary">{count}</Badge>
       </h3>
       <p className="text-xs text-text-secondary">
-        Your automation reported these applications, but Career Companion could not match them with certainty. If the application is archived, restore it before linking.
+        Your automation reported these applications, but Career Companion could not match them with
+        certainty. If the application is archived, restore it before linking.
       </p>
-      <Link to="/applications" className="text-sm underline">Find and restore applications using the Archived filter</Link>
+      <Link to="/applications" className="text-sm underline">
+        Find and restore applications using the Archived filter
+      </Link>
       {notice && (
         <p role="alert" className="text-sm">
           {notice}

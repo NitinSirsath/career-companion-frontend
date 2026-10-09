@@ -4,7 +4,10 @@ import { modelName, providerName } from '../../lib/aiLabels';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 
-const OPERATION = { classification: 'Relevance check', extraction: 'Detail extraction' } as Record<string, string>;
+const OPERATION = { classification: 'Relevance check', extraction: 'Detail extraction' } as Record<
+  string,
+  string
+>;
 const REASON = {
   OUTCOME_UNKNOWN: 'its outcome is unknown, so it may already have been processed and charged',
   INVALID_OUTPUT: 'it returned a result Career Companion could not use',
@@ -29,7 +32,9 @@ export function RetryAnywayDialog({
   onCancel: () => void;
 }) {
   const current = details?.currentProvider ?? null;
-  const switched = details?.operations.some((op) => op.provider && current && op.provider !== current);
+  const switched = details?.operations.some(
+    (op) => op.provider && current && op.provider !== current,
+  );
   return (
     <Dialog open={!!details} onOpenChange={(open) => !open && onCancel()}>
       <DialogContent>
@@ -42,19 +47,22 @@ export function RetryAnywayDialog({
               {details.operations.map((op) => (
                 <li key={op.operation}>
                   {OPERATION[op.operation] ?? op.operation}
-                  {op.provider ? ` was sent to ${providerName(op.provider)} · ${modelName(op.provider, op.model)}` : ''}
-                  {op.attemptedAt ? ` on ${format(new Date(op.attemptedAt), 'MMM d, h:mm a')}` : ''}: {REASON[op.reason]}.
+                  {op.provider
+                    ? ` was sent to ${providerName(op.provider)} · ${modelName(op.provider, op.model)}`
+                    : ''}
+                  {op.attemptedAt ? ` on ${format(new Date(op.attemptedAt), 'MMM d, h:mm a')}` : ''}
+                  : {REASON[op.reason]}.
                 </li>
               ))}
             </ul>
             <p>
-              Retrying makes one more AI call on your {providerName(current)} account, which may be charged again.
-              Career Companion never retries this on its own.
+              Retrying makes one more AI call on your {providerName(current)} account, which may be
+              charged again. Career Companion never retries this on its own.
             </p>
             {switched && (
               <p className="font-medium">
-                This retry uses {providerName(current)}, not the provider used before. The email will be sent to{' '}
-                {providerName(current)}.
+                This retry uses {providerName(current)}, not the provider used before. The email
+                will be sent to {providerName(current)}.
               </p>
             )}
             {problem && (
