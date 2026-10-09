@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
   /* Legacy/Existing tokens mapped to new semantic variables */
@@ -22,7 +22,7 @@
   --color-info: var(--status-info);
 
   /* New Semantic System */
-  
+
   /* Surfaces */
   --color-surface: var(--surface);
   --color-surface-subtle: var(--surface-subtle);
@@ -63,7 +63,7 @@
   --color-status-neutral: var(--status-neutral);
   --color-status-neutral-subtle: var(--status-neutral-subtle);
 
-  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
   --radius: 0px;
   --radius-sm: 0px;
   --radius-md: 0px;
@@ -72,7 +72,8 @@
 }
 
 @layer base {
-  :root, .theme-light {
+  :root,
+  .theme-light {
     --background: #ffffff;
     --surface: #ffffff;
     --surface-subtle: #f4f4f4;
@@ -109,7 +110,7 @@
     --status-neutral: #525252;
     --status-neutral-subtle: #e0e0e0;
   }
-  
+
   .theme-dark {
     --background: #161616;
     --surface: #262626;
@@ -269,5 +270,4 @@
     color: var(--text-primary);
     font-family: var(--font-sans);
   }
-  
 }

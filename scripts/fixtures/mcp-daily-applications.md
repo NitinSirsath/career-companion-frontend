@@ -11,6 +11,7 @@ Answers below are fixture text and must never reach Career Companion.
 -->
 
 ### 09:15:00 — Fabrikam — Backend Engineer
+
 - Platform: company_direct
 - Application destination: careers.fabrikam.example
 - Company: Fabrikam
@@ -26,6 +27,7 @@ Answers below are fixture text and must never reach Career Companion.
 - Confirmation: Thank you for applying to Fabrikam.
 
 ### 09:32:10 — Northwind Traders Ltd. — Data Engineer
+
 - Platform: linkedin
 - Application destination: www.linkedin.com
 - Company: Northwind Traders Ltd.
@@ -41,6 +43,7 @@ Answers below are fixture text and must never reach Career Companion.
 - Confirmation: Your application was sent to Northwind Traders.
 
 ### 10:05:45 — Contoso — Frontend Engineer
+
 - Platform: workday
 - Application destination: contoso.wd1.myworkdayjobs.example
 - Company: Contoso
@@ -56,6 +59,7 @@ Answers below are fixture text and must never reach Career Companion.
 - Confirmation: Application submitted.
 
 ### 10:20:00 — Skipped Labs — QA Engineer
+
 - Platform: indeed
 - Company: Skipped Labs
 - Job title: QA Engineer

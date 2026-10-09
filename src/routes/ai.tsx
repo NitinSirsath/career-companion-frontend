@@ -17,14 +17,19 @@ type View = { kind: 'status' } | { kind: 'choose' } | { kind: 'form'; providerId
 
 const SAVED_NOTE = {
   VERIFIED: 'Connected. Waiting emails are being processed.',
-  INCONCLUSIVE: 'Saved. The provider did not confirm right now; Career Companion will use it and show any problem here.',
+  INCONCLUSIVE:
+    'Saved. The provider did not confirm right now; Career Companion will use it and show any problem here.',
 } as const;
 
 /** AI provider settings: Career Companion's second account, next to the Gmail connection. */
 function AIProviderPage() {
   const [view, setView] = useState<View>({ kind: 'status' });
   const [savedNote, setSavedNote] = useState<string | null>(null);
-  const { data: settings, isLoading, error } = useQuery({
+  const {
+    data: settings,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['aiSettings'],
     queryFn: ({ signal }) => api.getAISettings({ signal }),
   });
@@ -41,8 +46,8 @@ function AIProviderPage() {
       <div>
         <h2 className="text-2xl font-semibold tracking-tight">AI provider</h2>
         <p className="text-sm text-text-secondary mt-1">
-          Career Companion uses your own AI account to read job emails. Your key is stored encrypted and never shown
-          again.
+          Career Companion uses your own AI account to read job emails. Your key is stored encrypted
+          and never shown again.
         </p>
       </div>
 
@@ -50,7 +55,10 @@ function AIProviderPage() {
       {error && <p role="alert">Could not load AI settings: {error.message}</p>}
 
       {savedNote && (
-        <p role="status" className="border border-status-success bg-status-success-subtle p-3 text-sm">
+        <p
+          role="status"
+          className="border border-status-success bg-status-success-subtle p-3 text-sm"
+        >
           {savedNote}
         </p>
       )}
@@ -61,9 +69,12 @@ function AIProviderPage() {
           provider={formProvider}
           settings={settings}
           onDone={(verification, waitingEmails) => {
-            const note = verification === 'VERIFIED'
-              ? (waitingEmails > 0 ? SAVED_NOTE.VERIFIED : 'Connected.')
-              : SAVED_NOTE.INCONCLUSIVE;
+            const note =
+              verification === 'VERIFIED'
+                ? waitingEmails > 0
+                  ? SAVED_NOTE.VERIFIED
+                  : 'Connected.'
+                : SAVED_NOTE.INCONCLUSIVE;
             setSavedNote(note);
             setView({ kind: 'status' });
           }}
@@ -82,8 +93,8 @@ function AIProviderPage() {
       {settings?.configured && view.kind === 'choose' && (
         <section aria-label="Switch provider" className="space-y-3">
           <p className="text-sm text-text-secondary">
-            Your current setup keeps working until the new key is verified. Emails already processed are not sent to the
-            new provider.
+            Your current setup keeps working until the new key is verified. Emails already processed
+            are not sent to the new provider.
           </p>
           <ProviderPicker
             providerIds={otherProviders}

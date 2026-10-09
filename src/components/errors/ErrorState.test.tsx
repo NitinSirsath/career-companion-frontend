@@ -14,13 +14,7 @@ describe('ErrorState', () => {
     vi.stubEnv('DEV', true);
     const error = new Error('secret failure');
 
-    render(
-      <ErrorState
-        title="Something went wrong"
-        message="Please try again."
-        error={error}
-      />,
-    );
+    render(<ErrorState title="Something went wrong" message="Please try again." error={error} />);
 
     expect(screen.getByText('Details')).toBeInTheDocument();
     expect(screen.getByText('secret failure')).toBeInTheDocument();
@@ -32,13 +26,7 @@ describe('ErrorState', () => {
     const error = new Error('secret failure');
     error.stack = 'Error: secret failure\n    at secret-source.ts:1:1';
 
-    render(
-      <ErrorState
-        title="Something went wrong"
-        message="Please try again."
-        error={error}
-      />,
-    );
+    render(<ErrorState title="Something went wrong" message="Please try again." error={error} />);
 
     expect(screen.queryByText('Details')).not.toBeInTheDocument();
     expect(screen.queryByText('secret failure')).not.toBeInTheDocument();

@@ -5,8 +5,13 @@ import type { AISettingsResponse } from '../contracts/ai';
 export const providerName = (id: string | null | undefined) =>
   (id && getCatalogProvider(id)?.displayName) || id || 'Your AI provider';
 
-export const modelName = (providerId: string | null | undefined, modelId: string | null | undefined) =>
-  (providerId && modelId && getCatalogProvider(providerId)?.models.find((m) => m.id === modelId)?.displayName) ||
+export const modelName = (
+  providerId: string | null | undefined,
+  modelId: string | null | undefined,
+) =>
+  (providerId &&
+    modelId &&
+    getCatalogProvider(providerId)?.models.find((m) => m.id === modelId)?.displayName) ||
   modelId ||
   'unknown model';
 
@@ -40,7 +45,9 @@ export function accessCopy(settings: AISettingsResponse): AccessCopy | null {
       return {
         title: `${name} rejected your API key`,
         detail: `Create a new key and replace it here.${waiting}`,
-        fix: links ? { label: `Get a ${name} API key`, href: links.apiKeys } : { label: 'Replace key', to: '/ai' },
+        fix: links
+          ? { label: `Get a ${name} API key`, href: links.apiKeys }
+          : { label: 'Replace key', to: '/ai' },
       };
     case 'ACCOUNT_OR_BILLING':
       return {
@@ -82,7 +89,10 @@ export function accessCopy(settings: AISettingsResponse): AccessCopy | null {
         detail: `Career Companion makes at most ${settings.safetyLimit.callsPerDay} AI calls a day for you. Processing continues after ${time(access.resumesAt)}; sync then to continue.${waiting}`,
       };
     case 'PAUSED':
-      return { title: 'AI processing is paused', detail: `Career Companion has paused AI processing for now.${waiting}` };
+      return {
+        title: 'AI processing is paused',
+        detail: `Career Companion has paused AI processing for now.${waiting}`,
+      };
     default:
       return {
         title: 'AI is not set up',

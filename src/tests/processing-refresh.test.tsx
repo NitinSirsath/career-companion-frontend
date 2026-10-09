@@ -19,16 +19,34 @@ vi.mock('../api/client', async (importOriginal) => {
   return {
     ...actual,
     api: {
-      getGmailStatus: vi.fn(), getMessages: vi.fn(), retryEmail: vi.fn(), triggerSync: vi.fn(),
-      listApplications: vi.fn(), getApplication: vi.fn(), getApplicationEvents: vi.fn(),
-      getApplicationActions: vi.fn(), getActions: vi.fn(), getWorkspaceActions: vi.fn(), getWorkspaceReview: vi.fn(), getAmbiguousEmails: vi.fn(), getUnmatchedEmails: vi.fn(), getPendingSubmissions: vi.fn(),
+      getGmailStatus: vi.fn(),
+      getMessages: vi.fn(),
+      retryEmail: vi.fn(),
+      triggerSync: vi.fn(),
+      listApplications: vi.fn(),
+      getApplication: vi.fn(),
+      getApplicationEvents: vi.fn(),
+      getApplicationActions: vi.fn(),
+      getActions: vi.fn(),
+      getWorkspaceActions: vi.fn(),
+      getWorkspaceReview: vi.fn(),
+      getAmbiguousEmails: vi.fn(),
+      getUnmatchedEmails: vi.fn(),
+      getPendingSubmissions: vi.fn(),
     },
   };
 });
 
-const page = <T,>(items: T[]): PaginatedResponse<T> => ({ items, metadata: { limit: 20, offset: 0, nextOffset: null } });
+const page = <T,>(items: T[]): PaginatedResponse<T> => ({
+  items,
+  metadata: { limit: 20, offset: 0, nextOffset: null },
+});
 const status = (lastSyncedAt: string | null): GmailStatusResponse => ({
-  connected: true, gmailEmail: 'user@gmail.com', status: 'CONNECTED', syncStatus: 'IDLE', lastSyncedAt,
+  connected: true,
+  gmailEmail: 'user@gmail.com',
+  status: 'CONNECTED',
+  syncStatus: 'IDLE',
+  lastSyncedAt,
 });
 const application = { id: 'app-1', companyName: 'Delayed Co' } as ApplicationResponse;
 
@@ -36,7 +54,12 @@ beforeEach(() => {
   vi.resetAllMocks();
   resetProcessingRefresh();
   vi.mocked(api.getWorkspaceActions).mockResolvedValue(workspacePage());
-  vi.mocked(api.getWorkspaceReview).mockResolvedValue({ generatedAt: new Date().toISOString(), unmatched: 0, ambiguous: 0, pendingSubmissions: 0 });
+  vi.mocked(api.getWorkspaceReview).mockResolvedValue({
+    generatedAt: new Date().toISOString(),
+    unmatched: 0,
+    ambiguous: 0,
+    pendingSubmissions: 0,
+  });
   vi.mocked(api.getGmailStatus).mockResolvedValue(status('2026-09-01T00:00:00.000Z'));
   vi.mocked(api.getMessages).mockResolvedValue(page([]));
   vi.mocked(api.getApplication).mockResolvedValue(application);
@@ -56,8 +79,16 @@ afterEach(() => {
 
 function show(path: string) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  const router = createRouter({ routeTree, history: createMemoryHistory({ initialEntries: [path] }), context: { user: { id: 'u', email: 'u@test.local', name: 'U' } } });
-  render(<QueryClientProvider client={queryClient}><RouterProvider router={router} /></QueryClientProvider>);
+  const router = createRouter({
+    routeTree,
+    history: createMemoryHistory({ initialEntries: [path] }),
+    context: { user: { id: 'u', email: 'u@test.local', name: 'U' } },
+  });
+  render(
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>,
+  );
   return { queryClient, router };
 }
 
@@ -75,7 +106,10 @@ describe('authenticated-shell bounded refresh', () => {
     await waitFor(() => expect(api.getGmailStatus).toHaveBeenCalled());
     const before = vi.mocked(api.getApplication).mock.calls.length;
     vi.mocked(api.getGmailStatus).mockResolvedValue(status('2026-09-02T00:00:00.000Z'));
-    vi.mocked(api.getApplication).mockResolvedValue({ ...application, companyName: 'Matched Later' });
+    vi.mocked(api.getApplication).mockResolvedValue({
+      ...application,
+      companyName: 'Matched Later',
+    });
     await act(() => queryClient.invalidateQueries({ queryKey: ['gmailStatus'] }));
     expect(await screen.findByRole('heading', { name: 'Matched Later' })).toBeInTheDocument();
     expect(vi.mocked(api.getApplication).mock.calls.length).toBeGreaterThan(before);
@@ -83,16 +117,34 @@ describe('authenticated-shell bounded refresh', () => {
   });
 
   it('opens a window after a manual retry whose response was lost', async () => {
-    vi.mocked(api.getMessages).mockResolvedValue(page([{
-      id: 'email-1', gmailMessageId: 'm', threadId: null, subject: 'Failed email', sender: 's', receivedAt: null,
-      relevanceState: 'UNPROCESSED', matchState: 'UNMATCHED', processingState: 'FAILED',
-      processingErrorDetails: 'AI provider rejected request', processingRetryable: false,
-    }]));
-    vi.mocked(api.retryEmail).mockRejectedValue(new Error('The request timed out. Check your connection and try again.'));
+    vi.mocked(api.getMessages).mockResolvedValue(
+      page([
+        {
+          id: 'email-1',
+          gmailMessageId: 'm',
+          threadId: null,
+          subject: 'Failed email',
+          sender: 's',
+          receivedAt: null,
+          relevanceState: 'UNPROCESSED',
+          matchState: 'UNMATCHED',
+          processingState: 'FAILED',
+          processingErrorDetails: 'AI provider rejected request',
+          processingRetryable: false,
+        },
+      ]),
+    );
+    vi.mocked(api.retryEmail).mockRejectedValue(
+      new Error('The request timed out. Check your connection and try again.'),
+    );
     show('/gmail');
     await screen.findByText('Failed email');
-    const trigger = document.querySelector('[data-state], button.cursor-help, .cursor-help') as HTMLElement;
-    fireEvent.mouseEnter(trigger); fireEvent.pointerEnter(trigger); fireEvent.focus(trigger);
+    const trigger = document.querySelector(
+      '[data-state], button.cursor-help, .cursor-help',
+    ) as HTMLElement;
+    fireEvent.mouseEnter(trigger);
+    fireEvent.pointerEnter(trigger);
+    fireEvent.focus(trigger);
     fireEvent.click(await screen.findByRole('button', { name: /Manual Retry/ }));
     expect(await screen.findByText(/Retry could not be confirmed/)).toBeInTheDocument();
     expect(getProcessingRefreshUntil()).toBeGreaterThan(Date.now());
@@ -100,7 +152,10 @@ describe('authenticated-shell bounded refresh', () => {
 
   it('refreshes status a minute after the next automatic slot without a hot loop', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    vi.mocked(api.getGmailStatus).mockResolvedValue({ ...status(null), nextScheduledSyncAt: new Date(Date.now() + 10000).toISOString() });
+    vi.mocked(api.getGmailStatus).mockResolvedValue({
+      ...status(null),
+      nextScheduledSyncAt: new Date(Date.now() + 10000).toISOString(),
+    });
     show('/applications/app-1');
     await screen.findByRole('heading', { name: 'Delayed Co' });
     const before = vi.mocked(api.getGmailStatus).mock.calls.length;
@@ -127,9 +182,17 @@ describe('authenticated-shell bounded refresh', () => {
 describe('bounded API client', () => {
   it('times out a hung request at the shared deadline', async () => {
     vi.useFakeTimers();
-    vi.stubGlobal('fetch', vi.fn((_url: string, init: RequestInit) => new Promise((_resolve, reject) => {
-      init.signal!.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')));
-    })));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        (_url: string, init: RequestInit) =>
+          new Promise((_resolve, reject) => {
+            init.signal!.addEventListener('abort', () =>
+              reject(new DOMException('aborted', 'AbortError')),
+            );
+          }),
+      ),
+    );
     const pending = new ApiClient().getApplication('app-1');
     const assertion = expect(pending).rejects.toThrow('The request timed out');
     await vi.advanceTimersByTimeAsync(REQUEST_TIMEOUT_MS);
@@ -139,10 +202,17 @@ describe('bounded API client', () => {
 
   it('forwards caller cancellation to fetch', async () => {
     let seen: AbortSignal | undefined;
-    vi.stubGlobal('fetch', vi.fn((_url: string, init: RequestInit) => {
-      seen = init.signal!;
-      return new Promise((_resolve, reject) => init.signal!.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError'))));
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((_url: string, init: RequestInit) => {
+        seen = init.signal!;
+        return new Promise((_resolve, reject) =>
+          init.signal!.addEventListener('abort', () =>
+            reject(new DOMException('aborted', 'AbortError')),
+          ),
+        );
+      }),
+    );
     const controller = new AbortController();
     const pending = new ApiClient().getGmailStatus({ signal: controller.signal });
     controller.abort();

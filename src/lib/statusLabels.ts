@@ -9,4 +9,3 @@ export const STATUS_LABEL: Record<ApplicationStatus, string> = {
   REJECTED: 'Rejected',
   CLOSED: 'Closed',
 };
-

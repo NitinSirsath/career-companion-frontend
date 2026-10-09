@@ -70,20 +70,29 @@ export function AIStatusPanel({
 
   const { usageToday: usage, models } = settings;
   return (
-    <section aria-label="AI provider status" className="border border-border-default bg-surface p-6 space-y-5">
+    <section
+      aria-label="AI provider status"
+      className="border border-border-default bg-surface p-6 space-y-5"
+    >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-lg font-semibold">{name}</h3>
           <p className="text-sm text-text-secondary">
-            {settings.access.verified ? 'Key verified' : 'Key saved, not yet confirmed by the provider'}
-            {settings.access.lastCheckedAt && ` · last checked ${format(new Date(settings.access.lastCheckedAt), 'MMM d, h:mm a')}`}
+            {settings.access.verified
+              ? 'Key verified'
+              : 'Key saved, not yet confirmed by the provider'}
+            {settings.access.lastCheckedAt &&
+              ` · last checked ${format(new Date(settings.access.lastCheckedAt), 'MMM d, h:mm a')}`}
           </p>
         </div>
         <Badge variant={badge.variant}>{badge.label}</Badge>
       </div>
 
       {copy && (
-        <div role="status" className="border border-status-warning bg-status-warning-subtle p-3 text-sm space-y-1">
+        <div
+          role="status"
+          className="border border-status-warning bg-status-warning-subtle p-3 text-sm space-y-1"
+        >
           <p className="font-medium">{copy.title}</p>
           <p>{copy.detail}</p>
           {copy.fix?.href && (
@@ -113,18 +122,21 @@ export function AIStatusPanel({
         )}
         <dt className="text-text-secondary">Today</dt>
         <dd>
-          Career Companion sent {usage.calls} AI {usage.calls === 1 ? 'call' : 'calls'} ({usage.inputTokens.toLocaleString()} input /{' '}
-          {usage.outputTokens.toLocaleString()} output tokens). Our own count, not your {name} bill.
+          Career Companion sent {usage.calls} AI {usage.calls === 1 ? 'call' : 'calls'} (
+          {usage.inputTokens.toLocaleString()} input / {usage.outputTokens.toLocaleString()} output
+          tokens). Our own count, not your {name} bill.
         </dd>
         <dt className="text-text-secondary">Safety limit</dt>
         <dd>
-          {settings.safetyLimit.callsPerDay} AI calls a day: Career Companion&apos;s safeguard, not {name}&apos;s quota.
+          {settings.safetyLimit.callsPerDay} AI calls a day: Career Companion&apos;s safeguard, not{' '}
+          {name}&apos;s quota.
         </dd>
         {settings.waitingEmails > 0 && (
           <>
             <dt className="text-text-secondary">Waiting</dt>
             <dd>
-              {settings.waitingEmails} {settings.waitingEmails === 1 ? 'email' : 'emails'} waiting for AI.{' '}
+              {settings.waitingEmails} {settings.waitingEmails === 1 ? 'email' : 'emails'} waiting
+              for AI.{' '}
               <Link to="/gmail" className="underline">
                 Sync Gmail
               </Link>{' '}
@@ -165,8 +177,8 @@ export function AIStatusPanel({
             <DialogTitle>Remove your {name} key?</DialogTitle>
           </DialogHeader>
           <p className="text-sm">
-            New emails will wait until you set up AI again. Emails and applications already processed stay. You can also
-            revoke the key with {name}.
+            New emails will wait until you set up AI again. Emails and applications already
+            processed stay. You can also revoke the key with {name}.
           </p>
           {remove.isError && (
             <p role="alert" className="text-sm text-status-error">
@@ -174,7 +186,11 @@ export function AIStatusPanel({
             </p>
           )}
           <DialogFooter>
-            <Button variant="tertiary" onClick={() => setRemoving(false)} disabled={remove.isPending}>
+            <Button
+              variant="tertiary"
+              onClick={() => setRemoving(false)}
+              disabled={remove.isPending}
+            >
               Cancel
             </Button>
             <Button variant="danger" onClick={() => remove.mutate()} disabled={remove.isPending}>

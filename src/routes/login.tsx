@@ -21,7 +21,8 @@ function Login() {
 
   const getErrorMessage = (errCode: string) => {
     if (errCode === 'denied') return 'You denied the sign-in request. Please try again.';
-    if (errCode === 'csrf') return 'Your session expired or was invalid. Please try signing in again.';
+    if (errCode === 'csrf')
+      return 'Your session expired or was invalid. Please try signing in again.';
     if (errCode === 'expired') return 'Your session has expired. Please sign in again.';
     return 'An unexpected authentication error occurred. Please try again.';
   };
@@ -35,11 +36,7 @@ function Login() {
         </div>
       )}
       <p className="mb-8 text-muted-foreground">Sign in to start tracking your job applications.</p>
-      <Button
-        onClick={handleLogin}
-        variant="primary"
-        size="default"
-      >
+      <Button onClick={handleLogin} variant="primary" size="default">
         Sign in with Google
       </Button>
     </div>

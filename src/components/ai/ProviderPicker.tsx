@@ -1,4 +1,8 @@
-import { AI_SUBSCRIPTION_NOTE, getCatalogProvider, type CatalogProvider } from '../../contracts/aiCatalog';
+import {
+  AI_SUBSCRIPTION_NOTE,
+  getCatalogProvider,
+  type CatalogProvider,
+} from '../../contracts/aiCatalog';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 
@@ -20,11 +24,18 @@ export function ProviderPicker({
     <section aria-label="Choose an AI provider" className="space-y-4">
       <ul className="grid gap-4 md:grid-cols-2">
         {providers.map((provider) => (
-          <li key={provider.id} className="border border-border-default bg-surface p-4 flex flex-col gap-3">
+          <li
+            key={provider.id}
+            className="border border-border-default bg-surface p-4 flex flex-col gap-3"
+          >
             <div className="flex items-center justify-between gap-2">
               <h3 className="font-semibold">{provider.displayName}</h3>
-              <Badge variant={provider.costModel === 'FREE_TIER_AVAILABLE' ? 'success' : 'secondary'}>
-                {provider.costModel === 'FREE_TIER_AVAILABLE' ? 'Free tier available' : 'Requires paid API billing'}
+              <Badge
+                variant={provider.costModel === 'FREE_TIER_AVAILABLE' ? 'success' : 'secondary'}
+              >
+                {provider.costModel === 'FREE_TIER_AVAILABLE'
+                  ? 'Free tier available'
+                  : 'Requires paid API billing'}
               </Badge>
             </div>
             <p className="text-sm text-text-secondary">{provider.recommendedNote}</p>

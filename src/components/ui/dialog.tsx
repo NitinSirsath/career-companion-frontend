@@ -1,6 +1,6 @@
-import * as React from "react";
-import { Dialog as BaseDialog } from "@base-ui/react/dialog";
-import { cn } from "../../lib/utils";
+import * as React from 'react';
+import { Dialog as BaseDialog } from '@base-ui/react/dialog';
+import { cn } from '../../lib/utils';
 
 export function Dialog({
   open,
@@ -43,7 +43,7 @@ export function DialogContent({
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <BaseDialog.Popup
           className={cn(
-            "relative w-full max-w-lg border border-border bg-surface p-6 shadow-lg overflow-y-auto max-h-[90vh] outline-none",
+            'relative w-full max-w-lg border border-border bg-surface p-6 shadow-lg overflow-y-auto max-h-[90vh] outline-none',
             className,
           )}
           {...props}
@@ -55,42 +55,25 @@ export function DialogContent({
   );
 }
 
-export function DialogHeader({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div
-      className={cn("flex flex-col space-y-1.5 mb-4 text-left", className)}
-      {...props}
-    />
-  );
+export function DialogHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn('flex flex-col space-y-1.5 mb-4 text-left', className)} {...props} />;
 }
 
-export function DialogTitle({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLHeadingElement>) {
+export function DialogTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
   return (
     <BaseDialog.Title
       render={<h3 />}
-      className={cn(
-        "text-lg font-medium leading-none tracking-tight",
-        className,
-      )}
+      className={cn('text-lg font-medium leading-none tracking-tight', className)}
       {...props}
     />
   );
 }
 
-export function DialogFooter({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
+export function DialogFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={cn(
-        "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 pt-4",
+        'flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 pt-4',
         className,
       )}
       {...props}

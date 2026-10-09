@@ -19,13 +19,18 @@ import { NativeSelect } from '../ui/native-select';
 
 type Problem = { text: string; link?: { label: string; href: string } };
 
-const ROLE_LABELS: Record<AIRole, string> = { fast: 'Fast screening', detailed: 'Detailed analysis' };
+const ROLE_LABELS: Record<AIRole, string> = {
+  fast: 'Fast screening',
+  detailed: 'Detailed analysis',
+};
 
 function saveProblem(err: unknown, provider: CatalogProvider): Problem {
   const name = provider.displayName;
   if (!isApiError(err)) return { text: 'Saving failed. Try again.' };
   if (err.outcomeUncertain)
-    return { text: 'We could not confirm whether this was saved. The status shows what is saved now.' };
+    return {
+      text: 'We could not confirm whether this was saved. The status shows what is saved now.',
+    };
   if (err.code === 'AI_ACCESS_REJECTED') {
     const details = err.details as { reason?: string; modelId?: string | null } | undefined;
     if (details?.reason === 'KEY_REJECTED')
@@ -43,7 +48,8 @@ function saveProblem(err: unknown, provider: CatalogProvider): Problem {
         text: `This key cannot use ${modelName(provider.id, details.modelId)}. Choose another model under Advanced. Nothing was saved.`,
       };
   }
-  if (err.code === 'AI_VERIFY_RATE_LIMITED') return { text: 'Too many key checks today. Try again tomorrow.' };
+  if (err.code === 'AI_VERIFY_RATE_LIMITED')
+    return { text: 'Too many key checks today. Try again tomorrow.' };
   return { text: err.message };
 }
 
@@ -71,7 +77,10 @@ export function ProviderSetupForm({
   const needsConsent = !sameProvider || settings.consent?.current === false;
   const selected = (role: AIRole) =>
     sameProvider && settings.models?.[role].source === 'SELECTED' ? settings.models[role].id : '';
-  const [models, setModels] = useState<Record<AIRole, string>>({ fast: selected('fast'), detailed: selected('detailed') });
+  const [models, setModels] = useState<Record<AIRole, string>>({
+    fast: selected('fast'),
+    detailed: selected('detailed'),
+  });
   const [consent, setConsent] = useState(false);
   const [pending, setPending] = useState(false);
   const [problem, setProblem] = useState<Problem | null>(null);
@@ -113,18 +122,27 @@ export function ProviderSetupForm({
       onDone(verification, saved.waitingEmails);
     } catch (err) {
       setProblem(saveProblem(err, provider));
-      if (isApiError(err) && err.outcomeUncertain) queryClient.invalidateQueries({ queryKey: ['aiSettings'] });
+      if (isApiError(err) && err.outcomeUncertain)
+        queryClient.invalidateQueries({ queryKey: ['aiSettings'] });
     } finally {
       setPending(false);
     }
   }
 
   return (
-    <form onSubmit={submit} aria-label={`Set up ${name}`} className="border border-border-default bg-surface p-6 space-y-6">
+    <form
+      onSubmit={submit}
+      aria-label={`Set up ${name}`}
+      className="border border-border-default bg-surface p-6 space-y-6"
+    >
       <div className="space-y-2">
-        <h3 className="text-lg font-semibold">{sameProvider ? `Update ${name}` : `Set up ${name}`}</h3>
+        <h3 className="text-lg font-semibold">
+          {sameProvider ? `Update ${name}` : `Set up ${name}`}
+        </h3>
         {provider.costModel === 'PAID_ONLY' && (
-          <p className="text-sm text-status-warning">{name} requires paid API billing. Set up billing before you create a key.</p>
+          <p className="text-sm text-status-warning">
+            {name} requires paid API billing. Set up billing before you create a key.
+          </p>
         )}
       </div>
 
@@ -136,10 +154,20 @@ export function ProviderSetupForm({
             ))}
           </ol>
           <p className="flex flex-wrap gap-4 text-sm">
-            <a className="underline text-action-primary" href={provider.links.apiKeys} target="_blank" rel="noopener noreferrer">
+            <a
+              className="underline text-action-primary"
+              href={provider.links.apiKeys}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               Get a {name} API key
             </a>
-            <a className="underline text-action-primary" href={provider.links.billing} target="_blank" rel="noopener noreferrer">
+            <a
+              className="underline text-action-primary"
+              href={provider.links.billing}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               {name} billing
             </a>
           </p>
@@ -158,9 +186,13 @@ export function ProviderSetupForm({
           spellCheck={false}
           data-1p-ignore
           data-lpignore="true"
-          placeholder={sameProvider ? 'Leave blank to keep the saved key' : `Paste your ${name} API key`}
+          placeholder={
+            sameProvider ? 'Leave blank to keep the saved key' : `Paste your ${name} API key`
+          }
         />
-        <p className="text-xs text-text-secondary">Stored encrypted. Career Companion never shows it again.</p>
+        <p className="text-xs text-text-secondary">
+          Stored encrypted. Career Companion never shows it again.
+        </p>
       </div>
 
       <fieldset className="space-y-2">
@@ -168,7 +200,8 @@ export function ProviderSetupForm({
         <ul className="text-sm text-text-secondary space-y-1">
           {(['fast', 'detailed'] as const).map((role) => (
             <li key={role}>
-              {ROLE_LABELS[role]}: {modelName(provider.id, models[role] || recommendedModel(provider, role).id)}
+              {ROLE_LABELS[role]}:{' '}
+              {modelName(provider.id, models[role] || recommendedModel(provider, role).id)}
               {!models[role] && ' (recommended)'}
             </li>
           ))}
@@ -184,7 +217,9 @@ export function ProviderSetupForm({
                   value={models[role]}
                   onChange={(e) => setModels((current) => ({ ...current, [role]: e.target.value }))}
                 >
-                  <option value="">Recommended ({recommendedModel(provider, role).displayName})</option>
+                  <option value="">
+                    Recommended ({recommendedModel(provider, role).displayName})
+                  </option>
                   {modelsForRole(provider, role, day).map((model) => (
                     <option key={model.id} value={model.id}>
                       {model.displayName}
@@ -198,18 +233,28 @@ export function ProviderSetupForm({
       </fieldset>
 
       <p className="text-sm text-text-secondary">
-        Career Companion makes at most {settings.safetyLimit.callsPerDay} AI calls a day for you. This is Career
-        Companion&apos;s own safeguard, not {name}&apos;s quota or your bill.
+        Career Companion makes at most {settings.safetyLimit.callsPerDay} AI calls a day for you.
+        This is Career Companion&apos;s own safeguard, not {name}&apos;s quota or your bill.
       </p>
 
       {needsConsent && (
-        <section aria-labelledby="ai-data-use" className="space-y-2 border-t border-border-subtle pt-4">
-          <h4 id="ai-data-use" className="text-sm font-semibold">What is sent to {name}</h4>
+        <section
+          aria-labelledby="ai-data-use"
+          className="space-y-2 border-t border-border-subtle pt-4"
+        >
+          <h4 id="ai-data-use" className="text-sm font-semibold">
+            What is sent to {name}
+          </h4>
           <p className="text-sm">{AI_DATA_SENT_SUMMARY}</p>
           <p className="text-sm text-text-secondary">{provider.disclosure.summary}</p>
           <p className="text-sm text-text-secondary">{provider.disclosure.training}</p>
           <p className="text-sm text-text-secondary">{provider.disclosure.residency}</p>
-          <a className="text-sm underline text-action-primary" href={provider.links.dataUse} target="_blank" rel="noopener noreferrer">
+          <a
+            className="text-sm underline text-action-primary"
+            href={provider.links.dataUse}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             Read {name}&apos;s terms
           </a>
           <div className="flex items-start gap-2">
@@ -221,18 +266,26 @@ export function ProviderSetupForm({
               onChange={(e) => setConsent(e.target.checked)}
             />
             <Label htmlFor="ai-consent" className="leading-snug">
-              I understand that these details of my emails are sent to {name} under my own account and its terms.
-              Saving starts processing my waiting emails.
+              I understand that these details of my emails are sent to {name} under my own account
+              and its terms. Saving starts processing my waiting emails.
             </Label>
           </div>
         </section>
       )}
 
       {problem && (
-        <div role="alert" className="border border-status-error bg-status-error-subtle p-3 text-sm space-y-1">
+        <div
+          role="alert"
+          className="border border-status-error bg-status-error-subtle p-3 text-sm space-y-1"
+        >
           <p>{problem.text}</p>
           {problem.link && (
-            <a className="underline" href={problem.link.href} target="_blank" rel="noopener noreferrer">
+            <a
+              className="underline"
+              href={problem.link.href}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               {problem.link.label}
             </a>
           )}

@@ -26,8 +26,8 @@ function ExpiryWarning({ token, now }: { token: IntegrationToken; now: Date }) {
   if (days > INTEGRATION_TOKEN_EXPIRY_WARNING_DAYS) return null;
   return (
     <p className="text-xs text-status-warning">
-      Expires {days <= 0 ? 'today' : `in ${days} day${days === 1 ? '' : 's'}`}. After that your automation stops
-      syncing without an error: create a new token before then.
+      Expires {days <= 0 ? 'today' : `in ${days} day${days === 1 ? '' : 's'}`}. After that your
+      automation stops syncing without an error: create a new token before then.
     </p>
   );
 }
@@ -52,7 +52,8 @@ function TokenRow({ token, now }: { token: IntegrationToken; now: Date }) {
           <Badge variant={status.variant}>{status.label}</Badge>
         </div>
         <p className="text-xs text-text-secondary">
-          <span className="font-mono">{token.displayPrefix}…</span> · Created {date(token.createdAt)} ·{' '}
+          <span className="font-mono">{token.displayPrefix}…</span> · Created{' '}
+          {date(token.createdAt)} ·{' '}
           {token.status === 'revoked' && token.revokedAt
             ? `Revoked ${date(token.revokedAt)}`
             : `${token.status === 'expired' ? 'Expired' : 'Expires'} ${date(token.expiresAt)}`}{' '}
@@ -72,15 +73,30 @@ function TokenRow({ token, now }: { token: IntegrationToken; now: Date }) {
           {confirming ? (
             <>
               <span className="text-sm self-center">Your automation stops syncing at once.</span>
-              <Button size="sm" variant="danger" disabled={revoke.isPending} onClick={() => revoke.mutate()}>
+              <Button
+                size="sm"
+                variant="danger"
+                disabled={revoke.isPending}
+                onClick={() => revoke.mutate()}
+              >
                 Revoke now
               </Button>
-              <Button size="sm" variant="tertiary" disabled={revoke.isPending} onClick={() => setConfirming(false)}>
+              <Button
+                size="sm"
+                variant="tertiary"
+                disabled={revoke.isPending}
+                onClick={() => setConfirming(false)}
+              >
                 Cancel
               </Button>
             </>
           ) : (
-            <Button size="sm" variant="tertiary" onClick={() => setConfirming(true)} aria-label={`Revoke ${token.name}`}>
+            <Button
+              size="sm"
+              variant="tertiary"
+              onClick={() => setConfirming(true)}
+              aria-label={`Revoke ${token.name}`}
+            >
               Revoke
             </Button>
           )}
@@ -103,10 +119,16 @@ export function TokenList() {
       <h3 id="tokens-heading" className="text-lg font-semibold">
         Your tokens
       </h3>
-      <p className="text-xs text-text-secondary">Up to {INTEGRATION_TOKEN_MAX_ACTIVE} active tokens. Revoked tokens stay listed.</p>
+      <p className="text-xs text-text-secondary">
+        Up to {INTEGRATION_TOKEN_MAX_ACTIVE} active tokens. Revoked tokens stay listed.
+      </p>
       {isLoading && <p role="status">Loading tokens…</p>}
       {error && <p role="alert">Could not load tokens: {error.message}</p>}
-      {data && data.items.length === 0 && <p className="text-sm text-text-secondary">{offset > 0 ? 'No tokens on this page.' : 'No tokens yet.'}</p>}
+      {data && data.items.length === 0 && (
+        <p className="text-sm text-text-secondary">
+          {offset > 0 ? 'No tokens on this page.' : 'No tokens yet.'}
+        </p>
+      )}
       {data && data.items.length > 0 && (
         <ul className="space-y-2">
           {data.items.map((token) => (

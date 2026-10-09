@@ -4,7 +4,7 @@ import { Monitor } from 'lucide-react';
 
 export function ThemeSelector({ className }: { className?: string }) {
   const { theme, setTheme } = useTheme();
-  
+
   const themes: { id: Theme; label: string }[] = [
     { id: 'light', label: 'Light' },
     { id: 'dark', label: 'Dark' },
@@ -14,7 +14,7 @@ export function ThemeSelector({ className }: { className?: string }) {
   ];
 
   return (
-    <div className={cn("flex flex-col gap-2 px-3", className)}>
+    <div className={cn('flex flex-col gap-2 px-3', className)}>
       <div className="flex items-center gap-2 text-sm font-medium text-text-secondary">
         <Monitor className="w-4 h-4" />
         <label htmlFor="theme-select">Theme</label>
