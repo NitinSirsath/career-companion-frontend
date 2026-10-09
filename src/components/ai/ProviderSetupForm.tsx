@@ -3,7 +3,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { api, isApiError } from '../../api/client';
 import {
   AI_DATA_SENT_SUMMARY,
-  catalogDay,
   modelsForRole,
   recommendedModel,
   type AIRole,
@@ -84,7 +83,6 @@ export function ProviderSetupForm({
   const [consent, setConsent] = useState(false);
   const [pending, setPending] = useState(false);
   const [problem, setProblem] = useState<Problem | null>(null);
-  const day = catalogDay();
   const name = provider.displayName;
 
   useEffect(() => {
@@ -220,7 +218,7 @@ export function ProviderSetupForm({
                   <option value="">
                     Recommended ({recommendedModel(provider, role).displayName})
                   </option>
-                  {modelsForRole(provider, role, day).map((model) => (
+                  {modelsForRole(provider, role).map((model) => (
                     <option key={model.id} value={model.id}>
                       {model.displayName}
                     </option>
