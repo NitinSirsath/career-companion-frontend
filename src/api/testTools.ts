@@ -36,7 +36,6 @@ export async function getTestToolsEnabled(): Promise<boolean> {
   }
 }
 
-/** Delivers one test email, then refreshes the lists while it is processed. */
 export async function deliverTestEmail(
   input: DeliverTestEmailRequest,
 ): Promise<DeliverTestEmailResponse> {
