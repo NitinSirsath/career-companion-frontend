@@ -1,4 +1,5 @@
 import { getGmailConversationUrl } from '../../utils/gmail';
+import { isSimulatedId } from '../../contracts/testTools';
 
 interface GmailLinkProps {
   threadId?: string | null;
@@ -7,7 +8,8 @@ interface GmailLinkProps {
 }
 
 export function GmailLink({ threadId, className = '', subject }: GmailLinkProps) {
-  if (!threadId) return null;
+  // Test-inbox emails (test environment) have no Gmail conversation to open.
+  if (!threadId || isSimulatedId(threadId)) return null;
 
   return (
     <a

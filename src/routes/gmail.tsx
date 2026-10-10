@@ -14,6 +14,9 @@ import { z } from 'zod';
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { ExternalLink, Info, RotateCcw } from 'lucide-react';
 import { getGmailConversationUrl } from '../utils/gmail';
+import { isSimulatedId } from '../contracts/testTools';
+import { TestInboxPanel } from '../components/testTools/TestInboxPanel';
+import { useTestToolsEnabled } from '../api/testTools';
 import {
   startProcessingRefresh,
   getProcessingRefreshUntil,
@@ -61,6 +64,7 @@ function GmailPage() {
   const [activeTab, setActiveTab] = useState<'job_related' | 'irrelevant'>('job_related');
   const limit = 20;
   const [showError, setShowError] = useState(false);
+  const testToolsEnabled = useTestToolsEnabled();
 
   useEffect(() => {
     if (search.gmailError === 'denied') {
@@ -112,7 +116,7 @@ function GmailPage() {
         ? 15000
         : false;
     },
-    enabled: !!statusData?.connected, // Only fetch if connected
+    enabled: !!statusData?.connected || testToolsEnabled, // Connected, or the test inbox is on
   });
 
   const disconnectMutation = useMutation({
@@ -179,6 +183,8 @@ function GmailPage() {
         </div>
 
         <AIAccessNotice />
+
+        <TestInboxPanel />
 
         {(showError || search.gmailError) && (
           <div className="p-4 text-sm font-medium text-destructive bg-destructive/10 border border-destructive/20 rounded-xl mb-4">
@@ -322,7 +328,9 @@ function GmailPage() {
         )}
 
         {/* Ingested Email List */}
-        {(statusData?.connected || (messagesData && messagesData?.items?.length > 0)) && (
+        {(statusData?.connected ||
+          testToolsEnabled ||
+          (messagesData && messagesData?.items?.length > 0)) && (
           <div className="space-y-4">
             <div className="border-b mb-4">
               <div className="flex space-x-6">
@@ -416,7 +424,7 @@ function GmailPage() {
                               className="px-4 py-3 font-medium max-w-xs truncate"
                               title={msg.subject || ''}
                             >
-                              {msg.threadId ? (
+                              {msg.threadId && !isSimulatedId(msg.threadId) ? (
                                 <a
                                   href={getGmailConversationUrl(msg.threadId)}
                                   target="_blank"
@@ -428,7 +436,14 @@ function GmailPage() {
                                   <ExternalLink className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
                                 </a>
                               ) : (
-                                <span>{msg.subject || '(No Subject)'}</span>
+                                <span>
+                                  {msg.subject || '(No Subject)'}
+                                  {isSimulatedId(msg.gmailMessageId) && (
+                                    <span className="ml-2 text-xs font-semibold text-status-warning">
+                                      TEST
+                                    </span>
+                                  )}
+                                </span>
                               )}
                             </td>
                             <td
