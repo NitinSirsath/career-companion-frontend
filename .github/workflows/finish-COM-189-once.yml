@@ -1,0 +1,50 @@
+name: Finish COM-189 once (temporary)
+# Renames and deletes files on feat/COM-189-follow-backend-mode and commits only that.
+# Lives only on the throwaway branch tmp/COM-189-finish, which is deleted afterwards.
+on:
+  push:
+    branches: [tmp/COM-189-finish]
+permissions:
+  contents: write
+concurrency:
+  group: finish-COM-189-once
+  cancel-in-progress: false
+jobs:
+  finish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: feat/COM-189-follow-backend-mode
+      - name: Check the hand commits
+        run: |
+          if [ "$(git rev-parse 'HEAD^{tree}')" != "75b27836a0a7935c2b08f97975757f48cd3a5cb4" ]; then
+            echo "The hand commits do not match the reviewed files. Nothing was changed."
+            exit 1
+          fi
+      - name: Rename and delete
+        run: |
+          git rm -q .env.example
+          git rm -q src/api/testTools.ts
+          git rm -q src/components/testTools/ResetTestDataDialog.tsx
+          git rm -q src/components/testTools/TestEmailForm.tsx
+          git rm -q src/components/testTools/TestEnvironmentBanner.tsx
+          git rm -q src/components/testTools/TestInboxPanel.tsx
+          git rm -q src/components/testTools/TestReplyButton.tsx
+          git rm -q src/components/testTools/TestScenarioRunner.tsx
+          git rm -q src/contracts/testTools.ts
+          git rm -q src/lib/testInbox.ts
+          git rm -q src/tests/test-inbox.test.ts
+          git rm -q src/tests/test-tools.test.tsx
+      - name: Commit only the reviewed result
+        run: |
+          if [ "$(git write-tree)" != "fd1808495de21e09d4641e34425a9ce6db45dab0" ]; then
+            echo "The result does not match the reviewed tree. Nothing was pushed."
+            git status --short
+            exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(dev-mode): remove the old test inbox (COM-189)'
+          git push origin HEAD:feat/COM-189-follow-backend-mode
