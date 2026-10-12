@@ -2,12 +2,12 @@ import { Link } from '@tanstack/react-router';
 import {
   LayoutDashboard,
   FileText,
+  Inbox,
   Mail,
   LogOut,
   Briefcase,
   Sparkles,
   Bot,
-  CalendarDays,
 } from 'lucide-react';
 import { logout } from '../../api/auth';
 import { ThemeSelector } from '../ThemeSelector';
@@ -28,18 +28,18 @@ export function Sidebar() {
         <div className="font-semibold text-lg tracking-tight">Career Companion</div>
       </div>
 
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        <Link to="/" className={navLinkClass}>
-          <LayoutDashboard className="w-4 h-4" />
-          Dashboard
+      <nav aria-label="Main" className="flex-1 p-4 space-y-1 overflow-y-auto">
+        <Link to="/mails" className={navLinkClass}>
+          <Inbox className="w-4 h-4" />
+          Mails
         </Link>
         <Link to="/applications" className={navLinkClass}>
           <FileText className="w-4 h-4" />
           Applications
         </Link>
-        <Link to="/agenda" className={navLinkClass}>
-          <CalendarDays className="w-4 h-4" />
-          Agenda
+        <Link to="/dashboard" className={navLinkClass}>
+          <LayoutDashboard className="w-4 h-4" />
+          Dashboard
         </Link>
         <Link to="/gmail" className={navLinkClass}>
           <Mail className="w-4 h-4" />

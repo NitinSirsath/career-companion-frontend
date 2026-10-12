@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { workspacePage } from './fixtures';
-// MCP-07: dashboard panel for automation submissions that need review (ADR-0002 decision 7).
+// MCP-07: Automation page panel for automation submissions that need review (ADR-0002 decision 7).
 import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
@@ -25,6 +25,7 @@ vi.mock('../api/client', async (importOriginal) => {
       getUnmatchedEmails: vi.fn(),
       getPendingSubmissions: vi.fn(),
       resolveSubmission: vi.fn(),
+      listIntegrationTokens: vi.fn(),
       getAISettings: vi.fn(),
     },
   };
@@ -58,11 +59,11 @@ const apps = [
   makeApplication({ id: 'a2', companyName: 'Acme', jobTitle: 'Platform Engineer' }),
 ];
 
-function renderDashboard() {
+function renderAutomation() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const router = createRouter({
     routeTree,
-    history: createMemoryHistory({ initialEntries: ['/'] }),
+    history: createMemoryHistory({ initialEntries: ['/automation'] }),
     context: { user: { id: 'u', email: 't@test.local', name: 'T' } },
   });
   render(
@@ -91,6 +92,7 @@ beforeEach(() => {
   vi.mocked(api.getAmbiguousEmails).mockResolvedValue(page([]));
   vi.mocked(api.getUnmatchedEmails).mockResolvedValue(page([]));
   vi.mocked(api.getPendingSubmissions).mockResolvedValue(page([submission()]));
+  vi.mocked(api.listIntegrationTokens).mockResolvedValue(page([]));
 });
 afterEach(() => vi.restoreAllMocks());
 
@@ -110,7 +112,7 @@ describe('pending submissions panel', () => {
         20,
       ),
     );
-    renderDashboard();
+    renderAutomation();
     const heading = await screen.findByRole('heading', {
       name: /Automation submissions to review/,
     });
@@ -130,7 +132,7 @@ describe('pending submissions panel', () => {
     vi.mocked(api.getPendingSubmissions).mockResolvedValue(
       page([submission(), submission({ id: 's2', jobTitle: 'QA', jobUrl: 'javascript:alert(1)' })]),
     );
-    renderDashboard();
+    renderAutomation();
     const link = (await card()).getByRole('link', { name: 'Open job posting' });
     expect(link).toHaveAttribute('href', 'https://acme.wd1.myworkdayjobs.com/jobs/1');
     expect(link).toHaveAttribute('target', '_blank');
@@ -146,7 +148,7 @@ describe('pending submissions panel', () => {
       matchState: 'LINKED',
       applicationId: 'a2',
     });
-    renderDashboard();
+    renderAutomation();
     const c = await card();
     const select = c.getByRole('combobox', { name: 'Link to an existing application' });
     const linkButton = c.getByRole('button', { name: 'Link' });
@@ -173,14 +175,14 @@ describe('pending submissions panel', () => {
       matchState: 'CREATED',
       applicationId: 'new',
     });
-    renderDashboard();
+    renderAutomation();
     fireEvent.click((await card()).getByRole('button', { name: label }));
     await waitFor(() => expect(api.resolveSubmission).toHaveBeenCalledWith('s1', request));
   });
 
   it('an uncertain outcome refreshes the list and is never resent', async () => {
     vi.mocked(api.resolveSubmission).mockRejectedValue(new ApiError('Network error.', 'network'));
-    renderDashboard();
+    renderAutomation();
     fireEvent.click((await card()).getByRole('button', { name: 'Ignore' }));
     expect(await screen.findByText(/could not confirm whether this was saved/)).toBeInTheDocument();
     await waitFor(() => expect(api.getPendingSubmissions).toHaveBeenCalledTimes(2));
@@ -191,15 +193,15 @@ describe('pending submissions panel', () => {
     vi.mocked(api.resolveSubmission).mockRejectedValue(
       new ApiError('Not resolvable', 'http', 400, 'BAD_REQUEST'),
     );
-    renderDashboard();
+    renderAutomation();
     fireEvent.click((await card()).getByRole('button', { name: 'Create application' }));
     expect(await screen.findByText(/already resolved/)).toBeInTheDocument();
   });
 
   it('is hidden when nothing needs review', async () => {
     vi.mocked(api.getPendingSubmissions).mockResolvedValue(page([]));
-    renderDashboard();
-    await screen.findByRole('heading', { name: 'Dashboard' });
+    renderAutomation();
+    await screen.findByRole('heading', { name: 'Automation' });
     await waitFor(() => expect(api.getPendingSubmissions).toHaveBeenCalled());
     expect(
       screen.queryByRole('heading', { name: /Automation submissions to review/ }),

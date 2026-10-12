@@ -1,13 +1,13 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, cleanup, fireEvent, waitFor, act, within } from '@testing-library/react';
-import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { screen, cleanup, fireEvent, waitFor, act, within } from '@testing-library/react';
+import { QueryClient } from '@tanstack/react-query';
 import { api, ApiError, ApiClient } from '../api/client';
-import { routeTree } from '../routeTree.gen';
+import { DailyWorkspace } from '../components/DailyWorkspace';
 import type { ActionWithContextResponse, AISettingsResponse } from '../contracts';
 import { workspacePage } from './fixtures';
+import { renderPart } from './render';
 import { coverageMessages, transitionDelay } from '../lib/workspace';
 
 vi.mock('../api/client', async (importOriginal) => ({
@@ -68,16 +68,8 @@ function show() {
   client = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: 3, retryDelay: 0 } },
   });
-  const router = createRouter({
-    routeTree,
-    history: createMemoryHistory({ initialEntries: ['/'] }),
-    context: { user: { id: 'u', email: 'u@fixture.test', name: 'U' } },
-  });
-  return render(
-    <QueryClientProvider client={client}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>,
-  );
+  // The task list is kept in the repo but no page shows it now.
+  return renderPart(<DailyWorkspace />, client);
 }
 beforeEach(() => {
   vi.resetAllMocks();

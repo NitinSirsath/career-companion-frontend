@@ -32,7 +32,7 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
     window.location.reload();
   };
 
-  private dashboard = () => {
+  private home = () => {
     window.location.assign('/');
   };
 
@@ -48,10 +48,10 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
         error={this.state.error}
         showRetry
         showReload
-        showDashboard
+        showHome
         onRetry={this.retry}
         onReload={this.reload}
-        onDashboard={this.dashboard}
+        onHome={this.home}
       />
     );
   }

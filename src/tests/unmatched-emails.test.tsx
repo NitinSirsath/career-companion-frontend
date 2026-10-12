@@ -2,27 +2,17 @@
 import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
-import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { api } from '../api/client';
 import { makeApplication } from './fixtures';
-import { routeTree } from '../routeTree.gen';
+import { UnmatchedEmailsSection } from '../components/dashboard/UnmatchedEmailsSection';
 import { ApplicationResponse } from '../contracts/application';
 
-const MOCK_USER = { id: 'test-user', email: 'test@test.local', name: 'Test User' };
-
-function createTestRouter(initialPath = '/applications') {
-  const history = createMemoryHistory({
-    initialEntries: [initialPath],
-  });
-  return createRouter({ routeTree, history, context: { user: MOCK_USER } });
-}
-
-function renderWithProviders(queryClient: QueryClient, initialPath: string) {
-  const router = createTestRouter(initialPath);
+/** The list is part of the old dashboard: kept in the repo, shown on no page. */
+function renderWithProviders(queryClient: QueryClient) {
   return render(
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
+      <UnmatchedEmailsSection applications={[makeApp()]} />
     </QueryClientProvider>,
   );
 }
@@ -107,7 +97,7 @@ describe('Unmatched Emails (COM-36)', () => {
       metadata: { limit: 20, offset: 0, nextOffset: null },
     });
 
-    renderWithProviders(queryClient, '/');
+    renderWithProviders(queryClient);
 
     expect(await screen.findByText('Unmatched Emails')).toBeInTheDocument();
     expect(screen.getByText('eng@startup.io')).toBeInTheDocument();
@@ -145,7 +135,7 @@ describe('Unmatched Emails (COM-36)', () => {
     });
     vi.mocked(api.resolveUnmatchedEmail).mockResolvedValue({ success: true });
 
-    renderWithProviders(queryClient, '/');
+    renderWithProviders(queryClient);
 
     const selectDropdown = await screen.findByRole('combobox', {
       name: /Select application to link/i,

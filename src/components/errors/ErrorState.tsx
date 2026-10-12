@@ -6,10 +6,10 @@ interface ErrorStateProps {
   error?: unknown;
   showRetry?: boolean;
   showReload?: boolean;
-  showDashboard?: boolean;
+  showHome?: boolean;
   onRetry?: () => void;
   onReload?: () => void;
-  onDashboard?: () => void;
+  onHome?: () => void;
 }
 
 function errorDetails(error: unknown) {
@@ -26,10 +26,10 @@ export function ErrorState({
   error,
   showRetry = false,
   showReload = false,
-  showDashboard = false,
+  showHome = false,
   onRetry,
   onReload,
-  onDashboard,
+  onHome,
 }: ErrorStateProps) {
   const details = import.meta.env.DEV && error !== undefined ? errorDetails(error) : null;
 
@@ -39,7 +39,7 @@ export function ErrorState({
         <h1 className="text-2xl font-semibold tracking-tight text-text-primary">{title}</h1>
         <p className="mt-3 text-sm text-text-secondary">{message}</p>
 
-        {(showRetry || showReload || showDashboard) && (
+        {(showRetry || showReload || showHome) && (
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             {showRetry && onRetry && (
               <Button type="button" variant="primary" onClick={onRetry}>
@@ -51,9 +51,9 @@ export function ErrorState({
                 Reload page
               </Button>
             )}
-            {showDashboard && onDashboard && (
-              <Button type="button" variant="tertiary" onClick={onDashboard}>
-                Go to Dashboard
+            {showHome && onHome && (
+              <Button type="button" variant="tertiary" onClick={onHome}>
+                Go to Mails
               </Button>
             )}
           </div>

@@ -8,8 +8,8 @@ export function NotFoundPage() {
     <ErrorState
       title="Page not found"
       message="The page you requested does not exist or is no longer available."
-      showDashboard
-      onDashboard={() => void router.navigate({ to: '/' })}
+      showHome
+      onHome={() => void router.navigate({ to: '/mails' })}
     />
   );
 }

@@ -1,0 +1,289 @@
+import { format, isThisYear, isToday, isYesterday } from 'date-fns';
+import { z } from 'zod';
+import { isApiError } from '../api/client';
+import {
+  ApplicationChoiceDetailsSchema,
+  ConversationFiltersSchema,
+  type ApplicationChoiceDetails,
+  type Conversation,
+  type ConversationFilters,
+  type ConversationMail,
+  type ConversationRequest,
+  type ListConversationsResponse,
+  type MailCategory,
+  type RequestState,
+} from '../contracts/conversation';
+import type { MailAttachment, MailMessage } from '../contracts/mailbox';
+import { deadlineLabel } from './deadline';
+
+/** What the user reads for each mail type. A confirmation or status mail is an "Update". */
+export const CATEGORY_LABEL: Record<MailCategory, string> = {
+  RECRUITER: 'Recruiter',
+  INTERVIEW: 'Interview',
+  ASSESSMENT: 'Assessment',
+  OFFER: 'Offer',
+  REJECTION: 'Rejection',
+  FOLLOW_UP: 'Update',
+  NEWSLETTER: 'Other',
+  SPAM: 'Other',
+};
+
+/** The types offered as a filter, in the order a job search usually runs. */
+const TYPE_FILTERS: MailCategory[] = [
+  'RECRUITER',
+  'INTERVIEW',
+  'ASSESSMENT',
+  'OFFER',
+  'REJECTION',
+  'FOLLOW_UP',
+];
+
+export const REQUEST_STATE_LABEL: Record<RequestState, string> = {
+  OPEN: 'Needs action',
+  REPLIED: 'Replied',
+  DONE: 'Done',
+};
+
+export const REQUEST_STATE_VARIANT: Record<RequestState, 'warning' | 'info' | 'success'> = {
+  OPEN: 'warning',
+  REPLIED: 'info',
+  DONE: 'success',
+};
+
+export const ACTION_FILTERS = [
+  { value: 'open', label: REQUEST_STATE_LABEL.OPEN },
+  { value: 'replied', label: REQUEST_STATE_LABEL.REPLIED },
+  { value: 'done', label: REQUEST_STATE_LABEL.DONE },
+  { value: 'none', label: 'Nothing needed' },
+] as const;
+
+export const APPLICATION_FILTERS = [
+  { value: 'any', label: 'Has an application' },
+  { value: 'none', label: 'No application yet' },
+] as const;
+
+export const TYPE_OPTIONS = TYPE_FILTERS.map((value) => ({ value, label: CATEGORY_LABEL[value] }));
+
+/** "Needs action first" is the order when nothing is chosen. */
+export const SORT_OPTIONS = [{ value: 'newest', label: 'Newest first' }] as const;
+
+const { request, category, sort } = ConversationFiltersSchema.shape;
+
+/**
+ * What the Mails page keeps in its URL, so Back returns to the same view. A value the page does
+ * not know is dropped instead of breaking the page.
+ */
+export const mailsSearchSchema = z.object({
+  tab: z.literal('gmail').optional().catch(undefined),
+  q: z.string().max(100).optional().catch(undefined),
+  request: request.catch(undefined),
+  category: category.catch(undefined),
+  application: z.enum(['any', 'none']).optional().catch(undefined),
+  unseen: z.literal(true).optional().catch(undefined),
+  sort: sort.catch(undefined),
+  offset: z.number().int().positive().optional().catch(undefined),
+});
+export type MailsSearch = z.infer<typeof mailsSearchSchema>;
+
+export function filtersFromSearch(search: MailsSearch): ConversationFilters {
+  return {
+    q: search.q?.trim() || undefined,
+    request: search.request,
+    category: search.category,
+    application: search.application,
+    unseen: search.unseen ? 'true' : undefined,
+    sort: search.sort,
+  };
+}
+
+/** "7", or "20+" when the page is full and more follow. */
+export const pageCount = (page: ListConversationsResponse): string =>
+  `${page.items.length}${page.metadata.nextOffset != null ? '+' : ''}`;
+
+/** `"Priya Nair" <priya@northwind.example>` as the name and the address apart. */
+export function parseSender(raw: string | null): { name: string; address: string | null } {
+  const text = raw?.trim();
+  if (!text) return { name: 'Unknown sender', address: null };
+  const match = text.match(/^"?([^"<]*?)"?\s*<([^<>]+)>$/);
+  if (!match) return { name: text, address: null };
+  const name = match[1].trim();
+  return name ? { name, address: match[2].trim() } : { name: match[2].trim(), address: null };
+}
+
+/** Who a message went to. Mail the user received is shown as "to me", as Gmail shows it. */
+export function recipientLine(message: Pick<MailMessage, 'sentByUser' | 'to'>): string | null {
+  if (!message.sentByUser) return 'to me';
+  if (!message.to) return null;
+  // Split on the commas between addresses, not on a comma inside a quoted name.
+  const names = message.to
+    .split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)
+    .map((recipient) => parseSender(recipient).name);
+  return `to ${names.join(', ')}`;
+}
+
+/** "4 mails · 2 from you": every message of the thread, and how many the user wrote. */
+export function mailCounts(total: number, fromYou: number): string {
+  const mails = `${total} mail${total === 1 ? '' : 's'}`;
+  return fromYou > 0 ? `${mails} · ${fromYou} from you` : mails;
+}
+
+/** The line under a conversation's subject: sender, company and how many mails. */
+export function conversationSummary(conversation: Conversation): string {
+  return [
+    parseSender(conversation.sender).name,
+    conversation.company,
+    mailCounts(conversation.mailCount + conversation.sentCount, conversation.sentCount),
+  ]
+    .filter(Boolean)
+    .join(' · ');
+}
+
+/** "Company · Role" as the AI read them; null when it read neither. */
+export const companyAndRole = (conversation: Pick<Conversation, 'company' | 'role'>) =>
+  [conversation.company, conversation.role].filter(Boolean).join(' · ') || null;
+
+/** List date: the time for today, then only the day. */
+export function mailDate(iso: string | null): string {
+  if (!iso) return 'Date unknown';
+  const date = new Date(iso);
+  if (isToday(date)) return `Today, ${format(date, 'h:mm a')}`;
+  if (isYesterday(date)) return 'Yesterday';
+  return format(date, isThisYear(date) ? 'MMM d' : 'MMM d, yyyy');
+}
+
+/** Message date: always with the time. */
+export function mailDateTime(iso: string | null): string {
+  if (!iso) return 'Date unknown';
+  const date = new Date(iso);
+  const time = format(date, 'h:mm a');
+  if (isToday(date)) return `Today, ${time}`;
+  if (isYesterday(date)) return `Yesterday, ${time}`;
+  return `${format(date, isThisYear(date) ? 'MMM d' : 'MMM d, yyyy')}, ${time}`;
+}
+
+/** What the mail asks for, in the AI's words when it gave any. */
+export function requestTitle(asked: ConversationRequest): string {
+  if (asked.text) return asked.text;
+  return asked.kind === 'FOLLOW_UP' ? 'Follow up' : 'Action needed';
+}
+
+/** The line beside the state: when it is due, or when the user replied. */
+export function requestDetail(asked: ConversationRequest): string | null {
+  if (asked.state === 'REPLIED')
+    return asked.repliedAt ? `You replied ${mailDate(asked.repliedAt)}` : null;
+  if (asked.state === 'OPEN' && asked.deadline) return `Due ${deadlineLabel(asked)}`;
+  return null;
+}
+
+export interface RequestControl {
+  label: string;
+  state: 'DONE' | 'OPEN';
+}
+
+/** The buttons for a request. The list shows one; the details page also lets a reply be closed. */
+export function requestControls(state: RequestState, detailed: boolean): RequestControl[] {
+  const done: RequestControl = { label: 'Mark done', state: 'DONE' };
+  if (state === 'OPEN') return [done];
+  if (state === 'DONE') return [{ label: 'Reopen', state: 'OPEN' }];
+  const again: RequestControl = { label: 'Ask me again', state: 'OPEN' };
+  return detailed ? [done, again] : [again];
+}
+
+/**
+ * What a conversation that asks for nothing still tells: an interview or an assessment date, in
+ * the mail's own words. They are not checked calendar times.
+ */
+export function scheduleLine(
+  conversation: Pick<Conversation, 'interview' | 'assessmentDeadline'>,
+): string | null {
+  const when = [conversation.interview?.date, conversation.interview?.time]
+    .filter(Boolean)
+    .join(', ');
+  if (when) return `Interview: ${when}`;
+  return conversation.assessmentDeadline
+    ? `Assessment due ${conversation.assessmentDeadline}`
+    : null;
+}
+
+export function fileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function fileKind({ mimeType, filename }: MailAttachment): string {
+  if (mimeType === 'application/pdf') return 'PDF';
+  if (mimeType.startsWith('image/')) return 'Image';
+  const extension = filename.includes('.') ? filename.split('.').pop() : '';
+  return extension ? extension.toUpperCase() : 'File';
+}
+
+/** "PDF · 184 KB" */
+export const attachmentInfo = (attachment: MailAttachment): string =>
+  `${fileKind(attachment)} · ${fileSize(attachment.size)}`;
+
+/** What the AI read from one mail, as label and value. Fields it left empty are left out. */
+export function aiReading(mail: ConversationMail): { label: string; value: string }[] {
+  const rows: [string, (string | null)[]][] = [
+    ['Type', [mail.category && CATEGORY_LABEL[mail.category]]],
+    ['Company', [mail.company]],
+    ['Role', [mail.role]],
+    ['Recruiter', [mail.recruiterName, mail.recruiterEmail]],
+    [
+      'Interview',
+      [mail.interviewStage, mail.interviewType, mail.interviewDate, mail.interviewTime],
+    ],
+    ['Assessment', [mail.assessmentInfo, mail.assessmentDeadline]],
+    ['Offer', [mail.offerInfo]],
+    ['Rejection', [mail.rejectionInfo]],
+    ['Asked for', [mail.requestedAction]],
+    ['Deadline', [mail.actionDeadline]],
+    ['Follow up', [mail.followUpDate]],
+  ];
+  return rows.flatMap(([label, parts]) => {
+    const value = parts.filter(Boolean).join(', ');
+    return value ? [{ label, value }] : [];
+  });
+}
+
+const ENTITIES: Record<string, string> = {
+  amp: '&',
+  lt: '<',
+  gt: '>',
+  quot: '"',
+  apos: "'",
+  nbsp: ' ',
+};
+
+/** Gmail sends the start of a mail with HTML entities; show the characters they stand for. */
+export function snippetText(snippet: string): string {
+  return snippet.replace(/&(#\d+|#x[0-9a-f]+|[a-z]+);/gi, (entity: string, code: string) => {
+    if (code[0] !== '#') return ENTITIES[code.toLowerCase()] ?? entity;
+    const hex = code[1].toLowerCase() === 'x';
+    const point = parseInt(code.slice(hex ? 2 : 1), hex ? 16 : 10);
+    return point <= 0x10ffff ? String.fromCodePoint(point) : entity;
+  });
+}
+
+/** True when the fix for a failed Gmail read is on the Gmail Sync page. */
+export const needsGmailConnection = (error: unknown): boolean =>
+  isApiError(error) && error.code === 'GMAIL_NOT_CONNECTED';
+
+/** What the Application cell does after "Create application" was refused. */
+export type LinkProblem =
+  | { kind: 'company' }
+  | { kind: 'choice'; candidates: ApplicationChoiceDetails['candidates'] }
+  | { kind: 'message'; text: string };
+
+export function linkProblem(error: unknown): LinkProblem {
+  if (isApiError(error)) {
+    if (error.code === 'COMPANY_REQUIRED') return { kind: 'company' };
+    const choice = ApplicationChoiceDetailsSchema.safeParse(error.details);
+    if (error.code === 'APPLICATION_CHOICE_REQUIRED' && choice.success)
+      return { kind: 'choice', candidates: choice.data.candidates };
+    if (error.code === 'CONVERSATION_LINKED')
+      return { kind: 'message', text: 'This conversation already has an application.' };
+  }
+  const reason = error instanceof Error ? error.message : 'Something went wrong.';
+  return { kind: 'message', text: `Could not create the application: ${reason}` };
+}

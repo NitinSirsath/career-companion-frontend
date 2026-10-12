@@ -14,9 +14,13 @@ import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as AiRouteImport } from './routes/ai'
 import { Route as ApplicationsRouteImport } from './routes/applications'
 import { Route as AutomationRouteImport } from './routes/automation'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as GmailRouteImport } from './routes/gmail'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ApplicationsIdRouteImport } from './routes/applications.$id'
+import { Route as MailsIndexRouteImport } from './routes/mails.index'
+import { Route as MailsKeyRouteImport } from './routes/mails.$key'
+import { Route as MailsGmailThreadIdRouteImport } from './routes/mails.gmail.$threadId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -43,6 +47,11 @@ const AutomationRoute = AutomationRouteImport.update({
   path: '/automation',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GmailRoute = GmailRouteImport.update({
   id: '/gmail',
   path: '/gmail',
@@ -58,6 +67,21 @@ const ApplicationsIdRoute = ApplicationsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApplicationsRoute,
 } as any)
+const MailsIndexRoute = MailsIndexRouteImport.update({
+  id: '/mails/',
+  path: '/mails/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MailsKeyRoute = MailsKeyRouteImport.update({
+  id: '/mails/$key',
+  path: '/mails/$key',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MailsGmailThreadIdRoute = MailsGmailThreadIdRouteImport.update({
+  id: '/mails/gmail/$threadId',
+  path: '/mails/gmail/$threadId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -65,9 +89,13 @@ export interface FileRoutesByFullPath {
   '/ai': typeof AiRoute
   '/applications': typeof ApplicationsRouteWithChildren
   '/automation': typeof AutomationRoute
+  '/dashboard': typeof DashboardRoute
   '/gmail': typeof GmailRoute
   '/login': typeof LoginRoute
   '/applications/$id': typeof ApplicationsIdRoute
+  '/mails/$key': typeof MailsKeyRoute
+  '/mails/': typeof MailsIndexRoute
+  '/mails/gmail/$threadId': typeof MailsGmailThreadIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -75,9 +103,13 @@ export interface FileRoutesByTo {
   '/ai': typeof AiRoute
   '/applications': typeof ApplicationsRouteWithChildren
   '/automation': typeof AutomationRoute
+  '/dashboard': typeof DashboardRoute
   '/gmail': typeof GmailRoute
   '/login': typeof LoginRoute
   '/applications/$id': typeof ApplicationsIdRoute
+  '/mails/$key': typeof MailsKeyRoute
+  '/mails': typeof MailsIndexRoute
+  '/mails/gmail/$threadId': typeof MailsGmailThreadIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -86,9 +118,13 @@ export interface FileRoutesById {
   '/ai': typeof AiRoute
   '/applications': typeof ApplicationsRouteWithChildren
   '/automation': typeof AutomationRoute
+  '/dashboard': typeof DashboardRoute
   '/gmail': typeof GmailRoute
   '/login': typeof LoginRoute
   '/applications/$id': typeof ApplicationsIdRoute
+  '/mails/$key': typeof MailsKeyRoute
+  '/mails/': typeof MailsIndexRoute
+  '/mails/gmail/$threadId': typeof MailsGmailThreadIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -98,9 +134,13 @@ export interface FileRouteTypes {
     | '/ai'
     | '/applications'
     | '/automation'
+    | '/dashboard'
     | '/gmail'
     | '/login'
     | '/applications/$id'
+    | '/mails/$key'
+    | '/mails/'
+    | '/mails/gmail/$threadId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -108,9 +148,13 @@ export interface FileRouteTypes {
     | '/ai'
     | '/applications'
     | '/automation'
+    | '/dashboard'
     | '/gmail'
     | '/login'
     | '/applications/$id'
+    | '/mails/$key'
+    | '/mails'
+    | '/mails/gmail/$threadId'
   id:
     | '__root__'
     | '/'
@@ -118,9 +162,13 @@ export interface FileRouteTypes {
     | '/ai'
     | '/applications'
     | '/automation'
+    | '/dashboard'
     | '/gmail'
     | '/login'
     | '/applications/$id'
+    | '/mails/$key'
+    | '/mails/'
+    | '/mails/gmail/$threadId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -129,8 +177,12 @@ export interface RootRouteChildren {
   AiRoute: typeof AiRoute
   ApplicationsRoute: typeof ApplicationsRouteWithChildren
   AutomationRoute: typeof AutomationRoute
+  DashboardRoute: typeof DashboardRoute
   GmailRoute: typeof GmailRoute
   LoginRoute: typeof LoginRoute
+  MailsKeyRoute: typeof MailsKeyRoute
+  MailsIndexRoute: typeof MailsIndexRoute
+  MailsGmailThreadIdRoute: typeof MailsGmailThreadIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -170,6 +222,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AutomationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/gmail': {
       id: '/gmail'
       path: '/gmail'
@@ -190,6 +249,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/applications/$id'
       preLoaderRoute: typeof ApplicationsIdRouteImport
       parentRoute: typeof ApplicationsRoute
+    }
+    '/mails/': {
+      id: '/mails/'
+      path: '/mails'
+      fullPath: '/mails/'
+      preLoaderRoute: typeof MailsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mails/$key': {
+      id: '/mails/$key'
+      path: '/mails/$key'
+      fullPath: '/mails/$key'
+      preLoaderRoute: typeof MailsKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mails/gmail/$threadId': {
+      id: '/mails/gmail/$threadId'
+      path: '/mails/gmail/$threadId'
+      fullPath: '/mails/gmail/$threadId'
+      preLoaderRoute: typeof MailsGmailThreadIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -212,8 +292,12 @@ const rootRouteChildren: RootRouteChildren = {
   AiRoute: AiRoute,
   ApplicationsRoute: ApplicationsRouteWithChildren,
   AutomationRoute: AutomationRoute,
+  DashboardRoute: DashboardRoute,
   GmailRoute: GmailRoute,
   LoginRoute: LoginRoute,
+  MailsKeyRoute: MailsKeyRoute,
+  MailsIndexRoute: MailsIndexRoute,
+  MailsGmailThreadIdRoute: MailsGmailThreadIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

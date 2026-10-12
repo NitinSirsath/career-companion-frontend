@@ -5,9 +5,11 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { api } from '../api/client';
+import { DailyWorkspace } from '../components/DailyWorkspace';
 import { routeTree } from '../routeTree.gen';
 import type { ApplicationResponse, PaginatedResponse } from '../contracts';
 import { workspacePage, makeApplication } from './fixtures';
+import { renderPart } from './render';
 vi.mock('../api/client', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../api/client')>()),
   api: {
@@ -24,7 +26,8 @@ vi.mock('../api/client', async (importOriginal) => ({
     getAmbiguousEmails: vi.fn(),
     getUnmatchedEmails: vi.fn(),
     getPendingSubmissions: vi.fn(),
-    resolveUnmatchedEmail: vi.fn(),
+    resolveSubmission: vi.fn(),
+    listIntegrationTokens: vi.fn(),
   },
 }));
 const page = <T,>(
@@ -66,8 +69,16 @@ beforeEach(() => {
   vi.mocked(api.getUnmatchedEmails).mockResolvedValue(page([]));
   vi.mocked(api.getPendingSubmissions).mockResolvedValue(page([]));
   vi.mocked(api.getAmbiguousEmails).mockResolvedValue(page([]));
+  vi.mocked(api.listIntegrationTokens).mockResolvedValue(page([]));
 });
 afterEach(cleanup);
+/** The task list is kept in the repo but no page shows it now. */
+function showTaskList() {
+  renderPart(
+    <DailyWorkspace />,
+    new QueryClient({ defaultOptions: { queries: { retry: false } } }),
+  );
+}
 function show(path: string) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const router = createRouter({
@@ -113,7 +124,7 @@ it('recovers to page one when a later action page becomes empty', async () => {
       metadata: { limit: 20, offset: params.offset, nextOffset: params.offset ? null : 20 },
     }),
   );
-  show('/');
+  showTaskList();
   fireEvent.click(await screen.findByRole('button', { name: 'Next' }));
   await waitFor(() =>
     expect(api.getWorkspaceActions).toHaveBeenCalledWith(
@@ -124,34 +135,45 @@ it('recovers to page one when a later action page becomes empty', async () => {
   await waitFor(() => expect(screen.getByRole('button', { name: 'Previous' })).toBeDisabled());
   expect(await screen.findByText('Reply to recruiter')).toBeInTheDocument();
 });
-it('can select an application beyond the first 20 when linking an email', async () => {
+it('can select an application beyond the first 20 when linking a submission', async () => {
   vi.mocked(api.listApplications).mockImplementation(async (params) =>
     params?.offset
       ? page([application], 20)
       : page([{ ...application, id: 'recent', companyName: 'Recent Company' }], 0, 20),
   );
-  vi.mocked(api.getUnmatchedEmails).mockResolvedValue(
+  vi.mocked(api.getPendingSubmissions).mockResolvedValue(
     page([
       {
-        id: 'email',
-        subject: 'Interview',
-        sender: 'hr@example.test',
-        receivedAt: null,
-        aiProcessingResult: null,
+        id: 'submission',
+        sourceRecordRef: '2026-09-01/10:00:00',
+        platform: 'workday',
+        company: 'Older Company',
+        jobTitle: 'Engineer',
+        submittedAt: '2026-09-01T10:00:00.000Z',
+        receivedAt: '2026-09-01T10:01:00.000Z',
+        jobUrl: null,
+        portalJobId: null,
+        destinationHost: null,
+        discoverySource: null,
+        location: null,
+        workMode: null,
+        confirmationText: null,
       },
     ]),
   );
-  vi.mocked(api.resolveUnmatchedEmail).mockResolvedValue({ success: true });
-  show('/');
+  show('/automation');
   const selector = await screen.findByRole('region', { name: 'Applications for matching' });
   fireEvent.click(within(selector).getByRole('button', { name: 'Next' }));
-  await screen.findByRole('option', { name: 'Older Company' });
-  const selectDropdown = await screen.findByRole('combobox', {
-    name: /Select application to link/i,
+  await screen.findByRole('option', { name: 'Older Company — Engineer' });
+  fireEvent.change(screen.getByRole('combobox', { name: 'Link to an existing application' }), {
+    target: { value: 'older-app' },
   });
-  fireEvent.change(selectDropdown, { target: { value: 'older-app' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Link' }));
   await waitFor(() =>
-    expect(api.resolveUnmatchedEmail).toHaveBeenCalledWith('email', { applicationId: 'older-app' }),
+    expect(api.resolveSubmission).toHaveBeenCalledWith('submission', {
+      action: 'link',
+      applicationId: 'older-app',
+    }),
   );
 });
 it('shows a failed action mutation and permits retry', async () => {
@@ -174,7 +196,7 @@ it('shows a failed action mutation and permits retry', async () => {
   };
   vi.mocked(api.getWorkspaceActions).mockResolvedValue(workspacePage([action]));
   vi.mocked(api.updateAction).mockRejectedValue(new Error('Network unavailable'));
-  show('/');
+  showTaskList();
   fireEvent.click(await screen.findByRole('button', { name: 'Complete' }));
   expect(await screen.findByText(/action update could not be confirmed/)).toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Complete' })).toBeEnabled();

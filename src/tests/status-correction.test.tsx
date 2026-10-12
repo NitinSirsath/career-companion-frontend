@@ -256,13 +256,13 @@ describe('stale-read guard (R02)', () => {
     });
   });
 
-  it('dashboard list fetches share the revision guard', async () => {
+  it('automation review list fetches share the revision guard', async () => {
     vi.mocked(api.listApplications).mockResolvedValue(page([withUser(null, 0)]));
     vi.mocked(api.getActions).mockResolvedValue(page([]));
     vi.mocked(api.getAmbiguousEmails).mockResolvedValue(page([]));
     vi.mocked(api.getUnmatchedEmails).mockResolvedValue(page([]));
     vi.mocked(api.getPendingSubmissions).mockResolvedValue(page([]));
-    show('/', (qc) => qc.setQueryData(['application', 'app-1'], withUser('OFFER', 5)));
+    show('/automation', (qc) => qc.setQueryData(['application', 'app-1'], withUser('OFFER', 5)));
     await waitFor(() => expect(api.listApplications).toHaveBeenCalled());
     await waitFor(() =>
       expect(
