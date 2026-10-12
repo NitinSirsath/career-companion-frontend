@@ -39,13 +39,21 @@ Application create/list/detail/status-PATCH and history responses are parsed at 
 
 The detail page's "Change status" editor freezes its draft and base revision; background refresh never rebases it. Saves are never retried automatically; 409 requires "Use current version"; uncertain outcomes re-read the application and fail safe to "Save outcome unknown". Cached detail/list data never accept an older manual revision (`src/lib/applicationCache.ts`). History shows "Recorded" and separate "Email date" labels in recording order.
 
+### Mails (home)
+
+`/mails` (nav "Mails") is the page the app opens on; `/` redirects to it. Components live in `src/components/mails/`, calls and hooks in `src/api/conversations.ts` and `src/api/mailbox.ts`, labels and other decisions in `src/lib/mails.ts`.
+- **Job mails tab:** one row per conversation with its type, what it needs from the user (Needs action, Replied, Done) and its application, or a one-click "Create application". Filters and the page number live in the URL.
+- **Gmail tab:** the inbox read live from Gmail, reading only. Nothing from it is kept: these reads leave the cache when the page is left.
+- **Mail details** (`/mails/$key` for a job mail, `/mails/gmail/$threadId` for any other mail): the thread's text is fetched when the page opens. A sender's HTML is shown only inside a sandboxed frame whose policy allows no script and no network; pictures load after "Show images" (`src/lib/mailHtml.ts`).
+- **Dashboard** (`/dashboard`) shows "Coming soon". The Agenda page and the old dashboard parts (`src/components/dashboard/`, `DailyWorkspace`) stay in the repo, but nothing links to them or shows them.
+
 ### AI provider (ADR-0001)
 
 `/ai` (nav "AI Provider") is where the user sets up their own AI account. Components live in `src/components/ai/`; copy and fixes for each access state are in `src/lib/aiLabels.ts`.
 - **Page:** choose a curated provider, follow the guided key steps, paste the key, pick recommended or tested models, read what is sent and consent, then save and verify. The page also shows status with one fix, Career Companion's own counts and the safety limit, an optional sample test, switch and remove.
 - **The key is write-only in the browser.** It lives only in an uncontrolled password field and one local variable during the save request, and the field is cleared at once and on unmount. It is never put in TanStack's query or mutation caches (save calls `api.saveAISettings` directly), the URL or storage. Tests assert this.
 - **Elsewhere:**
-  - an AI notice on the dashboard and Gmail page while access is not ready;
+  - an AI notice on the Mails page and Gmail page while access is not ready;
   - "Waiting for AI" for pending rows, which are not polled;
   - a "Retry anyway" dialog for uncertain outcomes, sent once and only after confirmation;
   - "Analyzed by <provider · model>" labels.
@@ -55,7 +63,7 @@ The detail page's "Change status" editor freezes its draft and base revision; ba
 
 `/automation` (nav "Automation") manages integration tokens for the user's own job-application automation, which reports confirmed submissions to the backend's MCP endpoint. Components live in `src/components/automation/`.
 - **Token page:** create (name and expiry), show the plaintext once with a copy button and warning, list (prefix, status, last used, expiry, a warning in the last 14 days) and revoke after confirmation. The create API is called directly, never through a cached mutation; the plaintext lives only in component state and is dropped on "Done" or unmount. An uncertain create refreshes the list and is never resent.
-- **Dashboard:** "Automation submissions to review", next to the email panels: link to an application (choose, then "Link"), create, or ignore. Fields are untrusted plain text; a job link is shown only for a stored `http`/`https` URL, with `rel="noopener noreferrer"`.
+- **Review list:** "Automation submissions to review", at the top of the Automation page: link to an application (choose, then "Link"), create, or ignore. Fields are untrusted plain text; a job link is shown only for a stored `http`/`https` URL, with `rel="noopener noreferrer"`.
 - **Status and timeline:** "Applied · via automation" shows only while the status source is `UNKNOWN` and `submittedVia` is set. The `AUTOMATION_SUBMITTED` event renders as "Submitted via automation" with separate "Submitted" and "Recorded" times, never as AI interpretation or missing email.
 - The Vite dev server proxies `/mcp` to the backend, like `/api`, so the URL on the page works locally.
 - Smoke: the MCP scenario uses `scripts/fixtures/mcp-daily-applications.{md,json}` and the official SDK client from the backend's dev dependencies.
