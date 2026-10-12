@@ -1,6 +1,7 @@
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
 import { createFileRoute } from '@tanstack/react-router';
 import { CreateTokenForm } from '../components/automation/CreateTokenForm';
+import { SubmissionReview } from '../components/automation/SubmissionReview';
 import { TokenList } from '../components/automation/TokenList';
 
 export const Route = createFileRoute('/automation')({
@@ -23,6 +24,8 @@ function AutomationPage() {
           submits. Career Companion never applies to jobs itself.
         </p>
       </div>
+
+      <SubmissionReview />
 
       <CreateTokenForm />
       <TokenList />
@@ -52,7 +55,7 @@ function AutomationPage() {
         <p className="text-text-secondary">
           Only the company, job title, platform, job link, location and the confirmation text are
           sent. Your answers, resume and passwords stay on your computer. Submissions Career
-          Companion cannot match with certainty wait for you on the dashboard.
+          Companion cannot match with certainty wait for you at the top of this page.
         </p>
       </section>
     </div>
