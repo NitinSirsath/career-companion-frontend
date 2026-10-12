@@ -8,6 +8,7 @@ export const PROCESSING_REFRESH_INTERVAL_MS = 4_000;
 export const DOMAIN_QUERY_KEYS = [
   'gmailStatus',
   'gmailMessages',
+  'conversations',
   'applications',
   'application',
   'application-events',
