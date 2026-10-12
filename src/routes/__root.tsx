@@ -1,5 +1,6 @@
 import {
   createRootRouteWithContext,
+  Link,
   Outlet,
   redirect,
   type ErrorComponentProps,
@@ -7,7 +8,7 @@ import {
 import { User, logout } from '../api/auth';
 import { Sidebar } from '../components/layout/Sidebar';
 import { MobileNav } from '../components/layout/MobileNav';
-import { Briefcase, LogOut } from 'lucide-react';
+import { Briefcase, LogOut, UserRound } from 'lucide-react';
 import { ProcessingRefreshObserver } from '../components/ProcessingRefreshObserver';
 import { DevErrorTrigger } from '../components/errors/DevErrorTrigger';
 import { NotFoundPage } from '../components/errors/NotFoundPage';
@@ -67,13 +68,22 @@ function LoggedInShell({ children }: LoggedInShellProps) {
             <Briefcase className="w-5 h-5 text-primary" />
             <div className="font-semibold text-lg tracking-tight">Career Companion</div>
           </div>
-          <button
-            onClick={handleLogout}
-            className="text-status-error p-2 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-border-focus rounded-none"
-            aria-label="Logout"
-          >
-            <LogOut className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-1">
+            <Link
+              to="/account"
+              className="p-2 text-text-secondary outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
+              aria-label="Account"
+            >
+              <UserRound className="w-5 h-5" />
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="text-status-error p-2 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-border-focus rounded-none"
+              aria-label="Logout"
+            >
+              <LogOut className="w-5 h-5" />
+            </button>
+          </div>
         </header>
 
         <main className="flex-1 p-4 md:p-8 overflow-auto">

@@ -8,6 +8,7 @@ import {
   Briefcase,
   Sparkles,
   Bot,
+  UserRound,
 } from 'lucide-react';
 import { logout } from '../../api/auth';
 import { ThemeSelector } from '../ThemeSelector';
@@ -58,7 +59,11 @@ export function Sidebar() {
       <div className="p-4 border-t border-border-default flex flex-col gap-4">
         <ThemeSelector />
 
-        <div className="border-t border-border-subtle pt-4">
+        <div className="border-t border-border-subtle pt-4 space-y-1">
+          <Link to="/account" className={navLinkClass}>
+            <UserRound className="w-4 h-4" />
+            Account
+          </Link>
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-none text-status-error hover:bg-status-error-subtle transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:ring-offset-2"

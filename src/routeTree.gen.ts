@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AccountRouteImport } from './routes/account'
 import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as AiRouteImport } from './routes/ai'
 import { Route as ApplicationsRouteImport } from './routes/applications'
@@ -25,6 +26,11 @@ import { Route as MailsGmailThreadIdRouteImport } from './routes/mails.gmail.$th
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountRoute = AccountRouteImport.update({
+  id: '/account',
+  path: '/account',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AgendaRoute = AgendaRouteImport.update({
@@ -85,6 +91,7 @@ const MailsGmailThreadIdRoute = MailsGmailThreadIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/agenda': typeof AgendaRoute
   '/ai': typeof AiRoute
   '/applications': typeof ApplicationsRouteWithChildren
@@ -99,6 +106,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/agenda': typeof AgendaRoute
   '/ai': typeof AiRoute
   '/applications': typeof ApplicationsRouteWithChildren
@@ -114,6 +122,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/agenda': typeof AgendaRoute
   '/ai': typeof AiRoute
   '/applications': typeof ApplicationsRouteWithChildren
@@ -130,6 +139,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/account'
     | '/agenda'
     | '/ai'
     | '/applications'
@@ -144,6 +154,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/account'
     | '/agenda'
     | '/ai'
     | '/applications'
@@ -158,6 +169,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/account'
     | '/agenda'
     | '/ai'
     | '/applications'
@@ -173,6 +185,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AccountRoute: typeof AccountRoute
   AgendaRoute: typeof AgendaRoute
   AiRoute: typeof AiRoute
   ApplicationsRoute: typeof ApplicationsRouteWithChildren
@@ -192,6 +205,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account': {
+      id: '/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/agenda': {
@@ -288,6 +308,7 @@ const ApplicationsRouteWithChildren = ApplicationsRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AccountRoute: AccountRoute,
   AgendaRoute: AgendaRoute,
   AiRoute: AiRoute,
   ApplicationsRoute: ApplicationsRouteWithChildren,
