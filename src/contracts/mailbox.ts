@@ -1,9 +1,8 @@
-import { z } from 'zod';
-
 /**
  * The user's Gmail read live: nothing in these shapes is stored by Career Companion. Message
  * text is fetched from Gmail when the user opens a thread and is never kept or logged.
  */
+import { z } from 'zod';
 
 const IsoDateTime = z.iso.datetime({ offset: true });
 
