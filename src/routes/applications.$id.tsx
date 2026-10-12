@@ -1,6 +1,7 @@
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
 import { FollowUpEditor, SnoozeControl, ArchiveControl } from '../components/FollowThrough';
 import { MatchCorrectionDialog } from '../components/MatchCorrectionDialog';
+import { ApplicationConversations } from '../components/mails/ApplicationConversations';
 import { deadlineLabel } from '../lib/deadline';
 import { useState } from 'react';
 import { Pagination } from '../components/ui/pagination';
@@ -113,6 +114,13 @@ function TimelineEventItem({ event }: { event: ApplicationEventResponse }) {
                 'Email date unknown'
               )}
             </p>
+            <Link
+              to="/mails/$key"
+              params={{ key: source.id }}
+              className="inline-block underline text-action-primary"
+            >
+              Open mail
+            </Link>
           </div>
         ) : (
           <p className="text-xs text-text-secondary">Source email unavailable</p>
@@ -372,9 +380,7 @@ function ApplicationDetailPage() {
         </div>
       )}
 
-      <Link to="/agenda" className="inline-block underline text-sm">
-        Open agenda
-      </Link>
+      <ApplicationConversations applicationId={id} />
       {/* Actions section — independent of history and status editing */}
       <section className="space-y-3" aria-labelledby="actions-heading">
         <h3 id="actions-heading" className="text-lg font-semibold">
