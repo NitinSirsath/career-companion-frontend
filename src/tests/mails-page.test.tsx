@@ -1,0 +1,385 @@
+// @vitest-environment jsdom
+import '@testing-library/jest-dom/vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ApiError, api } from '../api/client';
+import type { Conversation } from '../contracts/conversation';
+import type { MailboxThread } from '../contracts/mailbox';
+import { makeConversation } from './fixtures';
+
+vi.mock('../api/client', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../api/client')>()),
+  api: {
+    get: vi.fn(),
+    post: vi.fn(),
+    patch: vi.fn(),
+    getGmailStatus: vi.fn(),
+    getAISettings: vi.fn(),
+  },
+}));
+
+import { routeTree } from '../routeTree.gen';
+
+const APP_ID = '33333333-3333-4333-8333-333333333333';
+const page = <T,>(items: T[], nextOffset: number | null = null) => ({
+  items,
+  metadata: { limit: 20, offset: 0, nextOffset },
+});
+const thread = (overrides: Partial<MailboxThread> = {}): MailboxThread => ({
+  threadId: 'gmail-1',
+  subject: 'Security alert',
+  from: 'Google <no-reply@accounts.google.com>',
+  date: '2026-10-11T03:45:00.000Z',
+  snippet: 'A new sign-in on Mac. If this wasn&#39;t you, check it',
+  messageCount: 1,
+  unread: false,
+  conversationKey: null,
+  ...overrides,
+});
+
+let conversations: Conversation[];
+let inbox: Record<string, { items: MailboxThread[]; nextPageToken: string | null }>;
+const get = vi.mocked(api.get);
+const listCalls = () =>
+  get.mock.calls.map(([path]) => path).filter((path) => path.startsWith('/api/conversations?'));
+
+let router: ReturnType<typeof createRouter>;
+function show(path = '/mails') {
+  router = createRouter({
+    routeTree,
+    history: createMemoryHistory({ initialEntries: [path] }),
+    context: { user: { id: 'u', email: 'u@test.local', name: 'U' } },
+  });
+  render(
+    <QueryClientProvider
+      client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
+    >
+      <RouterProvider router={router} />
+    </QueryClientProvider>,
+  );
+}
+const row = async (subject: string) =>
+  within((await screen.findByRole('link', { name: subject })).closest('tr')!);
+
+beforeEach(() => {
+  vi.resetAllMocks();
+  conversations = [makeConversation()];
+  inbox = { '': { items: [thread()], nextPageToken: null } };
+  get.mockImplementation(async (path: string) => {
+    if (path.startsWith('/api/conversations?')) return page(conversations);
+    if (path.startsWith('/api/mailbox/threads')) {
+      const token = new URLSearchParams(path.split('?')[1]).get('pageToken') ?? '';
+      return inbox[token];
+    }
+    throw new ApiError('Not found', 'http', 404, 'NOT_FOUND');
+  });
+  vi.mocked(api.getGmailStatus).mockResolvedValue({
+    connected: true,
+    gmailEmail: 'you@gmail.com',
+    status: 'CONNECTED',
+    syncStatus: 'IDLE',
+    lastSyncedAt: null,
+  });
+  vi.mocked(api.getAISettings).mockRejectedValue(new ApiError('n/a', 'http', 404));
+});
+afterEach(cleanup);
+
+describe('home and navigation', () => {
+  it('lands on Mails, lists Mails first and has no Agenda', async () => {
+    show('/');
+    expect(await screen.findByRole('heading', { name: 'Mails' })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/mails');
+    // The desktop sidebar and the phone bar: both are in the page, one is shown.
+    const menus = screen.getAllByRole('navigation', { name: 'Main' });
+    expect(menus).toHaveLength(2);
+    for (const menu of menus) {
+      const names = within(menu)
+        .getAllByRole('link')
+        .map((link) => link.textContent);
+      expect(names[0]).toBe('Mails');
+      expect(names).toContain('Dashboard');
+      expect(names).not.toContain('Agenda');
+    }
+  });
+
+  it('shows only "Coming soon" on the Dashboard, with the way to Mails', async () => {
+    show('/dashboard');
+    expect(await screen.findByText('Coming soon')).toBeInTheDocument();
+    expect(get).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Open Mails' }));
+    expect(await screen.findByRole('heading', { name: 'Mails' })).toBeInTheDocument();
+  });
+});
+
+describe('Job mails tab', () => {
+  it('shows a new job mail with its action and a one-click Create application', async () => {
+    show();
+    const cells = await row('Interview: first round availability');
+    expect(cells.getByText('New')).toBeInTheDocument();
+    expect(cells.getByText('Priya Nair · Northwind Robotics · 1 mail')).toBeInTheDocument();
+    expect(cells.getByText('Interview')).toBeInTheDocument();
+    expect(cells.getByText('Send your available dates')).toBeInTheDocument();
+    expect(cells.getByText('Needs action')).toBeInTheDocument();
+    expect(cells.getByText('Due Oct 13, 2026')).toBeInTheDocument();
+    expect(cells.getByText('Northwind Robotics · Senior Platform Engineer')).toBeInTheDocument();
+    expect(
+      cells.getByRole('link', { name: 'Interview: first round availability' }),
+    ).toHaveAttribute('href', '/mails/thread-1');
+    expect(screen.getByRole('link', { name: /^Job mails/ })).toHaveTextContent('Job mails1');
+
+    vi.mocked(api.post).mockResolvedValue({});
+    fireEvent.click(cells.getByRole('button', { name: 'Create application' }));
+    await waitFor(() =>
+      expect(api.post).toHaveBeenCalledWith('/api/conversations/thread-1/application', {}),
+    );
+  });
+
+  it('shows a linked application with its stage, and "Update" for a status mail', async () => {
+    conversations = [
+      makeConversation({
+        isNew: false,
+        category: 'FOLLOW_UP',
+        request: null,
+        link: 'LINKED',
+        application: {
+          id: APP_ID,
+          companyName: 'Umbrella Labs',
+          jobTitle: 'Product Analyst',
+          effectiveStatus: 'APPLIED',
+          archived: false,
+        },
+      }),
+    ];
+    show();
+    const cells = await row('Interview: first round availability');
+    expect(cells.getByText('Update')).toBeInTheDocument();
+    expect(cells.getByText('Nothing needed')).toBeInTheDocument();
+    expect(cells.queryByText('New')).not.toBeInTheDocument();
+    expect(cells.getByRole('link', { name: 'Umbrella Labs' })).toHaveAttribute(
+      'href',
+      `/applications/${APP_ID}`,
+    );
+    expect(cells.getByText('Application Received')).toBeInTheDocument();
+    expect(cells.queryByRole('button')).not.toBeInTheDocument();
+  });
+
+  it('marks an action done and reopens it, naming the mail that asked', async () => {
+    vi.mocked(api.patch).mockResolvedValue(makeConversation());
+    show();
+    fireEvent.click((await row('Interview: first round availability')).getByText('Mark done'));
+    await waitFor(() =>
+      expect(api.patch).toHaveBeenCalledWith('/api/conversations/thread-1/request', {
+        emailId: '11111111-1111-4111-8111-111111111111',
+        state: 'DONE',
+      }),
+    );
+    cleanup();
+
+    const done = makeConversation();
+    conversations = [{ ...done, request: { ...done.request!, state: 'DONE' } }];
+    show();
+    const cells = await row('Interview: first round availability');
+    expect(cells.getByText('Done')).toBeInTheDocument();
+    fireEvent.click(cells.getByText('Reopen'));
+    await waitFor(() =>
+      expect(api.patch).toHaveBeenLastCalledWith(
+        '/api/conversations/thread-1/request',
+        expect.objectContaining({ state: 'OPEN' }),
+      ),
+    );
+  });
+
+  it('offers "Ask me again" after the user replied', async () => {
+    const replied = makeConversation({ sentCount: 1 });
+    conversations = [
+      {
+        ...replied,
+        request: { ...replied.request!, state: 'REPLIED', repliedAt: '2026-10-09T10:00:00.000Z' },
+      },
+    ];
+    show();
+    const cells = await row('Interview: first round availability');
+    expect(cells.getByText('Replied')).toBeInTheDocument();
+    expect(cells.getByText(/^You replied /)).toBeInTheDocument();
+    expect(cells.getByText('Ask me again')).toBeInTheDocument();
+    expect(cells.queryByText('Mark done')).not.toBeInTheDocument();
+  });
+
+  it('asks for the company when the AI could not read one', async () => {
+    conversations = [makeConversation({ company: null, role: null })];
+    vi.mocked(api.post).mockRejectedValueOnce(
+      new ApiError('Enter the company name.', 'http', 400, 'COMPANY_REQUIRED'),
+    );
+    show();
+    const cells = await row('Interview: first round availability');
+    fireEvent.click(cells.getByRole('button', { name: 'Create application' }));
+    const company = await cells.findByLabelText('Company name');
+    fireEvent.click(cells.getByRole('button', { name: 'Create application' }));
+    expect(await cells.findByText('Enter the company name.')).toBeInTheDocument();
+    expect(api.post).toHaveBeenCalledTimes(1);
+
+    vi.mocked(api.post).mockResolvedValue({});
+    fireEvent.change(company, { target: { value: ' Northwind ' } });
+    fireEvent.click(cells.getByRole('button', { name: 'Create application' }));
+    await waitFor(() =>
+      expect(api.post).toHaveBeenLastCalledWith('/api/conversations/thread-1/application', {
+        companyName: 'Northwind',
+      }),
+    );
+  });
+
+  it('offers only the applications that fit when there is more than one', async () => {
+    conversations = [makeConversation({ link: 'NEEDS_REVIEW' })];
+    vi.mocked(api.post).mockRejectedValueOnce(
+      new ApiError('Choose one.', 'http', 409, 'APPLICATION_CHOICE_REQUIRED', {
+        candidates: [
+          { id: APP_ID, companyName: 'Northwind Robotics', jobTitle: 'Platform Engineer' },
+          {
+            id: '44444444-4444-4444-8444-444444444444',
+            companyName: 'Northwind Robotics',
+            jobTitle: null,
+          },
+        ],
+      }),
+    );
+    show();
+    const cells = await row('Interview: first round availability');
+    fireEvent.click(cells.getByRole('button', { name: 'Choose application' }));
+    const choice = await cells.findByLabelText('Choose an application');
+    expect(within(choice).getAllByRole('option')).toHaveLength(3);
+    expect(cells.getByRole('button', { name: 'Use this application' })).toBeDisabled();
+
+    vi.mocked(api.post).mockResolvedValue({});
+    fireEvent.change(choice, { target: { value: APP_ID } });
+    fireEvent.click(cells.getByRole('button', { name: 'Use this application' }));
+    await waitFor(() =>
+      expect(api.post).toHaveBeenLastCalledWith('/api/conversations/thread-1/application', {
+        applicationId: APP_ID,
+      }),
+    );
+  });
+
+  it('keeps the filters in the URL and sends them to the list', async () => {
+    show('/mails?offset=20');
+    await row('Interview: first round availability');
+    fireEvent.change(screen.getByLabelText('Action'), { target: { value: 'open' } });
+    fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'FOLLOW_UP' } });
+    fireEvent.change(screen.getByLabelText('Application'), { target: { value: 'none' } });
+    fireEvent.change(screen.getByLabelText('Sort'), { target: { value: 'newest' } });
+    fireEvent.click(screen.getByLabelText('New only'));
+    fireEvent.change(screen.getByLabelText('Search'), { target: { value: 'north' } });
+    await waitFor(() =>
+      expect(router.state.location.search).toEqual({
+        request: 'open',
+        category: 'FOLLOW_UP',
+        application: 'none',
+        sort: 'newest',
+        unseen: true,
+        q: 'north',
+      }),
+    );
+    await waitFor(() => {
+      const query = new URLSearchParams(listCalls().slice(-1)[0].split('?')[1]);
+      expect(Object.fromEntries(query)).toEqual({
+        limit: '20',
+        offset: '0',
+        request: 'open',
+        category: 'FOLLOW_UP',
+        application: 'none',
+        sort: 'newest',
+        unseen: 'true',
+        q: 'north',
+      });
+    });
+  });
+
+  it('says so when there are no job mails yet, and when nothing matches', async () => {
+    conversations = [];
+    show();
+    expect(await screen.findByText('No job mails yet')).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText('New only'));
+    expect(await screen.findByText('No job mails match this view')).toBeInTheDocument();
+  });
+});
+
+describe('Gmail tab', () => {
+  it('lists the inbox read live and opens job mails with their job view', async () => {
+    inbox[''] = {
+      items: [
+        thread({ unread: true }),
+        thread({
+          threadId: 'thread-1',
+          subject: 'Take-home assignment',
+          from: 'Hiring Team <jobs@globex.example>',
+          messageCount: 2,
+          conversationKey: 'thread-1',
+        }),
+      ],
+      nextPageToken: null,
+    };
+    show('/mails?tab=gmail');
+    const plain = await screen.findByRole('link', { name: /Security alert/ });
+    expect(plain).toHaveAttribute('href', '/mails/gmail/gmail-1');
+    expect(plain).toHaveTextContent("If this wasn't you");
+    expect(plain).not.toHaveTextContent('Job mail');
+    const job = screen.getByRole('link', { name: /Take-home assignment/ });
+    expect(job).toHaveAttribute('href', '/mails/thread-1');
+    expect(job).toHaveTextContent('Hiring Team 2');
+    expect(job).toHaveTextContent('Job mail');
+    expect(screen.getByText('you@gmail.com')).toBeInTheDocument();
+    expect(screen.getByText(/Nothing shown here is stored/)).toBeInTheDocument();
+    expect(screen.queryByLabelText('Search')).not.toBeInTheDocument();
+  });
+
+  it('pages Older and Newer with Gmail tokens', async () => {
+    inbox[''] = { items: [thread()], nextPageToken: 'page-2' };
+    inbox['page-2'] = {
+      items: [thread({ threadId: 'gmail-2', subject: 'Your October bill' })],
+      nextPageToken: null,
+    };
+    show('/mails?tab=gmail');
+    await screen.findByRole('link', { name: /Security alert/ });
+    expect(screen.getByRole('button', { name: 'Newer' })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Older' }));
+    expect(await screen.findByRole('link', { name: /Your October bill/ })).toBeInTheDocument();
+    expect(get).toHaveBeenCalledWith(
+      '/api/mailbox/threads?pageToken=page-2',
+      expect.anything(),
+      expect.any(Number),
+    );
+    expect(screen.getByRole('button', { name: 'Older' })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Newer' }));
+    expect(await screen.findByRole('link', { name: /Security alert/ })).toBeInTheDocument();
+  });
+
+  it('sends the user to Gmail Sync when Gmail is not connected, and offers a retry when Gmail is down', async () => {
+    const failure = vi.fn<() => ApiError>(
+      () =>
+        new ApiError('Connect Gmail to read your mail here.', 'http', 409, 'GMAIL_NOT_CONNECTED'),
+    );
+    get.mockImplementation(async (path: string) => {
+      if (path.startsWith('/api/mailbox/threads')) throw failure();
+      return page(conversations);
+    });
+    show('/mails?tab=gmail');
+    expect(await screen.findByText('Connect Gmail to read your mail here.')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Open Gmail Sync' })).toHaveAttribute('href', '/gmail');
+    cleanup();
+
+    failure.mockReturnValue(
+      new ApiError(
+        'Gmail could not be read right now. Try again.',
+        'http',
+        502,
+        'GMAIL_UNAVAILABLE',
+      ),
+    );
+    show('/mails?tab=gmail');
+    expect(await screen.findByText(/Gmail could not be read right now/)).toBeInTheDocument();
+    failure.mockClear();
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+    await waitFor(() => expect(failure).toHaveBeenCalled());
+  });
+});
