@@ -209,6 +209,7 @@ export class ApiClient {
 
   async patch<T>(endpoint: string, body: unknown, options?: RequestInit): Promise<T> {
     return this.request<T>(endpoint, { ...options, method: 'PATCH', body: JSON.stringify(body) });
+  }
 
   async createApplication(data: CreateApplicationRequest): Promise<ApplicationResponse> {
     return this.request(
