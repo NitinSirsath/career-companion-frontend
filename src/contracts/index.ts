@@ -7,7 +7,6 @@ export const HealthResponseSchema = z.object({
 export type HealthResponse = z.infer<typeof HealthResponseSchema>;
 
 export * from './appMode';
-
 export * from './application';
 export * from './auth';
 export * from './gmail';
