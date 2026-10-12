@@ -24,14 +24,14 @@ export function RouteErrorPage({ error, reset }: ErrorComponentProps) {
   return (
     <ErrorState
       title="Something went wrong"
-      message="Career Companion could not display this page. You can retry or return to the dashboard."
+      message="Career Companion could not display this page. You can retry or return to Mails."
       error={error}
       showRetry
       showReload
-      showDashboard
+      showHome
       onRetry={() => void retry()}
       onReload={() => window.location.reload()}
-      onDashboard={() => void router.navigate({ to: '/' })}
+      onHome={() => void router.navigate({ to: '/mails' })}
     />
   );
 }
