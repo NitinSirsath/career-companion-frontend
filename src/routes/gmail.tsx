@@ -14,9 +14,8 @@ import { z } from 'zod';
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { ExternalLink, Info, RotateCcw } from 'lucide-react';
 import { getGmailConversationUrl } from '../utils/gmail';
-import { isSimulatedId } from '../contracts/testTools';
-import { TestInboxPanel } from '../components/testTools/TestInboxPanel';
-import { useTestToolsEnabled } from '../api/testTools';
+import { useDevMode } from '../api/appMode';
+import { gmailConnectionCopy } from '../lib/gmailConnection';
 import {
   startProcessingRefresh,
   getProcessingRefreshUntil,
@@ -64,7 +63,7 @@ function GmailPage() {
   const [activeTab, setActiveTab] = useState<'job_related' | 'irrelevant'>('job_related');
   const limit = 20;
   const [showError, setShowError] = useState(false);
-  const testToolsEnabled = useTestToolsEnabled();
+  const devMode = useDevMode();
 
   useEffect(() => {
     if (search.gmailError === 'denied') {
@@ -116,7 +115,7 @@ function GmailPage() {
         ? 15000
         : false;
     },
-    enabled: !!statusData?.connected || testToolsEnabled, // Connected, or the test inbox is on
+    enabled: !!statusData?.connected, // Only fetch if connected
   });
 
   const disconnectMutation = useMutation({
@@ -174,6 +173,7 @@ function GmailPage() {
   const handleConnect = () => {
     window.location.href = '/api/gmail/connect';
   };
+  const connectionCopy = gmailConnectionCopy(devMode, statusData?.status);
 
   return (
     <TooltipProvider>
@@ -183,8 +183,6 @@ function GmailPage() {
         </div>
 
         <AIAccessNotice />
-
-        <TestInboxPanel />
 
         {(showError || search.gmailError) && (
           <div className="p-4 text-sm font-medium text-destructive bg-destructive/10 border border-destructive/20 rounded-xl mb-4">
@@ -207,24 +205,19 @@ function GmailPage() {
               <div>
                 <h3 className="text-lg font-medium mb-1">Connection Status</h3>
                 {!statusData?.connected ? (
-                  <p className="text-muted-foreground text-sm">
-                    {statusData?.status === 'REVOKED'
-                      ? 'Gmail access was revoked. Please reconnect.'
-                      : 'Gmail not connected'}
-                  </p>
+                  <p className="text-muted-foreground text-sm">{connectionCopy.notConnected}</p>
                 ) : (
                   <p className="text-muted-foreground text-sm">
                     Connected as{' '}
                     <span className="font-semibold text-foreground">{statusData.gmailEmail}</span>
+                    {connectionCopy.connectedNote && ` · ${connectionCopy.connectedNote}`}
                   </p>
                 )}
               </div>
 
               <div>
                 {!statusData?.connected ? (
-                  <Button onClick={handleConnect}>
-                    {statusData?.status === 'REVOKED' ? 'Reconnect Gmail' : 'Connect Gmail'}
-                  </Button>
+                  <Button onClick={handleConnect}>{connectionCopy.connect}</Button>
                 ) : (
                   <Button
                     variant="outline"
@@ -328,9 +321,7 @@ function GmailPage() {
         )}
 
         {/* Ingested Email List */}
-        {(statusData?.connected ||
-          testToolsEnabled ||
-          (messagesData && messagesData?.items?.length > 0)) && (
+        {(statusData?.connected || (messagesData && messagesData?.items?.length > 0)) && (
           <div className="space-y-4">
             <div className="border-b mb-4">
               <div className="flex space-x-6">
@@ -424,7 +415,7 @@ function GmailPage() {
                               className="px-4 py-3 font-medium max-w-xs truncate"
                               title={msg.subject || ''}
                             >
-                              {msg.threadId && !isSimulatedId(msg.threadId) ? (
+                              {msg.threadId && !devMode ? (
                                 <a
                                   href={getGmailConversationUrl(msg.threadId)}
                                   target="_blank"
@@ -436,14 +427,7 @@ function GmailPage() {
                                   <ExternalLink className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
                                 </a>
                               ) : (
-                                <span>
-                                  {msg.subject || '(No Subject)'}
-                                  {isSimulatedId(msg.gmailMessageId) && (
-                                    <span className="ml-2 text-xs font-semibold text-status-warning">
-                                      TEST
-                                    </span>
-                                  )}
-                                </span>
+                                <span>{msg.subject || '(No Subject)'}</span>
                               )}
                             </td>
                             <td

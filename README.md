@@ -16,8 +16,14 @@ This is the frontend repository for Career Companion.
 
 1. Make sure Node.js is installed.
 2. Run `npm install` to install dependencies.
-3. Ensure `.env` is created based on `.env.example`.
-4. Run `npm run dev` to start the development server.
+3. Run `npm run dev` to start the development server. The frontend needs no `.env`.
+
+### Prod mode and dev mode
+
+The frontend has no mode setting of its own. At start it asks the backend (`GET /api/app-mode`) and follows it:
+
+- **Prod mode:** real Google sign-in and real Gmail.
+- **Dev mode** (backend started with `npm run devmode`): a "DEV MODE" banner is always visible, Gmail is replaced by the mail sandbox, and "Connect" on the Gmail Sync page connects the sandbox mailbox in one click. Nothing of dev mode shows in prod mode.
 
 ## Scripts
 

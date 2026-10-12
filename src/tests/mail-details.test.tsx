@@ -257,35 +257,6 @@ describe('a mail that is not a job mail', () => {
   });
 });
 
-describe('test environment', () => {
-  it('records a test reply in a test thread, and offers no Gmail link for it', async () => {
-    vi.stubEnv('VITE_TEST_TOOLS', 'true');
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async () => new Response(JSON.stringify({ enabled: true }), { status: 200 })),
-    );
-    detail = {
-      ...detail,
-      conversation: makeConversation({ key: 'sim-thread-1', threadId: 'sim-thread-1' }),
-    };
-    thread = { threadId: 'sim-thread-1', subject: 'Interview', messages: [makeMailMessage()] };
-    show('/mails/sim-thread-1');
-    fireEvent.click(await screen.findByRole('button', { name: 'Record my reply (test)' }));
-    await waitFor(() =>
-      expect(api.post).toHaveBeenCalledWith('/api/test-tools/replies', {
-        threadId: 'sim-thread-1',
-      }),
-    );
-    expect(screen.queryByRole('link', { name: /in Gmail$/ })).not.toBeInTheDocument();
-  });
-
-  it('shows no test button in a normal build', async () => {
-    show('/mails/thread-1');
-    await screen.findByRole('article');
-    expect(screen.queryByRole('button', { name: /test/i })).not.toBeInTheDocument();
-  });
-});
-
 describe('application page', () => {
   it('lists its conversations and opens a mail from the timeline, with no Agenda link', async () => {
     const application = makeApplication({ id: 'app-1', companyName: 'Northwind Robotics' });
