@@ -173,3 +173,4 @@ export const ResetSandboxResponseSchema = z.object({
   deletedEmails: z.number().int(),
   deletedApplications: z.number().int(),
 });
+export type ResetSandboxResponse = z.infer<typeof ResetSandboxResponseSchema>;
