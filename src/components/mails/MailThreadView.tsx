@@ -1,3 +1,5 @@
+import { Link } from '@tanstack/react-router';
+import { useDevMode } from '../../api/appMode';
 import { useMailThread } from '../../api/mailbox';
 import { mailCounts } from '../../lib/mails';
 import { GmailLink } from '../ui/GmailLink';
@@ -10,6 +12,7 @@ import { MailMessageCard } from './MailMessageCard';
  */
 export function MailThreadView({ threadId }: { threadId: string }) {
   const { data, error, isLoading, refetch } = useMailThread(threadId);
+  const devMode = useDevMode();
   const fromYou = data?.messages.filter((message) => message.sentByUser).length ?? 0;
   return (
     <section aria-label="Conversation" className="space-y-4">
@@ -31,10 +34,21 @@ export function MailThreadView({ threadId }: { threadId: string }) {
             <div className="space-y-1">
               <p className="text-sm font-semibold">Reply</p>
               <p className="text-xs text-text-secondary">
-                Replying from here comes later. For now, reply in Gmail.
+                Replying from here comes later. For now, reply in{' '}
+                {devMode ? 'the mail sandbox' : 'Gmail'}.
               </p>
             </div>
-            <GmailLink threadId={threadId} subject={data.subject} reply />
+            {devMode ? (
+              <Link
+                to="/sandbox/$threadId"
+                params={{ threadId }}
+                className="text-xs font-medium text-primary hover:underline"
+              >
+                Reply in the mail sandbox
+              </Link>
+            ) : (
+              <GmailLink threadId={threadId} subject={data.subject} reply />
+            )}
           </div>
         </>
       )}

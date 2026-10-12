@@ -19,6 +19,7 @@ export const DOMAIN_QUERY_KEYS = [
   'unmatched-emails',
   'ambiguous-emails',
   'aiSettings', // waiting count and access state change as emails are processed
+  'sandbox', // dev mode: what the app did with each sandbox mail
 ] as const;
 
 let refreshUntil = 0;
