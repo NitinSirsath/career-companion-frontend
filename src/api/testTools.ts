@@ -2,10 +2,12 @@ import { useIsMutating, useMutation, useQuery, useQueryClient } from '@tanstack/
 import { api } from './client';
 import {
   DeliverTestEmailResponseSchema,
+  DeliverTestReplyResponseSchema,
   ResetTestDataResponseSchema,
   TestToolsStatusSchema,
   type DeliverTestEmailRequest,
   type DeliverTestEmailResponse,
+  type DeliverTestReplyResponse,
   type ResetTestDataResponse,
   type TemplateValues,
   type TestScenario,
@@ -44,6 +46,12 @@ export async function deliverTestEmail(
   );
 }
 
+export async function deliverTestReply(threadId: string): Promise<DeliverTestReplyResponse> {
+  return DeliverTestReplyResponseSchema.parse(
+    await api.post<unknown>('/api/test-tools/replies', { threadId }),
+  );
+}
+
 export async function resetTestData(): Promise<ResetTestDataResponse> {
   return ResetTestDataResponseSchema.parse(
     await api.post<unknown>('/api/test-tools/reset', { confirm: 'RESET' }),
@@ -72,6 +80,16 @@ export function useDeliverTestEmail() {
     mutationKey: testToolsKeys.change,
     mutationFn: deliverTestEmail,
     onSuccess: () => startProcessingRefresh(),
+  });
+}
+
+/** Records the test user's reply in a test thread; every conversation view is stale afterwards. */
+export function useDeliverTestReply() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationKey: testToolsKeys.change,
+    mutationFn: deliverTestReply,
+    onSuccess: () => queryClient.invalidateQueries(),
   });
 }
 
