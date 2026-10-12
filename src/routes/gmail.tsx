@@ -184,7 +184,6 @@ function GmailPage() {
 
         <AIAccessNotice />
 
-
         {(showError || search.gmailError) && (
           <div className="p-4 text-sm font-medium text-destructive bg-destructive/10 border border-destructive/20 rounded-xl mb-4">
             {search.gmailError === 'account_change'
