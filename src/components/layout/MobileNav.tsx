@@ -1,7 +1,9 @@
 import { Link } from '@tanstack/react-router';
-import { LayoutDashboard, FileText, Inbox, Mail, Sparkles, Bot } from 'lucide-react';
+import { LayoutDashboard, FileText, FlaskConical, Inbox, Mail, Sparkles, Bot } from 'lucide-react';
+import { useDevMode } from '../../api/appMode';
 
 export function MobileNav() {
+  const devMode = useDevMode();
   const navLinkClass =
     'flex flex-col items-center justify-center w-full h-full text-text-secondary hover:bg-surface-subtle hover:text-text-primary [&.active]:bg-surface-selected [&.active]:text-action-primary transition-colors';
 
@@ -34,6 +36,12 @@ export function MobileNav() {
         <Bot className="w-5 h-5 mb-1" />
         <span className="text-[10px] font-medium">Automation</span>
       </Link>
+      {devMode && (
+        <Link to="/sandbox" className={navLinkClass}>
+          <FlaskConical className="w-5 h-5 mb-1" />
+          <span className="text-[10px] font-medium">Sandbox</span>
+        </Link>
+      )}
     </nav>
   );
 }
