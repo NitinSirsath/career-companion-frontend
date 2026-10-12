@@ -190,8 +190,13 @@ export class ApiClient {
     }
   }
 
-  async get<T>(endpoint: string, options?: RequestInit): Promise<T> {
-    return this.request<T>(endpoint, { ...options, method: 'GET', cache: 'no-store' });
+  async get<T>(endpoint: string, options?: RequestInit, timeoutMs?: number): Promise<T> {
+    return this.request<T>(
+      endpoint,
+      { ...options, method: 'GET', cache: 'no-store' },
+      undefined,
+      timeoutMs,
+    );
   }
 
   async post<T>(endpoint: string, body?: unknown, options?: RequestInit): Promise<T> {
@@ -201,6 +206,9 @@ export class ApiClient {
       body: body ? JSON.stringify(body) : undefined,
     });
   }
+
+  async patch<T>(endpoint: string, body: unknown, options?: RequestInit): Promise<T> {
+    return this.request<T>(endpoint, { ...options, method: 'PATCH', body: JSON.stringify(body) });
 
   async createApplication(data: CreateApplicationRequest): Promise<ApplicationResponse> {
     return this.request(
