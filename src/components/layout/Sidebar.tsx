@@ -2,12 +2,16 @@ import { Link } from '@tanstack/react-router';
 import {
   LayoutDashboard,
   FileText,
+  Inbox,
   Mail,
   LogOut,
   Briefcase,
   Sparkles,
   Bot,
-  CalendarDays,
+```
+
+Edit 3. Replace:
+
 } from 'lucide-react';
 import { logout } from '../../api/auth';
 import { ThemeSelector } from '../ThemeSelector';
@@ -37,9 +41,9 @@ export function Sidebar() {
           <FileText className="w-4 h-4" />
           Applications
         </Link>
-        <Link to="/agenda" className={navLinkClass}>
-          <CalendarDays className="w-4 h-4" />
-          Agenda
+        <Link to="/dashboard" className={navLinkClass}>
+          <LayoutDashboard className="w-4 h-4" />
+          Dashboard
         </Link>
         <Link to="/gmail" className={navLinkClass}>
           <Mail className="w-4 h-4" />
