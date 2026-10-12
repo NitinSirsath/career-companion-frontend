@@ -68,4 +68,4 @@ export type MailThread = z.infer<typeof MailThreadSchema>;
 
 /** Gmail IDs are short URL-safe tokens. */
 export const MailIdSchema = z.string().regex(/^[A-Za-z0-9_-]{1,128}$/);
-export const MailPartIdSchema = z.string().regex(/^[0-9]+(\\.[0-9]+){0,9}$/);
+export const MailPartIdSchema = z.string().regex(/^[0-9]+(\.[0-9]+){0,9}$/);
