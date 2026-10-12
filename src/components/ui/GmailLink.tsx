@@ -1,5 +1,5 @@
+import { useDevMode } from '../../api/appMode';
 import { getGmailConversationUrl } from '../../utils/gmail';
-import { isSimulatedId } from '../../contracts/testTools';
 
 interface GmailLinkProps {
   threadId?: string | null;
@@ -10,8 +10,9 @@ interface GmailLinkProps {
 }
 
 export function GmailLink({ threadId, className = '', subject, reply = false }: GmailLinkProps) {
-  // Test-inbox emails (test environment) have no Gmail conversation to open.
-  if (!threadId || isSimulatedId(threadId)) return null;
+  // Dev-mode mail lives in the mail sandbox: there is no Gmail conversation to open.
+  const devMode = useDevMode();
+  if (!threadId || devMode) return null;
 
   return (
     <a
