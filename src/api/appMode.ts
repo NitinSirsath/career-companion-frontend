@@ -18,13 +18,16 @@ export async function getAppMode(): Promise<AppMode> {
   }
 }
 
-/** True in dev mode: manual testing with made-up mail, where the mail sandbox stands in for Gmail. */
-export function useDevMode(): boolean {
+/** The backend's mode; undefined until it has answered. */
+export function useAppMode(): AppMode | undefined {
   const { data } = useQuery({
     queryKey: appModeKey,
     queryFn: getAppMode,
     staleTime: Infinity,
     retry: false,
   });
-  return data === 'dev';
+  return data;
 }
+
+/** True in dev mode: manual testing with made-up mail, where the mail sandbox stands in for Gmail. */
+export const useDevMode = (): boolean => useAppMode() === 'dev';
