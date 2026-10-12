@@ -1,6 +1,5 @@
 import { useMailThread } from '../../api/mailbox';
 import { mailCounts } from '../../lib/mails';
-import { TestReplyButton } from '../testTools/TestReplyButton';
 import { GmailLink } from '../ui/GmailLink';
 import { MailboxProblem } from './MailboxProblem';
 import { MailMessageCard } from './MailMessageCard';
@@ -36,7 +35,6 @@ export function MailThreadView({ threadId }: { threadId: string }) {
               </p>
             </div>
             <GmailLink threadId={threadId} subject={data.subject} reply />
-            <TestReplyButton threadId={threadId} />
           </div>
         </>
       )}
