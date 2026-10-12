@@ -8,12 +8,15 @@ import {
   Briefcase,
   Sparkles,
   Bot,
+  FlaskConical,
   UserRound,
 } from 'lucide-react';
+import { useDevMode } from '../../api/appMode';
 import { logout } from '../../api/auth';
 import { ThemeSelector } from '../ThemeSelector';
 
 export function Sidebar() {
+  const devMode = useDevMode();
   const handleLogout = async () => {
     await logout();
     window.location.href = '/login';
@@ -54,6 +57,15 @@ export function Sidebar() {
           <Bot className="w-4 h-4" />
           Automation
         </Link>
+        {devMode && (
+          <Link to="/sandbox" className={navLinkClass}>
+            <FlaskConical className="w-4 h-4" />
+            Mail sandbox
+            <span className="ml-auto bg-status-warning-subtle px-1.5 text-[10px] font-semibold text-status-warning">
+              DEV
+            </span>
+          </Link>
+        )}
       </nav>
 
       <div className="p-4 border-t border-border-default flex flex-col gap-4">
