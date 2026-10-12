@@ -1,8 +1,9 @@
+import { z } from 'zod';
+
 /**
  * The user's Gmail read live: nothing in these shapes is stored by Career Companion. Message
  * text is fetched from Gmail when the user opens a thread and is never kept or logged.
  */
-import { z } from 'zod';
 
 const IsoDateTime = z.iso.datetime({ offset: true });
 
@@ -65,6 +66,6 @@ export const MailThreadSchema = z.object({
 });
 export type MailThread = z.infer<typeof MailThreadSchema>;
 
-/** Gmail IDs are short URL-safe tokens; test-inbox IDs start with `sim-`. */
+/** Gmail IDs are short URL-safe tokens. */
 export const MailIdSchema = z.string().regex(/^[A-Za-z0-9_-]{1,128}$/);
-export const MailPartIdSchema = z.string().regex(/^[0-9]+(\.[0-9]+){0,9}$/);
+export const MailPartIdSchema = z.string().regex(/^[0-9]+(\\.[0-9]+){0,9}$/);
