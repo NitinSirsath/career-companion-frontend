@@ -270,6 +270,7 @@ declare module '@tanstack/react-router' {
       fullPath: '/mails/gmail/$threadId'
       preLoaderRoute: typeof MailsGmailThreadIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
   }
 }
 
