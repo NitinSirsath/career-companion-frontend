@@ -1,13 +1,13 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { createRouter, createMemoryHistory, RouterProvider } from '@tanstack/react-router';
-import { routeTree } from '../routeTree.gen';
+import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
+import { QueryClient } from '@tanstack/react-query';
 import { api, ApiError } from '../api/client';
+import { Agenda } from '../components/Agenda';
 import { resolveTemporal } from '../contracts/temporal';
 import type { AgendaItem } from '../contracts/agenda';
+import { renderPart } from './render';
 vi.mock('../api/client', async (original) => ({
   ...(await original<typeof import('../api/client')>()),
   api: { getAgenda: vi.fn(), updateAgenda: vi.fn() },
@@ -58,16 +58,8 @@ function show() {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: 3 } },
   });
-  const router = createRouter({
-    routeTree,
-    history: createMemoryHistory({ initialEntries: ['/agenda'] }),
-    context: { user: { id, email: 'fixture@test.local', name: 'Fixture' } },
-  });
-  render(
-    <QueryClientProvider client={client}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>,
-  );
+  // The Agenda route says "Coming soon"; this page is kept in the repo and shown on no page.
+  renderPart(<Agenda />, client);
   return client;
 }
 beforeEach(() => {
