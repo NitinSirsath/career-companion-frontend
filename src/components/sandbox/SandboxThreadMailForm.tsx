@@ -7,61 +7,43 @@ import {
   type ReplySandboxMailRequest,
 } from '../../contracts/sandbox';
 import { BODY_PROBLEM, sandboxProblem } from '../../lib/sandbox';
-import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 
-export interface ThreadMailCopy {
-  /** Accessible name of the form. */
-  form: string;
-  /** Shown above the text box when the writer is not the user. */
-  title?: string;
-  label: string;
-  hint: string;
-  send: string;
-}
+/** The other person of the conversation writes; the sandbox never sends a mail as the user. */
+const WRITER: ReplySandboxMailRequest['as'] = 'them';
 
-/**
- * One mail written into the open conversation, by the user or by the other person. `onClose` is
- * given for a box the tester opened: it adds Cancel, and the box closes after the mail is sent.
- */
+/** The other person's next mail in the open conversation. `title` and `send` name that person. */
 export function SandboxThreadMailForm({
   threadId,
-  as,
-  copy,
-  onClose,
+  title,
+  send,
 }: {
   threadId: string;
-  as: ReplySandboxMailRequest['as'];
-  copy: ThreadMailCopy;
-  onClose?: () => void;
+  title: string;
+  send: string;
 }) {
   const bodyId = useId();
   const reply = useReplySandboxMail(threadId);
   const form = useForm<ReplySandboxMailRequest>({
     resolver: zodResolver(ReplySandboxMailRequestSchema),
-    defaultValues: { as, body: '' },
+    defaultValues: { as: WRITER, body: '' },
   });
   const onSubmit = form.handleSubmit((input) =>
-    reply.mutate(input, {
-      onSuccess: () => {
-        form.reset({ as, body: '' });
-        onClose?.();
-      },
-    }),
+    reply.mutate(input, { onSuccess: () => form.reset({ as: WRITER, body: '' }) }),
   );
 
   return (
     <form
       onSubmit={onSubmit}
       noValidate
-      aria-label={copy.form}
-      className={cn('space-y-3 border border-border-strong p-4', onClose && 'bg-surface-subtle')}
+      aria-label="Next mail from the other person"
+      className="space-y-3 border border-border-strong p-4"
     >
-      {copy.title && <p className="break-words text-sm font-semibold">{copy.title}</p>}
+      <p className="break-words text-sm font-semibold">{title}</p>
       <div className="space-y-2">
-        <Label htmlFor={bodyId}>{copy.label}</Label>
+        <Label htmlFor={bodyId}>Their mail</Label>
         <Textarea id={bodyId} rows={4} {...form.register('body')} />
         {form.formState.errors.body && <p className="text-sm text-status-error">{BODY_PROBLEM}</p>}
       </div>
@@ -71,21 +53,16 @@ export function SandboxThreadMailForm({
         </p>
       )}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-text-secondary">{copy.hint}</p>
-        <div className="flex flex-wrap gap-3">
-          {onClose && (
-            <Button type="button" variant="tertiary" onClick={onClose}>
-              Cancel
-            </Button>
-          )}
-          <Button
-            type="submit"
-            disabled={reply.isPending}
-            className="h-auto min-h-10 whitespace-normal"
-          >
-            {reply.isPending ? 'Sending…' : copy.send}
-          </Button>
-        </div>
+        <p className="text-sm text-text-secondary">
+          It arrives in your inbox, in this conversation. The app sees it after the next sync.
+        </p>
+        <Button
+          type="submit"
+          disabled={reply.isPending}
+          className="h-auto min-h-10 whitespace-normal"
+        >
+          {reply.isPending ? 'Sending…' : send}
+        </Button>
       </div>
     </form>
   );
