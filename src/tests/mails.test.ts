@@ -18,6 +18,7 @@ import {
   pageCount,
   parseSender,
   recipientLine,
+  recipientNames,
   REQUEST_STATE_LABEL,
   requestControls,
   requestDetail,
@@ -77,11 +78,39 @@ describe('senders and counts', () => {
   });
 
   it('says who a message went to', () => {
-    expect(recipientLine({ sentByUser: false, to: 'me@example.com' })).toBe('to me');
+    const ME = 'me@example.com';
+    expect(recipientLine({ sentByUser: false, to: ME, cc: null }, ME)).toBe('to me');
     expect(
-      recipientLine({ sentByUser: true, to: '"Nair, Priya" <p@x.example>, Sam <s@x.example>' }),
+      recipientLine(
+        { sentByUser: true, to: '"Nair, Priya" <p@x.example>, Sam <s@x.example>', cc: null },
+        ME,
+      ),
     ).toBe('to Nair, Priya, Sam');
-    expect(recipientLine({ sentByUser: true, to: null })).toBeNull();
+    expect(recipientLine({ sentByUser: true, to: null, cc: null }, ME)).toBeNull();
+  });
+
+  it('names the other people on a mail, so the user sees who a reply to all reaches', () => {
+    const ME = 'me@example.com';
+    const received = {
+      sentByUser: false,
+      to: `Me Myself <ME@example.com>, Daniel Okafor <daniel@x.example>`,
+      cc: '"Fischer, Lena" <lena@x.example>, me+jobs@example.com, sam@x.example',
+    };
+    expect(recipientLine(received, ME)).toBe(
+      'to me, Daniel Okafor · cc Fischer, Lena, sam@x.example',
+    );
+    // Until the user's own address is known, nobody can be told apart from "me".
+    expect(recipientLine(received, null)).toBe('to me');
+    // The user was only copied, or the mail came by a list: still "to me" first.
+    expect(recipientLine({ sentByUser: false, to: 'team@x.example', cc: ME }, ME)).toBe(
+      'to me, team@x.example',
+    );
+    expect(
+      recipientLine({ sentByUser: true, to: 'Priya <p@x.example>', cc: 'Sam <s@x.example>' }, ME),
+    ).toBe('to Priya · cc Sam');
+    expect(recipientNames(null)).toEqual([]);
+    expect(recipientNames('Priya <p@x.example>, s@x.example', 'S@X.example')).toEqual(['Priya']);
+  });
   });
 
   it('counts mails and the ones the user wrote', () => {
