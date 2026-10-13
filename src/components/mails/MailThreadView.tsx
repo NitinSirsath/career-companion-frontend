@@ -1,7 +1,5 @@
-
 import { useMailThread } from '../../api/mailbox';
 import { mailCounts } from '../../lib/mails';
-
 import { MailboxProblem } from './MailboxProblem';
 import { MailMessageCard } from './MailMessageCard';
 import { MailReplyBox } from './MailReplyBox';
