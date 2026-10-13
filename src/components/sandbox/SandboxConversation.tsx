@@ -37,7 +37,7 @@ export function SandboxConversation({ threadId }: { threadId: string }) {
               {parseSender(data.party).address ?? data.party}
             </p>
           </div>
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+          <div className="flex flex-col gap-6 xl:flex-row xl:items-start">
             <section aria-label="Conversation" className="min-w-0 flex-1 space-y-4">
               {data.messages.map((message) => (
                 <SandboxMessageCard key={message.id} message={message} />
