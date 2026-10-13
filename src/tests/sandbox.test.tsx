@@ -149,6 +149,8 @@ beforeEach(() => {
     status: 'CONNECTED',
     syncStatus: 'IDLE',
     lastSyncedAt: null,
+    // The sandbox mailbox can always send.
+    canSend: true,
   });
   vi.mocked(api.getAISettings).mockRejectedValue(new ApiError('n/a', 'http', 404));
   vi.mocked(api.triggerSync).mockResolvedValue({ accepted: true } as never);
@@ -474,7 +476,7 @@ describe('sandbox compose', () => {
 });
 
 describe('mail details in dev mode', () => {
-  it('sends the user to the mail sandbox to reply, not to Gmail', async () => {
+  it('replies into the mail sandbox, says so, and links there instead of to Gmail', async () => {
     get.mockImplementation(async (path: string) => {
       if (path.startsWith('/api/mailbox/threads/'))
         return {
@@ -496,14 +498,32 @@ describe('mail details in dev mode', () => {
               attachments: [],
             },
           ],
+          replyTo: PRIYA,
         };
       throw new ApiError('Not found', 'http', 404, 'NOT_FOUND');
     });
+    post.mockResolvedValue({ id: 'sent-1', threadId: THREAD, sentAt: '2026-10-12T10:20:00.000Z' });
     show(`/mails/gmail/${THREAD}`);
-    expect(await screen.findByRole('link', { name: 'Reply in the mail sandbox' })).toHaveAttribute(
+    const form = within(await screen.findByRole('form', { name: 'Reply' }));
+    expect(
+      form.getByText(/^Dev mode: the reply goes to the mail sandbox\. No real mail is sent\./),
+    ).toBeInTheDocument();
+    expect(form.getByRole('link', { name: 'Open in the mail sandbox' })).toHaveAttribute(
       'href',
       `/sandbox/${THREAD}`,
     );
     expect(screen.queryByRole('link', { name: /in Gmail$/ })).not.toBeInTheDocument();
+
+    // The same call as in prod: the backend sends it through the sandbox.
+    fireEvent.change(form.getByLabelText('Your reply'), { target: { value: 'Thursday works.' } });
+    fireEvent.click(form.getByRole('button', { name: 'Send reply' }));
+    await waitFor(() =>
+      expect(post).toHaveBeenCalledWith(
+        `/api/mailbox/threads/${THREAD}/replies`,
+        { replyId: expect.any(String), text: 'Thursday works.' },
+        undefined,
+        60_000,
+      ),
+    );
   });
 });
