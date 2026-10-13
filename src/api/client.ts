@@ -201,12 +201,18 @@ export class ApiClient {
     );
   }
 
-  async post<T>(endpoint: string, body?: unknown, options?: RequestInit): Promise<T> {
-    return this.request<T>(endpoint, {
-      ...options,
-      method: 'POST',
-      body: body ? JSON.stringify(body) : undefined,
-    });
+  async post<T>(
+    endpoint: string,
+    body?: unknown,
+    options?: RequestInit,
+    timeoutMs?: number,
+  ): Promise<T> {
+    return this.request<T>(
+      endpoint,
+      { ...options, method: 'POST', body: body ? JSON.stringify(body) : undefined },
+      undefined,
+      timeoutMs,
+    );
   }
 
   async patch<T>(endpoint: string, body: unknown, options?: RequestInit): Promise<T> {

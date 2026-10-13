@@ -25,6 +25,7 @@ import { DOMAIN_QUERY_KEYS } from '../lib/processingRefresh';
 export const CONVERSATION_PAGE_SIZE = 20;
 
 export const conversationKeys = {
+  all: ['conversations'] as const,
   lists: ['conversations', 'list'] as const,
   list: (filters: ConversationFilters, offset: number) =>
     ['conversations', 'list', filters, offset] as const,
