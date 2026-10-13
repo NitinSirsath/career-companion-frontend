@@ -144,7 +144,6 @@ export function recipientLine(
     recipientNames(message.cc, mailbox),
   );
 }
-}
 
 /** "4 mails · 2 from you": every message of the thread, and how many the user wrote. */
 export function mailCounts(total: number, fromYou: number): string {
