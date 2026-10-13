@@ -8,7 +8,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ApiError, api } from '../api/client';
 import type { AISettingsResponse } from '../contracts/ai';
 import type { EmailMessage } from '../contracts/gmail';
-import { resetProcessingRefresh } from '../lib/processingRefresh';
+import { getProcessingRefreshUntil, resetProcessingRefresh } from '../lib/processingRefresh';
 import { makeApplication, makeEvent } from './fixtures';
 
 vi.mock('../api/client', async (importOriginal) => {
@@ -22,6 +22,7 @@ vi.mock('../api/client', async (importOriginal) => {
       triggerSync: vi.fn(),
       disconnectGmail: vi.fn(),
       getAISettings: vi.fn(),
+      readWaitingMail: vi.fn(),
       listApplications: vi.fn(),
       getActions: vi.fn(),
       getWorkspaceActions: vi.fn(),
@@ -151,6 +152,100 @@ describe('AI access notice', () => {
     expect(
       within(notice).getByRole('link', { name: 'Open Google Gemini billing' }),
     ).toHaveAttribute('href', 'https://ai.google.dev/gemini-api/docs/billing');
+  });
+});
+
+describe('Read waiting mails now', () => {
+  const inMinutes = (minutes: number) => new Date(Date.now() + minutes * 60_000).toISOString();
+  const busy = (resumesAt: string, waitingEmails = 1) =>
+    settings({ state: 'LIMITED', reason: 'PROVIDER_BUSY', resumesAt }, { waitingEmails });
+  const readyWith = (waitingEmails: number) => settings({}, { waitingEmails });
+  const notice = () => screen.findByRole('status', { name: 'AI status' });
+  const button = () => screen.findByRole('button', { name: 'Read waiting mails now' });
+
+  it('is offered while mail waits for a busy provider', async () => {
+    vi.mocked(api.getAISettings).mockResolvedValue(busy(inMinutes(10)));
+    show('/gmail');
+    expect(await notice()).toHaveTextContent('Google Gemini is busy right now');
+    expect(await notice()).toHaveTextContent(
+      'Reading continues by itself then. 1 email is waiting.',
+    );
+    expect(await button()).toBeEnabled();
+  });
+
+  it.each([
+    ['a key problem', { state: 'NEEDS_ATTENTION', reason: 'KEY_REJECTED' }],
+    ['the daily safety limit', { state: 'LIMITED', reason: 'SAFETY_LIMIT' }],
+  ] as const)('is not offered for %s', async (_label, access) => {
+    vi.mocked(api.getAISettings).mockResolvedValue(settings(access, { waitingEmails: 1 }));
+    show('/gmail');
+    await notice();
+    expect(screen.queryByRole('button', { name: 'Read waiting mails now' })).toBeNull();
+  });
+
+  it('starts a new try, says so, and says when the provider is still busy', async () => {
+    vi.mocked(api.getAISettings).mockResolvedValue(busy(inMinutes(10)));
+    vi.mocked(api.readWaitingMail).mockResolvedValue(readyWith(1));
+    show('/gmail');
+    const start = await button();
+    // The try ended the pause: reloads now show AI as ready, with the mail still waiting.
+    vi.mocked(api.getAISettings).mockResolvedValue(readyWith(1));
+    fireEvent.click(start);
+    await waitFor(() => expect(api.readWaitingMail).toHaveBeenCalledTimes(1));
+    expect(await screen.findByText('Trying again now. 1 email is waiting.')).toBeInTheDocument();
+    expect(await notice()).toHaveTextContent('Google Gemini is busy right now');
+    expect(screen.getByRole('button', { name: 'Trying now…' })).toBeDisabled();
+    expect(getProcessingRefreshUntil()).toBeGreaterThan(Date.now());
+
+    // Google answers the new try with another pause.
+    vi.mocked(api.getAISettings).mockResolvedValue(busy(inMinutes(12)));
+    await act(() => queryClient.invalidateQueries({ queryKey: ['aiSettings'] }));
+    expect(await screen.findByText('Google Gemini is still busy')).toBeInTheDocument();
+    expect(await notice()).toHaveTextContent(/Tried at \d{1,2}:\d{2} [AP]M\. Paused until about/);
+    expect(await button()).toBeEnabled();
+  });
+
+  it('hides the notice once the waiting mail was read', async () => {
+    vi.mocked(api.getAISettings).mockResolvedValue(busy(inMinutes(10)));
+    vi.mocked(api.readWaitingMail).mockResolvedValue(readyWith(1));
+    show('/gmail');
+    const start = await button();
+    vi.mocked(api.getAISettings).mockResolvedValue(readyWith(0));
+    fireEvent.click(start);
+    await waitFor(() =>
+      expect(screen.queryByRole('status', { name: 'AI status' })).not.toBeInTheDocument(),
+    );
+    // A later pause is a new story, not an answer to the old try.
+    vi.mocked(api.getAISettings).mockResolvedValue(busy(inMinutes(30)));
+    await act(() => queryClient.invalidateQueries({ queryKey: ['aiSettings'] }));
+    expect(await screen.findByText('Google Gemini is busy right now')).toBeInTheDocument();
+    expect(screen.queryByText(/Tried at/)).toBeNull();
+  });
+
+  it('says so when the new try could not be started, and offers it again', async () => {
+    vi.mocked(api.getAISettings).mockResolvedValue(busy(inMinutes(10)));
+    vi.mocked(api.readWaitingMail).mockRejectedValue(new Error('network'));
+    show('/gmail');
+    fireEvent.click(await button());
+    expect(
+      await screen.findByText('The new try could not be started. Try again.'),
+    ).toBeInTheDocument();
+    expect(await button()).toBeEnabled();
+  });
+
+  it('looks again by itself just after the pause ends', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.mocked(api.getAISettings).mockResolvedValue(
+      busy(new Date(Date.now() + 20_000).toISOString()),
+    );
+    show('/gmail');
+    await button();
+    expect(getProcessingRefreshUntil()).toBe(0);
+    vi.mocked(api.getAISettings).mockResolvedValue(readyWith(1));
+    await act(() => vi.advanceTimersByTimeAsync(26_000));
+    expect(getProcessingRefreshUntil()).toBeGreaterThan(Date.now());
+    expect(await screen.findByText('Trying again now. 1 email is waiting.')).toBeInTheDocument();
+    expect(api.readWaitingMail).not.toHaveBeenCalled();
   });
 });
 
