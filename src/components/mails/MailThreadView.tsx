@@ -11,7 +11,6 @@ import { MailReplyBox } from './MailReplyBox';
  */
 export function MailThreadView({ threadId }: { threadId: string }) {
   const { data, error, isLoading, refetch } = useMailThread(threadId);
-
   const fromYou = data?.messages.filter((message) => message.sentByUser).length ?? 0;
   return (
     <section aria-label="Conversation" className="space-y-4">
