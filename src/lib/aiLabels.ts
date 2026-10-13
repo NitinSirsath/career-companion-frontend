@@ -24,6 +24,28 @@ export function analyzedBy(provider: string | null | undefined, model: string | 
 
 const time = (iso: string | null) => (iso ? format(new Date(iso), 'h:mm a') : 'later');
 
+/** " 2 emails are waiting.", or nothing when no mail waits. */
+export function waitingLine(count: number): string {
+  if (!count) return '';
+  return ` ${count} ${count === 1 ? 'email is' : 'emails are'} waiting.`;
+}
+
+/** A pause that ends by itself. Its title, and the title after a new try met the same answer. */
+const PAUSE_TITLES = {
+  RATE_LIMITED: ['is limiting requests from your account', 'is still limiting requests'],
+  PROVIDER_BUSY: ['is busy right now', 'is still busy'],
+  PROVIDER_UNAVAILABLE: ['did not respond', 'still did not respond'],
+} as const;
+
+export type PauseReason = keyof typeof PAUSE_TITLES;
+
+export const isPauseReason = (reason: string | null): reason is PauseReason =>
+  reason !== null && reason in PAUSE_TITLES;
+
+/** "Google Gemini is busy right now", or "… is still busy" after a new try met the same answer. */
+export const pauseTitle = (provider: string | null, reason: PauseReason, afterTry = false) =>
+  `${providerName(provider)} ${PAUSE_TITLES[reason][afterTry ? 1 : 0]}`;
+
 export interface AccessCopy {
   title: string;
   detail: string;
@@ -31,15 +53,22 @@ export interface AccessCopy {
   fix?: { label: string; href?: string; to?: '/ai' };
 }
 
-/** What the user sees for an AI access state: the cause and one fix. */
-export function accessCopy(settings: AISettingsResponse): AccessCopy | null {
+/**
+ * What the user sees for an AI access state: the cause and one fix. `triedAt` is the time of the
+ * user's own new try, when the provider answered it with another pause.
+ */
+export function accessCopy(settings: AISettingsResponse, triedAt?: string): AccessCopy | null {
   const { access, provider } = settings;
   if (access.state === 'READY') return null;
   const name = providerName(provider);
   const links = provider ? getCatalogProvider(provider)?.links : undefined;
-  const waiting = settings.waitingEmails
-    ? ` ${settings.waitingEmails} ${settings.waitingEmails === 1 ? 'email is' : 'emails are'} waiting.`
-    : '';
+  const waiting = waitingLine(settings.waitingEmails);
+  if (isPauseReason(access.reason)) {
+    return {
+      title: pauseTitle(provider, access.reason, !!triedAt),
+      detail: `${triedAt ? `Tried at ${time(triedAt)}. ` : ''}Paused until about ${time(access.resumesAt)}. Reading continues by itself then.${waiting}`,
+    };
+  }
   switch (access.reason) {
     case 'KEY_REJECTED':
       return {
@@ -72,16 +101,6 @@ export function accessCopy(settings: AISettingsResponse): AccessCopy | null {
         title: 'Enter your API key again',
         detail: `Career Companion could not read your saved key.${waiting}`,
         fix: { label: 'Replace key', to: '/ai' },
-      };
-    case 'RATE_LIMITED':
-      return {
-        title: `${name} is limiting requests from your account`,
-        detail: `Paused until about ${time(access.resumesAt)}. Sync after that to continue.${waiting}`,
-      };
-    case 'PROVIDER_UNAVAILABLE':
-      return {
-        title: `${name} did not respond`,
-        detail: `Paused until about ${time(access.resumesAt)}. Sync after that to continue.${waiting}`,
       };
     case 'SAFETY_LIMIT':
       return {

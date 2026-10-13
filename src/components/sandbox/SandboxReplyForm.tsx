@@ -1,60 +1,48 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { useReplySandboxMail } from '../../api/sandbox';
-import {
-  ReplySandboxMailRequestSchema,
-  type ReplySandboxMailRequest,
-} from '../../contracts/sandbox';
+import { useState } from 'react';
 import { parseSender } from '../../lib/mails';
-import { BODY_PROBLEM, sandboxProblem } from '../../lib/sandbox';
 import { Button } from '../ui/button';
-import { Label } from '../ui/label';
-import { NativeSelect } from '../ui/native-select';
-import { Textarea } from '../ui/textarea';
+import { SandboxThreadMailForm, type ThreadMailCopy } from './SandboxThreadMailForm';
 
-/** A reply in the open conversation, written as the user or as the other person. */
+const REPLY_COPY: ThreadMailCopy = {
+  form: 'Reply',
+  label: 'Your reply',
+  hint: 'The earlier mail is quoted below your text. The app sees the reply after the next sync.',
+  send: 'Send',
+};
+
+/**
+ * Mail written in the open conversation. A reply is always the user's. The other person's next
+ * mail has its own box, opened by a link, so the two are never mixed up.
+ */
 export function SandboxReplyForm({ threadId, party }: { threadId: string; party: string }) {
-  const reply = useReplySandboxMail(threadId);
-  const form = useForm<ReplySandboxMailRequest>({
-    resolver: zodResolver(ReplySandboxMailRequestSchema),
-    defaultValues: { as: 'me', body: '' },
-  });
-  const onSubmit = form.handleSubmit((input) =>
-    reply.mutate(input, { onSuccess: () => form.reset({ as: input.as, body: '' }) }),
-  );
+  const [writingNext, setWritingNext] = useState(false);
 
   return (
-    <form
-      onSubmit={onSubmit}
-      noValidate
-      aria-label="Reply"
-      className="space-y-3 border border-border-strong p-4"
-    >
-      <div className="flex flex-wrap items-center gap-3">
-        <Label htmlFor="reply-as">Reply as</Label>
-        <NativeSelect id="reply-as" className="max-w-md flex-1" {...form.register('as')}>
-          <option value="me">Me</option>
-          <option value="them">{parseSender(party).name} (the other person)</option>
-        </NativeSelect>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="reply-body">Your reply</Label>
-        <Textarea id="reply-body" rows={4} {...form.register('body')} />
-        {form.formState.errors.body && <p className="text-sm text-status-error">{BODY_PROBLEM}</p>}
-      </div>
-      {reply.isError && (
-        <p role="alert" className="text-sm text-status-error">
-          {sandboxProblem(reply.error)}
-        </p>
-      )}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-text-secondary">
-          The earlier mail is quoted below your text. The app sees the reply after the next sync.
-        </p>
-        <Button type="submit" disabled={reply.isPending}>
-          {reply.isPending ? 'Sending…' : 'Send'}
+    <>
+      <SandboxThreadMailForm threadId={threadId} as="me" copy={REPLY_COPY} />
+      {writingNext ? (
+        <SandboxThreadMailForm
+          threadId={threadId}
+          as="them"
+          copy={{
+            form: 'Next mail from the other person',
+            title: `Next mail from ${party}`,
+            label: 'Their mail',
+            hint: 'It arrives in your inbox, in this conversation. The app sees it after the next sync.',
+            send: `Send as ${parseSender(party).name}`,
+          }}
+          onClose={() => setWritingNext(false)}
+        />
+      ) : (
+        <Button
+          type="button"
+          variant="ghost"
+          className="h-auto min-h-11 justify-start whitespace-normal break-words px-0 text-left text-text-primary underline hover:bg-transparent"
+          onClick={() => setWritingNext(true)}
+        >
+          Write next mail from {party}
         </Button>
-      </div>
-    </form>
+      )}
+    </>
   );
 }

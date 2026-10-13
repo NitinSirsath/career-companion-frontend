@@ -28,6 +28,7 @@ import {
   ListPendingSubmissionsResponseSchema,
   ResolveSubmissionResponseSchema,
   ListApplicationEventsResponseSchema,
+  ReadWaitingMailResponseSchema,
   RemoveAISettingsResponseSchema,
   SaveAISettingsResponseSchema,
 } from '../contracts';
@@ -49,6 +50,7 @@ import type {
   AISettingsResponse,
   AISampleTestResponse,
   CheckAISettingsResponse,
+  ReadWaitingMailResponse,
   SaveAISettingsRequest,
   SaveAISettingsResponse,
   CreateIntegrationTokenRequest,
@@ -400,6 +402,15 @@ export class ApiClient {
       { method: 'POST', body: '{}' },
       AISampleTestResponseSchema,
       SAMPLE_TEST_TIMEOUT_MS,
+    );
+  }
+
+  /** "Read waiting mails now": ends a running pause and offers the waiting mail again. */
+  async readWaitingMail(): Promise<ReadWaitingMailResponse> {
+    return this.request(
+      '/api/ai/waiting/read',
+      { method: 'POST', body: '{}' },
+      ReadWaitingMailResponseSchema,
     );
   }
 

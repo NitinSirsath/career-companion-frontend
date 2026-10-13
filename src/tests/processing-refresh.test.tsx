@@ -13,6 +13,7 @@ import {
   startProcessingRefresh,
 } from '../lib/processingRefresh';
 import type { ApplicationResponse, GmailStatusResponse, PaginatedResponse } from '../contracts';
+import type { AISettingsResponse } from '../contracts/ai';
 
 vi.mock('../api/client', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../api/client')>();
@@ -20,6 +21,7 @@ vi.mock('../api/client', async (importOriginal) => {
     ...actual,
     api: {
       getGmailStatus: vi.fn(),
+      getAISettings: vi.fn(),
       getMessages: vi.fn(),
       retryEmail: vi.fn(),
       triggerSync: vi.fn(),
@@ -49,6 +51,25 @@ const status = (lastSyncedAt: string | null): GmailStatusResponse => ({
   lastSyncedAt,
 });
 const application = { id: 'app-1', companyName: 'Delayed Co' } as ApplicationResponse;
+const aiSettings = (access: Partial<AISettingsResponse['access']> = {}): AISettingsResponse => ({
+  configured: true,
+  provider: 'gemini',
+  offeredProviders: ['gemini'],
+  models: null,
+  access: {
+    state: 'READY',
+    reason: null,
+    modelId: null,
+    resumesAt: null,
+    verified: true,
+    lastCheckedAt: null,
+    ...access,
+  },
+  usageToday: { day: '2026-10-12', calls: 0, inputTokens: 0, outputTokens: 0 },
+  safetyLimit: { callsPerDay: 500, resetsAt: '2026-10-13T00:00:00.000Z' },
+  waitingEmails: 1,
+  consent: null,
+});
 
 beforeEach(() => {
   vi.resetAllMocks();
@@ -61,6 +82,7 @@ beforeEach(() => {
     pendingSubmissions: 0,
   });
   vi.mocked(api.getGmailStatus).mockResolvedValue(status('2026-09-01T00:00:00.000Z'));
+  vi.mocked(api.getAISettings).mockResolvedValue(aiSettings());
   vi.mocked(api.getMessages).mockResolvedValue(page([]));
   vi.mocked(api.getApplication).mockResolvedValue(application);
   vi.mocked(api.getApplicationEvents).mockResolvedValue(page([]));
@@ -176,6 +198,54 @@ describe('authenticated-shell bounded refresh', () => {
     const settled = vi.mocked(api.getApplication).mock.calls.length;
     await act(() => vi.advanceTimersByTimeAsync(30_000));
     expect(vi.mocked(api.getApplication).mock.calls.length).toBe(settled);
+  });
+});
+
+describe('refresh window while nothing can change', () => {
+  const reloads = () => vi.mocked(api.getMessages).mock.calls.length;
+
+  it('stops after the first reload that shows AI paused and no sync running', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.mocked(api.getAISettings).mockResolvedValue(
+      aiSettings({
+        state: 'LIMITED',
+        reason: 'PROVIDER_BUSY',
+        resumesAt: new Date(Date.now() + 30 * 60_000).toISOString(),
+      }),
+    );
+    show('/gmail');
+    await screen.findByRole('status', { name: 'AI status' });
+    act(() => startProcessingRefresh());
+    await act(() => vi.advanceTimersByTimeAsync(5_000));
+    const settled = reloads();
+    await act(() => vi.advanceTimersByTimeAsync(60_000));
+    expect(reloads()).toBe(settled);
+  });
+
+  it('goes on while a sync is running, even with AI paused', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.mocked(api.getGmailStatus).mockResolvedValue({ ...status(null), syncStatus: 'SYNCING' });
+    vi.mocked(api.getAISettings).mockResolvedValue(
+      aiSettings({ state: 'NEEDS_ATTENTION', reason: 'KEY_REJECTED' }),
+    );
+    show('/gmail');
+    await screen.findByRole('status', { name: 'AI status' });
+    act(() => startProcessingRefresh());
+    await act(() => vi.advanceTimersByTimeAsync(5_000));
+    const early = reloads();
+    await act(() => vi.advanceTimersByTimeAsync(20_000));
+    expect(reloads()).toBeGreaterThan(early);
+  });
+
+  it('goes on while AI can read mail', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    show('/gmail');
+    await waitFor(() => expect(api.getAISettings).toHaveBeenCalled());
+    act(() => startProcessingRefresh());
+    await act(() => vi.advanceTimersByTimeAsync(5_000));
+    const early = reloads();
+    await act(() => vi.advanceTimersByTimeAsync(20_000));
+    expect(reloads()).toBeGreaterThan(early);
   });
 });
 

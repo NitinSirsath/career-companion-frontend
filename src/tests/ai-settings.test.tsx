@@ -50,8 +50,8 @@ const ready: AISettingsResponse = {
   configured: true,
   provider: 'gemini',
   models: {
-    fast: { id: 'gemini-2.5-flash-lite', source: 'RECOMMENDED' },
-    detailed: { id: 'gemini-2.5-flash', source: 'RECOMMENDED' },
+    fast: { id: 'gemini-3.5-flash-lite', source: 'RECOMMENDED' },
+    detailed: { id: 'gemini-3.8-flash', source: 'RECOMMENDED' },
   },
   access: {
     state: 'READY',
@@ -147,7 +147,11 @@ describe('AI provider page: choosing and setting up a provider', () => {
     );
     expect(screen.getByText(/sender, subject, Gmail labels/)).toBeInTheDocument();
     expect(screen.getByText(/at most 500 AI calls a day/)).toBeInTheDocument();
-    expect(screen.getByText(/Fast screening: Gemini 2.5 Flash-Lite/)).toHaveTextContent(
+    // A new key can use these; Google serves the 2.5 models only to keys that used them before.
+    expect(screen.getByText(/Fast screening: Gemini 3.5 Flash-Lite/)).toHaveTextContent(
+      '(recommended)',
+    );
+    expect(screen.getByText(/Detailed analysis: Gemini 3.8 Flash/)).toHaveTextContent(
       '(recommended)',
     );
   });
@@ -235,7 +239,7 @@ describe('AI provider page: status and actions', () => {
     renderPage();
     expect(await screen.findByText('Ready')).toBeInTheDocument();
     expect(screen.getByText('Saved (hidden)')).toBeInTheDocument();
-    expect(screen.getByText(/Gemini 2.5 Flash-Lite \(recommended\)/)).toBeInTheDocument();
+    expect(screen.getByText(/Gemini 3.5 Flash-Lite \(recommended\)/)).toBeInTheDocument();
     expect(screen.getByText(/sent 12 AI calls/)).toHaveTextContent(
       'Our own count, not your Google Gemini bill',
     );
@@ -261,6 +265,11 @@ describe('AI provider page: status and actions', () => {
       null,
     ],
     [
+      { state: 'LIMITED', reason: 'PROVIDER_BUSY', resumesAt: '2026-10-02T14:05:00.000Z' },
+      'Google Gemini is busy right now',
+      null,
+    ],
+    [
       { state: 'LIMITED', reason: 'SAFETY_LIMIT', resumesAt: '2026-10-03T00:00:00.000Z' },
       'daily AI safety limit is reached',
       null,
@@ -280,7 +289,7 @@ describe('AI provider page: status and actions', () => {
       );
     if (access.state === 'LIMITED')
       expect(
-        screen.getByText(/sync then to continue|Sync after that to continue/),
+        screen.getByText(/sync then to continue|Reading continues by itself then/),
       ).toBeInTheDocument();
   });
 
