@@ -87,7 +87,7 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe('home and navigation', () => {
-  it('lands on Mails, lists Mails first and has no Agenda', async () => {
+  it('lands on Mails, and lists Mails first with Agenda after Applications', async () => {
     show('/');
     expect(await screen.findByRole('heading', { name: 'Mails' })).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/mails');
@@ -98,15 +98,26 @@ describe('home and navigation', () => {
       const names = within(menu)
         .getAllByRole('link')
         .map((link) => link.textContent);
-      expect(names[0]).toBe('Mails');
-      expect(names).toContain('Dashboard');
-      expect(names).not.toContain('Agenda');
+      expect(names.slice(0, 4)).toEqual(['Mails', 'Applications', 'Agenda', 'Dashboard']);
     }
   });
 
   it('shows only "Coming soon" on the Dashboard, with the way to Mails', async () => {
     show('/dashboard');
     expect(await screen.findByText('Coming soon')).toBeInTheDocument();
+    expect(get).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Open Mails' }));
+    expect(await screen.findByRole('heading', { name: 'Mails' })).toBeInTheDocument();
+  });
+
+  it('shows only "Coming soon" on the Agenda, and none of the earlier Agenda page', async () => {
+    show('/agenda');
+    expect(await screen.findByRole('heading', { name: 'Agenda' })).toBeInTheDocument();
+    expect(screen.getByText('Coming soon')).toBeInTheDocument();
+    expect(
+      screen.getByText(/each date is shown on its mail, on the Mails page/),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Upcoming|Needs review/ })).not.toBeInTheDocument();
     expect(get).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: 'Open Mails' }));
     expect(await screen.findByRole('heading', { name: 'Mails' })).toBeInTheDocument();
