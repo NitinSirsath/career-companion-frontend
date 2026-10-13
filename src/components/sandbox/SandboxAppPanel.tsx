@@ -52,7 +52,7 @@ export function SandboxAppPanel({ messages }: { messages: SandboxMessage[] }) {
   return (
     <aside
       aria-label="What the app did"
-      className="space-y-3 border border-border-default bg-surface-subtle p-4 lg:w-80 lg:shrink-0"
+      className="space-y-3 border border-border-default bg-surface-subtle p-4 xl:w-80 xl:shrink-0"
     >
       <h2 className="text-base font-semibold">What the app did</h2>
       <ul className="space-y-3">
