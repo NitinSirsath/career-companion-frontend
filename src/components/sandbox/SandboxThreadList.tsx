@@ -39,7 +39,7 @@ function ThreadRow({ thread, folder }: { thread: SandboxThread; folder: SandboxF
 
 const EMPTY: Record<SandboxFolder, string> = {
   inbox: 'No mail yet. Compose a mail to yourself from any address, then sync.',
-  sent: 'No replies yet. Open a conversation and reply as yourself.',
+  sent: 'No replies yet. Open a conversation and reply.',
 };
 
 /** The conversations of one sandbox folder, newest first. */
