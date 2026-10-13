@@ -198,7 +198,6 @@ describe('sandbox wording', () => {
       'to Priya Raman · cc Daniel Okafor, lena@northwind.example',
     );
   });
-  });
 
   it('explains every state but a job mail, whose details say it all', () => {
     expect(mailStateDetail(result('NOT_SYNCED'))).toMatch(/Sync to bring it in/);
