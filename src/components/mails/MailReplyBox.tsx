@@ -25,17 +25,20 @@ function ReplyNotice({ text, children }: { text: string; children: React.ReactNo
 /**
  * Replying from the mail details page. The same box in both modes: it sends from the user's
  * Gmail in prod and into the mail sandbox in dev mode. Who the reply goes to comes from the
- * conversation and cannot be changed here.
+ * conversation: no address can be typed here.
  */
 export function MailReplyBox({
   threadId,
   subject,
   replyTo,
+  replyCc,
   onCheck,
 }: {
   threadId: string;
   subject: string | null;
   replyTo: string | null;
+  /** The other people on the answered mail. */
+  replyCc: string[];
   onCheck: () => void;
 }) {
   const devMode = useDevMode();
@@ -73,6 +76,7 @@ export function MailReplyBox({
     <MailReplyForm
       threadId={threadId}
       replyTo={replyTo}
+      replyCc={replyCc}
       hint={replyHint(devMode)}
       onCheck={onCheck}
     >
