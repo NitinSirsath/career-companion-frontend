@@ -1,18 +1,19 @@
-import { Link } from '@tanstack/react-router';
-import { useDevMode } from '../../api/appMode';
+
 import { useMailThread } from '../../api/mailbox';
 import { mailCounts } from '../../lib/mails';
-import { GmailLink } from '../ui/GmailLink';
+
 import { MailboxProblem } from './MailboxProblem';
 import { MailMessageCard } from './MailMessageCard';
+import { MailReplyBox } from './MailReplyBox';
 
 /**
  * One Gmail thread read live when the page opens: every message in order, with the user's own
- * replies. Shared by job mails and plain Gmail mails. The text is shown and then dropped.
+ * replies, and the box to reply from here. Shared by job mails and plain Gmail mails. The text
+ * is shown and then dropped.
  */
 export function MailThreadView({ threadId }: { threadId: string }) {
   const { data, error, isLoading, refetch } = useMailThread(threadId);
-  const devMode = useDevMode();
+
   const fromYou = data?.messages.filter((message) => message.sentByUser).length ?? 0;
   return (
     <section aria-label="Conversation" className="space-y-4">
@@ -30,26 +31,12 @@ export function MailThreadView({ threadId }: { threadId: string }) {
           {data.messages.map((message) => (
             <MailMessageCard key={message.id} message={message} />
           ))}
-          <div className="flex flex-wrap items-center justify-between gap-3 border border-dashed border-border-strong p-4">
-            <div className="space-y-1">
-              <p className="text-sm font-semibold">Reply</p>
-              <p className="text-xs text-text-secondary">
-                Replying from here comes later. For now, reply in{' '}
-                {devMode ? 'the mail sandbox' : 'Gmail'}.
-              </p>
-            </div>
-            {devMode ? (
-              <Link
-                to="/sandbox/$threadId"
-                params={{ threadId }}
-                className="text-xs font-medium text-primary hover:underline"
-              >
-                Reply in the mail sandbox
-              </Link>
-            ) : (
-              <GmailLink threadId={threadId} subject={data.subject} reply />
-            )}
-          </div>
+          <MailReplyBox
+            threadId={threadId}
+            subject={data.subject}
+            replyTo={data.replyTo}
+            onCheck={() => void refetch()}
+          />
         </>
       )}
     </section>
