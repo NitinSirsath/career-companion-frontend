@@ -1,12 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useId, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, type FieldError, type UseFormRegisterReturn } from 'react-hook-form';
 import type { z } from 'zod';
 import { useSendMailReply } from '../../api/mailbox';
 import {
   REPLY_TEXT_PROBLEM,
   REPLY_TOO_LONG,
   ReplyTextSchema,
+  replyChoice,
   replyProblem,
   replySentNote,
   type ReplyProblem,
@@ -83,26 +84,103 @@ function ReplyButtons({
 }
 
 /**
+ * Who the reply reaches. With other people on the mail it goes to all of them, unless the user
+ * chooses the sender alone. These are the only two choices: no address is typed or removed.
+ */
+function ReplyReceivers({
+  replyTo,
+  others,
+  toAll,
+  onToAll,
+}: {
+  replyTo: string;
+  others: string[];
+  toAll: boolean;
+  onToAll: (toAll: boolean) => void;
+}) {
+  if (!others.length)
+    return (
+      <p className="break-words text-sm">
+        <span className="font-semibold">Reply</span>{' '}
+        <span className="text-text-secondary">to {replyTo}</span>
+      </p>
+    );
+  const choice = replyChoice(replyTo, others, toAll);
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+        <p className="text-sm font-semibold">{choice.title}</p>
+        <Button
+          type="button"
+          variant="ghost"
+          className="h-auto min-h-11 whitespace-normal break-words px-0 text-left text-action-primary underline hover:bg-transparent"
+          onClick={() => onToAll(!toAll)}
+        >
+          {choice.other}
+        </Button>
+      </div>
+      <dl className="grid grid-cols-[2rem_minmax(0,1fr)] gap-x-2 gap-y-1 bg-surface-subtle p-3 text-sm">
+        <dt className="text-text-secondary">To</dt>
+        <dd className="break-words">{replyTo}</dd>
+        {toAll && (
+          <>
+            <dt className="text-text-secondary">Cc</dt>
+            <dd className="break-words">{others.join(', ')}</dd>
+          </>
+        )}
+      </dl>
+      {choice.leftOut && <p className="text-xs text-text-secondary">{choice.leftOut}</p>}
+    </div>
+  );
+}
+
+/** The text of the reply, and what is wrong with it. */
+function ReplyTextField({
+  input,
+  error,
+}: {
+  input: UseFormRegisterReturn<'text'>;
+  error: FieldError | undefined;
+}) {
+  const id = useId();
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id}>Your reply</Label>
+      <Textarea id={id} rows={5} {...input} />
+      {error && (
+        <p className="text-sm text-status-error">
+          {error.type === 'too_big' ? REPLY_TOO_LONG : REPLY_TEXT_PROBLEM}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/**
  * The reply box of a conversation. A reply is sent once: each one carries its own ID, and after
  * an answer that could not be confirmed nothing is sent again unless the user chooses "Send again".
  */
 export function MailReplyForm({
   threadId,
   replyTo,
+  replyCc,
   hint,
   onCheck,
   children,
 }: {
   threadId: string;
   replyTo: string;
+  /** The other people on the answered mail: a reply goes to them too unless the user says not. */
+  replyCc: string[];
   hint: string;
   /** Reads the conversation again, so the user sees whether an unconfirmed reply is there. */
   onCheck: () => void;
   /** Another way to answer, shown beside the button. */
   children?: React.ReactNode;
 }) {
-  const textId = useId();
   const [replyId, setReplyId] = useState(() => crypto.randomUUID());
+  const [all, setAll] = useState(true);
+  const toAll = all && replyCc.length > 0;
   const send = useSendMailReply(threadId);
   const form = useForm<ReplyText>({
     resolver: zodResolver(ReplyTextSchema),
@@ -110,12 +188,13 @@ export function MailReplyForm({
   });
   const problem = send.isError ? replyProblem(send.error) : null;
   const unconfirmed = problem?.kind === 'unconfirmed';
-  const textError = form.formState.errors.text;
+  // Names who the sent reply went to, whatever the user chooses for the next one.
+  const sentTo = send.isSuccess && send.variables.toAll ? replyCc : [];
 
   const submit = (id: string) =>
     form.handleSubmit(({ text }) =>
       send.mutate(
-        { replyId: id, text },
+        { replyId: id, text, ...(toAll ? { toAll } : {}) },
         {
           onSuccess: () => {
             form.reset({ text: '' });
@@ -138,20 +217,12 @@ export function MailReplyForm({
       aria-label="Reply"
       className="space-y-3 border border-border-strong p-4"
     >
-      <ReplyOutcome sentNote={send.isSuccess ? replySentNote(replyTo) : null} problem={problem} />
-      <p className="break-words text-sm">
-        <span className="font-semibold">Reply</span>{' '}
-        <span className="text-text-secondary">to {replyTo}</span>
-      </p>
-      <div className="space-y-2">
-        <Label htmlFor={textId}>Your reply</Label>
-        <Textarea id={textId} rows={5} {...form.register('text')} />
-        {textError && (
-          <p className="text-sm text-status-error">
-            {textError.type === 'too_big' ? REPLY_TOO_LONG : REPLY_TEXT_PROBLEM}
-          </p>
-        )}
-      </div>
+      <ReplyOutcome
+        sentNote={send.isSuccess ? replySentNote(replyTo, sentTo) : null}
+        problem={problem}
+      />
+      <ReplyReceivers replyTo={replyTo} others={replyCc} toAll={toAll} onToAll={setAll} />
+      <ReplyTextField input={form.register('text')} error={form.formState.errors.text} />
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
         <p className="min-w-0 flex-1 basis-64 text-xs text-text-secondary">
           {unconfirmed ? 'Your text is kept here until you leave the page.' : hint}
