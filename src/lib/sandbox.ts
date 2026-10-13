@@ -4,9 +4,10 @@ import {
   SandboxFolderSchema,
   type SandboxMailResult,
   type SandboxMailState,
+  type SandboxMessage,
   type SandboxThread,
 } from '../contracts/sandbox';
-import { CATEGORY_LABEL, mailDateTime } from './mails';
+import { CATEGORY_LABEL, mailDateTime, parseSender, recipientNames } from './mails';
 
 type BadgeVariant = 'success' | 'warning' | 'destructive' | 'info' | 'secondary';
 
@@ -86,9 +87,19 @@ export function splitQuote(text: string): { own: string; quoted: string | null }
   return { own: text.slice(0, quote.index), quoted: text.slice(quote.index).trim() };
 }
 
+/** "to me · cc Daniel Okafor, Lena Fischer": who a sandbox mail went to. */
+export function sandboxRecipients(
+  message: Pick<SandboxMessage, 'sentByUser' | 'to' | 'cc'>,
+): string {
+  const to = message.sentByUser ? parseSender(message.to).name : 'me';
+  const cc = recipientNames(message.cc);
+  return `to ${to}${cc.length ? ` · cc ${cc.join(', ')}` : ''}`;
+}
+
 export const sandboxSearchSchema = z.object({ folder: SandboxFolderSchema.optional() });
 
 export const FROM_PROBLEM = 'Enter a mail address, with or without a name.';
+export const CC_PROBLEM = 'Enter mail addresses with commas between them, at most 10.';
 export const BODY_PROBLEM = 'Write a message.';
 
 /** What to tell the tester when a sandbox action did not work. */
