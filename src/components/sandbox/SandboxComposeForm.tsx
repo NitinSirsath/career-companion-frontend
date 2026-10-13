@@ -1,12 +1,29 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { useForm, type UseFormRegisterReturn } from 'react-hook-form';
 import { useSandboxSenders, useSendSandboxMail } from '../../api/sandbox';
 import { SendSandboxMailRequestSchema, type SendSandboxMailRequest } from '../../contracts/sandbox';
-import { BODY_PROBLEM, FROM_PROBLEM, sandboxProblem } from '../../lib/sandbox';
+import { BODY_PROBLEM, CC_PROBLEM, FROM_PROBLEM, sandboxProblem } from '../../lib/sandbox';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
+
+/** Other people on the mail, so a reply to all can be tried. */
+function CcField({ input, invalid }: { input: UseFormRegisterReturn<'cc'>; invalid: boolean }) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor="compose-cc">
+        Cc <span className="font-normal text-text-secondary">(optional)</span>
+      </Label>
+      <Input id="compose-cc" autoComplete="off" {...input} />
+      <p className={`text-sm ${invalid ? 'text-status-error' : 'text-text-secondary'}`}>
+        {invalid
+          ? CC_PROBLEM
+          : 'Other people on this mail, with commas between them. Leave it empty for a mail to you alone. Nothing leaves the app.'}
+      </p>
+    </div>
+  );
+}
 
 interface SandboxComposeFormProps {
   /** The user's sandbox address: a new mail always goes there. */
@@ -24,10 +41,12 @@ export function SandboxComposeForm({ mailbox, onSent, onDiscard }: SandboxCompos
   const send = useSendSandboxMail();
   const form = useForm<SendSandboxMailRequest>({
     resolver: zodResolver(SendSandboxMailRequestSchema),
-    defaultValues: { from: '', subject: '', body: '' },
+    defaultValues: { from: '', cc: '', subject: '', body: '' },
   });
   const { errors } = form.formState;
-  const onSubmit = form.handleSubmit((input) => send.mutate(input, { onSuccess: onSent }));
+  const onSubmit = form.handleSubmit((input) =>
+    send.mutate({ ...input, cc: input.cc || undefined }, { onSuccess: onSent }),
+  );
 
   return (
     <form
@@ -65,6 +84,7 @@ export function SandboxComposeForm({ mailbox, onSent, onDiscard }: SandboxCompos
           <Input id="compose-to" value={`Me <${mailbox}>`} disabled readOnly />
           <p className="text-sm text-text-secondary">A new mail always goes to your own inbox.</p>
         </div>
+        <CcField input={form.register('cc')} invalid={!!errors.cc} />
         <div className="space-y-2">
           <Label htmlFor="compose-subject">Subject</Label>
           <Input id="compose-subject" autoComplete="off" {...form.register('subject')} />

@@ -38,5 +38,34 @@ export const replyHint = (devMode: boolean) =>
     ? 'Dev mode: the reply goes to the mail sandbox. No real mail is sent. The earlier mail is quoted below your text.'
     : 'Sent from your Gmail, in this conversation. The earlier mail is quoted below your text.';
 
-/** "Reply sent to Priya Nair." */
-export const replySentNote = (replyTo: string) => `Reply sent to ${parseSender(replyTo).name}.`;
+/** "Priya Nair", "Priya Nair and Daniel Okafor", "Priya Nair, Daniel Okafor and Lena Fischer". */
+const nameList = (names: string[]) =>
+  names.length < 2
+    ? names.join('')
+    : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+
+const namesOf = (people: string[]) => people.map((person) => parseSender(person).name);
+
+/**
+ * The wording of the reply box when other people are on the mail: what the reply does now, the
+ * link to the other choice, and who is left out when the reply goes to the sender alone.
+ */
+export function replyChoice(
+  replyTo: string,
+  others: string[],
+  toAll: boolean,
+): { title: string; other: string; leftOut: string | null } {
+  const sender = parseSender(replyTo).name;
+  const people = others.length + 1;
+  return toAll
+    ? { title: `Reply to all · ${people} people`, other: `Reply only to ${sender}`, leftOut: null }
+    : {
+        title: `Reply only to ${sender}`,
+        other: `Reply to all ${people} people`,
+        leftOut: `${nameList(namesOf(others))} will not get this reply.`,
+      };
+}
+
+/** "Reply sent to Priya Nair." `others` are the people in Cc of a reply to all. */
+export const replySentNote = (replyTo: string, others: string[] = []) =>
+  `Reply sent to ${nameList([parseSender(replyTo).name, ...namesOf(others)])}.`;

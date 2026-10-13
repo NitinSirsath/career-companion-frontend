@@ -1,6 +1,6 @@
 import type { SandboxMessage } from '../../contracts/sandbox';
 import { mailDateTime, parseSender } from '../../lib/mails';
-import { splitQuote } from '../../lib/sandbox';
+import { sandboxRecipients, splitQuote } from '../../lib/sandbox';
 import { cn } from '../../lib/utils';
 import { Badge } from '../ui/badge';
 
@@ -22,9 +22,7 @@ export function SandboxMessageCard({ message }: { message: SandboxMessage }) {
           {!message.sentByUser && sender.address && (
             <span className="break-all text-text-secondary">{sender.address}</span>
           )}
-          <span className="text-text-secondary">
-            {message.sentByUser ? `to ${parseSender(message.to).name}` : 'to me'}
-          </span>
+          <span className="text-text-secondary">{sandboxRecipients(message)}</span>
         </div>
         <span className="text-text-secondary">{mailDateTime(message.date)}</span>
       </header>

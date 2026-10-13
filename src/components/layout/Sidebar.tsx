@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import {
+  CalendarDays,
   LayoutDashboard,
   FileText,
   Inbox,
@@ -40,6 +41,10 @@ export function Sidebar() {
         <Link to="/applications" className={navLinkClass}>
           <FileText className="w-4 h-4" />
           Applications
+        </Link>
+        <Link to="/agenda" className={navLinkClass}>
+          <CalendarDays className="w-4 h-4" />
+          Agenda
         </Link>
         <Link to="/dashboard" className={navLinkClass}>
           <LayoutDashboard className="w-4 h-4" />

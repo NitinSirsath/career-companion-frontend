@@ -3,6 +3,7 @@ import { ApiError } from '../api/client';
 import {
   ReplyTextSchema,
   allowSendingUrl,
+  replyChoice,
   replyHint,
   replyProblem,
   replySentNote,
@@ -65,6 +66,34 @@ describe('reply wording', () => {
     );
     expect(replySentNote('priya.nair@northwind.example')).toBe(
       'Reply sent to priya.nair@northwind.example.',
+    );
+  });
+
+  it('names everyone a reply to all went to', () => {
+    const PRIYA = 'Priya Nair <priya.nair@northwind.example>';
+    expect(replySentNote(PRIYA, ['Daniel Okafor <d@northwind.example>'])).toBe(
+      'Reply sent to Priya Nair and Daniel Okafor.',
+    );
+    expect(
+      replySentNote(PRIYA, ['Daniel Okafor <d@northwind.example>', 'lena@northwind.example']),
+    ).toBe('Reply sent to Priya Nair, Daniel Okafor and lena@northwind.example.');
+  });
+
+  it('words the two choices when other people are on the mail', () => {
+    const PRIYA = 'Priya Nair <priya.nair@northwind.example>';
+    const others = ['Daniel Okafor <d@northwind.example>', '"Fischer, Lena" <l@northwind.example>'];
+    expect(replyChoice(PRIYA, others, true)).toEqual({
+      title: 'Reply to all · 3 people',
+      other: 'Reply only to Priya Nair',
+      leftOut: null,
+    });
+    expect(replyChoice(PRIYA, others, false)).toEqual({
+      title: 'Reply only to Priya Nair',
+      other: 'Reply to all 3 people',
+      leftOut: 'Daniel Okafor and Fischer, Lena will not get this reply.',
+    });
+    expect(replyChoice(PRIYA, others.slice(0, 1), false).leftOut).toBe(
+      'Daniel Okafor will not get this reply.',
     );
   });
 

@@ -6,7 +6,8 @@ import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/rea
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ApiError, api } from '../api/client';
 import type { ConversationDetail } from '../contracts/conversation';
-import type { MailThread } from '../contracts/mailbox';
+import type { z } from 'zod';
+import type { MailThreadSchema } from '../contracts/mailbox';
 import {
   makeApplication,
   makeConversation,
@@ -43,11 +44,14 @@ const reply = makeMailMessage({
 });
 
 const PRIYA = 'Priya Nair <priya.nair@northwind.example>';
+const DANIEL = 'Daniel Okafor <daniel.okafor@northwind.example>';
+const LENA = 'Lena Fischer <lena.fischer@northwind.example>';
 const REPLY_PATH = '/api/mailbox/threads/thread-1/replies';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 let detail: ConversationDetail;
-let thread: MailThread | ApiError;
+/** As the server sends it. */
+let thread: z.input<typeof MailThreadSchema> | ApiError;
 /** What the send call answers; an error is thrown. */
 let sendAnswer: object | ApiError;
 const get = vi.mocked(api.get);
@@ -97,7 +101,7 @@ beforeEach(() => {
   });
   vi.mocked(api.getGmailStatus).mockResolvedValue({
     connected: true,
-    gmailEmail: 'you@gmail.com',
+    gmailEmail: 'me@example.com',
     status: 'CONNECTED',
     syncStatus: 'IDLE',
     lastSyncedAt: null,
@@ -336,6 +340,75 @@ describe('replying from the mail details page', () => {
     expect(ids[0]).not.toBe(ids[1]);
   });
 
+  describe('when other people are on the mail', () => {
+    beforeEach(() => {
+      thread = {
+        threadId: 'thread-1',
+        subject: 'Interview',
+        messages: [makeMailMessage({ to: `me@example.com, ${DANIEL}`, cc: LENA })],
+        replyTo: PRIYA,
+        replyCc: [DANIEL, LENA],
+      };
+    });
+
+    it('names them on the mail and replies to all of them unless the user says not', async () => {
+      show('/mails/thread-1');
+      const form = await box();
+      expect(
+        within(screen.getByRole('article')).getByText('to me, Daniel Okafor · cc Lena Fischer'),
+      ).toBeInTheDocument();
+      expect(form.getByText('Reply to all · 3 people')).toBeInTheDocument();
+      expect(form.getByText('To').nextElementSibling).toHaveTextContent(PRIYA);
+      expect(form.getByText('Cc').nextElementSibling).toHaveTextContent(`${DANIEL}, ${LENA}`);
+      // The two choices are all there is: no address can be typed.
+      expect(form.getAllByRole('textbox')).toHaveLength(1);
+
+      write(form, 'Tuesday works.');
+      fireEvent.click(form.getByRole('button', { name: 'Send reply' }));
+      expect(
+        await form.findByText('Reply sent to Priya Nair, Daniel Okafor and Lena Fischer.'),
+      ).toBeInTheDocument();
+      expect(sent()[0][1]).toEqual({
+        replyId: expect.stringMatching(UUID),
+        text: 'Tuesday works.',
+        toAll: true,
+      });
+    });
+
+    it('goes to the sender alone when the user chooses that, says who is left out, and can go back', async () => {
+      show('/mails/thread-1');
+      const form = await box();
+      fireEvent.click(form.getByRole('button', { name: 'Reply only to Priya Nair' }));
+      expect(form.getByText('Reply only to Priya Nair')).toBeInTheDocument();
+      expect(form.queryByText('Cc')).not.toBeInTheDocument();
+      expect(
+        form.getByText('Daniel Okafor and Lena Fischer will not get this reply.'),
+      ).toBeInTheDocument();
+
+      write(form, 'A question first.');
+      fireEvent.click(form.getByRole('button', { name: 'Send reply' }));
+      expect(await form.findByText('Reply sent to Priya Nair.')).toBeInTheDocument();
+      expect(sent()[0][1]).toEqual({
+        replyId: expect.stringMatching(UUID),
+        text: 'A question first.',
+      });
+
+      // Going back changes the next reply, not the note about the one that was sent.
+      fireEvent.click(form.getByRole('button', { name: 'Reply to all 3 people' }));
+      expect(form.getByText('Reply to all · 3 people')).toBeInTheDocument();
+      expect(form.getByText('Cc')).toBeInTheDocument();
+      expect(form.getByText('Reply sent to Priya Nair.')).toBeInTheDocument();
+    });
+  });
+
+  it('offers no choice when nobody else is on the mail', async () => {
+    show('/mails/thread-1');
+    const form = await box();
+    expect(within(await screen.findByRole('article')).getByText('to me')).toBeInTheDocument();
+    expect(form.queryByRole('button', { name: /^Reply (only )?to/ })).not.toBeInTheDocument();
+    expect(form.queryByText('Cc')).not.toBeInTheDocument();
+  });
+
   it.each([
     ['the server could not confirm it', new ApiError('x', 'http', 502, 'MAIL_REPLY_UNCONFIRMED')],
     ['the request timed out', new ApiError('The request timed out.', 'timeout')],
@@ -485,6 +558,9 @@ describe('application page', () => {
       'href',
       '/mails/email-7',
     );
-    expect(screen.queryByRole('link', { name: /agenda/i })).not.toBeInTheDocument();
+    // The menu has an Agenda entry; the application page itself links to no Agenda.
+    expect(
+      within(screen.getByRole('main')).queryByRole('link', { name: /agenda/i }),
+    ).not.toBeInTheDocument();
   });
 });

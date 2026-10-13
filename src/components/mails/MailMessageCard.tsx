@@ -39,9 +39,16 @@ function Attachments({ message }: { message: MailMessage }) {
 }
 
 /** One message of a thread. The user's own messages are marked and shaded. */
-export function MailMessageCard({ message }: { message: MailMessage }) {
+export function MailMessageCard({
+  message,
+  mailbox,
+}: {
+  message: MailMessage;
+  /** The user's own mail address, so the other people on the mail can be named. */
+  mailbox: string | null;
+}) {
   const sender = parseSender(message.from);
-  const recipients = recipientLine(message);
+  const recipients = recipientLine(message, mailbox);
   return (
     <article
       className={cn(

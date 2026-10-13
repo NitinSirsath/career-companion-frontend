@@ -13,7 +13,12 @@ import {
   type MailCategory,
   type RequestState,
 } from '../contracts/conversation';
-import type { MailAttachment, MailMessage } from '../contracts/mailbox';
+import {
+  mailboxKey,
+  splitMailAddresses,
+  type MailAttachment,
+  type MailMessage,
+} from '../contracts/mailbox';
 import { deadlineLabel } from './deadline';
 
 /** What the user reads for each mail type. A confirmation or status mail is an "Update". */
@@ -110,15 +115,34 @@ export function parseSender(raw: string | null): { name: string; address: string
   return name ? { name, address: match[2].trim() } : { name: match[2].trim(), address: null };
 }
 
-/** Who a message went to. Mail the user received is shown as "to me", as Gmail shows it. */
-export function recipientLine(message: Pick<MailMessage, 'sentByUser' | 'to'>): string | null {
-  if (!message.sentByUser) return 'to me';
-  if (!message.to) return null;
-  // Split on the commas between addresses, not on a comma inside a quoted name.
-  const names = message.to
-    .split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)
-    .map((recipient) => parseSender(recipient).name);
-  return `to ${names.join(', ')}`;
+/** The names on a To or Cc line, in order. `without` leaves the people of one mailbox out. */
+export function recipientNames(line: string | null, without: string | null = null): string[] {
+  const left = without ? mailboxKey(without) : null;
+  return splitMailAddresses(line ?? '')
+    .filter((entry) => mailboxKey(entry) !== left)
+    .map((entry) => parseSender(entry).name);
+}
+
+const recipients = (to: string[], cc: string[]): string | null => {
+  if (!to.length) return null;
+  return `to ${to.join(', ')}${cc.length ? ` · cc ${cc.join(', ')}` : ''}`;
+};
+
+/**
+ * Who a message went to. Mail the user received starts with "to me", as Gmail shows it, and then
+ * names the other people on it, so the user sees who a reply to all reaches. `mailbox` is the
+ * user's own address: until it is known, nobody on the mail can be told apart from "me".
+ */
+export function recipientLine(
+  message: Pick<MailMessage, 'sentByUser' | 'to' | 'cc'>,
+  mailbox: string | null,
+): string | null {
+  if (message.sentByUser) return recipients(recipientNames(message.to), recipientNames(message.cc));
+  if (!mailbox) return 'to me';
+  return recipients(
+    ['me', ...recipientNames(message.to, mailbox)],
+    recipientNames(message.cc, mailbox),
+  );
 }
 
 /** "4 mails · 2 from you": every message of the thread, and how many the user wrote. */

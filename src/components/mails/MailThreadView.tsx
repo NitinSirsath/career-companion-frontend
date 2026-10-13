@@ -1,4 +1,4 @@
-import { useMailThread } from '../../api/mailbox';
+import { useGmailAddress, useMailThread } from '../../api/mailbox';
 import { mailCounts } from '../../lib/mails';
 import { MailboxProblem } from './MailboxProblem';
 import { MailMessageCard } from './MailMessageCard';
@@ -11,6 +11,7 @@ import { MailReplyBox } from './MailReplyBox';
  */
 export function MailThreadView({ threadId }: { threadId: string }) {
   const { data, error, isLoading, refetch } = useMailThread(threadId);
+  const mailbox = useGmailAddress();
   const fromYou = data?.messages.filter((message) => message.sentByUser).length ?? 0;
   return (
     <section aria-label="Conversation" className="space-y-4">
@@ -26,12 +27,13 @@ export function MailThreadView({ threadId }: { threadId: string }) {
             Conversation · {mailCounts(data.messages.length, fromYou)}
           </h2>
           {data.messages.map((message) => (
-            <MailMessageCard key={message.id} message={message} />
+            <MailMessageCard key={message.id} message={message} mailbox={mailbox} />
           ))}
           <MailReplyBox
             threadId={threadId}
             subject={data.subject}
             replyTo={data.replyTo}
+            replyCc={data.replyCc}
             onCheck={() => void refetch()}
           />
         </>
