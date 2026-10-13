@@ -1,5 +1,14 @@
 import { Link } from '@tanstack/react-router';
-import { LayoutDashboard, FileText, FlaskConical, Inbox, Mail, Sparkles, Bot } from 'lucide-react';
+import {
+  CalendarDays,
+  LayoutDashboard,
+  FileText,
+  FlaskConical,
+  Inbox,
+  Mail,
+  Sparkles,
+  Bot,
+} from 'lucide-react';
 import { useDevMode } from '../../api/appMode';
 
 export function MobileNav() {
@@ -19,6 +28,10 @@ export function MobileNav() {
       <Link to="/applications" className={navLinkClass}>
         <FileText className="w-5 h-5 mb-1" />
         <span className="text-[10px] font-medium">Applications</span>
+      </Link>
+      <Link to="/agenda" className={navLinkClass}>
+        <CalendarDays className="w-5 h-5 mb-1" />
+        <span className="text-[10px] font-medium">Agenda</span>
       </Link>
       <Link to="/dashboard" className={navLinkClass}>
         <LayoutDashboard className="w-5 h-5 mb-1" />
