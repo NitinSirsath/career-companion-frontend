@@ -28,6 +28,7 @@ import {
   jobLine,
   mailStateDetail,
   sandboxProblem,
+  sandboxRecipients,
   splitQuote,
   syncLine,
   threadMark,
@@ -72,6 +73,7 @@ const message = (overrides: Partial<SandboxMessage> = {}): SandboxMessage => ({
   id: THREAD,
   from: PRIYA,
   to: 'Alex Tester <alex@test.local>',
+  cc: null,
   date: '2026-10-12T10:02:00.000Z',
   sentByUser: false,
   text: 'Hi Alex,\n\nWould you have 20 minutes this week?',
@@ -184,6 +186,18 @@ describe('sandbox wording', () => {
       /^Last sync .+2020.+ · 1 mail not synced$/,
     );
     expect(syncLine(new Date('2020-03-04T10:00:00.000Z'), 0)).toMatch(/ · all mails synced$/);
+  });
+
+  it('says who a sandbox mail went to, with the people in Cc', () => {
+    const cc = 'Daniel Okafor <daniel.okafor@northwind.example>, lena@northwind.example';
+    expect(sandboxRecipients(message())).toBe('to me');
+    expect(sandboxRecipients(message({ cc }))).toBe(
+      'to me · cc Daniel Okafor, lena@northwind.example',
+    );
+    expect(sandboxRecipients(message({ sentByUser: true, to: PRIYA, cc }))).toBe(
+      'to Priya Raman · cc Daniel Okafor, lena@northwind.example',
+    );
+  });
   });
 
   it('explains every state but a job mail, whose details say it all', () => {
@@ -472,6 +486,31 @@ describe('sandbox compose', () => {
     );
     // Back to the inbox, where the new mail waits for a sync.
     await waitFor(() => expect(router.state.location.pathname).toBe('/sandbox'));
+  });
+
+  it('puts other people on a new mail with the Cc line, so a reply to all can be tried', async () => {
+    show('/sandbox/compose');
+    const form = within(await screen.findByRole('form', { name: 'New mail' }));
+    const cc = 'Daniel Okafor <daniel.okafor@northwind.example>, lena@northwind.example';
+    fireEvent.change(form.getByLabelText('From'), { target: { value: PRIYA } });
+    fireEvent.change(form.getByLabelText('Message'), { target: { value: 'Hi all' } });
+    fireEvent.change(form.getByLabelText(/^Cc/), { target: { value: 'the hiring team' } });
+    fireEvent.click(form.getByRole('button', { name: 'Send' }));
+    expect(
+      await form.findByText('Enter mail addresses with commas between them, at most 10.'),
+    ).toBeInTheDocument();
+    expect(post).not.toHaveBeenCalled();
+
+    fireEvent.change(form.getByLabelText(/^Cc/), { target: { value: cc } });
+    fireEvent.click(form.getByRole('button', { name: 'Send' }));
+    await waitFor(() =>
+      expect(post).toHaveBeenCalledWith('/api/sandbox/messages', {
+        from: PRIYA,
+        cc,
+        subject: '',
+        body: 'Hi all',
+      }),
+    );
   });
 });
 
