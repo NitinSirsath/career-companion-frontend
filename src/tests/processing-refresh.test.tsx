@@ -201,49 +201,6 @@ describe('authenticated-shell bounded refresh', () => {
   });
 });
 
-describe('bounded API client', () => {
-  it('times out a hung request at the shared deadline', async () => {
-    vi.useFakeTimers();
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(
-        (_url: string, init: RequestInit) =>
-          new Promise((_resolve, reject) => {
-            init.signal!.addEventListener('abort', () =>
-              reject(new DOMException('aborted', 'AbortError')),
-            );
-          }),
-      ),
-    );
-    const pending = new ApiClient().getApplication('app-1');
-    const assertion = expect(pending).rejects.toThrow('The request timed out');
-    await vi.advanceTimersByTimeAsync(REQUEST_TIMEOUT_MS);
-    await assertion;
-    vi.unstubAllGlobals();
-  });
-
-  it('forwards caller cancellation to fetch', async () => {
-    let seen: AbortSignal | undefined;
-    vi.stubGlobal(
-      'fetch',
-      vi.fn((_url: string, init: RequestInit) => {
-        seen = init.signal!;
-        return new Promise((_resolve, reject) =>
-          init.signal!.addEventListener('abort', () =>
-            reject(new DOMException('aborted', 'AbortError')),
-          ),
-        );
-      }),
-    );
-    const controller = new AbortController();
-    const pending = new ApiClient().getGmailStatus({ signal: controller.signal });
-    controller.abort();
-    await expect(pending).rejects.toThrow('aborted');
-    expect(seen?.aborted).toBe(true);
-    vi.unstubAllGlobals();
-  });
-});
-
 describe('refresh window while nothing can change', () => {
   const reloads = () => vi.mocked(api.getMessages).mock.calls.length;
 
@@ -291,3 +248,47 @@ describe('refresh window while nothing can change', () => {
     expect(reloads()).toBeGreaterThan(early);
   });
 });
+
+describe('bounded API client', () => {
+  it('times out a hung request at the shared deadline', async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        (_url: string, init: RequestInit) =>
+          new Promise((_resolve, reject) => {
+            init.signal!.addEventListener('abort', () =>
+              reject(new DOMException('aborted', 'AbortError')),
+            );
+          }),
+      ),
+    );
+    const pending = new ApiClient().getApplication('app-1');
+    const assertion = expect(pending).rejects.toThrow('The request timed out');
+    await vi.advanceTimersByTimeAsync(REQUEST_TIMEOUT_MS);
+    await assertion;
+    vi.unstubAllGlobals();
+  });
+
+  it('forwards caller cancellation to fetch', async () => {
+    let seen: AbortSignal | undefined;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((_url: string, init: RequestInit) => {
+        seen = init.signal!;
+        return new Promise((_resolve, reject) =>
+          init.signal!.addEventListener('abort', () =>
+            reject(new DOMException('aborted', 'AbortError')),
+          ),
+        );
+      }),
+    );
+    const controller = new AbortController();
+    const pending = new ApiClient().getGmailStatus({ signal: controller.signal });
+    controller.abort();
+    await expect(pending).rejects.toThrow('aborted');
+    expect(seen?.aborted).toBe(true);
+    vi.unstubAllGlobals();
+  });
+});
+
