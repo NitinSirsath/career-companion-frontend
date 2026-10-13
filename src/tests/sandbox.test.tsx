@@ -361,9 +361,10 @@ describe('sandbox conversation', () => {
     ).toHaveAttribute('href', `/mails/${THREAD}`);
   });
 
-  it('replies as the user or as the other person, with real text', async () => {
+  it('replies as the user only: there is no "Reply as" choice', async () => {
     show(`/sandbox/${THREAD}`);
     const form = within(await screen.findByRole('form', { name: 'Reply' }));
+    expect(screen.queryByLabelText('Reply as')).not.toBeInTheDocument();
     fireEvent.click(form.getByRole('button', { name: 'Send' }));
     expect(await form.findByText('Write a message.')).toBeInTheDocument();
     expect(post).not.toHaveBeenCalled();
@@ -377,16 +378,47 @@ describe('sandbox conversation', () => {
       }),
     );
     await waitFor(() => expect(form.getByLabelText('Your reply')).toHaveValue(''));
+  });
 
-    fireEvent.change(form.getByLabelText('Reply as'), { target: { value: 'them' } });
-    fireEvent.change(form.getByLabelText('Your reply'), { target: { value: 'Great.' } });
-    fireEvent.click(form.getByRole('button', { name: 'Send' }));
+  it("writes the other person's next mail in its own box, opened by a link", async () => {
+    show(`/sandbox/${THREAD}`);
+    const open = await screen.findByRole('button', { name: `Write next mail from ${PRIYA}` });
+    expect(screen.queryByRole('form', { name: 'Next mail from the other person' })).toBeNull();
+    fireEvent.click(open);
+    const box = within(screen.getByRole('form', { name: 'Next mail from the other person' }));
+    expect(box.getByText(`Next mail from ${PRIYA}`)).toBeInTheDocument();
+    // The user's own reply box stays as it is.
+    expect(screen.getByRole('form', { name: 'Reply' })).toBeInTheDocument();
+
+    fireEvent.click(box.getByRole('button', { name: 'Send as Priya Raman' }));
+    expect(await box.findByText('Write a message.')).toBeInTheDocument();
+    expect(post).not.toHaveBeenCalled();
+
+    fireEvent.change(box.getByLabelText('Their mail'), { target: { value: 'Thursday works.' } });
+    fireEvent.click(box.getByRole('button', { name: 'Send as Priya Raman' }));
     await waitFor(() =>
-      expect(post).toHaveBeenLastCalledWith(`/api/sandbox/threads/${THREAD}/replies`, {
+      expect(post).toHaveBeenCalledWith(`/api/sandbox/threads/${THREAD}/replies`, {
         as: 'them',
-        body: 'Great.',
+        body: 'Thursday works.',
       }),
     );
+    // Sent: the box closes and the link is back for the mail after that.
+    await waitFor(() =>
+      expect(screen.queryByRole('form', { name: 'Next mail from the other person' })).toBeNull(),
+    );
+    expect(
+      screen.getByRole('button', { name: `Write next mail from ${PRIYA}` }),
+    ).toBeInTheDocument();
+  });
+
+  it("closes the other person's box on Cancel and sends nothing", async () => {
+    show(`/sandbox/${THREAD}`);
+    fireEvent.click(await screen.findByRole('button', { name: `Write next mail from ${PRIYA}` }));
+    const box = within(screen.getByRole('form', { name: 'Next mail from the other person' }));
+    fireEvent.change(box.getByLabelText('Their mail'), { target: { value: 'Never mind.' } });
+    fireEvent.click(box.getByRole('button', { name: 'Cancel' }));
+    expect(screen.queryByRole('form', { name: 'Next mail from the other person' })).toBeNull();
+    expect(post).not.toHaveBeenCalled();
   });
 
   it('says so when the conversation is not in the mailbox', async () => {
