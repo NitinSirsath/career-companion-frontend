@@ -111,7 +111,6 @@ describe('senders and counts', () => {
     expect(recipientNames(null)).toEqual([]);
     expect(recipientNames('Priya <p@x.example>, s@x.example', 'S@X.example')).toEqual(['Priya']);
   });
-  });
 
   it('counts mails and the ones the user wrote', () => {
     expect(mailCounts(1, 0)).toBe('1 mail');
