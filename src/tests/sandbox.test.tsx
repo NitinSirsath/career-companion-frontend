@@ -410,6 +410,13 @@ describe('sandbox conversation', () => {
     ).toHaveAttribute('href', `/mails/gmail/${THREAD}`);
   });
 
+  it('says so when the conversation is not in the mailbox', async () => {
+    thread = new ApiError('Conversation not found.', 'http', 404, 'NOT_FOUND');
+    show(`/sandbox/${THREAD}`);
+    expect(
+      await screen.findByText('This conversation is not in your sandbox mailbox.'),
+    ).toBeInTheDocument();
+  });
 });
 
 describe('sandbox compose', () => {
