@@ -585,6 +585,22 @@ describe('application discovery controls (S9)', () => {
       ),
     );
   });
+  it('searches once when typing stops, not on every key', async () => {
+    vi.mocked(api.listApplications).mockResolvedValue(page([]));
+    renderWithProviders(qc, '/applications');
+    await screen.findByText('No applications yet');
+    const box = screen.getByLabelText('Search company or job title');
+    for (const value of ['A', 'Ac', 'Acm', 'Acme']) fireEvent.change(box, { target: { value } });
+    expect(box).toHaveValue('Acme');
+    await waitFor(() =>
+      expect(api.listApplications).toHaveBeenLastCalledWith(
+        { archive: 'active', q: 'Acme', limit: 20, offset: 0 },
+        expect.anything(),
+      ),
+    );
+    const searches = vi.mocked(api.listApplications).mock.calls.map(([params]) => params?.q);
+    expect(searches.filter(Boolean)).toEqual(['Acme']);
+  });
   it('ignores superseded search results and explains an empty filtered result', async () => {
     let resolve!: (value: ReturnType<typeof page>) => void;
     vi.mocked(api.listApplications).mockImplementation(async (params) =>
@@ -642,6 +658,12 @@ describe('application discovery completion (AD-02)', () => {
     fireEvent.change(screen.getByLabelText('Search company or job title'), {
       target: { value: 'target' },
     });
+    await waitFor(() =>
+      expect(api.listApplications).toHaveBeenLastCalledWith(
+        expect.objectContaining({ q: 'target' }),
+        expect.anything(),
+      ),
+    );
     fireEvent.click(screen.getByRole('button', { name: 'All' })); // Was UNKNOWN status, but since we removed it, this test needs adjustment. Actually, UNKNOWN apps are in ALL.
     // wait, how to filter UNKNOWN now? There is no tab for UNKNOWN.
     fireEvent.click(screen.getByRole('button', { name: 'Application Submitted' }));
