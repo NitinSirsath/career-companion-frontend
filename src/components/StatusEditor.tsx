@@ -54,6 +54,7 @@ export function StatusEditor({
   const [announcement, setAnnouncement] = useState('');
   const openButton = useRef<HTMLButtonElement>(null);
   const select = useRef<HTMLSelectElement>(null);
+  const alertBox = useRef<HTMLDivElement>(null);
   const selectId = useId();
   const helpId = useId();
 
@@ -68,6 +69,9 @@ export function StatusEditor({
     setAnnouncement(message);
     requestAnimationFrame(() => openButton.current?.focus());
   };
+  // After a failed save, focus moves to the message that explains it, never stays on a Save
+  // button that is now disabled.
+  const focusAlert = () => requestAnimationFrame(() => alertBox.current?.focus());
 
   const reconcile = async (applicationId: string) => {
     setPhase({ kind: 'reconciling' });
@@ -80,6 +84,7 @@ export function StatusEditor({
     } catch {
       setPhase({ kind: 'unknown' });
     }
+    focusAlert();
   };
 
   const mutation = useMutation({
@@ -125,6 +130,7 @@ export function StatusEditor({
       originalUserStatus: application.userStatus,
     });
     setPhase({ kind: 'editing' });
+    requestAnimationFrame(() => select.current?.focus());
   };
 
   const save = () => {
@@ -141,10 +147,13 @@ export function StatusEditor({
           if (isApiError(err) && err.status === 409) {
             setPhase({ kind: 'conflict' });
             void queryClient.invalidateQueries({ queryKey: applicationKey(session.applicationId) });
+            focusAlert();
           } else if (isApiError(err) && err.status === 404) {
             setPhase({ kind: 'unavailable' });
+            focusAlert();
           } else if (isApiError(err) && !err.outcomeUncertain) {
             setPhase({ kind: 'editing', message: err.message });
+            focusAlert();
           } else {
             void reconcile(session.applicationId);
           }
@@ -153,21 +162,30 @@ export function StatusEditor({
     );
   };
 
+  // One live region, last in both the closed and the open view, so React keeps the same node.
+  // A screen reader then reads "Status saved." when the text is set into it; a region that
+  // appears with its text already in it is often not read.
+  const liveRegion = (
+    <p className="sr-only" role="status" aria-live="polite">
+      {announcement}
+    </p>
+  );
+
   if (!session) {
     return (
-      <div className="flex flex-col items-start gap-1">
-        <Button ref={openButton} size="sm" variant="tertiary" onClick={start} disabled={!canEdit}>
-          Change status
-        </Button>
-        {!canEdit && (
-          <p className="text-xs text-text-secondary">
-            Editing is unavailable until this application loads correctly.
-          </p>
-        )}
-        <p className="sr-only" role="status" aria-live="polite">
-          {announcement}
-        </p>
-      </div>
+      <>
+        <div className="flex flex-col items-start gap-1">
+          <Button ref={openButton} size="sm" variant="tertiary" onClick={start} disabled={!canEdit}>
+            Change status
+          </Button>
+          {!canEdit && (
+            <p className="text-xs text-text-secondary">
+              Editing is unavailable until this application loads correctly.
+            </p>
+          )}
+        </div>
+        {liveRegion}
+      </>
     );
   }
 
@@ -181,7 +199,7 @@ export function StatusEditor({
     : 'none (using AI status)';
   const aiLabel = application.aiStatus ? STATUS_LABEL[application.aiStatus] : 'unknown';
 
-  return (
+  const editor = (
     <form
       className="w-full space-y-3 border border-border-default bg-surface-subtle p-4"
       aria-label="Edit application status"
@@ -227,7 +245,7 @@ export function StatusEditor({
         {mutation.isPending && <p>Saving…</p>}
         {phase.kind === 'reconciling' && <p>Checking whether your change was saved…</p>}
       </div>
-      <div role="alert" className="text-sm space-y-2">
+      <div ref={alertBox} tabIndex={-1} role="alert" className="text-sm space-y-2">
         {phase.kind === 'editing' && phase.message && (
           <p className="text-status-error">{phase.message}</p>
         )}
@@ -295,5 +313,11 @@ export function StatusEditor({
         </Button>
       </div>
     </form>
+  );
+  return (
+    <>
+      {editor}
+      {liveRegion}
+    </>
   );
 }

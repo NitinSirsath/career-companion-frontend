@@ -88,6 +88,10 @@ const openEditor = async () =>
 const choose = (value: string) =>
   fireEvent.change(screen.getByLabelText('Your status'), { target: { value } });
 const save = () => fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+// The editor's message box, found by a text inside it.
+const alertBox = (text: string | RegExp) => screen.getByText(text).closest('[role="alert"]');
+// The editor's hidden live region, which says "Status saved.".
+const liveRegion = () => document.querySelector('p.sr-only[role="status"]');
 // Starts a background refetch without waiting for it (it may be deliberately held).
 const refetchDetail = () =>
   act(async () => {
@@ -292,13 +296,21 @@ describe('status editor', () => {
   it('sets a status, closes, announces and returns focus', async () => {
     vi.mocked(api.updateApplicationStatus).mockResolvedValue(withUser('OFFER', 1));
     show();
+    await screen.findByRole('button', { name: 'Change status' });
+    // The live region is there, empty, before any save, and stays the same node after it.
+    const region = liveRegion();
+    expect(region).toBeInTheDocument();
+    expect(region).toBeEmptyDOMElement();
     await openEditor();
+    expect(liveRegion()).toBe(region);
     expect(screen.getByLabelText('Your status')).toHaveFocus();
     expect(screen.getByText(/does not rerun AI/)).toBeInTheDocument();
     expect(screen.getByText(/does not complete actions or send notifications/)).toBeInTheDocument();
     choose('OFFER');
     save();
     await screen.findByText('Status saved.');
+    expect(liveRegion()).toBe(region);
+    expect(region).toHaveTextContent('Status saved.');
     expect(api.updateApplicationStatus).toHaveBeenCalledWith('app-1', {
       userStatus: 'OFFER',
       expectedUserStatusRevision: 0,
@@ -336,6 +348,7 @@ describe('status editor', () => {
     expect(screen.getByRole('button', { name: 'Saving…' })).toBeDisabled();
     await act(async () => pending.reject(new ApiError('bad', 'http', 400, 'VALIDATION_ERROR')));
     await screen.findByText('bad');
+    await waitFor(() => expect(alertBox('bad')).toHaveFocus());
     expect(api.updateApplicationStatus).toHaveBeenCalledTimes(1);
   });
 
@@ -350,6 +363,7 @@ describe('status editor', () => {
     vi.mocked(api.updateApplicationStatus).mockRejectedValueOnce(conflict());
     save();
     await screen.findByText(/changed elsewhere/);
+    await waitFor(() => expect(alertBox(/changed elsewhere/)).toHaveFocus());
     expect(api.updateApplicationStatus).toHaveBeenLastCalledWith('app-1', {
       userStatus: 'REJECTED',
       expectedUserStatusRevision: 0,
@@ -358,6 +372,7 @@ describe('status editor', () => {
     expect(screen.getByLabelText('Your status')).toHaveValue('REJECTED');
     vi.mocked(api.updateApplicationStatus).mockResolvedValueOnce(withUser('REJECTED', 2));
     fireEvent.click(screen.getByRole('button', { name: 'Use current version' }));
+    await waitFor(() => expect(screen.getByLabelText('Your status')).toHaveFocus());
     save();
     await screen.findByText('Status saved.');
     expect(api.updateApplicationStatus).toHaveBeenLastCalledWith('app-1', {
@@ -421,10 +436,12 @@ describe('status editor', () => {
       vi.mocked(api.getApplication).mockResolvedValue(withUser('OFFER', 1)); // the write had committed
       save();
       await screen.findByText(/couldn't confirm whether your change was saved/);
+      await waitFor(() => expect(alertBox(/couldn't confirm/)).toHaveFocus());
       expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
       expect(api.updateApplicationStatus).toHaveBeenCalledTimes(1);
       fireEvent.click(screen.getByRole('button', { name: 'Use current version' }));
       expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled();
+      await waitFor(() => expect(screen.getByLabelText('Your status')).toHaveFocus());
     },
   );
 
@@ -436,12 +453,38 @@ describe('status editor', () => {
     vi.mocked(api.getApplication).mockRejectedValue(new ApiError('network', 'network'));
     save();
     await screen.findByText(/Save outcome unknown/);
+    await waitFor(() => expect(alertBox(/Save outcome unknown/)).toHaveFocus());
     expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
     expect(screen.getByLabelText('Your status')).toHaveValue('OFFER');
     vi.mocked(api.getApplication).mockResolvedValue(withUser(null, 0));
     fireEvent.click(screen.getByRole('button', { name: 'Retry loading status' }));
     await screen.findByText(/couldn't confirm whether your change was saved/);
+    // The retry button is gone, so focus is on the message, not lost on the page.
+    await waitFor(() => expect(alertBox(/couldn't confirm/)).toHaveFocus());
     expect(api.updateApplicationStatus).toHaveBeenCalledTimes(1);
+  });
+
+  it('moves focus to the message when the application is gone', async () => {
+    vi.mocked(api.updateApplicationStatus).mockRejectedValue(
+      new ApiError('gone', 'http', 404, 'NOT_FOUND'),
+    );
+    show();
+    await openEditor();
+    choose('OFFER');
+    save();
+    await screen.findByText('This application is no longer available.');
+    await waitFor(() => expect(alertBox('This application is no longer available.')).toHaveFocus());
+    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
+  });
+
+  it('does not move focus when only a background read changes the message', async () => {
+    show();
+    await openEditor();
+    choose('REJECTED');
+    vi.mocked(api.getApplication).mockResolvedValue(withUser('OFFER', 1));
+    await refetchDetail();
+    await screen.findByText(/changed after you started editing/);
+    expect(screen.getByLabelText('Your status')).toHaveFocus();
   });
 
   it('keeps Save blocked in the unknown state even after a later read succeeds', async () => {
