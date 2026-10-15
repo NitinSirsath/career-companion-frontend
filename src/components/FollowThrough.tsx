@@ -5,6 +5,7 @@ import type { ApplicationActionResponse, ApplicationResponse } from '../contract
 import type { CreateFollowUp } from '../contracts/action';
 import { resolveTemporal } from '../contracts/temporal';
 import { browserTimeZone } from '../lib/workspace';
+import { localDateTime } from '../lib/deadline';
 import { applyAcknowledgedApplication } from '../lib/applicationCache';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogTitle } from './ui/dialog';
@@ -105,14 +106,15 @@ export function FollowUpEditor({
     Promise.all(keys.map((key) => client.invalidateQueries({ queryKey: [key] })));
   const begin = () => {
     if (!frozen) {
+      const zone = browserTimeZone();
+      const local =
+        action?.deadline && action.deadlinePrecision === 'DATETIME'
+          ? localDateTime(action.deadline, zone)
+          : null;
       setDescription(action?.description ?? '');
-      setDate(action?.deadline ? String(action.deadline).slice(0, 10) : '');
-      setTime(
-        action?.deadlinePrecision === 'DATETIME'
-          ? new Date(action.deadline!).toISOString().slice(11, 16)
-          : '',
-      );
-      setZone(action?.deadlinePrecision === 'DATETIME' ? 'UTC' : browserTimeZone());
+      setDate(local?.date ?? (action?.deadline ? String(action.deadline).slice(0, 10) : ''));
+      setTime(local?.time ?? '');
+      setZone(zone);
       setRevision(action?.actionRevision ?? 0);
       setRequestId(crypto.randomUUID());
       setError('');
