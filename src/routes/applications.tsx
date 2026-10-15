@@ -14,6 +14,7 @@ import {
   ApplicationResponse,
 } from '../contracts/application';
 import { EffectiveStatus } from '../components/ApplicationStatus';
+import { useSearchText } from '../components/useSearchText';
 import { fetchApplicationsPage } from '../lib/applicationCache';
 import { eventLabel } from '../lib/eventLabels';
 
@@ -122,6 +123,9 @@ function ApplicationsDashboard({
   const setOffset = (offset: number) => setView((current) => ({ ...current, offset }));
   const changeFilters = (changes: Partial<DiscoveryView>) =>
     setView((current) => ({ ...current, ...changes, offset: 0 }));
+  const [searchText, setSearchText] = useSearchText(search, (text) =>
+    changeFilters({ search: text }),
+  );
 
   let effectiveStatus: ApplicationFilters['effectiveStatus'] | undefined = undefined;
   let submittedVia: ApplicationFilters['submittedVia'] | undefined = undefined;
@@ -252,8 +256,8 @@ function ApplicationsDashboard({
             id="application-search"
             type="search"
             maxLength={100}
-            value={search}
-            onChange={(event) => changeFilters({ search: event.target.value })}
+            value={searchText}
+            onChange={(event) => setSearchText(event.target.value)}
             placeholder="Company or job title"
           />
         </div>
