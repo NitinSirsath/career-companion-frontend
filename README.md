@@ -39,7 +39,7 @@ This frontend is not a monorepo. Shared contracts are copied from the backend re
 
 ### Runtime contract validation
 
-Application create/list/detail/status-PATCH and history responses are parsed at runtime with the synced Zod schemas in `src/api/client.ts`. Missing required fields, invalid enums/timestamps or inconsistent derived status are an `ApiError` of kind `contract` with a sanitized message; true `null` values stay valid. `ApiError` keeps the HTTP `status` and server `code`; `outcomeUncertain` is true for timeouts, network failures, 5xx and malformed success bodies, which callers reconcile by reading instead of resubmitting. Every request uses the shared 15-second deadline and forwards TanStack Query's `AbortSignal`.
+API responses are parsed at runtime with the synced Zod schemas, in `src/api/client.ts` and the other files in `src/api/`: applications and their history, actions, the workspace, AI settings, integration tokens, automation submissions, Gmail status, conversations, the mailbox and the sandbox. Missing required fields, invalid enums/timestamps or inconsistent derived status are an `ApiError` of kind `contract` with a sanitized message; true `null` values stay valid. `ApiError` keeps the HTTP `status` and server `code`; `outcomeUncertain` is true for timeouts, network failures, 5xx and malformed success bodies, which callers reconcile by reading instead of resubmitting. Every request uses the shared 15-second deadline and forwards TanStack Query's `AbortSignal`.
 
 ### Status editor and evidence (Sprint 6)
 
