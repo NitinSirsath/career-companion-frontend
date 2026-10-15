@@ -8,8 +8,6 @@ import {
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { NativeSelect } from '../ui/native-select';
-
-
 import { useSearchText } from '../useSearchText';
 
 interface FilterSelectProps<T extends string> {
