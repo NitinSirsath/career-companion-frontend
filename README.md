@@ -35,7 +35,7 @@ The frontend has no mode setting of its own. At start it asks the backend (`GET 
 
 ## Architecture
 
-This frontend is not a monorepo. Shared contracts are copied from the backend repository with `npm run sync-contracts`. The script uses `BACKEND_DIR`, else the sibling `../career-companion-backend-main`, else `../career-companion-backend`, and exits non-zero if none is found (a skip is never reported as success). Review the contract diff after syncing; never hand-edit `src/contracts`.
+This frontend is not a monorepo. Shared contracts are copied from the backend repository with `npm run sync-contracts`. The script uses `BACKEND_DIR`, else the sibling `../career-companion-backend-main`, else `../career-companion-backend`, and exits non-zero if none is found (a skip is never reported as success). It also removes frontend contract files the backend no longer has, and prints each file as `Synced`, `Unchanged` or `Removed`; if the backend folder holds no contract files it stops and changes nothing. Review the contract diff after syncing; never hand-edit `src/contracts`.
 
 ### Runtime contract validation
 
