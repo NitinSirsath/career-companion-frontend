@@ -1,9 +1,21 @@
 name: CI
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  # Daily at 07:00 IST: catches backend contract changes while no frontend PR is open.
+  schedule:
+    - cron: '30 1 * * *'
 permissions:
   contents: read
+# A newer run of the same kind on the same branch cancels the older one.
+concurrency:
+  group: ci-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   check:
+    # The daily run only compares contracts.
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
