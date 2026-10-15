@@ -23,6 +23,11 @@ vi.mock('../api/client', async (original) => ({
     listApplications: vi.fn(),
   },
 }));
+// A fixed browser zone, so the local time of a deadline is known.
+vi.mock('../lib/workspace', async (original) => ({
+  ...(await original<typeof import('../lib/workspace')>()),
+  browserTimeZone: () => 'Asia/Kolkata',
+}));
 const action: ActionWithContextResponse = {
   id: 'action',
   applicationId: 'app-1',
@@ -102,6 +107,28 @@ it('successful receipt lookup closes recovery without resubmission', async () =>
   fireEvent.click(await screen.findByRole('button', { name: 'Check saved follow-up' }));
   await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   expect(api.createFollowUp).toHaveBeenCalledTimes(1);
+});
+it('fills in a timed deadline in local time and saves it unchanged', async () => {
+  vi.mocked(api.editFollowUp).mockResolvedValue(action);
+  const timed = {
+    ...action,
+    deadline: '2026-10-20T20:00:00.000Z',
+    deadlinePrecision: 'DATETIME' as const,
+  };
+  show(<FollowUpEditor applicationId="app-1" action={timed} />);
+  fireEvent.click(screen.getByRole('button', { name: 'Edit follow-up' }));
+  expect(screen.getByLabelText('Date')).toHaveValue('2026-10-21');
+  expect(screen.getByLabelText('Time (optional for deadline)')).toHaveValue('01:30');
+  expect(screen.getByLabelText('Timezone or UTC offset')).toHaveValue('Asia/Kolkata');
+  fireEvent.click(screen.getByRole('button', { name: 'Save follow-up' }));
+  await waitFor(() =>
+    expect(api.editFollowUp).toHaveBeenCalledWith(
+      'action',
+      expect.objectContaining({
+        deadline: { precision: 'DATETIME', value: '2026-10-20T20:00:00.000Z' },
+      }),
+    ),
+  );
 });
 it('keeps a stale edit draft and blocks replay', async () => {
   vi.mocked(api.editFollowUp).mockRejectedValue(new ApiError('conflict', 'http', 409));
