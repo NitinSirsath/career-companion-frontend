@@ -7,6 +7,7 @@ import {
   type SandboxMessage,
   type SandboxThread,
 } from '../contracts/sandbox';
+import { mailAIInfo } from './mailAIStatus';
 import { CATEGORY_LABEL, mailDateTime, parseSender, recipientNames } from './mails';
 
 type BadgeVariant = 'success' | 'warning' | 'destructive' | 'info' | 'secondary';
@@ -53,7 +54,7 @@ export function syncLine(lastSyncedAt: string | Date | null, notSynced: number):
 
 /** One sentence on what the state means and what to do; null when the details say it all. */
 export function mailStateDetail(
-  result: Pick<SandboxMailResult, 'state' | 'failure'>,
+  result: Pick<SandboxMailResult, 'state' | 'aiStatus'>,
 ): string | null {
   switch (result.state) {
     case 'NOT_SYNCED':
@@ -62,8 +63,11 @@ export function mailStateDetail(
       return 'Synced. The AI has not read it yet.';
     case 'AI_KEY_MISSING':
       return 'Synced, but not read. Add your AI key on the AI provider page.';
-    case 'AI_FAILED':
-      return `Synced, but the AI could not read it${result.failure ? ` (${result.failure})` : ''}.`;
+    case 'AI_FAILED': {
+      // The same plain words as the (i) on the Gmail Sync row, never the stored category.
+      const info = result.aiStatus && mailAIInfo(result.aiStatus, true);
+      return `Synced, but the AI could not read it.${info ? ` ${info.title}. ${info.text}` : ''}`;
+    }
     case 'NOT_JOB_MAIL':
       return 'The app read it and found it is not about a job.';
     case 'REPLY_RECORDED':
