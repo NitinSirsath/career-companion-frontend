@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/client';
 import type { AISettingsResponse } from '../contracts/ai';
 import type { GmailStatusResponse } from '../contracts/gmail';
-import { nothingCanChange } from '../lib/aiWaiting';
+import { nothingCanChange, runningTest } from '../lib/aiWaiting';
 import {
   DOMAIN_QUERY_KEYS,
   PROCESSING_REFRESH_INTERVAL_MS,
@@ -16,7 +16,8 @@ import {
  * Mounted once in the authenticated shell so it survives route changes. A completed ingestion
  * (new lastSyncedAt) or an accepted/uncertain sync or retry opens a bounded refresh window.
  * The window closes early once a reload made inside it shows that nothing can change: no sync is
- * running and AI cannot read mail right now.
+ * running and AI cannot read mail right now. While the test mail of "Read waiting mails now" still
+ * waits for its answer, a window that ends opens a new one; the pause's end bounds that.
  */
 export function ProcessingRefreshObserver() {
   const queryClient = useQueryClient();
@@ -62,8 +63,10 @@ export function ProcessingRefreshObserver() {
     };
     refresh();
     const timer = setInterval(() => {
-      if (Date.now() >= refreshUntil || settled()) clearInterval(timer);
-      else refresh();
+      if (Date.now() < refreshUntil && !settled()) return refresh();
+      clearInterval(timer);
+      const ai = loadedInWindow<AISettingsResponse>('aiSettings');
+      if (ai && runningTest(ai)) startProcessingRefresh();
     }, PROCESSING_REFRESH_INTERVAL_MS);
     return () => clearInterval(timer);
   }, [refreshUntil, queryClient]);
