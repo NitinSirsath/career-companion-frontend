@@ -6,13 +6,14 @@ import { format } from 'date-fns';
 import { api, isApiError } from '../api/client';
 import type { AIRetryApprovalDetails } from '../contracts/email';
 import { AIAccessNotice } from '../components/ai/AIAccessNotice';
-import { AnalyzedBy } from '../components/ai/AnalyzedBy';
+import { MailAIStatus } from '../components/ai/MailAIStatus';
+import { onlyCareerCompanionText } from '../lib/mailAIStatus';
+import { refusedUntil, retryProblem, retryRefusedUntil } from '../lib/retryApproval';
 import { RetryAnywayDialog } from '../components/ai/RetryAnywayDialog';
-import { PROCESSING_ERROR_LABELS } from '../lib/aiLabels';
 import { Button } from '../components/ui/button';
 import { z } from 'zod';
 import { useEffect, useState, useSyncExternalStore } from 'react';
-import { ExternalLink, Info, RotateCcw } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { getGmailConversationUrl } from '../utils/gmail';
 import { useDevMode } from '../api/appMode';
 import { gmailConnectionCopy } from '../lib/gmailConnection';
@@ -28,17 +29,22 @@ const gmailSearchSchema = z.object({
 
 import { Pagination } from '../components/ui/pagination';
 
-import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '../components/ui/tooltip';
+import { TooltipProvider } from '../components/ui/tooltip';
 
-/** Definitive retry answers get their own message; only uncertain outcomes say "could not be confirmed". */
-function retryMessage(err: unknown): string {
+/**
+ * Definitive retry answers get their own message; only uncertain outcomes say "could not be
+ * confirmed". `onlyUs` is the row's own words when only Career Companion may retry the mail.
+ */
+function retryMessage(err: unknown, onlyUs: string | null): string {
   if (!isApiError(err) || err.outcomeUncertain)
     return `Retry could not be confirmed: ${err instanceof Error ? err.message : 'unknown error'} The list will refresh to show the current state.`;
   switch (err.code) {
     case 'AI_ACCESS_UNAVAILABLE':
       return 'Fix AI access on the AI provider page before retrying.';
     case 'AI_OPERATION_REQUIRES_REVIEW':
-      return 'This email needs review by Career Companion before it can be retried.';
+      return (
+        onlyUs ?? 'Only Career Companion can retry this email. This is our problem, not yours.'
+      );
     case 'RETRY_RECENTLY_QUEUED':
       return 'A retry was queued recently. Give it a few minutes.';
     case 'AI_OPERATION_CHANGED':
@@ -89,10 +95,13 @@ function GmailPage() {
     queryFn: ({ signal }) => api.getAISettings({ signal }),
   });
   const aiWaiting = !!aiSettings && aiSettings.access.state !== 'READY';
+  const pauses = aiSettings?.access.pauses ?? [];
   const [approval, setApproval] = useState<{
     emailId: string;
     details: AIRetryApprovalDetails;
   } | null>(null);
+  // A retry the server took: the mail shows as stopped until the worker takes it.
+  const [sent, setSent] = useState<string | null>(null);
 
   const {
     data: messagesData,
@@ -107,7 +116,9 @@ function GmailPage() {
         Date.now() < refreshUntil &&
         items.some(
           (m) =>
-            m.processingState === 'PROCESSING' || (m.processingState === 'PENDING' && !aiWaiting),
+            m.processingState === 'PROCESSING' ||
+            (m.processingState === 'PENDING' && !aiWaiting) ||
+            (m.processingState === 'FAILED' && m.id === sent),
         )
       )
         return 2000;
@@ -144,6 +155,7 @@ function GmailPage() {
   const retryMutation = useMutation({
     mutationFn: (emailId: string) => api.retryEmail(emailId),
     retry: false,
+    onSuccess: (_, emailId) => setSent(emailId),
     onError: (err, emailId) => {
       // An uncertain earlier AI attempt: ask the user who pays before one more call.
       if (isApiError(err) && err.code === 'AI_RETRY_NEEDS_APPROVAL')
@@ -160,15 +172,28 @@ function GmailPage() {
     mutationFn: (emailId: string) =>
       api.retryEmail(emailId, { acceptPossibleDuplicateCharge: true }),
     retry: false,
-    onSuccess: () => setApproval(null),
+    onSuccess: (_, emailId) => {
+      setApproval(null);
+      setSent(emailId);
+    },
+    // AI cannot be used until a time: the row shows it, so the dialog closes.
     onError: (err) => {
-      if (isApiError(err) && err.outcomeUncertain) setApproval(null);
+      if (refusedUntil(err) || (isApiError(err) && err.outcomeUncertain)) setApproval(null);
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['gmailMessages'] });
       startProcessingRefresh();
     },
   });
+
+  // A retry refused because AI cannot be used right now shows on its row until when.
+  const retries = [retryMutation, approveMutation];
+  // The sent retry is on its row once the list shows the mail in another state.
+  if (messagesData?.items.some((m) => m.id === sent && m.processingState !== 'FAILED'))
+    setSent(null);
+  // A refused retry in the words of the mail's row, as the list shows it now.
+  const onlyUs = (emailId: string | undefined) =>
+    onlyCareerCompanionText(messagesData?.items.find((m) => m.id === emailId));
 
   const handleConnect = () => {
     window.location.href = '/api/gmail/connect';
@@ -353,25 +378,23 @@ function GmailPage() {
                 </button>
               </div>
             </div>
-            {retryMutation.isError &&
-              !(
-                isApiError(retryMutation.error) &&
-                retryMutation.error.code === 'AI_RETRY_NEEDS_APPROVAL'
-              ) && (
-                <p role="alert" className="text-sm font-medium text-destructive">
-                  {retryMessage(retryMutation.error)}
-                </p>
-              )}
-            {approveMutation.isError && !approval && (
+            {retryProblem(retryMutation.error) && (
               <p role="alert" className="text-sm font-medium text-destructive">
-                {retryMessage(approveMutation.error)}
+                {retryMessage(retryMutation.error, onlyUs(retryMutation.variables))}
+              </p>
+            )}
+            {!approval && retryProblem(approveMutation.error) && (
+              <p role="alert" className="text-sm font-medium text-destructive">
+                {retryMessage(approveMutation.error, onlyUs(approveMutation.variables))}
               </p>
             )}
             <RetryAnywayDialog
               details={approval?.details ?? null}
               pending={approveMutation.isPending}
               problem={
-                approveMutation.isError && approval ? retryMessage(approveMutation.error) : null
+                approveMutation.isError && approval
+                  ? retryMessage(approveMutation.error, onlyUs(approveMutation.variables))
+                  : null
               }
               onConfirm={() => approval && approveMutation.mutate(approval.emailId)}
               onCancel={() => {
@@ -473,92 +496,13 @@ function GmailPage() {
                               )}
                             </td>
                             <td className="px-4 py-3">
-                              <div className="flex items-center gap-1.5">
-                                <span
-                                  className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${msg.processingStuck ? 'bg-status-warning-subtle text-status-warning border-status-warning/20' : msg.processingState === 'FAILED' ? 'bg-destructive/10 text-destructive border-destructive/20' : 'bg-secondary text-secondary-foreground'}`}
-                                >
-                                  {msg.processingStuck
-                                    ? 'Stopped'
-                                    : msg.processingState === 'PROCESSING' &&
-                                        msg.processingRetryable
-                                      ? 'Retry scheduled'
-                                      : (msg.processingState ?? 'PENDING') === 'PENDING' &&
-                                          aiWaiting
-                                        ? 'Waiting for AI'
-                                        : msg.processingState || 'PENDING'}
-                                </span>
-                                {msg.processingErrorDetails && (
-                                  <Tooltip>
-                                    <TooltipTrigger className="text-muted-foreground hover:text-foreground cursor-help transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-full">
-                                      <Info className="h-4 w-4 text-destructive" />
-                                    </TooltipTrigger>
-                                    <TooltipContent className="p-0 overflow-hidden">
-                                      <div
-                                        className={`px-3 py-2 border-b ${msg.processingRetryable ? 'bg-status-warning-subtle border-status-warning/20' : 'bg-status-error-subtle border-status-error/20'}`}
-                                      >
-                                        <div
-                                          className={`font-semibold text-[13px] flex items-center gap-2 ${msg.processingRetryable ? 'text-status-warning' : 'text-status-error'}`}
-                                        >
-                                          {msg.processingStuck
-                                            ? 'Processing stopped'
-                                            : msg.processingState === 'PROCESSING' &&
-                                                msg.processingRetryable
-                                              ? 'Retry scheduled'
-                                              : (msg.processingErrorCategory &&
-                                                  PROCESSING_ERROR_LABELS[
-                                                    msg.processingErrorCategory
-                                                  ]) ||
-                                                'Processing Error'}
-                                        </div>
-                                      </div>
-                                      <div className="p-3 flex flex-col gap-2">
-                                        <div className="text-muted-foreground">
-                                          {msg.processingErrorDetails}
-                                        </div>
-                                        <div className="grid grid-cols-[max-content_1fr] gap-x-2 gap-y-0.5 mt-1 text-xs text-muted-foreground/80">
-                                          <span className="font-medium">Stage:</span>
-                                          <span>{msg.processingErrorStage || 'unknown'}</span>
-                                          {msg.processingFailedAt && (
-                                            <>
-                                              <span className="font-medium">Failed:</span>
-                                              <span>
-                                                {format(
-                                                  new Date(msg.processingFailedAt),
-                                                  'MMM d, yyyy h:mm a',
-                                                )}
-                                              </span>
-                                            </>
-                                          )}
-                                        </div>
-                                      </div>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                )}
-                              </div>
-                              {msg.processingStuck && (
-                                <p className="text-sm mt-2 text-muted-foreground">
-                                  Processing stopped before it finished. Use Manual Retry to
-                                  continue.
-                                </p>
-                              )}
-                              {(msg.processingStuck || msg.processingErrorDetails) && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="mt-2"
-                                  disabled={retryMutation.isPending || approveMutation.isPending}
-                                  onClick={() => retryMutation.mutate(msg.id)}
-                                >
-                                  <RotateCcw className="mr-1.5 h-3 w-3" />
-                                  Manual Retry
-                                </Button>
-                              )}
-                              {msg.processingState === 'COMPLETED' && (
-                                <AnalyzedBy
-                                  provider={msg.aiProcessingResult?.provider}
-                                  model={msg.aiProcessingResult?.model}
-                                />
-                              )}
+                              <MailAIStatus
+                                message={msg}
+                                pauses={pauses}
+                                refusedUntil={retryRefusedUntil(retries, msg.id)}
+                                retryDisabled={retryMutation.isPending || approveMutation.isPending}
+                                onRetry={() => retryMutation.mutate(msg.id)}
+                              />
                             </td>
                             <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
                               {msg.receivedAt
