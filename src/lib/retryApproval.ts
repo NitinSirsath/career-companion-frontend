@@ -7,9 +7,6 @@ import { STEP, clockList } from './mailAIStatus';
 
 type HeldStep = AIRetryApprovalDetails['operations'][number];
 
-const stepName = (operation: string) =>
-  (STEP as Partial<Record<string, string>>)[operation] ?? operation;
-
 /** What the retry dialog says: each held step, then what a retry does and may cost. */
 export interface RetryApprovalCopy {
   steps: string[];
@@ -17,6 +14,9 @@ export interface RetryApprovalCopy {
   /** Said when the retry goes to another provider than the earlier tries. */
   switched: string | null;
 }
+
+const stepName = (operation: string) =>
+  (STEP as Partial<Record<string, string>>)[operation] ?? operation;
 
 /** When the step was sent: each counted try, or the latest one for an older step. */
 const sentAt = (op: HeldStep) =>
