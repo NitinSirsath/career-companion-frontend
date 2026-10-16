@@ -93,8 +93,12 @@ export const isApiError = (err: unknown): err is ApiError => err instanceof ApiE
 
 type RequestOptions = { signal?: AbortSignal };
 
-/** The sample test makes two real provider calls in sequence; it may outlast the shared deadline. */
-export const SAMPLE_TEST_TIMEOUT_MS = 75_000;
+/**
+ * The sample test makes two real provider calls in sequence. The server waits for each up to the
+ * model's own limit (at most 60 seconds) plus 15 seconds, so its answer, for example which model
+ * did not answer in time, comes before this deadline.
+ */
+export const SAMPLE_TEST_TIMEOUT_MS = 150_000;
 
 export class ApiClient {
   private defaultHeaders: Record<string, string>;
