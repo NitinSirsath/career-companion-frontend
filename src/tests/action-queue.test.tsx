@@ -55,12 +55,16 @@ const ready: AISettingsResponse = {
     reason: null,
     modelId: null,
     resumesAt: null,
+    failure: null,
+    pauses: [],
     verified: true,
     lastCheckedAt: null,
   },
+  lastFailure: null,
   usageToday: { day: '2026-10-03', calls: 0, inputTokens: 0, outputTokens: 0 },
   safetyLimit: { callsPerDay: 30, resetsAt: '2026-10-04T00:00:00.000Z' },
   waitingEmails: 0,
+  needsYourOk: { emails: 0, model: null, lastTriedAt: null, tries: 0 },
   consent: null,
 };
 let client: QueryClient;

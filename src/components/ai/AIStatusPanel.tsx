@@ -1,14 +1,15 @@
 import { useState } from 'react';
-import { Link } from '@tanstack/react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { api } from '../../api/client';
 import type { AISettingsResponse } from '../../contracts/ai';
 import { accessCopy, modelName, providerName } from '../../lib/aiLabels';
+import { keyCheckNote, modelState, notAffected, waitingText } from '../../lib/aiProviderPage';
 import { startProcessingRefresh } from '../../lib/processingRefresh';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Emphasized } from './AIAccessNotice';
 import { SampleTestPanel } from './SampleTestPanel';
 
 const STATE_BADGE = {
@@ -24,6 +25,25 @@ const SOURCE_NOTE = {
   REPLACED_RETIRED: ' (your chosen model was retired; using the recommended one)',
 } as const;
 
+type ModelInUse = NonNullable<AISettingsResponse['models']>['fast'];
+
+/** One model of the setup: its name, and whether it works or is paused, why and until when. */
+function ModelRow({ settings, model }: { settings: AISettingsResponse; model: ModelInUse }) {
+  const state = modelState(settings, model.id);
+  return (
+    <dd className="flex flex-col gap-0.5">
+      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+        <span>
+          {modelName(settings.provider, model.id)}
+          {SOURCE_NOTE[model.source]}
+        </span>
+        {state && <Badge variant={state.tone}>{state.label}</Badge>}
+      </div>
+      {state?.why && <span className="text-xs text-text-secondary">{state.why}</span>}
+    </dd>
+  );
+}
+
 /** The configured AI provider: status with one fix, models, our own counts, and actions. */
 export function AIStatusPanel({
   settings,
@@ -38,23 +58,18 @@ export function AIStatusPanel({
   const [checkNote, setCheckNote] = useState<string | null>(null);
   const [removing, setRemoving] = useState(false);
   const name = providerName(settings.provider);
-  const copy = accessCopy(settings);
+  const copy = accessCopy(settings, notAffected(settings));
   const badge = STATE_BADGE[settings.access.state];
 
   // No key is involved, so ordinary mutations are fine here.
   const check = useMutation({
     mutationFn: () => api.checkAISettings(),
     retry: false,
-    onSuccess: ({ verification, ...next }) => {
+    onSuccess: (response) => {
+      const { verification, ...next } = response;
       queryClient.setQueryData(['aiSettings'], next);
       if (verification === 'VERIFIED' && next.waitingEmails > 0) startProcessingRefresh();
-      setCheckNote(
-        verification === 'VERIFIED'
-          ? `${name} confirmed your key and models.`
-          : verification === 'INCONCLUSIVE'
-            ? `${name} did not confirm right now. Try again later.`
-            : null,
-      );
+      setCheckNote(keyCheckNote(response));
     },
     onError: () => {
       setCheckNote('The check could not be completed.');
@@ -94,7 +109,10 @@ export function AIStatusPanel({
           className="border border-status-warning bg-status-warning-subtle p-3 text-sm space-y-1"
         >
           <p className="font-medium">{copy.title}</p>
-          <p>{copy.detail}</p>
+          <p>
+            <Emphasized text={copy.detail} strong={copy.strong} />
+          </p>
+          {copy.hint && <p>{copy.hint}</p>}
           {copy.fix?.href && (
             <a className="underline" href={copy.fix.href} target="_blank" rel="noopener noreferrer">
               {copy.fix.label}
@@ -109,15 +127,9 @@ export function AIStatusPanel({
         {models && (
           <>
             <dt className="text-text-secondary">Fast screening</dt>
-            <dd>
-              {modelName(settings.provider, models.fast.id)}
-              {SOURCE_NOTE[models.fast.source]}
-            </dd>
+            <ModelRow settings={settings} model={models.fast} />
             <dt className="text-text-secondary">Detailed analysis</dt>
-            <dd>
-              {modelName(settings.provider, models.detailed.id)}
-              {SOURCE_NOTE[models.detailed.source]}
-            </dd>
+            <ModelRow settings={settings} model={models.detailed} />
           </>
         )}
         <dt className="text-text-secondary">Today</dt>
@@ -134,14 +146,7 @@ export function AIStatusPanel({
         {settings.waitingEmails > 0 && (
           <>
             <dt className="text-text-secondary">Waiting</dt>
-            <dd>
-              {settings.waitingEmails} {settings.waitingEmails === 1 ? 'email' : 'emails'} waiting
-              for AI.{' '}
-              <Link to="/gmail" className="underline">
-                Sync Gmail
-              </Link>{' '}
-              to continue.
-            </dd>
+            <dd>{waitingText(settings)}</dd>
           </>
         )}
       </dl>

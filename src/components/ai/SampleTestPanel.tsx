@@ -1,22 +1,10 @@
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { api, isApiError } from '../../api/client';
+import { api } from '../../api/client';
 import type { AISampleTestResponse } from '../../contracts/ai';
 import { modelName } from '../../lib/aiLabels';
+import { sampleTestProblem } from '../../lib/aiProviderPage';
 import { Button } from '../ui/button';
-
-function sampleProblem(err: unknown, providerName: string): string {
-  if (!isApiError(err)) return 'The sample test failed.';
-  if (err.outcomeUncertain)
-    return 'The sample test did not finish. It may still have used a few tokens.';
-  if (err.code === 'AI_ACCESS_REJECTED')
-    return `${providerName} refused the request. See the status above for the fix.`;
-  if (err.code === 'AI_ACCESS_UNAVAILABLE')
-    return 'AI access cannot be used right now. See the status above.';
-  if (err.code === 'AI_SAMPLE_FAILED')
-    return 'The provider did not return a usable result for the sample email.';
-  return err.message;
-}
 
 /**
  * Optional proof that the saved key and models return Career Companion's structured output. The
@@ -42,7 +30,7 @@ export function SampleTestPanel({
     try {
       setResult(await api.runAISampleTest());
     } catch (err) {
-      setProblem(sampleProblem(err, providerName));
+      setProblem(sampleTestProblem(err, providerId));
     } finally {
       setRunning(false);
       // Counts and access state may have changed; never re-run the test automatically.

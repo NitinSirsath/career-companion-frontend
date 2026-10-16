@@ -1,21 +1,11 @@
-import { format } from 'date-fns';
 import type { AIRetryApprovalDetails } from '../../contracts/email';
-import { modelName, providerName } from '../../lib/aiLabels';
+import { retryApprovalCopy } from '../../lib/retryApproval';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 
-const OPERATION = { classification: 'Relevance check', extraction: 'Detail extraction' } as Record<
-  string,
-  string
->;
-const REASON = {
-  OUTCOME_UNKNOWN: 'its outcome is unknown, so it may already have been processed and charged',
-  INVALID_OUTPUT: 'it returned a result Career Companion could not use',
-  ATTEMPTS_EXHAUSTED: 'its attempts ran out',
-} as const;
-
 /**
- * The user who pays approves exactly one more AI attempt for an uncertain or unusable outcome
+ * The user who pays approves exactly one more AI attempt for a step Career Companion will not try
+ * again on its own: no answer after its last automatic try, or an uncertain or unusable outcome
  * (ADR-0001 decision 10). Nothing is retried without this confirmation.
  */
 export function RetryAnywayDialog({
@@ -31,40 +21,22 @@ export function RetryAnywayDialog({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
-  const current = details?.currentProvider ?? null;
-  const switched = details?.operations.some(
-    (op) => op.provider && current && op.provider !== current,
-  );
+  const copy = details && retryApprovalCopy(details);
   return (
     <Dialog open={!!details} onOpenChange={(open) => !open && onCancel()}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Retry with a possible extra charge?</DialogTitle>
         </DialogHeader>
-        {details && (
+        {copy && (
           <div className="space-y-3 text-sm">
             <ul className="list-disc pl-5 space-y-1">
-              {details.operations.map((op) => (
-                <li key={op.operation}>
-                  {OPERATION[op.operation] ?? op.operation}
-                  {op.provider
-                    ? ` was sent to ${providerName(op.provider)} · ${modelName(op.provider, op.model)}`
-                    : ''}
-                  {op.attemptedAt ? ` on ${format(new Date(op.attemptedAt), 'MMM d, h:mm a')}` : ''}
-                  : {REASON[op.reason]}.
-                </li>
+              {copy.steps.map((step) => (
+                <li key={step}>{step}</li>
               ))}
             </ul>
-            <p>
-              Retrying makes one more AI call on your {providerName(current)} account, which may be
-              charged again. Career Companion never retries this on its own.
-            </p>
-            {switched && (
-              <p className="font-medium">
-                This retry uses {providerName(current)}, not the provider used before. The email
-                will be sent to {providerName(current)}.
-              </p>
-            )}
+            <p>{copy.text}</p>
+            {copy.switched && <p className="font-medium">{copy.switched}</p>}
             {problem && (
               <p role="alert" className="text-status-error">
                 {problem}

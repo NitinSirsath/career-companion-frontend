@@ -45,7 +45,7 @@ const modeFetch = vi.fn<typeof fetch>();
 const result = (
   state: SandboxMailResult['state'],
   extra: Partial<SandboxMailResult> = {},
-): SandboxMailResult => ({ state, failure: null, job: null, ...extra });
+): SandboxMailResult => ({ state, failure: null, aiStatus: null, job: null, ...extra });
 const job: NonNullable<SandboxMailResult['job']> = {
   category: 'RECRUITER',
   company: 'Northwind Robotics',
@@ -203,13 +203,33 @@ describe('sandbox wording', () => {
     expect(mailStateDetail(result('NOT_SYNCED'))).toMatch(/Sync to bring it in/);
     expect(mailStateDetail(result('WAITING_FOR_AI'))).toMatch(/has not read it yet/);
     expect(mailStateDetail(result('AI_KEY_MISSING'))).toMatch(/Add your AI key/);
-    expect(mailStateDetail(result('AI_FAILED', { failure: 'KEY_REJECTED' }))).toBe(
-      'Synced, but the AI could not read it (KEY_REJECTED).',
-    );
     expect(mailStateDetail(result('AI_FAILED'))).toBe('Synced, but the AI could not read it.');
     expect(mailStateDetail(result('NOT_JOB_MAIL'))).toMatch(/not about a job/);
     expect(mailStateDetail(result('REPLY_RECORDED'))).toMatch(/you replied/);
     expect(mailStateDetail(result('JOB_MAIL', { job }))).toBeNull();
+  });
+
+  it('says why the AI could not read a mail in the same plain words as the Gmail Sync row', () => {
+    const refused = result('AI_FAILED', {
+      failure: 'TerminalAIError',
+      aiStatus: {
+        reason: 'INVALID_REQUEST',
+        step: 'classification',
+        provider: 'gemini',
+        model: 'gemini-3.5-flash-lite',
+        failure: null,
+        attempts: 1,
+        maxAttempts: 3,
+        triedAt: [],
+        nextTryAt: null,
+        nextStep: 'CAREER_COMPANION',
+        readNowTest: null,
+      },
+    });
+    expect(mailStateDetail(refused)).toBe(
+      'Synced, but the AI could not read it. Request refused. Career Companion sent a request Google refused. This is our problem, not yours.',
+    );
+    expect(mailStateDetail(refused)).not.toContain('TerminalAIError');
   });
 
   it('puts what the AI read on one line', () => {

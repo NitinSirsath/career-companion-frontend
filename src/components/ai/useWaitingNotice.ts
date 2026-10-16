@@ -4,36 +4,39 @@ import { api } from '../../api/client';
 import type { AISettingsResponse } from '../../contracts/ai';
 import {
   PAUSE_END_MARGIN_MS,
-  WAITING_TRY_WINDOW_MS,
+  runningTest,
+  tryAnswered,
   waitingNotice,
-  waitingPause,
+  waitingTitle,
+  type WaitingNotice,
   type WaitingTry,
 } from '../../lib/aiWaiting';
-import { startProcessingRefresh } from '../../lib/processingRefresh';
+import {
+  PROCESSING_REFRESH_INTERVAL_MS,
+  getProcessingRefreshUntil,
+  startProcessingRefresh,
+} from '../../lib/processingRefresh';
+
+/** The button's own try sends 1 test mail first; a try after a pause ended by itself does not. */
+const sendsTestMail = (settings: AISettingsResponse | undefined, shown: WaitingNotice | null) =>
+  shown?.button === 'ready' || (!!settings && !!runningTest(settings));
 
 /**
  * The AI notice and its "Read waiting mails now" button. A try starts with the user's click or
  * when a pause ends (the backend then reads the waiting mail by itself); either way the page
- * keeps itself fresh until the answer shows.
+ * keeps itself fresh, and the notice says so, until the answer shows.
  */
 export function useWaitingNotice(settings: AISettingsResponse | undefined) {
   const queryClient = useQueryClient();
   const [attempt, setAttempt] = useState<WaitingTry | null>(null);
-  const reason = settings ? waitingPause(settings) : null;
-  const pausedUntil = reason && settings ? settings.access.resumesAt : null;
+  const title = settings ? waitingTitle(settings) : null;
+  const pausedUntil = title && settings ? settings.access.resumesAt : null;
 
   const read = useMutation({
     mutationFn: () => api.readWaitingMail(),
     retry: false,
     onSuccess: (next) => {
-      if (reason)
-        setAttempt({
-          byUser: true,
-          startedAt: new Date().toISOString(),
-          reason,
-          pausedUntil,
-          expired: false,
-        });
+      if (title) setAttempt({ title, pausedUntil });
       queryClient.setQueryData(['aiSettings'], next);
       startProcessingRefresh();
     },
@@ -42,42 +45,52 @@ export function useWaitingNotice(settings: AISettingsResponse | undefined) {
 
   // The pause ends by itself: look again just after, when the backend has offered the mail.
   useEffect(() => {
-    if (!reason || !pausedUntil) return;
+    if (!title || !pausedUntil) return;
     const wait = Date.parse(pausedUntil) + PAUSE_END_MARGIN_MS - Date.now();
     const timer = setTimeout(
       () => {
-        setAttempt({
-          byUser: false,
-          startedAt: new Date().toISOString(),
-          reason,
-          pausedUntil,
-          expired: false,
-        });
+        setAttempt({ title, pausedUntil });
         startProcessingRefresh();
       },
       Math.max(wait, 0),
     );
     return () => clearTimeout(timer);
-  }, [reason, pausedUntil]);
+  }, [title, pausedUntil]);
 
-  // All waiting mail was read: the try is over, and a later pause is a new story.
-  if (attempt && settings?.access.state === 'READY' && settings.waitingEmails === 0)
-    setAttempt(null);
-
-  const startedAt = attempt?.startedAt;
-  useEffect(() => {
-    if (!startedAt) return;
-    const timer = setTimeout(
-      () => setAttempt((current) => current && { ...current, expired: true }),
-      WAITING_TRY_WINDOW_MS,
-    );
-    return () => clearTimeout(timer);
-  }, [startedAt]);
+  // The answer came: the try is over, and a later pause is a new story.
+  if (attempt && settings && tryAnswered(settings, attempt)) setAttempt(null);
 
   const shown = settings ? waitingNotice(settings, attempt) : null;
+
+  // Reading many waiting mails can take longer than one refresh window. While the notice says it
+  // is trying, an ended window opens once more, and once more again after each change in the
+  // waiting count, so the answer shows; a try that reads no mail for a whole window stops there,
+  // and the notice shows the server's state again.
+  const trying = shown?.button === 'trying';
+  const waiting = settings?.waitingEmails;
+  useEffect(() => {
+    if (!trying) return;
+    let reopened = false;
+    const timer = setInterval(() => {
+      if (getProcessingRefreshUntil() > Date.now()) return;
+      if (reopened) {
+        setAttempt(null);
+        return;
+      }
+      reopened = true;
+      startProcessingRefresh();
+    }, PROCESSING_REFRESH_INTERVAL_MS);
+    return () => clearInterval(timer);
+  }, [trying, waiting]);
+
   const notice =
     shown && read.isPending && shown.button === 'ready'
       ? { ...shown, button: 'trying' as const }
       : shown;
-  return { notice, read: () => read.mutate(), failed: read.isError };
+  return {
+    notice,
+    read: () => read.mutate(),
+    failed: read.isError,
+    sendsTest: sendsTestMail(settings, shown),
+  };
 }

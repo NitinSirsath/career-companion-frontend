@@ -5,7 +5,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ApiError, api } from '../api/client';
-import type { AISettingsResponse } from '../contracts/ai';
+import type { AIFailure, AISettingsResponse } from '../contracts/ai';
 
 vi.mock('../api/client', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../api/client')>();
@@ -37,12 +37,16 @@ const base: AISettingsResponse = {
     reason: 'NOT_SET_UP',
     modelId: null,
     resumesAt: null,
+    failure: null,
+    pauses: [],
     verified: false,
     lastCheckedAt: null,
   },
+  lastFailure: null,
   usageToday: { day: '2026-10-02', calls: 0, inputTokens: 0, outputTokens: 0 },
   safetyLimit: { callsPerDay: 500, resetsAt: '2026-10-03T00:00:00.000Z' },
   waitingEmails: 3,
+  needsYourOk: { emails: 0, model: null, lastTriedAt: null, tries: 0 },
   consent: null,
 };
 const ready: AISettingsResponse = {
@@ -58,6 +62,8 @@ const ready: AISettingsResponse = {
     reason: null,
     modelId: null,
     resumesAt: null,
+    failure: null,
+    pauses: [],
     verified: true,
     lastCheckedAt: '2026-10-02T10:00:00.000Z',
   },
@@ -181,7 +187,12 @@ describe('AI provider page: choosing and setting up a provider', () => {
     });
     expect(key.value).toBe(''); // cleared while the request is in flight
     vi.mocked(api.getAISettings).mockResolvedValue(ready); // what the server now reports
-    resolveSave({ ...ready, waitingEmails: 1, verification: 'VERIFIED' });
+    resolveSave({
+      ...ready,
+      waitingEmails: 1,
+      verification: 'VERIFIED',
+      verificationFailure: null,
+    });
     expect(
       await screen.findByText(/Connected. Waiting emails are being processed/),
     ).toBeInTheDocument();
@@ -271,7 +282,7 @@ describe('AI provider page: status and actions', () => {
     ],
     [
       { state: 'LIMITED', reason: 'SAFETY_LIMIT', resumesAt: '2026-10-03T00:00:00.000Z' },
-      'daily AI safety limit is reached',
+      "You reached Career Companion's daily AI limit",
       null,
     ],
   ] as const)('explains %o with one fix', async (access, title, link) => {
@@ -289,13 +300,17 @@ describe('AI provider page: status and actions', () => {
       );
     if (access.state === 'LIMITED')
       expect(
-        screen.getByText(/sync then to continue|Reading continues by itself then/),
+        screen.getByText(/tries again by itself|Reading continues by itself/),
       ).toBeInTheDocument();
   });
 
   it('checks the saved key again', async () => {
     vi.mocked(api.getAISettings).mockResolvedValue(ready);
-    vi.mocked(api.checkAISettings).mockResolvedValue({ ...ready, verification: 'VERIFIED' });
+    vi.mocked(api.checkAISettings).mockResolvedValue({
+      ...ready,
+      verification: 'VERIFIED',
+      verificationFailure: null,
+    });
     renderPage();
     fireEvent.click(await screen.findByRole('button', { name: 'Check again' }));
     expect(
@@ -305,7 +320,11 @@ describe('AI provider page: status and actions', () => {
 
   it('changes models without re-entering the key or consent', async () => {
     vi.mocked(api.getAISettings).mockResolvedValue(ready);
-    vi.mocked(api.saveAISettings).mockResolvedValue({ ...ready, verification: 'VERIFIED' });
+    vi.mocked(api.saveAISettings).mockResolvedValue({
+      ...ready,
+      verification: 'VERIFIED',
+      verificationFailure: null,
+    });
     renderPage();
     fireEvent.click(await screen.findByRole('button', { name: 'Change models or key' }));
     expect(screen.getByLabelText('API key')).toHaveAttribute(
@@ -379,5 +398,142 @@ describe('AI provider page: status and actions', () => {
     ).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Remove key' }));
     await waitFor(() => expect(api.removeAISettings).toHaveBeenCalledTimes(1));
+  });
+});
+
+describe("AI provider page: each model's state (mock screen 7)", () => {
+  // Local times, so the clock reads the same in every time zone. "Now" is Oct 14, 11:46 AM.
+  const at = (hours: number, minutes: number, secs = 0) =>
+    new Date(2026, 9, 14, hours, minutes, secs).toISOString();
+  const busy: AIFailure = {
+    kind: 'PROVIDER_BUSY',
+    cause: 'PROVIDER_ANSWER',
+    provider: 'gemini',
+    model: 'gemini-3.8-flash',
+    httpStatus: 503,
+    providerCode: 'UNAVAILABLE',
+    quotaScope: null,
+    freeTier: false,
+    networkCode: null,
+    stopReason: null,
+    at: at(11, 44, 2),
+    waitedMs: 2_000,
+    timeoutMs: 60_000,
+    attempt: null,
+    maxAttempts: null,
+  };
+  const paused: AISettingsResponse = {
+    ...ready,
+    access: {
+      state: 'LIMITED',
+      reason: 'PROVIDER_BUSY',
+      modelId: 'gemini-3.8-flash',
+      resumesAt: at(11, 52),
+      failure: busy,
+      pauses: [
+        {
+          model: 'gemini-3.8-flash',
+          roles: ['detailed'],
+          reason: 'PROVIDER_BUSY',
+          resumesAt: at(11, 52),
+          failure: busy,
+          test: null,
+        },
+      ],
+      verified: true,
+      lastCheckedAt: at(11, 40),
+    },
+    lastFailure: busy,
+    usageToday: { day: '2026-10-14', calls: 14, inputTokens: 6120, outputTokens: 1480 },
+    waitingEmails: 1,
+  };
+  const row = (term: string) => screen.getByText(term).nextElementSibling as HTMLElement;
+
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2026, 9, 14, 11, 46));
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it('shows each model working or paused, with the reason and the code', async () => {
+    vi.mocked(api.getAISettings).mockResolvedValue(paused);
+    renderPage();
+    expect(await screen.findByText('Limited')).toBeInTheDocument();
+    const problem = screen.getByText('Gemini 3.8 Flash is busy right now').parentElement!;
+    expect(problem).toHaveTextContent(
+      'Google answered 503 UNAVAILABLE at 11:44 AM. Career Companion tries again by itself at about 11:52 AM. Gemini 3.5 Flash-Lite is not affected. 1 email is waiting.',
+    );
+    expect(within(problem).getByText('503 UNAVAILABLE').tagName).toBe('STRONG');
+    expect(row('Fast screening')).toHaveTextContent('Gemini 3.5 Flash-Lite (recommended)Working');
+    expect(row('Detailed analysis')).toHaveTextContent(
+      'Gemini 3.8 Flash (recommended)Paused until about 11:52 AM' +
+        'Busy: Google answered 503 UNAVAILABLE at 11:44 AM, after 2 seconds.',
+    );
+    expect(row('Waiting')).toHaveTextContent(
+      '1 email waiting for AI. It is read by itself when the pause ends.',
+    );
+    expect(screen.queryByText(/Sync Gmail/)).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /Read waiting mails now/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('a check while a model is paused does not say "confirmed": the header says it', async () => {
+    vi.mocked(api.getAISettings).mockResolvedValue(paused);
+    vi.mocked(api.checkAISettings).mockResolvedValue({
+      ...paused,
+      access: { ...paused.access, lastCheckedAt: at(11, 46) },
+      verification: 'VERIFIED',
+      verificationFailure: null,
+    });
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Check again' }));
+    expect(await screen.findByText('Key verified · last checked Oct 14, 11:46 AM')).toBeVisible();
+    expect(screen.queryByText(/confirmed your key/)).not.toBeInTheDocument();
+  });
+
+  it('a check that could not decide names the model and how long we waited', async () => {
+    vi.mocked(api.getAISettings).mockResolvedValue(ready);
+    vi.mocked(api.checkAISettings).mockResolvedValue({
+      ...ready,
+      verification: 'INCONCLUSIVE',
+      verificationFailure: {
+        ...busy,
+        kind: 'NO_ANSWER_IN_TIME',
+        cause: 'TIMEOUT',
+        httpStatus: null,
+        providerCode: null,
+        waitedMs: 10_000,
+        timeoutMs: 10_000,
+      },
+    });
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Check again' }));
+    expect(
+      await screen.findByText(
+        'Google Gemini did not confirm right now: Gemini 3.8 Flash did not answer within 10 seconds. Try again later.',
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('the sample test says which model did not answer in time', async () => {
+    vi.mocked(api.getAISettings).mockResolvedValue(paused);
+    vi.mocked(api.runAISampleTest).mockRejectedValue(
+      new ApiError('failed', 'http', 502, 'AI_SAMPLE_FAILED', {
+        failure: {
+          ...busy,
+          kind: 'NO_ANSWER_IN_TIME',
+          cause: 'TIMEOUT',
+          httpStatus: null,
+          providerCode: null,
+          waitedMs: 75_000,
+        },
+      }),
+    );
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Try a sample email' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'The sample test did not finish: Gemini 3.8 Flash did not answer within 60 seconds. It may still have used a few tokens.',
+    );
   });
 });

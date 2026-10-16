@@ -8,7 +8,7 @@ import {
   type AIRole,
   type CatalogProvider,
 } from '../../contracts/aiCatalog';
-import type { AISettingsResponse } from '../../contracts/ai';
+import type { AISettingsResponse, SaveAISettingsResponse } from '../../contracts/ai';
 import { modelName } from '../../lib/aiLabels';
 import { startProcessingRefresh } from '../../lib/processingRefresh';
 import { Button } from '../ui/button';
@@ -67,7 +67,7 @@ export function ProviderSetupForm({
 }: {
   provider: CatalogProvider;
   settings: AISettingsResponse;
-  onDone: (verification: 'VERIFIED' | 'INCONCLUSIVE', waitingEmails: number) => void;
+  onDone: (saved: SaveAISettingsResponse) => void;
   onCancel: () => void;
 }) {
   const queryClient = useQueryClient();
@@ -117,7 +117,7 @@ export function ProviderSetupForm({
       });
       queryClient.setQueryData(['aiSettings'], saved);
       if (saved.waitingEmails > 0) startProcessingRefresh(); // waiting emails resume
-      onDone(verification, saved.waitingEmails);
+      onDone({ ...saved, verification });
     } catch (err) {
       setProblem(saveProblem(err, provider));
       if (isApiError(err) && err.outcomeUncertain)
