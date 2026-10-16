@@ -82,7 +82,6 @@ export const AIFailureSchema = z.object({
 });
 export type AIFailure = z.infer<typeof AIFailureSchema>;
 
-
 export const AIAccessStateSchema = z.enum(['NOT_SET_UP', 'READY', 'NEEDS_ATTENTION', 'LIMITED']);
 export type AIAccessState = z.infer<typeof AIAccessStateSchema>;
 
