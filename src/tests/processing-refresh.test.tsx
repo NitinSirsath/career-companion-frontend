@@ -61,13 +61,17 @@ const aiSettings = (access: Partial<AISettingsResponse['access']> = {}): AISetti
     reason: null,
     modelId: null,
     resumesAt: null,
+    failure: null,
+    pauses: [],
     verified: true,
     lastCheckedAt: null,
     ...access,
   },
+  lastFailure: null,
   usageToday: { day: '2026-10-12', calls: 0, inputTokens: 0, outputTokens: 0 },
   safetyLimit: { callsPerDay: 500, resetsAt: '2026-10-13T00:00:00.000Z' },
   waitingEmails: 1,
+  needsYourOk: { emails: 0, model: null, lastTriedAt: null, tries: 0 },
   consent: null,
 });
 
@@ -153,6 +157,19 @@ describe('authenticated-shell bounded refresh', () => {
           processingState: 'FAILED',
           processingErrorDetails: 'AI provider rejected request',
           processingRetryable: false,
+          aiStatus: {
+            reason: 'INVALID_OUTPUT',
+            step: 'extraction',
+            provider: 'gemini',
+            model: 'gemini-2.5-flash',
+            failure: null,
+            attempts: 1,
+            maxAttempts: 3,
+            triedAt: [],
+            nextTryAt: null,
+            nextStep: 'RETRY_WITH_YOUR_OK',
+            readNowTest: null,
+          },
         },
       ]),
     );
@@ -161,12 +178,6 @@ describe('authenticated-shell bounded refresh', () => {
     );
     show('/gmail');
     await screen.findByText('Failed email');
-    const trigger = document.querySelector(
-      '[data-state], button.cursor-help, .cursor-help',
-    ) as HTMLElement;
-    fireEvent.mouseEnter(trigger);
-    fireEvent.pointerEnter(trigger);
-    fireEvent.focus(trigger);
     fireEvent.click(await screen.findByRole('button', { name: /Manual Retry/ }));
     expect(await screen.findByText(/Retry could not be confirmed/)).toBeInTheDocument();
     expect(getProcessingRefreshUntil()).toBeGreaterThan(Date.now());
