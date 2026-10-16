@@ -16,7 +16,6 @@ export const Route = createFileRoute('/ai')({
 
 type View = { kind: 'status' } | { kind: 'choose' } | { kind: 'form'; providerId: string };
 
-
 /** AI provider settings: Career Companion's second account, next to the Gmail connection. */
 function AIProviderPage() {
   const [view, setView] = useState<View>({ kind: 'status' });
