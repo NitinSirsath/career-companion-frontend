@@ -7,6 +7,9 @@ import { STEP, clockList } from './mailAIStatus';
 
 type HeldStep = AIRetryApprovalDetails['operations'][number];
 
+const stepName = (operation: string) =>
+  (STEP as Partial<Record<string, string>>)[operation] ?? operation;
+
 /** What the retry dialog says: each held step, then what a retry does and may cost. */
 export interface RetryApprovalCopy {
   steps: string[];
@@ -45,9 +48,6 @@ function stepLine(op: HeldStep): string {
   const times = sentAt(op);
   return `${stepName(op.operation)} was sent${to}${when(times)} ${whatHappened(op, times.length)}`;
 }
-
-const stepName = (operation: string) =>
-  (STEP as Partial<Record<string, string>>)[operation] ?? operation;
 
 function alreadyTried(tries: number): string {
   if (tries > 1) return `already tried ${tries} times and `;
