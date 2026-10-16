@@ -7,6 +7,7 @@ import { getCatalogProvider } from '../contracts/aiCatalog';
 import { AIStatusPanel } from '../components/ai/AIStatusPanel';
 import { ProviderPicker } from '../components/ai/ProviderPicker';
 import { ProviderSetupForm } from '../components/ai/ProviderSetupForm';
+import { saveNote } from '../lib/aiProviderPage';
 
 export const Route = createFileRoute('/ai')({
   errorComponent: RouteErrorPage,
@@ -15,11 +16,6 @@ export const Route = createFileRoute('/ai')({
 
 type View = { kind: 'status' } | { kind: 'choose' } | { kind: 'form'; providerId: string };
 
-const SAVED_NOTE = {
-  VERIFIED: 'Connected. Waiting emails are being processed.',
-  INCONCLUSIVE:
-    'Saved. The provider did not confirm right now; Career Companion will use it and show any problem here.',
-} as const;
 
 /** AI provider settings: Career Companion's second account, next to the Gmail connection. */
 function AIProviderPage() {
@@ -68,14 +64,8 @@ function AIProviderPage() {
           key={formProvider.id}
           provider={formProvider}
           settings={settings}
-          onDone={(verification, waitingEmails) => {
-            const note =
-              verification === 'VERIFIED'
-                ? waitingEmails > 0
-                  ? SAVED_NOTE.VERIFIED
-                  : 'Connected.'
-                : SAVED_NOTE.INCONCLUSIVE;
-            setSavedNote(note);
+          onDone={(saved) => {
+            setSavedNote(saveNote(saved));
             setView({ kind: 'status' });
           }}
           onCancel={() => setView({ kind: 'status' })}
