@@ -1,6 +1,9 @@
 name: CI
 on:
+  # A branch runs CI through its pull request only. A push run on a branch could be cancelled on a
+  # stacked branch that starts from the same commit, and hide the run its pull request needs.
   push:
+    branches: [main]
   pull_request:
   workflow_dispatch:
   # Daily at 07:00 IST: catches backend contract changes while no frontend PR is open.
