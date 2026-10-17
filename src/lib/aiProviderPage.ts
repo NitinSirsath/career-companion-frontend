@@ -136,6 +136,39 @@ const notConfirmedBecause = (failure: AIFailure | null) =>
   failure ? `: ${failureSaid(failure, true)}` : '';
 
 /**
+ * A key the provider has not confirmed yet while AI can be used: one notice instead of a green
+ * "Ready". It says why the last check did not finish, when this page ran it.
+ */
+export function notConfirmedNotice(
+  settings: AISettingsResponse,
+  lastCheck: CheckAISettingsResponse | null,
+): { title: string; detail: string } | null {
+  if (settings.access.verified || settings.access.state !== 'READY') return null;
+  const because =
+    lastCheck?.verification === 'INCONCLUSIVE'
+      ? `The last check did not finish${notConfirmedBecause(lastCheck.verificationFailure)}. `
+      : '';
+  return {
+    title: `${providerName(settings.provider)} has not confirmed your key yet`,
+    detail: `${because}Mails are still read, and the first AI call that works confirms the key.`,
+  };
+}
+
+/**
+ * The note shown after "Check again": a failed request, or what the check found. Nothing while the
+ * not-confirmed notice shows, since it already says how the last check went.
+ */
+export function checkNoteShown(
+  lastCheck: CheckAISettingsResponse | null,
+  failed: boolean,
+  notConfirmedShown: boolean,
+): string | null {
+  if (failed) return 'The check could not be completed.';
+  if (notConfirmedShown || !lastCheck) return null;
+  return keyCheckNote(lastCheck);
+}
+
+/**
  * The note after "Check again"; null when the status says it all. While a model is paused, the
  * header's "Key verified" says the key works: "confirmed" would read as if AI works too.
  */
