@@ -7,12 +7,14 @@ import type {
   CheckAISettingsResponse,
   SaveAISettingsResponse,
 } from '../contracts/ai';
-import { accessCopy } from '../lib/aiLabels';
+import { accessCopy, analyzedBy } from '../lib/aiLabels';
 import {
+  checkNoteShown,
   failureSaid,
   keyCheckNote,
   modelState,
   notAffected,
+  notConfirmedNotice,
   sampleTestProblem,
   saveNote,
   waitingText,
@@ -341,6 +343,57 @@ describe('the key check says which model did not answer, and how long we waited'
     expect(saveNote(saved('INCONCLUSIVE'))).toBe(
       'Saved. The provider did not confirm right now; Career Companion will use it and show any problem here.',
     );
+  });
+});
+
+describe('a key the provider has not confirmed yet', () => {
+  const checked = (
+    verificationFailure: AIFailure | null,
+    shown: AISettingsResponse,
+  ): CheckAISettingsResponse => ({ ...shown, verification: 'INCONCLUSIVE', verificationFailure });
+
+  it('shows one notice instead of "Ready", with why the last check did not finish', () => {
+    const unconfirmed = settings({ verified: false });
+    expect(notConfirmedNotice(unconfirmed, null)).toEqual({
+      title: 'Google Gemini has not confirmed your key yet',
+      detail: 'Mails are still read, and the first AI call that works confirms the key.',
+    });
+    expect(
+      notConfirmedNotice(
+        unconfirmed,
+        checked(noAnswer({ timeoutMs: 10_000, waitedMs: 10_000 }), unconfirmed),
+      )?.detail,
+    ).toBe(
+      'The last check did not finish: Gemini 3.8 Flash did not answer within 10 seconds. Mails are still read, and the first AI call that works confirms the key.',
+    );
+  });
+
+  it('leaves the check note out while the notice says how the check went', () => {
+    const unconfirmed = settings({ verified: false });
+    const last = checked(null, unconfirmed);
+    expect(checkNoteShown(last, false, true)).toBeNull();
+    expect(checkNoteShown(last, false, false)).toBe(
+      'Google Gemini did not confirm right now. Try again later.',
+    );
+    expect(checkNoteShown(null, true, true)).toBe('The check could not be completed.');
+  });
+
+  it('says nothing for a confirmed key, or while a problem is shown instead', () => {
+    expect(notConfirmedNotice(settings(), null)).toBeNull();
+    expect(
+      notConfirmedNotice({ ...paused(), access: { ...paused().access, verified: false } }, null),
+    ).toBeNull();
+  });
+});
+
+describe('the model that read a mail', () => {
+  it('names a fast model that read the details while the Detailed model was paused', () => {
+    expect(analyzedBy('gemini', LITE, true)).toBe(
+      'Analyzed by Google Gemini · Gemini 3.5 Flash-Lite (fallback)',
+    );
+    expect(analyzedBy('gemini', FLASH, true)).toBe('Analyzed by Google Gemini · Gemini 3.8 Flash');
+    // Sorting alone is the fast model's own job.
+    expect(analyzedBy('gemini', LITE)).toBe('Analyzed by Google Gemini · Gemini 3.5 Flash-Lite');
   });
 });
 

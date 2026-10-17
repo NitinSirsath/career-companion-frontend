@@ -5,7 +5,7 @@ import { render, screen, cleanup, fireEvent, waitFor, act } from '@testing-libra
 import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { api } from '../api/client';
-import type { ApplicationResponse, ApplicationActionResponse } from '../contracts/application';
+import type { ApplicationResponse, ApplicationActionListItem } from '../contracts/application';
 import { makeApplication, makeEvent } from './fixtures';
 
 // Mock the API client
@@ -31,7 +31,7 @@ function makeApp(overrides: Partial<ApplicationResponse> = {}): ApplicationRespo
   return makeApplication({ userStatus: 'APPLIED', ...overrides });
 }
 
-function makeAction(overrides: Partial<ApplicationActionResponse> = {}): ApplicationActionResponse {
+function makeAction(overrides: Partial<ApplicationActionListItem> = {}): ApplicationActionListItem {
   return {
     origin: null,
     actionRevision: 0,
@@ -46,6 +46,7 @@ function makeAction(overrides: Partial<ApplicationActionResponse> = {}): Applica
     deadlinePrecision: null,
     status: 'PENDING',
     createdAt: '2026-02-01T10:00:00Z',
+    repliedAt: null,
     ...overrides,
   };
 }
@@ -477,7 +478,29 @@ describe('Application Detail Page (/applications/$id)', () => {
 
     expect(await screen.findByText('Submit portfolio')).toBeInTheDocument();
     expect(screen.getByText('Due Feb 15, 2026')).toBeInTheDocument();
-    expect(screen.getByText('PENDING')).toBeInTheDocument();
+    expect(screen.getByText('Needs action')).toBeInTheDocument();
+  });
+
+  it('shows an action whose mail the user replied to as replied, still to mark done', async () => {
+    vi.mocked(api.listApplications).mockResolvedValue({
+      items: [makeApp()],
+      metadata: { limit: 20, offset: 0, nextOffset: null },
+    });
+    vi.mocked(api.getApplicationEvents).mockResolvedValue({
+      items: [],
+      metadata: { limit: 20, offset: 0, nextOffset: null },
+    });
+    vi.mocked(api.getApplicationActions).mockResolvedValue({
+      items: [makeAction({ emailId: 'mail-1', repliedAt: '2026-02-03T09:30:00Z' })],
+      metadata: { limit: 20, offset: 0, nextOffset: null },
+    });
+
+    renderWithProviders(queryClient, '/applications/app-1');
+
+    expect(await screen.findByText('Replied')).toBeInTheDocument();
+    expect(screen.getByText(/^You replied Feb 3/)).toBeInTheDocument();
+    expect(screen.queryByText('Due Feb 15, 2026')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Complete' })).toBeInTheDocument();
   });
 
   it('displays provenance when available', async () => {

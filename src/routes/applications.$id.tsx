@@ -9,7 +9,8 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { api } from '../api/client';
-import { ApplicationEventResponse, ApplicationActionResponse } from '../contracts/application';
+import { ApplicationEventResponse, ApplicationActionListItem } from '../contracts/application';
+import { actionState } from '../lib/actionState';
 import { Button } from '../components/ui/button';
 import { EffectiveStatus } from '../components/ApplicationStatus';
 import { STATUS_LABEL } from '../lib/statusLabels';
@@ -161,14 +162,31 @@ function TimelineEventItem({ event }: { event: ApplicationEventResponse }) {
 
 // ─── Action item ──────────────────────────────────────────────────────────────
 
+const STATE_BOX = {
+  open: 'border-border-default border-l-4 border-l-status-warning bg-surface',
+  replied: 'border-border-default bg-surface',
+  closed: 'border-border-default bg-surface-subtle',
+} as const;
+const STATE_DOT = {
+  open: 'bg-status-warning',
+  replied: 'bg-status-success',
+  closed: 'bg-muted-foreground',
+} as const;
+const STATE_TEXT = {
+  open: 'text-status-warning',
+  replied: 'text-status-success',
+  closed: 'text-muted-foreground',
+} as const;
+
 function ActionItem({
   action,
   archived,
 }: {
-  action: ApplicationActionResponse;
+  action: ApplicationActionListItem;
   archived: boolean;
 }) {
   const isPending = action.status === 'PENDING';
+  const state = actionState(action);
   const queryClient = useQueryClient();
 
   const updateMutation = useMutation({
@@ -186,10 +204,10 @@ function ActionItem({
 
   return (
     <div
-      className={`flex flex-col sm:flex-row items-start gap-3 p-3 rounded-none border ${isPending ? 'border-border-default border-l-4 border-l-status-warning bg-surface' : 'border-border-default bg-surface-subtle'}`}
+      className={`flex flex-col sm:flex-row items-start gap-3 p-3 rounded-none border ${STATE_BOX[state.tone]}`}
     >
       <span
-        className={`mt-0.5 shrink-0 h-2 w-2 rounded-full ${isPending ? 'bg-status-warning' : 'bg-muted-foreground'}`}
+        className={`mt-0.5 shrink-0 h-2 w-2 rounded-full ${STATE_DOT[state.tone]}`}
         aria-hidden="true"
       />
       <div className="flex-1 min-w-0">
@@ -214,12 +232,9 @@ function ActionItem({
           </p>
         )}
         <div className="flex items-center gap-2 mt-1 flex-wrap">
-          <span
-            className={`text-xs font-semibold ${isPending ? 'text-status-warning' : 'text-muted-foreground'}`}
-          >
-            {action.status}
-          </span>
-          {action.deadline && (
+          <span className={`text-xs font-semibold ${STATE_TEXT[state.tone]}`}>{state.label}</span>
+          {state.note && <span className="text-xs text-muted-foreground">{state.note}</span>}
+          {!state.note && action.deadline && (
             <span className="text-xs text-muted-foreground">Due {deadlineLabel(action, true)}</span>
           )}
         </div>

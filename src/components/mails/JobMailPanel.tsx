@@ -31,7 +31,7 @@ function AiReading({ mail, only }: { mail: ConversationMail; only: boolean }) {
       <p className="text-xs text-text-secondary">
         This is the AI's reading, not the mail's own words.
       </p>
-      <AnalyzedBy provider={mail.analyzedBy?.provider} model={mail.analyzedBy?.model} />
+      <AnalyzedBy provider={mail.analyzedBy?.provider} model={mail.analyzedBy?.model} details />
     </PanelSection>
   );
 }

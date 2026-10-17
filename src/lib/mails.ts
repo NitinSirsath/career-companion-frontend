@@ -191,10 +191,12 @@ export function requestTitle(asked: ConversationRequest): string {
   return asked.kind === 'FOLLOW_UP' ? 'Follow up' : 'Action needed';
 }
 
+/** "You replied Today, 1:04 AM", the same on a mail and on its application's action. */
+export const repliedLine = (repliedAt: string) => `You replied ${mailDate(repliedAt)}`;
+
 /** The line beside the state: when it is due, or when the user replied. */
 export function requestDetail(asked: ConversationRequest): string | null {
-  if (asked.state === 'REPLIED')
-    return asked.repliedAt ? `You replied ${mailDate(asked.repliedAt)}` : null;
+  if (asked.state === 'REPLIED') return asked.repliedAt ? repliedLine(asked.repliedAt) : null;
   if (asked.state === 'OPEN' && asked.deadline) return `Due ${deadlineLabel(asked)}`;
   return null;
 }

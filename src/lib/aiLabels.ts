@@ -48,11 +48,25 @@ export function clock(iso: string): string {
   return format(date, 'MMM d, h:mm a');
 }
 
-/** Provenance phrase for an AI result; the rule-based filter is not a provider. */
-export function analyzedBy(provider: string | null | undefined, model: string | null | undefined) {
+/** True when the catalog offers the model for Detailed analysis; false for a fast-only model. */
+const offeredForDetails = (providerId: string, modelId: string | null | undefined) =>
+  getCatalogProvider(providerId)
+    ?.models.find((m) => m.id === modelId)
+    ?.roles.includes('detailed') ?? true;
+
+/**
+ * Provenance phrase for an AI result; the rule-based filter is not a provider. For a mail's
+ * details, a fast-only model means the fast model stood in while the Detailed model was paused.
+ */
+export function analyzedBy(
+  provider: string | null | undefined,
+  model: string | null | undefined,
+  details = false,
+) {
   if (!provider) return null;
   if (provider === 'deterministic') return 'Filtered by rules (no AI)';
-  return `Analyzed by ${providerName(provider)} · ${modelName(provider, model)}`;
+  const fallback = details && !offeredForDetails(provider, model) ? ' (fallback)' : '';
+  return `Analyzed by ${providerName(provider)} · ${modelName(provider, model)}${fallback}`;
 }
 
 /** " 2 emails are waiting.", or nothing when no mail waits. */

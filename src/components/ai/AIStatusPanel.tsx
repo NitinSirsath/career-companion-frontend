@@ -2,9 +2,15 @@ import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { api } from '../../api/client';
-import type { AISettingsResponse } from '../../contracts/ai';
+import type { AISettingsResponse, CheckAISettingsResponse } from '../../contracts/ai';
 import { accessCopy, modelName, providerName } from '../../lib/aiLabels';
-import { keyCheckNote, modelState, notAffected, waitingText } from '../../lib/aiProviderPage';
+import {
+  checkNoteShown,
+  modelState,
+  notAffected,
+  notConfirmedNotice,
+  waitingText,
+} from '../../lib/aiProviderPage';
 import { startProcessingRefresh } from '../../lib/processingRefresh';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
@@ -18,6 +24,7 @@ const STATE_BADGE = {
   LIMITED: { label: 'Limited', variant: 'warning' },
   NOT_SET_UP: { label: 'Not set up', variant: 'secondary' },
 } as const;
+const NOT_CONFIRMED_BADGE = { label: 'Not confirmed', variant: 'warning' } as const;
 
 const SOURCE_NOTE = {
   RECOMMENDED: ' (recommended)',
@@ -44,6 +51,19 @@ function ModelRow({ settings, model }: { settings: AISettingsResponse; model: Mo
   );
 }
 
+/** A key the provider has not confirmed yet, while AI can be used. */
+function NotConfirmedNotice({ title, detail }: { title: string; detail: string }) {
+  return (
+    <div
+      role="status"
+      className="border border-status-warning bg-status-warning-subtle p-3 text-sm space-y-1"
+    >
+      <p className="font-medium">{title}</p>
+      <p>{detail}</p>
+    </div>
+  );
+}
+
 /** The configured AI provider: status with one fix, models, our own counts, and actions. */
 export function AIStatusPanel({
   settings,
@@ -55,11 +75,14 @@ export function AIStatusPanel({
   onSwitch?: () => void;
 }) {
   const queryClient = useQueryClient();
-  const [checkNote, setCheckNote] = useState<string | null>(null);
+  const [lastCheck, setLastCheck] = useState<CheckAISettingsResponse | null>(null);
+  const [checkFailed, setCheckFailed] = useState(false);
   const [removing, setRemoving] = useState(false);
   const name = providerName(settings.provider);
   const copy = accessCopy(settings, notAffected(settings));
-  const badge = STATE_BADGE[settings.access.state];
+  const notConfirmed = notConfirmedNotice(settings, lastCheck);
+  const badge = notConfirmed ? NOT_CONFIRMED_BADGE : STATE_BADGE[settings.access.state];
+  const checkNote = checkNoteShown(lastCheck, checkFailed, notConfirmed !== null);
 
   // No key is involved, so ordinary mutations are fine here.
   const check = useMutation({
@@ -69,10 +92,11 @@ export function AIStatusPanel({
       const { verification, ...next } = response;
       queryClient.setQueryData(['aiSettings'], next);
       if (verification === 'VERIFIED' && next.waitingEmails > 0) startProcessingRefresh();
-      setCheckNote(keyCheckNote(response));
+      setCheckFailed(false);
+      setLastCheck(response);
     },
     onError: () => {
-      setCheckNote('The check could not be completed.');
+      setCheckFailed(true);
       queryClient.invalidateQueries({ queryKey: ['aiSettings'] });
     },
   });
@@ -93,15 +117,15 @@ export function AIStatusPanel({
         <div>
           <h3 className="text-lg font-semibold">{name}</h3>
           <p className="text-sm text-text-secondary">
-            {settings.access.verified
-              ? 'Key verified'
-              : 'Key saved, not yet confirmed by the provider'}
+            {settings.access.verified ? 'Key verified' : 'Key saved'}
             {settings.access.lastCheckedAt &&
               ` · last checked ${format(new Date(settings.access.lastCheckedAt), 'MMM d, h:mm a')}`}
           </p>
         </div>
         <Badge variant={badge.variant}>{badge.label}</Badge>
       </div>
+
+      {notConfirmed && <NotConfirmedNotice {...notConfirmed} />}
 
       {copy && (
         <div
