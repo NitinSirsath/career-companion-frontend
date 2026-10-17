@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '../api/client';
-import { hasRemoteImages, mailFrameDocument } from '../lib/mailHtml';
+import { hasRemoteImages, mailFrameDocument, setsOwnColors } from '../lib/mailHtml';
 import {
   ACTION_FILTERS,
   aiReading,
@@ -282,6 +282,26 @@ describe('the mail frame', () => {
     expect(closed).toContain('<base target="_blank">');
     expect(closed).toContain('<body><p>Hello</p></body>');
     expect(mailFrameDocument('<p>Hello</p>', true)).toContain('img-src https: data:"');
+  });
+
+  it('shows a mail on the white page it was written for, or in the theme colours', () => {
+    expect(mailFrameDocument('<p>Hello</p>', false)).toContain('color:#161616;background:#ffffff');
+    const themed = mailFrameDocument('<p>Hello</p>', false, {
+      text: '#f4f4f4',
+      background: '#262626',
+    });
+    expect(themed).toContain('color:#f4f4f4;background:#262626;');
+    expect(themed).toContain('a{color:inherit}');
+    expect(themed).not.toContain('#ffffff');
+  });
+
+  it('notices a mail that sets colours of its own', () => {
+    expect(setsOwnColors('<div style="background:#003a6d;color:#fff">Careers</div>')).toBe(true);
+    expect(setsOwnColors('<table bgcolor="#ffffff"><tr><td>Hi</td></tr></table>')).toBe(true);
+    expect(setsOwnColors('<font color="red">Hi</font>')).toBe(true);
+    expect(setsOwnColors('<style>p { color: #333 }</style><p>Hi</p>')).toBe(true);
+    expect(setsOwnColors('<div dir="ltr">Hi,<br>Thanks for applying.</div>')).toBe(false);
+    expect(setsOwnColors('<p style="margin:0">The colour of the logo is blue.</p>')).toBe(false);
   });
 
   it('notices pictures that come from the internet', () => {
