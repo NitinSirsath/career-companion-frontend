@@ -4,7 +4,7 @@ import { useDevMode } from '../../api/appMode';
 import type { User } from '../../api/auth';
 import { cn } from '../../lib/utils';
 import { AccountMenu } from './AccountMenu';
-import { MAIN_NAV, SANDBOX_NAV, SETTINGS_NAV, type NavItem } from './navItems';
+import { MAIN_NAV, rememberedSearch, SANDBOX_NAV, SETTINGS_NAV, type NavItem } from './navItems';
 import { useMenuCollapsed } from './useMenuCollapsed';
 
 const LINK_CLASS =
@@ -21,7 +21,12 @@ function NavLink({
 }) {
   const Icon = item.icon;
   return (
-    <Link to={item.to} className={LINK_CLASS} title={collapsed ? item.label : undefined}>
+    <Link
+      to={item.to}
+      search={rememberedSearch(item.to)}
+      className={LINK_CLASS}
+      title={collapsed ? item.label : undefined}
+    >
       <Icon size={16} aria-hidden="true" className="shrink-0" />
       <span className={cn('flex-1', collapsed && 'sr-only')}>{item.label}</span>
       {badge && !collapsed && (
