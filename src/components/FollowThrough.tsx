@@ -189,7 +189,7 @@ export function FollowUpEditor({
   };
   return (
     <>
-      <Button ref={trigger} size="sm" variant="outline" disabled={disabled} onClick={begin}>
+      <Button ref={trigger} size="sm" variant="tertiary" disabled={disabled} onClick={begin}>
         {action ? 'Edit follow-up' : frozen ? 'Resolve follow-up creation' : 'Add follow-up'}
       </Button>
       <Dialog
@@ -228,7 +228,7 @@ export function FollowUpEditor({
             </fieldset>
             {error && <p role="alert">{error}</p>}
             <div className="flex flex-wrap gap-2 justify-end">
-              <Button type="button" variant="outline" disabled={pending} onClick={close}>
+              <Button type="button" variant="tertiary" disabled={pending} onClick={close}>
                 Close
               </Button>
               {frozen ? (
@@ -319,7 +319,7 @@ export function SnoozeControl({
       <Button
         ref={trigger}
         size="sm"
-        variant="outline"
+        variant="tertiary"
         disabled={disabled || action.status !== 'PENDING'}
         onClick={() => {
           setSnapshot(action);
@@ -353,13 +353,13 @@ export function SnoozeControl({
             <TimeFields {...{ date, time, zone, setDate, setTime, setZone }} />
             {error && <p role="alert">{error}</p>}
             <div className="flex flex-wrap gap-2 justify-end">
-              <Button type="button" variant="outline" disabled={pending} onClick={close}>
+              <Button type="button" variant="tertiary" disabled={pending} onClick={close}>
                 Close
               </Button>
               {snapshot?.snoozedUntil && (
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="tertiary"
                   disabled={pending || failed}
                   onClick={() => void save(true)}
                 >
@@ -419,7 +419,7 @@ export function ArchiveControl({
       <Button
         ref={trigger}
         size="sm"
-        variant="outline"
+        variant="tertiary"
         disabled={disabled}
         onClick={() => {
           setSnapshot(application);
@@ -445,7 +445,7 @@ export function ArchiveControl({
           </p>
           {error && <p role="alert">{error}</p>}
           <div className="flex gap-3 justify-end">
-            <Button disabled={pending} variant="outline" onClick={close}>
+            <Button disabled={pending} variant="tertiary" onClick={close}>
               Close
             </Button>
             <Button disabled={pending || !!error} onClick={() => void save()}>

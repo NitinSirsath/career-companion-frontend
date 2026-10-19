@@ -3,7 +3,7 @@ import {
   getCatalogProvider,
   type CatalogProvider,
 } from '../../contracts/aiCatalog';
-import { Badge } from '../ui/badge';
+import { Tag } from '../ui/tag';
 import { Button } from '../ui/button';
 
 /** Curated provider choice (ADR-0001 decision 2): only providers the server offers. */
@@ -30,13 +30,11 @@ export function ProviderPicker({
           >
             <div className="flex items-center justify-between gap-2">
               <h3 className="font-semibold">{provider.displayName}</h3>
-              <Badge
-                variant={provider.costModel === 'FREE_TIER_AVAILABLE' ? 'success' : 'secondary'}
-              >
+              <Tag color={provider.costModel === 'FREE_TIER_AVAILABLE' ? 'green' : 'gray'}>
                 {provider.costModel === 'FREE_TIER_AVAILABLE'
                   ? 'Free tier available'
                   : 'Requires paid API billing'}
-              </Badge>
+              </Tag>
             </div>
             <p className="text-sm text-text-secondary">{provider.recommendedNote}</p>
             <p className="text-sm text-text-secondary">{provider.disclosure.summary}</p>

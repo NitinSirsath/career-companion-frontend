@@ -1,5 +1,5 @@
 import { useEffect, useReducer } from 'react';
-import { Info, RotateCcw } from 'lucide-react';
+import { Information, Renew } from '@carbon/icons-react';
 import type { AIModelPause } from '../../contracts/ai';
 import type { EmailMessage } from '../../contracts/gmail';
 import { mailAIView, type MailAIInfo, type MailAIView } from '../../lib/mailAIStatus';
@@ -30,7 +30,11 @@ function InfoTip({
         aria-label={question}
         className="inline-flex h-6 w-6 items-center justify-center rounded-full cursor-help outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <Info className={`h-4 w-4 ${error ? 'text-destructive' : 'text-status-warning'}`} />
+        <Information
+          size={16}
+          aria-hidden="true"
+          className={error ? 'text-danger-text' : 'text-warning-icon'}
+        />
       </TooltipTrigger>
       <TooltipContent className="p-0 overflow-hidden">
         <div
@@ -105,14 +109,14 @@ export function MailAIStatus({
       )}
       {view.retry && (
         <Button
-          variant="outline"
+          variant="tertiary"
           size="sm"
           // "Paused until about 12:30 PM tomorrow" wraps, so the table keeps its width.
           className={paused ? 'mt-2 h-auto min-h-8 py-1 whitespace-normal text-left' : 'mt-2'}
           disabled={retryDisabled || !!paused}
           onClick={onRetry}
         >
-          <RotateCcw className="mr-1.5 h-3 w-3" />
+          <Renew size={12} className="mr-1.5" aria-hidden="true" />
           {paused?.label ?? 'Manual Retry'}
         </Button>
       )}

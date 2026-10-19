@@ -16,6 +16,7 @@ import {
 } from '../lib/applicationCache';
 import type { ApplicationResponse, PaginatedResponse } from '../contracts';
 import { makeApplication, makeEvent } from './fixtures';
+import { chooseOption } from './choose';
 
 vi.mock('../api/client', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../api/client')>();
@@ -85,8 +86,13 @@ function show(path = '/applications/app-1', prepare?: (qc: QueryClient) => void)
 }
 const openEditor = async () =>
   fireEvent.click(await screen.findByRole('button', { name: 'Change status' }));
+const OPTION_NAME: Record<string, string> = {
+  OFFER: 'Offer',
+  REJECTED: 'Rejected',
+  __clear__: 'Use AI status (clear my status)',
+};
 const choose = (value: string) =>
-  fireEvent.change(screen.getByLabelText('Your status'), { target: { value } });
+  chooseOption(screen.getByRole('combobox', { name: 'Your status' }), OPTION_NAME[value]);
 const save = () => fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 // The editor's message box, found by a text inside it.
 const alertBox = (text: string | RegExp) => screen.getByText(text).closest('[role="alert"]');
@@ -284,7 +290,7 @@ describe('stale-read guard (R02)', () => {
     );
     show();
     await openEditor();
-    choose('OFFER');
+    await choose('OFFER');
     save();
     await screen.findByText(/couldn't confirm whether your change was saved/);
     expect(queryClient.getQueryData(['application', 'app-other'])).toBeUndefined();
@@ -306,7 +312,7 @@ describe('status editor', () => {
     expect(screen.getByLabelText('Your status')).toHaveFocus();
     expect(screen.getByText(/does not rerun AI/)).toBeInTheDocument();
     expect(screen.getByText(/does not complete actions or send notifications/)).toBeInTheDocument();
-    choose('OFFER');
+    await choose('OFFER');
     save();
     await screen.findByText('Status saved.');
     expect(liveRegion()).toBe(region);
@@ -326,7 +332,7 @@ describe('status editor', () => {
     vi.mocked(api.updateApplicationStatus).mockResolvedValue(withUser(null, 3));
     show();
     await openEditor();
-    choose('__clear__');
+    await choose('__clear__');
     save();
     await screen.findByText('Status saved.');
     expect(api.updateApplicationStatus).toHaveBeenCalledWith('app-1', {
@@ -341,7 +347,7 @@ describe('status editor', () => {
     vi.mocked(api.updateApplicationStatus).mockReturnValue(pending.promise);
     show();
     await openEditor();
-    choose('OFFER');
+    await choose('OFFER');
     save();
     await screen.findAllByText('Saving…');
     fireEvent.submit(screen.getByRole('form', { name: 'Edit application status' }));
@@ -355,11 +361,11 @@ describe('status editor', () => {
   it('keeps the frozen revision after another device saves and a background refetch lands', async () => {
     show();
     await openEditor();
-    choose('REJECTED');
+    await choose('REJECTED');
     vi.mocked(api.getApplication).mockResolvedValue(withUser('OFFER', 1)); // second device saved
     await refetchDetail();
     await screen.findByText(/changed after you started editing/);
-    expect(screen.getByLabelText('Your status')).toHaveValue('REJECTED'); // draft kept
+    expect(screen.getByLabelText('Your status')).toHaveTextContent('Rejected'); // draft kept
     vi.mocked(api.updateApplicationStatus).mockRejectedValueOnce(conflict());
     save();
     await screen.findByText(/changed elsewhere/);
@@ -369,7 +375,7 @@ describe('status editor', () => {
       expectedUserStatusRevision: 0,
     });
     expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
-    expect(screen.getByLabelText('Your status')).toHaveValue('REJECTED');
+    expect(screen.getByLabelText('Your status')).toHaveTextContent('Rejected');
     vi.mocked(api.updateApplicationStatus).mockResolvedValueOnce(withUser('REJECTED', 2));
     fireEvent.click(screen.getByRole('button', { name: 'Use current version' }));
     await waitFor(() => expect(screen.getByLabelText('Your status')).toHaveFocus());
@@ -391,7 +397,7 @@ describe('status editor', () => {
     vi.mocked(api.getApplication).mockResolvedValue(withUser('OFFER', 1));
     vi.mocked(api.updateApplicationStatus).mockResolvedValue(withUser('OFFER', 1));
     await openEditor();
-    choose('OFFER');
+    await choose('OFFER');
     save();
     await screen.findByText('Status saved.');
     // Cancellation reached the read's fetch signal before the PATCH was sent.
@@ -406,7 +412,7 @@ describe('status editor', () => {
     vi.mocked(api.updateApplicationStatus).mockReturnValue(patch.promise);
     show();
     await openEditor();
-    choose('OFFER');
+    await choose('OFFER');
     save();
     await screen.findAllByText('Saving…');
     const restarted = deferred<ApplicationResponse>();
@@ -432,7 +438,7 @@ describe('status editor', () => {
       vi.mocked(api.updateApplicationStatus).mockRejectedValue(error);
       show();
       await openEditor();
-      choose('OFFER');
+      await choose('OFFER');
       vi.mocked(api.getApplication).mockResolvedValue(withUser('OFFER', 1)); // the write had committed
       save();
       await screen.findByText(/couldn't confirm whether your change was saved/);
@@ -449,13 +455,13 @@ describe('status editor', () => {
     vi.mocked(api.updateApplicationStatus).mockRejectedValue(new ApiError('network', 'network'));
     show();
     await openEditor();
-    choose('OFFER');
+    await choose('OFFER');
     vi.mocked(api.getApplication).mockRejectedValue(new ApiError('network', 'network'));
     save();
     await screen.findByText(/Save outcome unknown/);
     await waitFor(() => expect(alertBox(/Save outcome unknown/)).toHaveFocus());
     expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
-    expect(screen.getByLabelText('Your status')).toHaveValue('OFFER');
+    expect(screen.getByLabelText('Your status')).toHaveTextContent('Offer');
     vi.mocked(api.getApplication).mockResolvedValue(withUser(null, 0));
     fireEvent.click(screen.getByRole('button', { name: 'Retry loading status' }));
     await screen.findByText(/couldn't confirm whether your change was saved/);
@@ -470,7 +476,7 @@ describe('status editor', () => {
     );
     show();
     await openEditor();
-    choose('OFFER');
+    await choose('OFFER');
     save();
     await screen.findByText('This application is no longer available.');
     await waitFor(() => expect(alertBox('This application is no longer available.')).toHaveFocus());
@@ -480,7 +486,7 @@ describe('status editor', () => {
   it('does not move focus when only a background read changes the message', async () => {
     show();
     await openEditor();
-    choose('REJECTED');
+    await choose('REJECTED');
     vi.mocked(api.getApplication).mockResolvedValue(withUser('OFFER', 1));
     await refetchDetail();
     await screen.findByText(/changed after you started editing/);
@@ -491,7 +497,7 @@ describe('status editor', () => {
     vi.mocked(api.updateApplicationStatus).mockRejectedValue(new ApiError('network', 'network'));
     show();
     await openEditor();
-    choose('OFFER');
+    await choose('OFFER');
     vi.mocked(api.getApplication).mockRejectedValue(new ApiError('network', 'network'));
     save();
     await screen.findByText(/Save outcome unknown/);
@@ -511,7 +517,7 @@ describe('status editor', () => {
     );
     const router = show();
     await openEditor();
-    choose('OFFER');
+    await choose('OFFER');
     save();
     await act(() => router.navigate({ to: '/applications/$id', params: { id: 'app-2' } }));
     await screen.findByRole('heading', { name: 'Other Co' });

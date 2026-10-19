@@ -123,7 +123,7 @@ export function DailyWorkspace() {
           </h2>
           <p className="text-sm text-muted-foreground">Dates shown in {selection.timeZone}</p>
         </div>
-        <Button variant="outline" size="sm" onClick={refresh}>
+        <Button variant="tertiary" size="sm" onClick={refresh}>
           Refresh workspace
         </Button>
       </div>
@@ -132,7 +132,7 @@ export function DailyWorkspace() {
           <Button
             key={bucket}
             size="sm"
-            variant={bucket === selection.bucket ? 'primary' : 'outline'}
+            variant={bucket === selection.bucket ? 'primary' : 'tertiary'}
             aria-pressed={bucket === selection.bucket}
             onClick={() => setSelection((current) => ({ ...current, bucket, offset: 0 }))}
           >

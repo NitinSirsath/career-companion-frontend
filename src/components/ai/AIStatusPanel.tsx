@@ -12,19 +12,19 @@ import {
   waitingText,
 } from '../../lib/aiProviderPage';
 import { startProcessingRefresh } from '../../lib/processingRefresh';
-import { Badge } from '../ui/badge';
+import { Tag } from '../ui/tag';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Emphasized } from './AIAccessNotice';
 import { SampleTestPanel } from './SampleTestPanel';
 
 const STATE_BADGE = {
-  READY: { label: 'Ready', variant: 'success' },
-  NEEDS_ATTENTION: { label: 'Needs attention', variant: 'destructive' },
-  LIMITED: { label: 'Limited', variant: 'warning' },
-  NOT_SET_UP: { label: 'Not set up', variant: 'secondary' },
+  READY: { label: 'Ready', color: 'green' },
+  NEEDS_ATTENTION: { label: 'Needs attention', color: 'red' },
+  LIMITED: { label: 'Limited', color: 'yellow' },
+  NOT_SET_UP: { label: 'Not set up', color: 'gray' },
 } as const;
-const NOT_CONFIRMED_BADGE = { label: 'Not confirmed', variant: 'warning' } as const;
+const NOT_CONFIRMED_BADGE = { label: 'Not confirmed', color: 'yellow' } as const;
 
 const SOURCE_NOTE = {
   RECOMMENDED: ' (recommended)',
@@ -44,7 +44,7 @@ function ModelRow({ settings, model }: { settings: AISettingsResponse; model: Mo
           {modelName(settings.provider, model.id)}
           {SOURCE_NOTE[model.source]}
         </span>
-        {state && <Badge variant={state.tone}>{state.label}</Badge>}
+        {state && <Tag color={state.tone === 'success' ? 'green' : 'yellow'}>{state.label}</Tag>}
       </div>
       {state?.why && <span className="text-xs text-text-secondary">{state.why}</span>}
     </dd>
@@ -122,7 +122,7 @@ export function AIStatusPanel({
               ` · last checked ${format(new Date(settings.access.lastCheckedAt), 'MMM d, h:mm a')}`}
           </p>
         </div>
-        <Badge variant={badge.variant}>{badge.label}</Badge>
+        <Tag color={badge.color}>{badge.label}</Tag>
       </div>
 
       {notConfirmed && <NotConfirmedNotice {...notConfirmed} />}

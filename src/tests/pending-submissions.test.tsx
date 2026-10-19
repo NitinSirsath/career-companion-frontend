@@ -32,6 +32,7 @@ vi.mock('../api/client', async (importOriginal) => {
 });
 
 import { routeTree } from '../routeTree.gen';
+import { chooseFromCombobox } from './choose';
 
 const page = <T,>(items: T[], nextOffset: number | null = null) => ({
   items,
@@ -150,10 +151,10 @@ describe('pending submissions panel', () => {
     });
     renderAutomation();
     const c = await card();
-    const select = c.getByRole('combobox', { name: 'Link to an existing application' });
+    c.getByRole('combobox', { name: 'Link to an existing application' });
     const linkButton = c.getByRole('button', { name: 'Link' });
     expect(linkButton).toBeDisabled();
-    fireEvent.change(select, { target: { value: 'a2' } });
+    await chooseFromCombobox('Link to an existing application', /Platform Engineer/);
     expect(api.resolveSubmission).not.toHaveBeenCalled(); // choosing never submits by itself
     expect(linkButton).toBeEnabled();
     fireEvent.click(linkButton);

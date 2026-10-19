@@ -8,9 +8,8 @@ import {
   type SandboxThread,
 } from '../contracts/sandbox';
 import { mailAIInfo } from './mailAIStatus';
+import type { TagColor } from './statusTags';
 import { CATEGORY_LABEL, mailDateTime, parseSender, recipientNames } from './mails';
-
-type BadgeVariant = 'success' | 'warning' | 'destructive' | 'info' | 'secondary';
 
 /** What the app did with a sandbox mail, in the user's words. */
 export const MAIL_STATE_LABEL: Record<SandboxMailState, string> = {
@@ -23,14 +22,14 @@ export const MAIL_STATE_LABEL: Record<SandboxMailState, string> = {
   REPLY_RECORDED: 'Recorded as your reply',
 };
 
-export const MAIL_STATE_VARIANT: Record<SandboxMailState, BadgeVariant> = {
-  NOT_SYNCED: 'warning',
-  WAITING_FOR_AI: 'info',
-  AI_KEY_MISSING: 'destructive',
-  AI_FAILED: 'destructive',
-  NOT_JOB_MAIL: 'secondary',
-  JOB_MAIL: 'success',
-  REPLY_RECORDED: 'info',
+export const MAIL_STATE_COLOR: Record<SandboxMailState, TagColor> = {
+  NOT_SYNCED: 'yellow',
+  WAITING_FOR_AI: 'blue',
+  AI_KEY_MISSING: 'red',
+  AI_FAILED: 'red',
+  NOT_JOB_MAIL: 'gray',
+  JOB_MAIL: 'green',
+  REPLY_RECORDED: 'blue',
 };
 
 const mails = (count: number) => `${count} mail${count === 1 ? '' : 's'}`;
@@ -38,11 +37,11 @@ const mails = (count: number) => `${count} mail${count === 1 ? '' : 's'}`;
 /** The mark on a conversation row: unsynced mail first, else what the app did with the newest. */
 export function threadMark(thread: Pick<SandboxThread, 'notSynced' | 'state'>): {
   label: string;
-  variant: BadgeVariant;
+  color: TagColor;
 } {
   if (thread.notSynced > 0 && thread.state !== 'NOT_SYNCED')
-    return { label: `${thread.notSynced} not synced`, variant: 'warning' };
-  return { label: MAIL_STATE_LABEL[thread.state], variant: MAIL_STATE_VARIANT[thread.state] };
+    return { label: `${thread.notSynced} not synced`, color: 'yellow' };
+  return { label: MAIL_STATE_LABEL[thread.state], color: MAIL_STATE_COLOR[thread.state] };
 }
 
 /** "Last sync Today, 10:42 AM · 1 mail not synced". */

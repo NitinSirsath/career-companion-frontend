@@ -7,14 +7,14 @@ import {
   INTEGRATION_TOKEN_MAX_ACTIVE,
   type IntegrationToken,
 } from '../../contracts/integrationToken';
-import { Badge } from '../ui/badge';
+import { Tag } from '../ui/tag';
 import { Button } from '../ui/button';
 import { Pagination } from '../ui/pagination';
 
 const STATUS = {
-  active: { label: 'Active', variant: 'success' },
-  expired: { label: 'Expired', variant: 'outline' },
-  revoked: { label: 'Revoked', variant: 'outline' },
+  active: { label: 'Active', color: 'green' },
+  expired: { label: 'Expired', color: 'outline' },
+  revoked: { label: 'Revoked', color: 'outline' },
 } as const;
 
 const date = (value: string) => format(new Date(value), 'MMM d, yyyy');
@@ -49,7 +49,7 @@ function TokenRow({ token, now }: { token: IntegrationToken; now: Date }) {
       <div className="min-w-0 space-y-1">
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-medium break-words">{token.name}</span>
-          <Badge variant={status.variant}>{status.label}</Badge>
+          <Tag color={status.color}>{status.label}</Tag>
         </div>
         <p className="text-xs text-text-secondary">
           <span className="font-mono">{token.displayPrefix}…</span> · Created{' '}

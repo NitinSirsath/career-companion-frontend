@@ -2,7 +2,7 @@ import type { SandboxMessage } from '../../contracts/sandbox';
 import { mailDateTime, parseSender } from '../../lib/mails';
 import { sandboxRecipients, splitQuote } from '../../lib/sandbox';
 import { cn } from '../../lib/utils';
-import { Badge } from '../ui/badge';
+import { Tag } from '../ui/tag';
 
 /** One sandbox mail with its text. The user's own mails are marked and shaded. */
 export function SandboxMessageCard({ message }: { message: SandboxMessage }) {
@@ -18,7 +18,7 @@ export function SandboxMessageCard({ message }: { message: SandboxMessage }) {
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-border-subtle p-4 text-sm">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           <span className="font-semibold">{message.sentByUser ? 'Me' : sender.name}</span>
-          {message.sentByUser && <Badge>Your reply</Badge>}
+          {message.sentByUser && <Tag>Your reply</Tag>}
           {!message.sentByUser && sender.address && (
             <span className="break-all text-text-secondary">{sender.address}</span>
           )}

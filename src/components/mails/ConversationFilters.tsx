@@ -7,7 +7,7 @@ import {
 } from '../../lib/mails';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { NativeSelect } from '../ui/native-select';
+import { Select } from '../ui/select';
 import { useSearchText } from '../useSearchText';
 
 interface FilterSelectProps<T extends string> {
@@ -29,23 +29,13 @@ function FilterSelect<T extends string>({
   onChange,
 }: FilterSelectProps<T>) {
   return (
-    <div className="space-y-2">
-      <Label htmlFor={id}>{label}</Label>
-      <NativeSelect
-        id={id}
-        value={value ?? ''}
-        onChange={(event) =>
-          onChange(options.find((option) => option.value === event.target.value)?.value)
-        }
-      >
-        <option value="">{emptyLabel}</option>
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </NativeSelect>
-    </div>
+    <Select<string>
+      id={id}
+      label={label}
+      options={[{ value: '', label: emptyLabel }, ...options]}
+      value={value ?? ''}
+      onValueChange={(next) => onChange(options.find((option) => option.value === next)?.value)}
+    />
   );
 }
 

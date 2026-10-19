@@ -248,7 +248,7 @@ function ActionItem({
       {isPending && !archived && (
         <div className="flex flex-wrap gap-2 self-start">
           <Button
-            variant="default"
+            variant="primary"
             size="sm"
             className="h-7 text-xs px-2"
             disabled={updateMutation.isPending}
@@ -257,7 +257,7 @@ function ActionItem({
             Complete
           </Button>
           <Button
-            variant="outline"
+            variant="tertiary"
             size="sm"
             className="h-7 text-xs px-2 text-muted-foreground"
             disabled={updateMutation.isPending}

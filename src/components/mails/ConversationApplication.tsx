@@ -12,11 +12,11 @@ import {
 } from '../../contracts/conversation';
 import { companyAndRole, linkProblem, type LinkProblem } from '../../lib/mails';
 import { StatusBadge } from '../ApplicationStatus';
-import { Badge } from '../ui/badge';
+import { Tag } from '../ui/tag';
+import { ApplicationPicker } from '../ApplicationPicker';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { NativeSelect } from '../ui/native-select';
 
 /** The conversation's application, or the one-click way to give it one. */
 export function ConversationApplication({ conversation }: { conversation: Conversation }) {
@@ -36,7 +36,7 @@ export function ConversationApplication({ conversation }: { conversation: Conver
         )}
         <div className="flex flex-wrap gap-2">
           <StatusBadge status={application.effectiveStatus} />
-          {application.archived && <Badge variant="outline">Archived</Badge>}
+          {application.archived && <Tag color="outline">Archived</Tag>}
         </div>
       </div>
     );
@@ -142,21 +142,15 @@ function ApplicationChoice({
   const selectId = `application-${id}`;
   return (
     <div className="space-y-2">
-      <Label htmlFor={selectId}>Choose an application</Label>
-      <p className="text-xs text-text-secondary">More than one of yours fits this mail.</p>
-      <NativeSelect
+      <ApplicationPicker
         id={selectId}
+        label="Choose an application"
+        helperText="More than one of yours fits this mail."
+        applications={candidates}
         value={applicationId}
         disabled={busy}
-        onChange={(event) => setApplicationId(event.target.value)}
-      >
-        <option value="">Select application…</option>
-        {candidates.map((candidate) => (
-          <option key={candidate.id} value={candidate.id}>
-            {[candidate.companyName, candidate.jobTitle].filter(Boolean).join(' — ')}
-          </option>
-        ))}
-      </NativeSelect>
+        onChange={setApplicationId}
+      />
       <Button size="sm" disabled={busy || !applicationId} onClick={() => onChoose(applicationId)}>
         Use this application
       </Button>

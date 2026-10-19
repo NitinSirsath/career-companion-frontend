@@ -1,5 +1,5 @@
 import { useProfile } from '../../api/auth';
-import { Badge } from '../ui/badge';
+import { Tag } from '../ui/tag';
 import { SetPasswordForm } from './SetPasswordForm';
 
 function SignInWay({
@@ -11,7 +11,7 @@ function SignInWay({
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-subtle py-3 last:border-b-0">
       <span className="text-sm text-text-secondary">{name}</span>
-      <Badge variant={on ? 'success' : 'secondary'}>{on ? onLabel : offLabel}</Badge>
+      <Tag color={on ? 'green' : 'gray'}>{on ? onLabel : offLabel}</Tag>
     </div>
   );
 }

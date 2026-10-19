@@ -7,8 +7,7 @@ import {
   type ApplicationStatus,
 } from '../contracts/application';
 import { Button } from './ui/button';
-import { Label } from './ui/label';
-import { NativeSelect } from './ui/native-select';
+import { Select } from './ui/select';
 import { STATUS_LABEL } from '../lib/statusLabels';
 import {
   applicationKey,
@@ -53,7 +52,7 @@ export function StatusEditor({
   const [phase, setPhase] = useState<Phase>({ kind: 'editing' });
   const [announcement, setAnnouncement] = useState('');
   const openButton = useRef<HTMLButtonElement>(null);
-  const select = useRef<HTMLSelectElement>(null);
+  const select = useRef<HTMLButtonElement>(null);
   const alertBox = useRef<HTMLDivElement>(null);
   const selectId = useId();
   const helpId = useId();
@@ -213,28 +212,27 @@ export function StatusEditor({
       }}
     >
       <div className="space-y-2">
-        <Label htmlFor={selectId}>Your status</Label>
-        <NativeSelect
+        <Select<string>
           id={selectId}
-          ref={select}
-          aria-describedby={helpId}
+          label="Your status"
+          triggerRef={select}
+          describedBy={helpId}
           value={session.draft ?? CLEAR}
           disabled={mutation.isPending}
-          onChange={(e) =>
+          options={[
+            ...ApplicationStatusSchema.options.map((status) => ({
+              value: status,
+              label: STATUS_LABEL[status],
+            })),
+            { value: CLEAR, label: 'Use AI status (clear my status)' },
+          ]}
+          onValueChange={(next) =>
             setSession({
               ...session,
-              draft:
-                e.target.value === CLEAR ? null : ApplicationStatusSchema.parse(e.target.value),
+              draft: next === CLEAR ? null : ApplicationStatusSchema.parse(next),
             })
           }
-        >
-          {ApplicationStatusSchema.options.map((status) => (
-            <option key={status} value={status}>
-              {STATUS_LABEL[status]}
-            </option>
-          ))}
-          <option value={CLEAR}>Use AI status (clear my status)</option>
-        </NativeSelect>
+        />
         <p id={helpId} className="text-xs text-text-secondary">
           Clearing uses the latest stored AI status ({aiLabel}) and does not rerun AI. Changing the
           status does not complete actions or send notifications.

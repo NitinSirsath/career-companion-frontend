@@ -10,6 +10,7 @@ import { routeTree } from '../routeTree.gen';
 import type { ApplicationResponse, PaginatedResponse } from '../contracts';
 import { workspacePage, makeApplication } from './fixtures';
 import { renderPart } from './render';
+import { chooseFromCombobox } from './choose';
 vi.mock('../api/client', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../api/client')>()),
   api: {
@@ -164,10 +165,10 @@ it('can select an application beyond the first 20 when linking a submission', as
   show('/automation');
   const selector = await screen.findByRole('region', { name: 'Applications for matching' });
   fireEvent.click(within(selector).getByRole('button', { name: 'Next' }));
-  await screen.findByRole('option', { name: 'Older Company — Engineer' });
-  fireEvent.change(screen.getByRole('combobox', { name: 'Link to an existing application' }), {
-    target: { value: 'older-app' },
-  });
+  await waitFor(() =>
+    expect(within(selector).getByRole('button', { name: 'Previous' })).toBeEnabled(),
+  );
+  await chooseFromCombobox('Link to an existing application', /Older Company/);
   fireEvent.click(screen.getByRole('button', { name: 'Link' }));
   await waitFor(() =>
     expect(api.resolveSubmission).toHaveBeenCalledWith('submission', {

@@ -21,6 +21,7 @@ vi.mock('../api/client', async (importOriginal) => ({
 }));
 
 import { routeTree } from '../routeTree.gen';
+import { chooseOption, pressOption } from './choose';
 
 const APP_ID = '33333333-3333-4333-8333-333333333333';
 const page = <T,>(items: T[], nextOffset: number | null = null) => ({
@@ -172,7 +173,7 @@ describe('Job mails tab', () => {
       'href',
       `/applications/${APP_ID}`,
     );
-    expect(cells.getByText('Application Received')).toBeInTheDocument();
+    expect(cells.getByText('Applied')).toBeInTheDocument();
     expect(cells.queryByRole('button')).not.toBeInTheDocument();
   });
 
@@ -258,12 +259,13 @@ describe('Job mails tab', () => {
     show();
     const cells = await row('Interview: first round availability');
     fireEvent.click(cells.getByRole('button', { name: 'Choose application' }));
-    const choice = await cells.findByLabelText('Choose an application');
-    expect(within(choice).getAllByRole('option')).toHaveLength(3);
+    await cells.findByRole('combobox', { name: 'Choose an application' });
     expect(cells.getByRole('button', { name: 'Use this application' })).toBeDisabled();
+    fireEvent.click(cells.getByRole('button', { name: 'Open Choose an application' }));
+    expect(await screen.findAllByRole('option')).toHaveLength(2);
 
     vi.mocked(api.post).mockResolvedValue({});
-    fireEvent.change(choice, { target: { value: APP_ID } });
+    pressOption(screen.getByRole('option', { name: /Platform Engineer/ }));
     fireEvent.click(cells.getByRole('button', { name: 'Use this application' }));
     await waitFor(() =>
       expect(api.post).toHaveBeenLastCalledWith('/api/conversations/thread-1/application', {
@@ -275,10 +277,10 @@ describe('Job mails tab', () => {
   it('keeps the filters in the URL and sends them to the list', async () => {
     show('/mails?offset=20');
     await row('Interview: first round availability');
-    fireEvent.change(screen.getByLabelText('Action'), { target: { value: 'open' } });
-    fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'FOLLOW_UP' } });
-    fireEvent.change(screen.getByLabelText('Application'), { target: { value: 'none' } });
-    fireEvent.change(screen.getByLabelText('Sort'), { target: { value: 'newest' } });
+    await chooseOption(screen.getByRole('combobox', { name: 'Action' }), 'Needs action');
+    await chooseOption(screen.getByRole('combobox', { name: 'Type' }), 'Update');
+    await chooseOption(screen.getByRole('combobox', { name: 'Application' }), 'No application yet');
+    await chooseOption(screen.getByRole('combobox', { name: 'Sort' }), 'Newest first');
     fireEvent.click(screen.getByLabelText('New only'));
     fireEvent.change(screen.getByLabelText('Search'), { target: { value: 'north' } });
     await waitFor(() =>

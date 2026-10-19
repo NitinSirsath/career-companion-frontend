@@ -2,7 +2,7 @@ import { attachmentUrl } from '../../api/mailbox';
 import type { MailMessage } from '../../contracts/mailbox';
 import { attachmentInfo, mailDateTime, parseSender, recipientLine } from '../../lib/mails';
 import { cn } from '../../lib/utils';
-import { Badge } from '../ui/badge';
+import { Tag } from '../ui/tag';
 import { MailBody } from './MailBody';
 
 /** Attached files as plain download links: a file from a sender is never opened in the app. */
@@ -60,7 +60,7 @@ export function MailMessageCard({
         <div className="min-w-0 space-y-1">
           <div className="flex flex-wrap items-center gap-2 text-sm">
             <span className="font-semibold">{message.sentByUser ? 'You' : sender.name}</span>
-            {message.sentByUser && <Badge>Your reply</Badge>}
+            {message.sentByUser && <Tag>Your reply</Tag>}
             {!message.sentByUser && sender.address && (
               <span className="text-text-secondary break-all">{sender.address}</span>
             )}
@@ -76,9 +76,9 @@ export function MailMessageCard({
         {message.labels.length > 0 && (
           <div className="basis-full flex flex-wrap gap-2">
             {message.labels.map((label) => (
-              <Badge key={label} variant="secondary">
+              <Tag key={label} color="gray">
                 {label}
-              </Badge>
+              </Tag>
             ))}
           </div>
         )}

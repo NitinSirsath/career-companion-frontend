@@ -1,16 +1,9 @@
 import { useSetRequestState } from '../../api/conversations';
 import type { Conversation } from '../../contracts/conversation';
-import {
-  REQUEST_STATE_LABEL,
-  REQUEST_STATE_VARIANT,
-  requestControls,
-  requestDetail,
-  requestTitle,
-  scheduleLine,
-} from '../../lib/mails';
+import { requestControls, requestDetail, requestTitle, scheduleLine } from '../../lib/mails';
 import { cn } from '../../lib/utils';
-import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
+import { TodoState } from './TodoState';
 
 interface ConversationActionProps {
   conversation: Conversation;
@@ -49,9 +42,7 @@ export function ConversationAction({
         {title}
       </p>
       <div className="flex flex-wrap items-center gap-2 text-xs text-text-secondary">
-        <Badge variant={REQUEST_STATE_VARIANT[asked.state]}>
-          {REQUEST_STATE_LABEL[asked.state]}
-        </Badge>
+        <TodoState state={asked.state} />
         {detail && <span>{detail}</span>}
       </div>
       {controls && (
