@@ -10,6 +10,7 @@ import { AppErrorBoundary } from './components/errors/AppErrorBoundary';
 import { RouteErrorPage } from './components/errors/RouteErrorPage';
 import { NotFoundPage } from './components/errors/NotFoundPage';
 import { ToastProvider } from './components/ui/toast';
+import { AppSkeleton } from './components/layout/AppSkeleton';
 
 const queryClient = new QueryClient();
 
@@ -33,9 +34,7 @@ function App() {
     });
   }, []);
 
-  if (loading) {
-    return <div className="p-8">Loading...</div>;
-  }
+  if (loading) return <AppSkeleton />;
 
   // Pass the dynamic context to the router provider
   return <RouterProvider router={router} context={{ user }} />;
