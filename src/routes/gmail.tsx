@@ -1,7 +1,7 @@
-import { MatchCorrectionDialog } from '../components/MatchCorrectionDialog';
+import { useGmailStatus, useSyncNow } from '../api/gmail';
 import { PageHeader } from '../components/layout/PageHeader';
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
-import { createFileRoute, useNavigate, Link } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { api, isApiError } from '../api/client';
@@ -14,8 +14,6 @@ import { RetryAnywayDialog } from '../components/ai/RetryAnywayDialog';
 import { Button } from '../components/ui/button';
 import { z } from 'zod';
 import { useEffect, useState, useSyncExternalStore } from 'react';
-import { Launch } from '@carbon/icons-react';
-import { getGmailConversationUrl } from '../utils/gmail';
 import { useDevMode } from '../api/appMode';
 import { gmailConnectionCopy } from '../lib/gmailConnection';
 import {
@@ -29,6 +27,11 @@ const gmailSearchSchema = z.object({
 });
 
 import { Pagination } from '../components/ui/pagination';
+import { DataTable } from '../components/ui/data-table';
+import { EmptyState } from '../components/ui/empty-state';
+import { SectionError } from '../components/ui/section-error';
+import { Tabs } from '../components/ui/tabs';
+import { processedColumns } from '../components/gmail/processedColumns';
 import { Select } from '../components/ui/select';
 
 import { TooltipProvider } from '../components/ui/tooltip';
@@ -81,15 +84,7 @@ function GmailPage() {
     }
   }, [search.gmailError, navigate]);
 
-  const {
-    data: statusData,
-    isLoading: isLoadingStatus,
-    error: statusError,
-  } = useQuery({
-    queryKey: ['gmailStatus'],
-    queryFn: ({ signal }) => api.getGmailStatus({ signal }),
-    refetchInterval: (query) => (query.state.data?.syncStatus === 'SYNCING' ? 2000 : false),
-  });
+  const { data: statusData, isLoading: isLoadingStatus, error: statusError } = useGmailStatus();
 
   // Emails can wait as PENDING for the user's AI access; that is not active processing.
   const { data: aiSettings } = useQuery({
@@ -142,17 +137,7 @@ function GmailPage() {
 
   // An accepted request, or one whose response was lost/timed out, may still run on the server:
   // reconcile through the shell's bounded refresh instead of relying on the response.
-  const syncMutation = useMutation({
-    mutationFn: () => api.triggerSync(),
-    onSuccess: () => {
-      setOffset(0);
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['gmailStatus'] });
-      queryClient.invalidateQueries({ queryKey: ['gmailMessages'] });
-      startProcessingRefresh();
-    },
-  });
+  const syncMutation = useSyncNow(() => setOffset(0));
 
   const retryMutation = useMutation({
     mutationFn: (emailId: string) => api.retryEmail(emailId),
@@ -352,36 +337,18 @@ function GmailPage() {
         {/* Ingested Email List */}
         {(statusData?.connected || (messagesData && messagesData?.items?.length > 0)) && (
           <div className="space-y-4">
-            <div className="border-b mb-4">
-              <div className="flex space-x-6">
-                <button
-                  onClick={() => {
-                    setActiveTab('job_related');
-                    setOffset(0);
-                  }}
-                  className={`pb-2 text-sm font-medium transition-colors border-b-2 ${
-                    activeTab === 'job_related'
-                      ? 'border-foreground text-foreground'
-                      : 'border-transparent text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  Job Related
-                </button>
-                <button
-                  onClick={() => {
-                    setActiveTab('irrelevant');
-                    setOffset(0);
-                  }}
-                  className={`pb-2 text-sm font-medium transition-colors border-b-2 ${
-                    activeTab === 'irrelevant'
-                      ? 'border-foreground text-foreground'
-                      : 'border-transparent text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  Irrelevant
-                </button>
-              </div>
-            </div>
+            <Tabs<'job_related' | 'irrelevant'>
+              label="Mails the app has read"
+              value={activeTab}
+              onValueChange={(next) => {
+                setActiveTab(next);
+                setOffset(0);
+              }}
+              items={[
+                { value: 'job_related', label: 'Job mails' },
+                { value: 'irrelevant', label: 'Not job mails' },
+              ]}
+            />
             {retryProblem(retryMutation.error) && (
               <p role="alert" className="text-sm font-medium text-destructive">
                 {retryMessage(retryMutation.error, onlyUs(retryMutation.variables))}
@@ -406,125 +373,43 @@ function GmailPage() {
                 approveMutation.reset();
               }}
             />
-            {isLoadingMessages ? (
-              <div className="p-8 text-center text-muted-foreground border rounded-xl border-dashed">
-                Loading emails...
-              </div>
-            ) : messagesError ? (
-              <div className="p-8 text-center text-destructive border-destructive/20 border rounded-xl bg-destructive/5">
-                Failed to load emails: {messagesError.message}
-              </div>
-            ) : !messagesData?.items.length ? (
-              <div className="p-12 text-center text-muted-foreground border rounded-xl border-dashed">
-                {activeTab === 'job_related'
-                  ? 'No job-related emails found.'
-                  : 'No irrelevant emails found.'}
-              </div>
-            ) : (
-              <>
-                <div className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left">
-                      <thead className="bg-muted/50 text-muted-foreground">
-                        <tr>
-                          <th className="px-4 py-3 font-medium">Subject</th>
-                          <th className="px-4 py-3 font-medium">Sender</th>
-                          <th className="px-4 py-3 font-medium">State</th>
-                          <th className="px-4 py-3 font-medium">Application</th>
-                          <th className="px-4 py-3 font-medium">AI Status</th>
-                          <th className="px-4 py-3 font-medium">Received</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y">
-                        {messagesData.items.map((msg) => (
-                          <tr key={msg.id} className="hover:bg-muted/50 transition-colors">
-                            <td
-                              className="px-4 py-3 font-medium max-w-xs truncate"
-                              title={msg.subject || ''}
-                            >
-                              {msg.threadId && !devMode ? (
-                                <a
-                                  href={getGmailConversationUrl(msg.threadId)}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1.5 hover:underline text-primary"
-                                  aria-label={`Open email "${msg.subject || '(No Subject)'}" in Gmail`}
-                                >
-                                  <span className="truncate">{msg.subject || '(No Subject)'}</span>
-                                  <Launch
-                                    size={12}
-                                    className="flex-shrink-0 text-muted-foreground"
-                                    aria-hidden="true"
-                                  />
-                                </a>
-                              ) : (
-                                <span>{msg.subject || '(No Subject)'}</span>
-                              )}
-                            </td>
-                            <td
-                              className="px-4 py-3 text-muted-foreground max-w-xs truncate"
-                              title={msg.sender || ''}
-                            >
-                              {msg.sender || '-'}
-                            </td>
-                            <td className="px-4 py-3">
-                              <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-secondary-foreground">
-                                {msg.relevanceState}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3">
-                              {msg.application ? (
-                                <p>
-                                  <Link
-                                    to="/applications/$id"
-                                    params={{ id: msg.application.id }}
-                                    className="text-primary hover:underline"
-                                  >
-                                    {msg.application.companyName}
-                                  </Link>{' '}
-                                  <span className="text-xs text-muted-foreground">
-                                    {msg.matchConfirmedBy === 'USER_CONFIRMED' ? 'you' : 'auto'}
-                                  </span>
-                                </p>
-                              ) : msg.matchState === 'IGNORED' ? (
-                                'Ignored'
-                              ) : msg.matchState === 'AMBIGUOUS' ? (
-                                'Needs review'
-                              ) : msg.relevanceState === 'RELEVANT' ? (
-                                'Not linked'
-                              ) : (
-                                '—'
-                              )}
-                              {(msg.matchState === 'MATCHED' || msg.matchState === 'IGNORED') && (
-                                <MatchCorrectionDialog
-                                  emailId={msg.id}
-                                  matchState={msg.matchState}
-                                  applicationId={msg.applicationId ?? null}
-                                />
-                              )}
-                            </td>
-                            <td className="px-4 py-3">
-                              <MailAIStatus
-                                message={msg}
-                                pauses={pauses}
-                                refusedUntil={retryRefusedUntil(retries, msg.id)}
-                                retryDisabled={retryMutation.isPending || approveMutation.isPending}
-                                onRetry={() => retryMutation.mutate(msg.id)}
-                              />
-                            </td>
-                            <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                              {msg.receivedAt
-                                ? format(new Date(msg.receivedAt), 'MMM d, yyyy')
-                                : '-'}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </>
-            )}
+            <DataTable
+              label="Mails the app has read"
+              data={messagesError ? [] : (messagesData?.items ?? [])}
+              columns={processedColumns({
+                devMode,
+                renderAI: (msg) => (
+                  <MailAIStatus
+                    message={msg}
+                    pauses={pauses}
+                    refusedUntil={retryRefusedUntil(retries, msg.id)}
+                    retryDisabled={retryMutation.isPending || approveMutation.isPending}
+                    onRetry={() => retryMutation.mutate(msg.id)}
+                  />
+                ),
+              })}
+              getRowId={(msg) => msg.id}
+              gridTemplate="minmax(220px,2.2fr) minmax(160px,1.4fr) 128px minmax(170px,1.4fr) minmax(170px,1.4fr) 112px"
+              loading={isLoadingMessages}
+              empty={
+                messagesError ? (
+                  <SectionError
+                    className="my-4"
+                    title="Could not load the mails the app has read"
+                  />
+                ) : (
+                  <EmptyState
+                    title={
+                      activeTab === 'job_related'
+                        ? 'No job mails read yet'
+                        : 'No other mails read yet'
+                    }
+                  >
+                    Mails appear here after a sync reads them.
+                  </EmptyState>
+                )
+              }
+            />
             {(offset > 0 || messagesData?.metadata?.nextOffset) && (
               <div className="mt-4">
                 <Pagination

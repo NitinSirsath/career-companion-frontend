@@ -9,7 +9,7 @@ import { cn } from '../../lib/utils';
 import { useTheme } from '../ThemeProvider';
 import { Avatar } from '../ui/avatar';
 import { logOutAndLeave } from './AccountMenu';
-import { MAIN_NAV, SANDBOX_NAV, SETTINGS_NAV, type NavItem } from './navItems';
+import { MAIN_NAV, rememberedSearch, SANDBOX_NAV, SETTINGS_NAV, type NavItem } from './navItems';
 
 const BAR_ITEM =
   'flex h-full w-full cursor-pointer flex-col items-center justify-center gap-1 text-xs tracking-[0.32px] text-text-secondary transition-colors duration-70 ease-standard [&.active]:font-semibold [&.active]:text-text-primary [&.active]:shadow-[inset_0_2px_0_var(--border-interactive)] [&.active_svg]:text-link';
@@ -103,7 +103,12 @@ export function MobileNav({ user }: { user: User | null }) {
         {MAIN_NAV.map((item) => {
           const Icon = item.icon;
           return (
-            <Link key={item.to} to={item.to} className={BAR_ITEM}>
+            <Link
+              key={item.to}
+              to={item.to}
+              search={rememberedSearch(item.to)}
+              className={BAR_ITEM}
+            >
               <Icon size={20} aria-hidden="true" />
               {item.label}
             </Link>

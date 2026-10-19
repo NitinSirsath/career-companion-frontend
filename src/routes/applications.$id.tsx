@@ -1,4 +1,6 @@
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
+import { listSearch } from '../lib/listMemory';
+import type { ApplicationsSearch } from '../lib/applicationsView';
 import { Breadcrumb } from '../components/layout/PageHeader';
 import { FollowUpEditor, SnoozeControl, ArchiveControl } from '../components/FollowThrough';
 import { MatchCorrectionDialog } from '../components/MatchCorrectionDialog';
@@ -324,7 +326,9 @@ function ApplicationDetailPage() {
   return (
     <div className="space-y-8">
       <Breadcrumb current={application?.companyName ?? 'Application'}>
-        <Link to="/applications">Applications</Link>
+        <Link to="/applications" search={listSearch<ApplicationsSearch>('/applications')}>
+          Applications
+        </Link>
       </Breadcrumb>
 
       {/* Application */}

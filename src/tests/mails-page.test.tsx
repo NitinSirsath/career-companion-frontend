@@ -63,7 +63,14 @@ function show(path = '/mails') {
   );
 }
 const row = async (subject: string) =>
-  within((await screen.findByRole('link', { name: subject })).closest('tr')!);
+  within(
+    (await screen.findByRole('link', { name: subject })).closest<HTMLElement>('[role="row"]')!,
+  );
+/** Opens a row's "…" menu and returns its items' names. */
+const openRowMenu = async (cells: ReturnType<typeof within>) => {
+  fireEvent.click(cells.getByRole('button', { name: /^Actions for/ }));
+  return (await screen.findAllByRole('menuitem')).map((item) => item.textContent);
+};
 
 beforeEach(() => {
   vi.resetAllMocks();
@@ -174,11 +181,11 @@ describe('Job mails tab', () => {
     expect(cells.getByText('Send your available dates')).toBeInTheDocument();
     expect(cells.getByText('Needs action')).toBeInTheDocument();
     expect(cells.getByText('Due Oct 13, 2026')).toBeInTheDocument();
-    expect(cells.getByText('Northwind Robotics · Senior Platform Engineer')).toBeInTheDocument();
+    expect(cells.getByText('Not linked')).toBeInTheDocument();
     expect(
       cells.getByRole('link', { name: 'Interview: first round availability' }),
     ).toHaveAttribute('href', '/mails/thread-1');
-    expect(screen.getByRole('link', { name: /^Job mails/ })).toHaveTextContent('Job mails1');
+    expect(screen.getByRole('tab', { name: /^Job mails/ })).toHaveTextContent('Job mails1');
 
     vi.mocked(api.post).mockResolvedValue({});
     fireEvent.click(cells.getByRole('button', { name: 'Create application' }));
@@ -213,13 +220,17 @@ describe('Job mails tab', () => {
       `/applications/${APP_ID}`,
     );
     expect(cells.getByText('Applied')).toBeInTheDocument();
-    expect(cells.queryByRole('button')).not.toBeInTheDocument();
+    // No big buttons in a row: only its "…" menu.
+    expect(cells.getAllByRole('button').map((b) => b.getAttribute('aria-label'))).toEqual([
+      'Actions for Interview: first round availability',
+    ]);
   });
 
   it('marks an action done and reopens it, naming the mail that asked', async () => {
     vi.mocked(api.patch).mockResolvedValue(makeConversation());
     show();
-    fireEvent.click((await row('Interview: first round availability')).getByText('Mark done'));
+    await openRowMenu(await row('Interview: first round availability'));
+    pressOption(screen.getByRole('menuitem', { name: 'Mark done' }));
     await waitFor(() =>
       expect(api.patch).toHaveBeenCalledWith('/api/conversations/thread-1/request', {
         emailId: '11111111-1111-4111-8111-111111111111',
@@ -233,7 +244,8 @@ describe('Job mails tab', () => {
     show();
     const cells = await row('Interview: first round availability');
     expect(cells.getByText('Done')).toBeInTheDocument();
-    fireEvent.click(cells.getByText('Reopen'));
+    await openRowMenu(cells);
+    pressOption(screen.getByRole('menuitem', { name: 'Reopen' }));
     await waitFor(() =>
       expect(api.patch).toHaveBeenLastCalledWith(
         '/api/conversations/thread-1/request',
@@ -254,8 +266,7 @@ describe('Job mails tab', () => {
     const cells = await row('Interview: first round availability');
     expect(cells.getByText('Replied')).toBeInTheDocument();
     expect(cells.getByText(/^You replied /)).toBeInTheDocument();
-    expect(cells.getByText('Ask me again')).toBeInTheDocument();
-    expect(cells.queryByText('Mark done')).not.toBeInTheDocument();
+    expect(await openRowMenu(cells)).toEqual(['Mark done', 'Ask me again', 'Open in Gmail']);
   });
 
   it('asks for the company when the AI could not read one', async () => {
@@ -372,14 +383,17 @@ describe('Gmail tab', () => {
       nextPageToken: null,
     };
     show('/mails?tab=gmail');
+    // The whole row opens the mail; its link is the subject.
     const plain = await screen.findByRole('link', { name: /Security alert/ });
     expect(plain).toHaveAttribute('href', '/mails/gmail/gmail-1');
-    expect(plain).toHaveTextContent("If this wasn't you");
-    expect(plain).not.toHaveTextContent('Job mail');
+    const plainRow = plain.closest('[role="row"]')!;
+    expect(plainRow).toHaveTextContent("If this wasn't you");
+    expect(plainRow).not.toHaveTextContent('Job mail');
     const job = screen.getByRole('link', { name: /Take-home assignment/ });
     expect(job).toHaveAttribute('href', '/mails/thread-1');
-    expect(job).toHaveTextContent('Hiring Team 2');
-    expect(job).toHaveTextContent('Job mail');
+    const jobRow = job.closest('[role="row"]')!;
+    expect(jobRow).toHaveTextContent('Hiring Team 2');
+    expect(jobRow).toHaveTextContent('Job mail');
     expect(screen.getByText('you@gmail.com')).toBeInTheDocument();
     expect(screen.getByText(/Nothing shown here is stored/)).toBeInTheDocument();
     expect(screen.queryByLabelText('Search')).not.toBeInTheDocument();

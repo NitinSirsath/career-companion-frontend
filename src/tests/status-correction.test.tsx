@@ -635,7 +635,7 @@ describe('section isolation and evidence', () => {
 
 describe('creation outcome recovery', () => {
   const fill = () =>
-    fireEvent.change(screen.getByLabelText(/Company Name/), { target: { value: 'Linear' } });
+    fireEvent.change(screen.getByLabelText('Company'), { target: { value: 'Linear' } });
   const submit = () => fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
   it('keeps the draft, reconciles owned reads and never replays the POST', async () => {
@@ -649,7 +649,7 @@ describe('creation outcome recovery', () => {
     submit();
     expect(await screen.findByText('Creation outcome unknown')).toBeInTheDocument();
     await screen.findByRole('button', { name: 'Create anyway' });
-    expect(screen.getByLabelText(/Company Name/)).toHaveValue('Linear');
+    expect(screen.getByLabelText('Company')).toHaveValue('Linear');
     expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
     submit();
     expect(api.createApplication).toHaveBeenCalledTimes(1);

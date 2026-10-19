@@ -168,7 +168,7 @@ describe('timeline', () => {
     expect(screen.queryByText('Source email unavailable')).not.toBeInTheDocument();
   });
 
-  it('shows "Submitted via automation" on the list page’s recent-event line and the automation badge', async () => {
+  it('shows "Sent by your automation" on the list page’s last-activity line and the automation tag', async () => {
     vi.mocked(api.listApplications).mockResolvedValue(
       page([
         makeApplication({
@@ -184,7 +184,7 @@ describe('timeline', () => {
       ]),
     );
     renderRoute('/applications');
-    expect(await screen.findByText('Submitted via automation')).toBeInTheDocument();
+    expect(await screen.findByText('Sent by your automation')).toBeInTheDocument();
     expect(screen.getByText('Sent by automation', { selector: 'span' })).toBeInTheDocument();
   });
 });

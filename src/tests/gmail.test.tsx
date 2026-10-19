@@ -297,7 +297,7 @@ describe('Gmail Route', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('switches between Job Related and Irrelevant tabs and filters correctly', async () => {
+  it('switches between the Job mails and Not job mails tabs and filters correctly', async () => {
     vi.mocked(api.getGmailStatus).mockResolvedValue({
       connected: true,
       syncStatus: 'IDLE',
@@ -339,11 +339,10 @@ describe('Gmail Route', () => {
     });
 
     // Switch to irrelevant tab
-    const irrelevantTab = screen.getByRole('button', { name: /Irrelevant/i });
-    fireEvent.click(irrelevantTab);
+    fireEvent.click(screen.getByRole('tab', { name: 'Not job mails' }));
 
-    // Empty state for irrelevant tab
-    expect(await screen.findByText('No irrelevant emails found.')).toBeInTheDocument();
+    // Empty state for the other tab
+    expect(await screen.findByText('No other mails read yet')).toBeInTheDocument();
     expect(api.getMessages).toHaveBeenCalledWith({ limit: 20, offset: 0, relevance: 'irrelevant' });
   });
 });
