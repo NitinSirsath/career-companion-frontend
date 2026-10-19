@@ -8,7 +8,7 @@ import {
 import { User, logout } from '../api/auth';
 import { Sidebar } from '../components/layout/Sidebar';
 import { MobileNav } from '../components/layout/MobileNav';
-import { Briefcase, LogOut, UserRound } from 'lucide-react';
+import { Logout, Portfolio, User as UserIcon } from '@carbon/icons-react';
 import { ProcessingRefreshObserver } from '../components/ProcessingRefreshObserver';
 import { DevErrorTrigger } from '../components/errors/DevErrorTrigger';
 import { NotFoundPage } from '../components/errors/NotFoundPage';
@@ -65,7 +65,7 @@ function LoggedInShell({ children }: LoggedInShellProps) {
         <DevModeBanner />
         <header className="md:hidden flex items-center justify-between p-4 border-b border-border bg-card">
           <div className="flex items-center gap-2">
-            <Briefcase className="w-5 h-5 text-primary" />
+            <Portfolio size={20} className="text-primary" aria-hidden="true" />
             <div className="font-semibold text-lg tracking-tight">Career Companion</div>
           </div>
           <div className="flex items-center gap-1">
@@ -74,14 +74,14 @@ function LoggedInShell({ children }: LoggedInShellProps) {
               className="p-2 text-text-secondary outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
               aria-label="Account"
             >
-              <UserRound className="w-5 h-5" />
+              <UserIcon size={20} aria-hidden="true" />
             </Link>
             <button
               onClick={handleLogout}
               className="text-status-error p-2 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-border-focus rounded-none"
               aria-label="Logout"
             >
-              <LogOut className="w-5 h-5" />
+              <Logout size={20} aria-hidden="true" />
             </button>
           </div>
         </header>
