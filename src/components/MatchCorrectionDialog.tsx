@@ -1,4 +1,5 @@
 import { useId, useState } from 'react';
+import { ApplicationPicker } from './ApplicationPicker';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, isApiError } from '../api/client';
 import { Button } from './ui/button';
@@ -108,29 +109,22 @@ export function MatchCorrectionDialog({
             Unlinking also leaves later emails in this thread unlinked for review.
           </p>
         )}
-        <label htmlFor={id} className="text-sm font-medium">
-          Application
-        </label>
-        <select
+        <ApplicationPicker
           id={id}
-          className="mt-2 w-full border border-border bg-surface p-2"
+          label="Application"
+          applications={(applications.data?.items ?? []).filter(
+            (a) => a.id !== expected.expectedApplicationId,
+          )}
+          extraChoices={
+            expected.expectedMatchState === 'MATCHED'
+              ? [{ id: 'unlink', label: 'Not linked to any application' }]
+              : []
+          }
           value={selected}
           disabled={mutation.isPending || !!problem}
-          onChange={(e) => setSelected(e.target.value)}
-        >
-          <option value="">Choose an application</option>
-          {expected.expectedMatchState === 'MATCHED' && (
-            <option value="unlink">Not linked to any application</option>
-          )}
-          {(applications.data?.items ?? [])
-            .filter((a) => a.id !== expected.expectedApplicationId)
-            .map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.companyName}
-                {a.jobTitle ? ` · ${a.jobTitle}` : ''}
-              </option>
-            ))}
-        </select>
+          loading={applications.isLoading}
+          onChange={setSelected}
+        />
         {applications.isLoading && <p className="text-sm">Loading applications…</p>}
         {applications.isError && (
           <p role="alert">Could not load applications. Close and try again.</p>
