@@ -22,6 +22,7 @@ vi.mock('../api/client', async (importOriginal) => ({
 
 import { routeTree } from '../routeTree.gen';
 import { chooseOption, pressOption } from './choose';
+import { listSearch } from '../lib/listMemory';
 
 const APP_ID = '33333333-3333-4333-8333-333333333333';
 const page = <T,>(items: T[], nextOffset: number | null = null) => ({
@@ -92,15 +93,53 @@ describe('home and navigation', () => {
     show('/');
     expect(await screen.findByRole('heading', { name: 'Mails' })).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/mails');
-    // The desktop sidebar and the phone bar: both are in the page, one is shown.
-    const menus = screen.getAllByRole('navigation', { name: 'Main' });
-    expect(menus).toHaveLength(2);
-    for (const menu of menus) {
-      const names = within(menu)
+    // The desktop sidebar and the phone bar: both are in the page, one is shown. Agenda is not in
+    // the menu until it works; settings sit in their own group after the daily pages.
+    const [sidebar, phoneBar] = screen.getAllByRole('navigation', { name: 'Main' });
+    expect(
+      within(sidebar)
         .getAllByRole('link')
-        .map((link) => link.textContent);
-      expect(names.slice(0, 4)).toEqual(['Mails', 'Applications', 'Agenda', 'Dashboard']);
-    }
+        .map((link) => link.textContent),
+    ).toEqual(['Mails', 'Applications', 'Dashboard', 'Gmail sync', 'AI provider', 'Automation']);
+    expect(within(sidebar).getByText('Settings')).toBeInTheDocument();
+    expect(
+      within(phoneBar)
+        .getAllByRole('link')
+        .map((link) => link.textContent),
+    ).toEqual(['Mails', 'Applications', 'Dashboard']);
+    expect(within(phoneBar).getByRole('button', { name: 'More' })).toBeInTheDocument();
+  });
+
+  it('shrinks the side menu to icons and remembers it', async () => {
+    localStorage.removeItem('career-companion-menu');
+    show('/mails');
+    fireEvent.click(await screen.findByRole('button', { name: 'Collapse menu' }));
+    expect(screen.getByRole('button', { name: 'Expand menu' })).toBeInTheDocument();
+    expect(localStorage.getItem('career-companion-menu')).toBe('collapsed');
+    // The links keep their names for screen readers while only icons show.
+    const [sidebar] = screen.getAllByRole('navigation', { name: 'Main' });
+    expect(within(sidebar).getByRole('link', { name: 'Applications' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Expand menu' }));
+    expect(localStorage.getItem('career-companion-menu')).toBe('open');
+  });
+
+  it('keeps Account, the theme and Log out in one account menu', async () => {
+    show('/mails');
+    fireEvent.click(await screen.findByRole('button', { name: 'Account menu' }));
+    expect(await screen.findByRole('menuitem', { name: 'Account' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Log out' })).toBeInTheDocument();
+    expect(screen.getAllByRole('menuitemradio').map((item) => item.textContent)).toEqual([
+      'System',
+      'Light',
+      'White',
+      'Dark',
+    ]);
+  });
+
+  it('remembers the list filters, so the breadcrumb on a mail returns to the same view', async () => {
+    show('/mails?request=open&unseen=true');
+    expect(await screen.findByRole('heading', { name: 'Mails' })).toBeInTheDocument();
+    expect(listSearch('/mails')).toEqual({ request: 'open', unseen: true });
   });
 
   it('shows only "Coming soon" on the Dashboard, with the way to Mails', async () => {
