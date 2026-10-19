@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { useConversations } from '../../api/conversations';
 import { pageCount, type MailsSearch } from '../../lib/mails';
-import { Badge } from '../ui/badge';
+import { Tag } from '../ui/tag';
 
 const tabClass =
   'flex items-center gap-2 min-h-11 border-b-2 border-transparent text-sm font-medium text-text-secondary hover:text-text-primary [&.active]:border-border-focus [&.active]:font-semibold [&.active]:text-text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus';
@@ -20,7 +20,7 @@ export function MailsTabs() {
         className={tabClass}
       >
         Job mails
-        {data && <Badge variant="secondary">{pageCount(data)}</Badge>}
+        {data && <Tag color="gray">{pageCount(data)}</Tag>}
       </Link>
       <Link
         from="/mails/"
