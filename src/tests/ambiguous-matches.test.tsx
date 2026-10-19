@@ -7,6 +7,7 @@ import { api } from '../api/client';
 import { makeApplication } from './fixtures';
 import { AmbiguousMatchesSection } from '../components/dashboard/AmbiguousMatchesSection';
 import { ApplicationResponse } from '../contracts/application';
+import { chooseFromCombobox } from './choose';
 
 /** The list is part of the old dashboard: kept in the repo, shown on no page. */
 function renderWithProviders(queryClient: QueryClient) {
@@ -89,10 +90,11 @@ describe('Ambiguous Matches (COM-32)', () => {
     expect(screen.getByText('recruiter@tech.com')).toBeInTheDocument();
     expect(screen.getByText('Next steps')).toBeInTheDocument();
 
-    // Candidate applications render
-    expect(screen.getByRole('option', { name: /Acme Corp/ })).toBeInTheDocument();
     // Ignore button renders
     expect(screen.getByRole('button', { name: /Not related/i })).toBeInTheDocument();
+    // Candidate applications render
+    fireEvent.click(screen.getByRole('button', { name: 'Open Select application to link' }));
+    expect(await screen.findByRole('option', { name: /Acme Corp/ })).toBeInTheDocument();
   });
 
   it('submits resolution request successfully to an application', async () => {
@@ -116,10 +118,8 @@ describe('Ambiguous Matches (COM-32)', () => {
 
     renderWithProviders(queryClient);
 
-    const selectDropdown = await screen.findByRole('combobox', {
-      name: /Select application to link/i,
-    });
-    fireEvent.change(selectDropdown, { target: { value: 'app-1' } });
+    await screen.findByRole('combobox', { name: /Select application to link/i });
+    await chooseFromCombobox('Select application to link', /Acme Corp/);
 
     await waitFor(() => {
       expect(api.resolveAmbiguousEmail).toHaveBeenCalledWith('email-1', { applicationId: 'app-1' });
