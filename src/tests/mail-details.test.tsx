@@ -273,7 +273,8 @@ describe('a mail that is not a job mail', () => {
     expect(await screen.findByRole('heading', { name: 'Sunday lunch?' })).toBeInTheDocument();
     expect(screen.getByText('Are you coming?')).toBeInTheDocument();
     expect(screen.getByText('Not a job mail')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Back to Gmail' })).toHaveAttribute(
+    const breadcrumb = screen.getByRole('navigation', { name: 'Breadcrumb' });
+    expect(within(breadcrumb).getByRole('link', { name: 'Gmail' })).toHaveAttribute(
       'href',
       '/mails?tab=gmail',
     );

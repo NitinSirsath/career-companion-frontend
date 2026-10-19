@@ -641,7 +641,7 @@ describe('creation outcome recovery', () => {
   it('keeps the draft, reconciles owned reads and never replays the POST', async () => {
     vi.mocked(api.createApplication).mockRejectedValue(new ApiError('unexpected', 'contract', 201));
     show('/applications');
-    fireEvent.click(await screen.findByRole('button', { name: 'Add Application' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Add application' }));
     fill();
     vi.mocked(api.listApplications).mockResolvedValue(
       page([makeApplication({ companyName: 'Linear' })]),
@@ -664,7 +664,7 @@ describe('creation outcome recovery', () => {
   it('refreshes the visible active-list cache during uncertain creation recovery', async () => {
     vi.mocked(api.createApplication).mockRejectedValue(new ApiError('lost', 'network'));
     show('/applications');
-    fireEvent.click(await screen.findByRole('button', { name: 'Add Application' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Add application' }));
     fill();
     vi.mocked(api.listApplications).mockResolvedValue(
       page([makeApplication({ companyName: 'Recovered company' })]),
@@ -683,7 +683,7 @@ describe('creation outcome recovery', () => {
   it('stays blocked and offers a read retry when reconciliation fails', async () => {
     vi.mocked(api.createApplication).mockRejectedValue(new ApiError('timed out', 'timeout'));
     show('/applications');
-    fireEvent.click(await screen.findByRole('button', { name: 'Add Application' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Add application' }));
     fill();
     vi.mocked(api.listApplications).mockRejectedValue(new ApiError('network', 'network'));
     submit();
@@ -701,7 +701,7 @@ describe('creation outcome recovery', () => {
       new ApiError('Invalid request data', 'http', 400, 'VALIDATION_ERROR'),
     );
     show('/applications');
-    fireEvent.click(await screen.findByRole('button', { name: 'Add Application' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Add application' }));
     fill();
     submit();
     expect(

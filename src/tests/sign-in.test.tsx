@@ -114,7 +114,7 @@ describe('login page', () => {
     mode('dev');
     renderWithQuery(<LoginPage />);
     expect(await screen.findByRole('form', { name: 'Create test user' })).toBeInTheDocument();
-    expect(screen.getByRole('status')).toHaveTextContent(/^DEV MODE/);
+    expect(screen.getByRole('status')).toHaveTextContent(/^Dev mode/);
     expect(screen.getByRole('form', { name: 'Sign in' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Sign in with Google' })).not.toBeInTheDocument();
   });

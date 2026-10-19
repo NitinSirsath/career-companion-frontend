@@ -1,4 +1,5 @@
 import { MatchCorrectionDialog } from '../components/MatchCorrectionDialog';
+import { PageHeader } from '../components/layout/PageHeader';
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -203,10 +204,12 @@ function GmailPage() {
 
   return (
     <TooltipProvider>
-      <div className="max-w-6xl mx-auto space-y-8 px-4 md:px-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-semibold tracking-tight">Gmail Integration</h2>
-        </div>
+      <div className="space-y-8">
+        <PageHeader
+          className="mb-0"
+          title="Gmail sync"
+          description="Connect Gmail, and choose how far back the app reads your mail."
+        />
 
         <AIAccessNotice />
 

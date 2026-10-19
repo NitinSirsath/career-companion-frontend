@@ -1,9 +1,12 @@
+import { useEffect } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { AIAccessNotice } from '../components/ai/AIAccessNotice';
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
+import { PageHeader } from '../components/layout/PageHeader';
 import { GmailInbox } from '../components/mails/GmailInbox';
 import { JobMails } from '../components/mails/JobMails';
 import { MailsTabs } from '../components/mails/MailsTabs';
+import { rememberListSearch } from '../lib/listMemory';
 import { mailsSearchSchema, type MailsSearch } from '../lib/mails';
 
 export const Route = createFileRoute('/mails/')({
@@ -22,14 +25,16 @@ function MailsPage() {
       replace: true,
     });
 
+  // Remembered so the breadcrumb on a mail returns to this exact view.
+  useEffect(() => rememberListSearch('/mails', search), [search]);
+
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-semibold tracking-tight">Mails</h1>
-        <p className="text-sm text-text-secondary">
-          Every job mail, what it needs from you, and the application it belongs to.
-        </p>
-      </div>
+      <PageHeader
+        className="mb-0"
+        title="Mails"
+        description="Every job mail, what it needs from you, and the application it belongs to."
+      />
       <AIAccessNotice />
       <MailsTabs />
       {search.tab === 'gmail' ? <GmailInbox /> : <JobMails search={search} onChange={change} />}

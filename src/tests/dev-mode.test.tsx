@@ -53,7 +53,9 @@ describe('app mode', () => {
 describe('dev mode UI', () => {
   it('shows the DEV MODE banner in dev mode', async () => {
     renderWithQuery(<DevModeBanner />);
-    expect(await screen.findByRole('status')).toHaveTextContent(/^DEV MODE · Gmail is the mail/);
+    expect(await screen.findByRole('status')).toHaveTextContent(
+      /^Dev mode · Gmail is the mail sandbox/,
+    );
   });
 
   it('shows no banner in prod mode', async () => {

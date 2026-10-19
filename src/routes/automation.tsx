@@ -1,4 +1,5 @@
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
+import { PageHeader } from '../components/layout/PageHeader';
 import { createFileRoute } from '@tanstack/react-router';
 import { CreateTokenForm } from '../components/automation/CreateTokenForm';
 import { SubmissionReview } from '../components/automation/SubmissionReview';
@@ -16,14 +17,12 @@ export const Route = createFileRoute('/automation')({
 function AutomationPage() {
   const serverUrl = `${window.location.origin}/mcp`;
   return (
-    <div className="max-w-4xl mx-auto space-y-6 px-4 md:px-6">
-      <div>
-        <h2 className="text-2xl font-semibold tracking-tight">Automation</h2>
-        <p className="text-sm text-text-secondary mt-1">
-          Let your own job-application automation tell Career Companion about each application it
-          submits. Career Companion never applies to jobs itself.
-        </p>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        className="mb-0"
+        title="Automation"
+        description="Let your own job-application automation tell Career Companion about each application it sends. Career Companion never applies to jobs itself."
+      />
 
       <SubmissionReview />
       <CreateTokenForm />

@@ -1,4 +1,5 @@
 import { useProfile } from '../../api/auth';
+import { PageHeader } from '../layout/PageHeader';
 import { Tag } from '../ui/tag';
 import { SetPasswordForm } from './SetPasswordForm';
 
@@ -20,8 +21,12 @@ function SignInWay({
 export function AccountPage() {
   const { data: profile, isLoading, isError } = useProfile();
   return (
-    <div className="max-w-2xl space-y-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Account</h1>
+    <div className="space-y-6">
+      <PageHeader
+        className="mb-0"
+        title="Account"
+        description="How you sign in, and how the app looks."
+      />
       {isLoading && <p className="text-sm text-text-secondary">Loading your account…</p>}
       {isError && (
         <p role="alert" className="text-sm text-status-error">

@@ -1,4 +1,5 @@
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
+import { PageHeader } from '../components/layout/PageHeader';
 import { useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
@@ -37,14 +38,12 @@ function AIProviderPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 px-4 md:px-6">
-      <div>
-        <h2 className="text-2xl font-semibold tracking-tight">AI provider</h2>
-        <p className="text-sm text-text-secondary mt-1">
-          Career Companion uses your own AI account to read job emails. Your key is stored encrypted
-          and never shown again.
-        </p>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        className="mb-0"
+        title="AI provider"
+        description="Career Companion uses your own AI account to read job mails. Your key is stored encrypted and never shown again."
+      />
 
       {isLoading && <p>Loading AI settings…</p>}
       {error && <p role="alert">Could not load AI settings: {error.message}</p>}

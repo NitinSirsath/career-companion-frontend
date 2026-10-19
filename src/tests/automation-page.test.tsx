@@ -93,12 +93,18 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe('navigation', () => {
-  it('links to the Automation page next to AI Provider, on desktop and mobile', async () => {
+  it('links to the Automation page next to AI provider, on desktop and under More on phones', async () => {
     renderPage('/automation');
     expect(await screen.findByRole('heading', { name: 'Automation' })).toBeInTheDocument();
-    const links = screen.getAllByRole('link', { name: /Automation/ });
-    expect(links.map((l) => l.getAttribute('href'))).toEqual(['/automation', '/automation']);
-    expect(screen.getByRole('link', { name: 'AI Provider' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Automation' })).toHaveAttribute('href', '/automation');
+    expect(screen.getByRole('link', { name: 'AI provider' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'More' }));
+    const more = await screen.findByRole('dialog', { name: 'More' });
+    expect(within(more).getByRole('link', { name: 'Automation' })).toHaveAttribute(
+      'href',
+      '/automation',
+    );
+    fireEvent.click(within(more).getByRole('button', { name: 'Close' }));
     expect(screen.getByText(`${window.location.origin}/mcp`)).toBeInTheDocument();
   });
 });
