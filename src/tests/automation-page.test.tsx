@@ -22,6 +22,7 @@ vi.mock('../api/client', async (importOriginal) => {
 });
 
 import { routeTree } from '../routeTree.gen';
+import { chooseOption } from './choose';
 
 const PLAINTEXT = `ccmcp_${'S'.repeat(20)}SENTINEL${'x'.repeat(15)}`;
 const DAY = 86_400_000;
@@ -73,7 +74,8 @@ const browserState = () =>
 
 async function createToken(name = 'Work laptop', days?: string) {
   fireEvent.change(await screen.findByLabelText('Name'), { target: { value: name } });
-  if (days) fireEvent.change(screen.getByLabelText('Expires after'), { target: { value: days } });
+  if (days)
+    await chooseOption(screen.getByRole('combobox', { name: 'Expires after' }), `${days} days`);
   fireEvent.click(screen.getByRole('button', { name: 'Create token' }));
 }
 
