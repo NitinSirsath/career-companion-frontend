@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ApplicationPicker } from '../ApplicationPicker';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../api/client';
 import { ApplicationResponse } from '../../contracts/application';
@@ -81,25 +82,16 @@ export function UnmatchedEmailsSection({ applications }: { applications: Applica
                 </div>
               </div>
               <div className="flex flex-col gap-2 shrink-0 md:w-[280px] w-full mt-2 md:mt-0">
-                <select
-                  aria-label="Select application to link"
-                  className="h-9 w-full rounded-none border border-border-default bg-surface px-3 py-1 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-border-focus"
-                  onChange={(e) => {
-                    if (e.target.value)
-                      resolveMutation.mutate({ emailId: email.id, applicationId: e.target.value });
-                  }}
-                  defaultValue=""
+                <ApplicationPicker
+                  label="Select application to link"
+                  hideLabel
+                  applications={applications}
+                  value=""
                   disabled={resolveMutation.isPending}
-                >
-                  <option value="" disabled>
-                    Select application...
-                  </option>
-                  {applications.map((app) => (
-                    <option key={app.id} value={app.id}>
-                      {app.companyName}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(applicationId) => {
+                    if (applicationId) resolveMutation.mutate({ emailId: email.id, applicationId });
+                  }}
+                />
               </div>
             </div>
           </div>
