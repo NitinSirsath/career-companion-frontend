@@ -1,32 +1,48 @@
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
 import { PageHeader } from '../components/layout/PageHeader';
 import { Add, Renew } from '@carbon/icons-react';
-import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from 'react';
 
-import { createFileRoute, Link, Outlet, useRouterState } from '@tanstack/react-router';
+import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { format } from 'date-fns';
 import { api, isApiError } from '../api/client';
-import {
-  type ApplicationFilters,
-  CreateApplicationRequestSchema,
-  CreateApplicationRequest,
-  ApplicationResponse,
-} from '../contracts/application';
-import { EffectiveStatus } from '../components/ApplicationStatus';
+import { CreateApplicationRequestSchema, CreateApplicationRequest } from '../contracts/application';
 import { useSearchText } from '../components/useSearchText';
 import { fetchApplicationsPage } from '../lib/applicationCache';
-import { eventLabel } from '../lib/eventLabels';
 
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { Tag } from '../components/ui/tag';
 import { Select } from '../components/ui/select';
 
 import { Pagination } from '../components/ui/pagination';
+import { ApplicationsTable } from '../components/applications/ApplicationsTable';
+import { EmptyState } from '../components/ui/empty-state';
+import { SectionError } from '../components/ui/section-error';
+import { Tabs } from '../components/ui/tabs';
+import { FilterChips, Toolbar, ToolbarSearch } from '../components/ui/toolbar';
+import {
+  ARCHIVE_OPTIONS,
+  INITIAL_VIEW,
+  SORT_OPTIONS,
+  STATUS_TABS,
+  applicationsSearchSchema,
+  searchFromView,
+  tabFilters,
+  viewFromSearch,
+  type DiscoveryView,
+  type StatusTab,
+} from '../lib/applicationsView';
+import { rememberListSearch } from '../lib/listMemory';
 import {
   Dialog,
   DialogContent,
@@ -37,80 +53,11 @@ import {
 
 export const Route = createFileRoute('/applications')({
   errorComponent: RouteErrorPage,
+  validateSearch: applicationsSearchSchema,
   component: ApplicationsPage,
 });
 
-function ApplicationCard({ app }: { app: ApplicationResponse }) {
-  return (
-    <Link
-      to="/applications/$id"
-      params={{ id: app.id }}
-      className="block border border-border-default bg-surface hover:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus transition-colors p-4"
-    >
-      <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-3 flex-wrap">
-            <h3 className="font-semibold text-base break-words">{app.companyName}</h3>
-            <EffectiveStatus app={app} />
-            {app.archivedAt && <Tag>Archived</Tag>}
-            {app.pendingActionCount > 0 && (
-              <Tag color="yellow">
-                {app.pendingActionCount} action{app.pendingActionCount > 1 ? 's' : ''}
-              </Tag>
-            )}
-          </div>
-
-          <div className="mt-2 text-sm text-text-secondary break-words flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
-            {app.jobTitle && <span>{app.jobTitle}</span>}
-            {app.location && <span className="hidden sm:inline">•</span>}
-            {app.location && <span>{app.location}</span>}
-          </div>
-        </div>
-
-        <div className="text-left sm:text-right text-xs text-muted-foreground shrink-0 mt-2 sm:mt-0">
-          {app.appliedAt && <p>Applied {format(new Date(app.appliedAt), 'MMM d, yyyy')}</p>}
-          {!app.appliedAt && <p>Applied date unknown</p>}
-          <p className="mt-1">Added {format(new Date(app.createdAt), 'MMM d, yyyy')}</p>
-        </div>
-      </div>
-
-      {app.recentEvent && (
-        <div className="mt-4 pt-3 border-t border-border flex items-center gap-2 text-xs text-muted-foreground">
-          <span className="shrink-0 text-foreground">●</span>
-          <span>
-            <span className="font-medium text-foreground">{eventLabel(app.recentEvent.type)}</span>
-            {' · Recorded '}
-            {format(new Date(app.recentEvent.recordedAt), 'MMM d, yyyy')}
-          </span>
-        </div>
-      )}
-    </Link>
-  );
-}
-
 type CreationRecovery = { refresh: 'pending' | 'failed' | 'done' } | null;
-
-type TabKey =
-  | 'ALL'
-  | 'RECEIVED'
-  | 'SUBMITTED'
-  | 'RECRUITER_CONTACT'
-  | 'INTERVIEW'
-  | 'ASSESSMENT'
-  | 'OFFER'
-  | 'REJECTED'
-  | 'CLOSED';
-
-type DiscoveryView = { offset: number; search: string; tab: TabKey } & Required<
-  Pick<ApplicationFilters, 'archive' | 'sort'>
->;
-const initialView: DiscoveryView = {
-  offset: 0,
-  search: '',
-  archive: 'active',
-  sort: 'added_desc',
-  tab: 'ALL',
-};
 
 function ApplicationsDashboard({
   view,
@@ -129,17 +76,7 @@ function ApplicationsDashboard({
     changeFilters({ search: text }),
   );
 
-  let effectiveStatus: ApplicationFilters['effectiveStatus'] | undefined = undefined;
-  let submittedVia: ApplicationFilters['submittedVia'] | undefined = undefined;
-
-  if (tab === 'RECEIVED') {
-    effectiveStatus = 'APPLIED';
-  } else if (tab === 'SUBMITTED') {
-    effectiveStatus = 'UNKNOWN';
-    submittedVia = 'AUTOMATION';
-  } else if (tab !== 'ALL') {
-    effectiveStatus = tab as ApplicationFilters['effectiveStatus'];
-  }
+  const { effectiveStatus, submittedVia } = tabFilters(tab);
 
   // Set when a POST may have committed although its response was lost, timed out, failed with
   // 5xx or was malformed. The draft is kept and ordinary submission stays blocked.
@@ -182,7 +119,7 @@ function ApplicationsDashboard({
 
   async function reconcileCreation() {
     setRecovery({ refresh: 'pending' });
-    setView(initialView);
+    setView(INITIAL_VIEW);
     try {
       await queryClient.fetchQuery({
         queryKey: ['applications', { offset: 0, limit, archive: 'active' }],
@@ -201,7 +138,7 @@ function ApplicationsDashboard({
     retry: false, // never replay a POST automatically
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['applications'] });
-      setView(initialView);
+      setView(INITIAL_VIEW);
       setRecovery(null);
       form.reset();
       setShowCreateForm(false);
@@ -253,104 +190,27 @@ function ApplicationsDashboard({
         }
       />
 
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="application-search">Search company or job title</Label>
-          <Input
-            id="application-search"
-            type="search"
-            maxLength={100}
-            value={searchText}
-            onChange={(event) => setSearchText(event.target.value)}
-            placeholder="Company or job title"
-          />
-        </div>
-        <div className="border-b border-border-default">
-          <div className="flex space-x-6 overflow-x-auto whitespace-nowrap">
-            {[
-              { id: 'ALL', label: 'All' },
-              { id: 'RECEIVED', label: 'Applied' },
-              { id: 'SUBMITTED', label: 'Sent by automation' },
-              { id: 'RECRUITER_CONTACT', label: 'Recruiter contact' },
-              { id: 'INTERVIEW', label: 'Interview' },
-              { id: 'ASSESSMENT', label: 'Assessment' },
-              { id: 'OFFER', label: 'Offer' },
-              { id: 'REJECTED', label: 'Rejected' },
-              { id: 'CLOSED', label: 'Closed' },
-            ].map(({ id, label }) => (
-              <button
-                key={id}
-                onClick={() => changeFilters({ tab: id as TabKey })}
-                className={`pb-2 text-sm font-medium transition-colors border-b-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus ${
-                  tab === id
-                    ? 'border-foreground text-foreground'
-                    : 'border-transparent text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 pt-4">
-          <Select<DiscoveryView['archive']>
-            id="application-archive-filter"
-            label="Application visibility"
-            value={archive}
-            options={[
-              { value: 'active', label: 'Active' },
-              { value: 'archived', label: 'Archived' },
-              { value: 'all', label: 'All applications' },
-            ]}
-            onValueChange={(next) => changeFilters({ archive: next })}
-          />
-          <Select<DiscoveryView['sort']>
-            id="application-sort"
-            label="Sort applications"
-            value={sort}
-            options={[
-              { value: 'added_desc', label: 'Newest added' },
-              { value: 'applied_desc', label: 'Applied date: newest first' },
-              { value: 'applied_asc', label: 'Applied date: oldest first' },
-              { value: 'company_asc', label: 'Company: A to Z' },
-            ]}
-            onValueChange={(next) => changeFilters({ sort: next })}
-          />
-        </div>
-        <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-text-secondary">
-          <p>
-            Submissions awaiting a match are in{' '}
-            <Link
-              to="/automation"
-              className="underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-border-focus"
-            >
-              Automation review
-            </Link>
-            .
-          </p>
-          {(hasFilters || sort !== 'added_desc') && (
-            <Button variant="ghost" size="sm" onClick={() => setView(initialView)}>
-              Clear filters
-            </Button>
-          )}
-        </div>
-        {tab === 'SUBMITTED' && (
-          <p className="text-sm text-text-secondary">
-            These applications were submitted by your automation but do not have a company
-            confirmation yet.
-          </p>
-        )}
-      </div>
-
+      <Tabs<StatusTab>
+        label="Status"
+        value={tab}
+        onValueChange={(next) => changeFilters({ tab: next })}
+        items={STATUS_TABS}
+      />
+      {tab === 'SUBMITTED' && (
+        <p className="text-sm text-text-secondary">
+          These applications were sent by your automation but have no company confirmation yet.
+          Submissions waiting for a match are in <Link to="/automation">Automation review</Link>.
+        </p>
+      )}
       <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Track New Application</DialogTitle>
+            <DialogTitle>Add application</DialogTitle>
           </DialogHeader>
           <form onSubmit={onSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="companyName">Company Name *</Label>
+                <Label htmlFor="companyName">Company</Label>
                 <Input
                   id="companyName"
                   placeholder="e.g. Linear"
@@ -363,7 +223,7 @@ function ApplicationsDashboard({
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="jobTitle">Job Title</Label>
+                <Label htmlFor="jobTitle">Job title (optional)</Label>
                 <Input
                   id="jobTitle"
                   placeholder="Frontend Engineer"
@@ -371,11 +231,11 @@ function ApplicationsDashboard({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
+                <Label htmlFor="location">Location (optional)</Label>
                 <Input id="location" placeholder="Remote" {...form.register('location')} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="appliedAt">Applied At</Label>
+                <Label htmlFor="appliedAt">Applied on (optional)</Label>
                 <Input
                   id="appliedAt"
                   type="datetime-local"
@@ -464,64 +324,137 @@ function ApplicationsDashboard({
         </DialogContent>
       </Dialog>
 
-      <div className="space-y-4">
-        {isLoading ? (
-          <div className="p-8 text-center text-muted-foreground border border-border bg-surface-1">
-            Loading applications...
+      <ApplicationsTable
+        applications={error ? [] : applications}
+        loading={isLoading}
+        toolbar={
+          <div>
+            <Toolbar
+              filterCount={(archive !== 'active' ? 1 : 0) + (search.trim() ? 1 : 0)}
+              search={
+                <ToolbarSearch
+                  label="Search company or job title"
+                  value={searchText}
+                  onChange={setSearchText}
+                  placeholder="Search company or job title"
+                />
+              }
+              filters={(layout) => (
+                <Select<DiscoveryView['archive']>
+                  id={`application-archive-filter-${layout}`}
+                  label="Application visibility"
+                  appearance={layout === 'inline' ? 'inline' : 'field'}
+                  value={archive}
+                  options={ARCHIVE_OPTIONS}
+                  onValueChange={(next) => changeFilters({ archive: next })}
+                />
+              )}
+              end={(layout) => (
+                <Select<DiscoveryView['sort']>
+                  id={`application-sort-${layout}`}
+                  label="Sort applications"
+                  appearance={layout === 'inline' ? 'inline' : 'field'}
+                  value={sort}
+                  options={SORT_OPTIONS}
+                  onValueChange={(next) => changeFilters({ sort: next })}
+                />
+              )}
+            />
+            <FilterChips
+              chips={[
+                ...(search.trim()
+                  ? [
+                      {
+                        label: `Search: ${search.trim()}`,
+                        onRemove: () => changeFilters({ search: '' }),
+                      },
+                    ]
+                  : []),
+                ...(tab !== 'ALL'
+                  ? [
+                      {
+                        label: `Status: ${STATUS_TABS.find((t) => t.value === tab)?.label}`,
+                        onRemove: () => changeFilters({ tab: 'ALL' }),
+                      },
+                    ]
+                  : []),
+                ...(archive !== 'active'
+                  ? [
+                      {
+                        label: `Show: ${ARCHIVE_OPTIONS.find((o) => o.value === archive)?.label}`,
+                        onRemove: () => changeFilters({ archive: 'active' }),
+                      },
+                    ]
+                  : []),
+              ]}
+              onClearAll={() => setView(INITIAL_VIEW)}
+            />
           </div>
-        ) : error ? (
-          <div
-            role="alert"
-            className="p-8 text-center text-status-error border border-status-error bg-status-error-subtle space-y-3"
-          >
-            <p>Failed to load applications: {error.message}</p>
-            <Button variant="secondary" disabled={isFetching} onClick={() => void refetch()}>
-              Retry applications
-            </Button>
-          </div>
-        ) : !applications?.length ? (
-          <div className="p-12 text-center border border-border bg-surface-1">
-            <p className="text-base font-medium mb-2">
-              {hasFilters ? 'No matching applications' : 'No applications yet'}
-            </p>
-            <p className="text-sm text-text-secondary">
-              {hasFilters
-                ? 'Try changing your search, status, source or visibility filters.'
-                : 'Add an application, connect Gmail, or record a submission through your automation. Archived applications are available under Application visibility.'}
-            </p>
-          </div>
-        ) : (
-          <>
-            <p role="status" className="text-sm text-text-secondary">
-              Showing {offset + 1}–{offset + applications.length}
-              {isFetching ? ' · Refreshing…' : ''}
-            </p>
-            <div className="space-y-3">
-              {applications.map((app) => (
-                <ApplicationCard key={app.id} app={app} />
-              ))}
-            </div>
-            {(offset > 0 || nextOffset) && (
-              <Pagination
-                offset={offset}
-                limit={limit}
-                hasNext={!isFetching && !!nextOffset}
-                onPrevious={() => setOffset(Math.max(0, offset - limit))}
-                onNext={() => nextOffset && setOffset(nextOffset)}
-              />
-            )}
-          </>
-        )}
-      </div>
+        }
+        empty={
+          error ? (
+            <SectionError
+              className="my-4"
+              title="Could not load your applications"
+              onRetry={() => void refetch()}
+            />
+          ) : hasFilters ? (
+            <EmptyState
+              title="No matching applications"
+              action={
+                <Button variant="ghost" className="-ml-4" onClick={() => setView(INITIAL_VIEW)}>
+                  Clear all filters
+                </Button>
+              }
+            >
+              Try changing the search, the status or what is shown.
+            </EmptyState>
+          ) : (
+            <EmptyState title="No applications yet">
+              Add one, connect Gmail, or let your automation record what it sends. Submissions
+              waiting for a match are in <Link to="/automation">Automation</Link>.
+            </EmptyState>
+          )
+        }
+        footer={
+          (offset > 0 || !!nextOffset) && (
+            <Pagination
+              offset={offset}
+              limit={limit}
+              summary={`Showing ${offset + 1}–${offset + applications.length}${isFetching ? ' · Refreshing…' : ''}`}
+              hasNext={!isFetching && !!nextOffset}
+              onPrevious={() => setOffset(Math.max(0, offset - limit))}
+              onNext={() => nextOffset && setOffset(nextOffset)}
+            />
+          )
+        }
+      />
     </div>
   );
 }
 
 function ApplicationsPage() {
-  // Keep private discovery state through child detail visits; do not persist it in URLs/storage.
-  const [view, setView] = useState<DiscoveryView>(initialView);
+  const search = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
   const routerState = useRouterState();
   const isExact = routerState.location.pathname === '/applications';
+  const view = viewFromSearch(search);
+  // Remembered so the breadcrumb and the menu return to this exact view.
+  useEffect(() => {
+    if (isExact) rememberListSearch('/applications', search);
+  }, [isExact, search]);
+  // Stable like a state setter, and reading the latest view, so effects that change the view run
+  // once and back-to-back changes add up instead of overwriting each other.
+  const latest = useRef(view);
+  latest.current = view;
+  const setView: Dispatch<SetStateAction<DiscoveryView>> = useCallback(
+    (next) => {
+      const value = typeof next === 'function' ? next(latest.current) : next;
+      latest.current = value;
+      void navigate({ search: searchFromView(value), replace: true });
+    },
+    [navigate],
+  );
   if (!isExact) return <Outlet />;
   return <ApplicationsDashboard view={view} setView={setView} />;
 }
