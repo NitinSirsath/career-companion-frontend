@@ -1,4 +1,6 @@
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
+import { PageHeader } from '../components/layout/PageHeader';
+import { Add, Renew } from '@carbon/icons-react';
 import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 
 import { createFileRoute, Link, Outlet, useRouterState } from '@tanstack/react-router';
@@ -227,27 +229,29 @@ function ApplicationsDashboard({
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border-default pb-4">
-        <div className="space-y-2">
-          <h2 className="text-2xl font-semibold tracking-tight">Applications</h2>
-          <p className="text-sm text-text-secondary">
-            Your recorded applications, from submission through the next steps.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            disabled={isFetching}
-            onClick={() => void refetch()}
-          >
-            {isFetching ? 'Refreshing…' : 'Refresh applications'}
-          </Button>
-          <Button variant="tertiary" size="sm" onClick={() => setShowCreateForm(true)}>
-            Add Application
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        className="mb-0"
+        title="Applications"
+        description="Every job you applied for, where it stands, and what is next."
+        actions={
+          <>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={isFetching ? 'Refreshing…' : 'Refresh applications'}
+              title="Refresh applications"
+              loading={isFetching}
+              onClick={() => void refetch()}
+            >
+              {!isFetching && <Renew size={16} aria-hidden="true" />}
+            </Button>
+            <Button onClick={() => setShowCreateForm(true)}>
+              Add application
+              <Add size={16} aria-hidden="true" />
+            </Button>
+          </>
+        }
+      />
 
       <div className="space-y-4">
         <div className="space-y-2">
