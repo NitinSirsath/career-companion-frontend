@@ -13,7 +13,7 @@ import { RetryAnywayDialog } from '../components/ai/RetryAnywayDialog';
 import { Button } from '../components/ui/button';
 import { z } from 'zod';
 import { useEffect, useState, useSyncExternalStore } from 'react';
-import { ExternalLink } from 'lucide-react';
+import { Launch } from '@carbon/icons-react';
 import { getGmailConversationUrl } from '../utils/gmail';
 import { useDevMode } from '../api/appMode';
 import { gmailConnectionCopy } from '../lib/gmailConnection';
@@ -28,6 +28,7 @@ const gmailSearchSchema = z.object({
 });
 
 import { Pagination } from '../components/ui/pagination';
+import { Select } from '../components/ui/select';
 
 import { TooltipProvider } from '../components/ui/tooltip';
 
@@ -245,7 +246,7 @@ function GmailPage() {
                   <Button onClick={handleConnect}>{connectionCopy.connect}</Button>
                 ) : (
                   <Button
-                    variant="outline"
+                    variant="tertiary"
                     className="text-destructive border-destructive/20 hover:bg-destructive/10"
                     onClick={() => disconnectMutation.mutate()}
                     disabled={disconnectMutation.isPending}
@@ -324,23 +325,23 @@ function GmailPage() {
                   sync, up to 30 days.
                 </p>
               </div>
-              <div>
-                <select
-                  className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  value={statusData.syncLookbackDays || 1}
-                  disabled={syncMutation.isPending || statusData.syncStatus === 'SYNCING'}
-                  onChange={(e) => {
-                    api
-                      .updateGmailSettings({ syncLookbackDays: parseInt(e.target.value, 10) })
-                      .then(() => queryClient.invalidateQueries({ queryKey: ['gmailStatus'] }));
-                  }}
-                >
-                  <option value={1}>1 day (Default)</option>
-                  <option value={7}>7 days</option>
-                  <option value={14}>14 days</option>
-                  <option value={30}>30 days</option>
-                </select>
-              </div>
+              <Select<string>
+                label="Look back"
+                className="w-56"
+                value={String(statusData.syncLookbackDays || 1)}
+                disabled={syncMutation.isPending || statusData.syncStatus === 'SYNCING'}
+                options={[
+                  { value: '1', label: '1 day (default)' },
+                  { value: '7', label: '7 days' },
+                  { value: '14', label: '14 days' },
+                  { value: '30', label: '30 days' },
+                ]}
+                onValueChange={(next) => {
+                  api
+                    .updateGmailSettings({ syncLookbackDays: parseInt(next, 10) })
+                    .then(() => queryClient.invalidateQueries({ queryKey: ['gmailStatus'] }));
+                }}
+              />
             </div>
           </div>
         )}
@@ -447,7 +448,11 @@ function GmailPage() {
                                   aria-label={`Open email "${msg.subject || '(No Subject)'}" in Gmail`}
                                 >
                                   <span className="truncate">{msg.subject || '(No Subject)'}</span>
-                                  <ExternalLink className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
+                                  <Launch
+                                    size={12}
+                                    className="flex-shrink-0 text-muted-foreground"
+                                    aria-hidden="true"
+                                  />
                                 </a>
                               ) : (
                                 <span>{msg.subject || '(No Subject)'}</span>
