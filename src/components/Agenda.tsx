@@ -6,6 +6,7 @@ import type { AgendaItem, AgendaQuery, UpdateAgenda } from '../contracts/agenda'
 import { browserTimeZone } from '../lib/workspace';
 import { resolveTemporal } from '../contracts/temporal';
 import { Button } from './ui/button';
+import { Select } from './ui/select';
 import { Dialog, DialogContent, DialogTitle } from './ui/dialog';
 import { Pagination } from './ui/pagination';
 import { GmailLink } from './ui/GmailLink';
@@ -57,7 +58,7 @@ export function Agenda() {
           </p>
         </div>
         <Button
-          variant="outline"
+          variant="tertiary"
           onClick={() => void client.invalidateQueries({ queryKey: ['agenda'] })}
         >
           Refresh agenda
@@ -75,7 +76,7 @@ export function Agenda() {
         {Object.entries(views).map(([key, label]) => (
           <Button
             key={key}
-            variant={view === key ? 'primary' : 'outline'}
+            variant={view === key ? 'primary' : 'tertiary'}
             aria-pressed={view === key}
             onClick={() => {
               setView(key as AgendaQuery['view']);
@@ -86,21 +87,20 @@ export function Agenda() {
           </Button>
         ))}
       </div>
-      <label className="block text-sm">
-        Application visibility
-        <select
-          className="ml-2 border border-border bg-background p-2"
-          value={archive}
-          onChange={(e) => {
-            setArchive(e.target.value as typeof archive);
-            setOffset(0);
-          }}
-        >
-          <option value="active">Active</option>
-          <option value="archived">Archived</option>
-          <option value="all">All</option>
-        </select>
-      </label>
+      <Select<typeof archive>
+        label="Application visibility"
+        className="max-w-xs"
+        value={archive}
+        options={[
+          { value: 'active', label: 'Active' },
+          { value: 'archived', label: 'Archived' },
+          { value: 'all', label: 'All' },
+        ]}
+        onValueChange={(next) => {
+          setArchive(next);
+          setOffset(0);
+        }}
+      />
       {view === 'history' && (
         <p className="text-sm">
           History is ordered by when suggestions were recorded, including retired links.
@@ -166,7 +166,7 @@ export function Agenda() {
                   <p className="text-sm">Archived application; restore it before editing.</p>
                 )}
                 {!item.retiredAt && !item.applicationArchived && (
-                  <Button size="sm" variant="outline" onClick={() => setSelected(item)}>
+                  <Button size="sm" variant="tertiary" onClick={() => setSelected(item)}>
                     Review / edit
                   </Button>
                 )}
@@ -283,21 +283,21 @@ function AgendaEditor({ item, close }: { item: AgendaItem; close: () => void }) 
               onChange={(e) => setZone(e.target.value)}
             />
           </label>
-          <label className="block text-sm">
-            Item state
-            <select
-              className="block border border-border bg-background p-2 w-full"
-              value={state}
-              onChange={(e) => setState(e.target.value as typeof state)}
-            >
-              <option value="CONFIRMED">Confirmed</option>
-              <option value="CANCELLED">Cancelled</option>
-              {item.state !== 'TENTATIVE' && <option value="COMPLETED">Completed</option>}
-            </select>
-          </label>
+          <Select<typeof state>
+            label="Item state"
+            value={state}
+            options={[
+              { value: 'CONFIRMED', label: 'Confirmed' },
+              { value: 'CANCELLED', label: 'Cancelled' },
+              ...(item.state !== 'TENTATIVE'
+                ? [{ value: 'COMPLETED' as const, label: 'Completed' }]
+                : []),
+            ]}
+            onValueChange={setState}
+          />
           {error && <p role="alert">{error}</p>}
           <div className="flex flex-wrap gap-3 justify-end">
-            <Button type="button" variant="outline" disabled={pending} onClick={close}>
+            <Button type="button" variant="tertiary" disabled={pending} onClick={close}>
               Close
             </Button>
             <Button type="submit" disabled={pending || settledFailure}>
