@@ -4,9 +4,13 @@ import { RouteErrorPage } from '../components/errors/RouteErrorPage';
 import { JobMailPanel } from '../components/mails/JobMailPanel';
 import { MailThreadView } from '../components/mails/MailThreadView';
 import { MailTitle } from '../components/mails/MailTitle';
+import { Breadcrumb } from '../components/layout/PageHeader';
+import { MailType } from '../components/mails/MailType';
+import { SectionError } from '../components/ui/section-error';
+import { SkeletonList } from '../components/ui/skeleton';
 import { Tag } from '../components/ui/tag';
-import { Button } from '../components/ui/button';
-import { CATEGORY_LABEL, companyAndRole } from '../lib/mails';
+import { listSearch } from '../lib/listMemory';
+import { companyAndRole, type MailsSearch } from '../lib/mails';
 
 export const Route = createFileRoute('/mails/$key')({
   errorComponent: RouteErrorPage,
@@ -21,34 +25,37 @@ function JobMailPage() {
   useMarkSeenOnOpen(conversation);
   const summary = conversation && companyAndRole(conversation);
 
+  const breadcrumb = (
+    <Breadcrumb current={conversation?.company ?? undefined}>
+      <Link to="/mails" search={listSearch<MailsSearch>('/mails')}>
+        Mails
+      </Link>
+    </Breadcrumb>
+  );
+
   return (
     <div className="space-y-6">
-      <Link to="/mails" className="inline-block text-sm font-medium underline">
-        Back to Mails
-      </Link>
       {isLoading && (
-        <p role="status" className="text-sm text-text-secondary">
-          Loading this mail…
-        </p>
+        <>
+          {breadcrumb}
+          <SkeletonList rows={4} label="Loading this mail" />
+        </>
       )}
       {error && (
-        <div role="alert" className="flex flex-wrap items-center gap-3 text-sm">
-          <span>Could not load this mail: {error.message}</span>
-          <Button variant="tertiary" size="sm" onClick={() => void refetch()}>
-            Try again
-          </Button>
-        </div>
+        <>
+          {breadcrumb}
+          <SectionError title="Could not load this mail" onRetry={() => void refetch()} />
+        </>
       )}
       {data && conversation && (
         <>
           <MailTitle
             title={conversation.subject || '(No subject)'}
             threadId={conversation.threadId}
+            breadcrumb={breadcrumb}
           >
             {summary && <span>{summary}</span>}
-            {conversation.category && (
-              <Tag color="outline">{CATEGORY_LABEL[conversation.category]}</Tag>
-            )}
+            {conversation.category && <MailType category={conversation.category} />}
             {conversation.isNew && <Tag color="blue">New</Tag>}
           </MailTitle>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
