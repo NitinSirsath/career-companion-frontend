@@ -14,7 +14,7 @@ import { startProcessingRefresh } from '../../lib/processingRefresh';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { NativeSelect } from '../ui/native-select';
+import { Select } from '../ui/select';
 
 type Problem = { text: string; link?: { label: string; href: string } };
 
@@ -208,23 +208,23 @@ export function ProviderSetupForm({
           <summary className="cursor-pointer text-sm">Advanced: choose tested models</summary>
           <div className="grid gap-3 md:grid-cols-2 mt-3">
             {(['fast', 'detailed'] as const).map((role) => (
-              <div key={role} className="space-y-1">
-                <Label htmlFor={`ai-model-${role}`}>{ROLE_LABELS[role]}</Label>
-                <NativeSelect
-                  id={`ai-model-${role}`}
-                  value={models[role]}
-                  onChange={(e) => setModels((current) => ({ ...current, [role]: e.target.value }))}
-                >
-                  <option value="">
-                    Recommended ({recommendedModel(provider, role).displayName})
-                  </option>
-                  {modelsForRole(provider, role).map((model) => (
-                    <option key={model.id} value={model.id}>
-                      {model.displayName}
-                    </option>
-                  ))}
-                </NativeSelect>
-              </div>
+              <Select<string>
+                key={role}
+                id={`ai-model-${role}`}
+                label={ROLE_LABELS[role]}
+                value={models[role]}
+                options={[
+                  {
+                    value: '',
+                    label: `Recommended (${recommendedModel(provider, role).displayName})`,
+                  },
+                  ...modelsForRole(provider, role).map((model) => ({
+                    value: model.id,
+                    label: model.displayName,
+                  })),
+                ]}
+                onValueChange={(next) => setModels((current) => ({ ...current, [role]: next }))}
+              />
             ))}
           </div>
         </details>
