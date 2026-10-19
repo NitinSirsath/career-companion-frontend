@@ -23,6 +23,7 @@ vi.mock('../api/client', async (importOriginal) => {
 });
 
 import { routeTree } from '../routeTree.gen';
+import { chooseOption } from './choose';
 
 const KEY = 'AIza-SENTINEL-test-key-0123456789';
 const MOCK_USER = { id: 'u', email: 'test@test.local', name: 'Test' };
@@ -332,9 +333,10 @@ describe('AI provider page: status and actions', () => {
       'Leave blank to keep the saved key',
     );
     expect(screen.queryByLabelText(/I understand that these details/)).not.toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText('Fast screening'), {
-      target: { value: 'gemini-2.5-flash' },
-    });
+    await chooseOption(
+      screen.getByRole('combobox', { name: 'Fast screening' }),
+      'Gemini 2.5 Flash',
+    );
     fireEvent.click(screen.getByRole('button', { name: 'Save and verify' }));
     await waitFor(() =>
       expect(api.saveAISettings).toHaveBeenCalledWith({
@@ -348,11 +350,12 @@ describe('AI provider page: status and actions', () => {
     vi.mocked(api.getAISettings).mockResolvedValue(ready);
     renderPage();
     fireEvent.click(await screen.findByRole('button', { name: 'Change models or key' }));
-    const detailed = screen.getByLabelText('Detailed analysis') as HTMLSelectElement;
-    expect([...detailed.options].map((o) => o.value)).toEqual([
-      '',
-      'gemini-2.5-flash',
-      'gemini-3.8-flash',
+    fireEvent.click(screen.getByRole('combobox', { name: 'Detailed analysis' }));
+    const options = await screen.findAllByRole('option');
+    expect(options.map((o) => o.textContent)).toEqual([
+      expect.stringMatching(/^Recommended \(/),
+      'Gemini 2.5 Flash',
+      'Gemini 3.8 Flash',
     ]);
   });
 
