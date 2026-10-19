@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import type { Conversation } from '../../contracts/conversation';
 import { CATEGORY_LABEL, conversationSummary, mailDate } from '../../lib/mails';
-import { Badge } from '../ui/badge';
+import { Tag } from '../ui/tag';
 import { ConversationAction } from './ConversationAction';
 import { ConversationApplication } from './ConversationApplication';
 
@@ -62,7 +62,7 @@ function ConversationRow({
     <tr className="block xl:table-row py-2 xl:py-0 border-b border-border-subtle last:border-b-0">
       <td className={cellClass}>
         <div className="flex flex-wrap items-center gap-2">
-          {conversation.isNew && <Badge variant="info">New</Badge>}
+          {conversation.isNew && <Tag color="blue">New</Tag>}
           <Link
             to="/mails/$key"
             params={{ key: conversation.key }}
@@ -77,7 +77,7 @@ function ConversationRow({
       </td>
       <td className={cellClass}>
         {conversation.category && (
-          <Badge variant="outline">{CATEGORY_LABEL[conversation.category]}</Badge>
+          <Tag color="outline">{CATEGORY_LABEL[conversation.category]}</Tag>
         )}
       </td>
       <td className={cellClass}>
