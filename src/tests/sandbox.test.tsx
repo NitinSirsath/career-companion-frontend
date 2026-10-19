@@ -167,16 +167,16 @@ describe('sandbox wording', () => {
   it('marks a conversation by its unsynced mail first', () => {
     expect(threadMark({ notSynced: 1, state: 'JOB_MAIL' })).toEqual({
       label: '1 not synced',
-      variant: 'warning',
+      color: 'yellow',
     });
     expect(threadMark({ notSynced: 1, state: 'NOT_SYNCED' }).label).toBe('Not synced yet');
     expect(threadMark({ notSynced: 0, state: 'JOB_MAIL' })).toEqual({
       label: 'Job mail',
-      variant: 'success',
+      color: 'green',
     });
     expect(threadMark({ notSynced: 0, state: 'AI_KEY_MISSING' })).toEqual({
       label: 'Not read: AI key is not set up',
-      variant: 'destructive',
+      color: 'red',
     });
   });
 
