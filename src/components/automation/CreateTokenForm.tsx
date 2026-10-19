@@ -5,7 +5,7 @@ import { INTEGRATION_TOKEN_DEFAULT_EXPIRY_DAYS } from '../../contracts/integrati
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { NativeSelect } from '../ui/native-select';
+import { Select } from '../ui/select';
 
 const EXPIRY_OPTIONS = [30, 90, 180, 365];
 
@@ -130,20 +130,13 @@ export function CreateTokenForm() {
             onChange={(e) => setName(e.target.value)}
           />
         </div>
-        <div className="space-y-1">
-          <Label htmlFor="token-expiry">Expires after</Label>
-          <NativeSelect
-            id="token-expiry"
-            value={days}
-            onChange={(e) => setDays(Number(e.target.value))}
-          >
-            {EXPIRY_OPTIONS.map((d) => (
-              <option key={d} value={d}>
-                {d} days
-              </option>
-            ))}
-          </NativeSelect>
-        </div>
+        <Select<string>
+          id="token-expiry"
+          label="Expires after"
+          value={String(days)}
+          options={EXPIRY_OPTIONS.map((d) => ({ value: String(d), label: `${d} days` }))}
+          onValueChange={(next) => setDays(Number(next))}
+        />
       </div>
       {problem && (
         <p role="alert" className="text-sm text-status-error">
