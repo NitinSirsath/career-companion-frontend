@@ -18,7 +18,7 @@ https://github.com/NitinSirsath/career-companion-docs/blob/main/docs/engineering
 - Routes (`src/routes/`): define the route and compose components. Logic goes into hooks and `src/lib/`.
 - Data: never type a cache key by hand in a component. Use or add a key helper like `applicationKey()` in `lib/applicationCache.ts`.
 - Decisions (labels, statuses, dates) are plain functions in `src/lib/` with unit tests, not logic inside JSX. Copy `lib/statusLabels.ts`.
-- UI: use the parts in `src/components/ui/` (Button, Badge, NativeSelect, Dialog, Input), not raw elements.
+- UI: use the parts in `src/components/ui/` (Button, Tag, Select, Combobox, OverflowMenu, Tabs, Dialog, Input, InlineNotification, Skeleton, EmptyState), not raw elements. Status colours come from `lib/statusTags.ts`; icons from `@carbon/icons-react`.
 - Forms: react-hook-form with `zodResolver` and the contract schema. Copy the create-application form in `routes/applications.tsx`.
 - Contracts: never edit `src/contracts/` by hand. Run `npm run sync-contracts`.
 - Build only what the ticket needs. One home per rule or constant. No nested ternaries, no `any`. Comments say why; no ticket IDs in code.
