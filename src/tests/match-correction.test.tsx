@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ApiError, api } from '../api/client';
 import { MatchCorrectionDialog } from '../components/MatchCorrectionDialog';
 import { makeApplication } from './fixtures';
+import { pressOption } from './choose';
 vi.mock('../api/client', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../api/client')>()),
   api: { listApplications: vi.fn(), correctEmailMatch: vi.fn() },
@@ -33,6 +34,8 @@ beforeEach(() => {
   });
 });
 afterEach(cleanup);
+const openList = async () =>
+  fireEvent.click(await screen.findByRole('button', { name: 'Open Application' }));
 function show(matchState: 'MATCHED' | 'IGNORED' = 'MATCHED') {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const invalidate = vi.spyOn(client, 'invalidateQueries');
@@ -50,12 +53,14 @@ function show(matchState: 'MATCHED' | 'IGNORED' = 'MATCHED') {
 }
 it.each([b, 'unlink'])('sends one explicit move/unlink with expected state: %s', async (target) => {
   const invalidate = show();
+  await openList();
   await screen.findByRole('option', { name: /Target/ });
   expect(screen.queryByRole('option', { name: /Current/ })).not.toBeInTheDocument();
-  const select = screen.getByRole('combobox', { name: 'Application' });
-  select.focus();
-  expect(select).toHaveFocus();
-  fireEvent.change(select, { target: { value: target } });
+  pressOption(
+    screen.getByRole('option', {
+      name: target === 'unlink' ? 'Not linked to any application' : /Target/,
+    }),
+  );
   fireEvent.click(screen.getByRole('button', { name: 'Save link' }));
   await waitFor(() =>
     expect(api.correctEmailMatch).toHaveBeenCalledWith(emailId, {
@@ -75,8 +80,8 @@ it.each([
 ])('refetches a conflict or uncertain response without resending', async (error) => {
   vi.mocked(api.correctEmailMatch).mockRejectedValue(error);
   const invalidate = show();
-  await screen.findByRole('option', { name: /Target/ });
-  fireEvent.change(screen.getByRole('combobox'), { target: { value: b } });
+  await openList();
+  pressOption(await screen.findByRole('option', { name: /Target/ }));
   fireEvent.click(screen.getByRole('button', { name: 'Save link' }));
   expect(await screen.findByRole('alert')).toHaveTextContent(/changed|could not be confirmed/);
   expect(screen.getByRole('button', { name: 'Save link' })).toBeDisabled();
@@ -90,10 +95,15 @@ it('paginates owned choices and does not offer unlink for ignored mail', async (
   });
   show('IGNORED');
   await waitFor(() => expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled());
+  await openList();
+  expect(await screen.findByText('No application matches')).toBeInTheDocument();
   expect(
     screen.queryByRole('option', { name: 'Not linked to any application' }),
   ).not.toBeInTheDocument();
+  fireEvent.keyDown(document.activeElement!, { key: 'Escape' });
+  await waitFor(() => expect(screen.queryByRole('listbox')).not.toBeInTheDocument());
   fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+  await openList();
   await screen.findByRole('option', { name: /Target/ });
   expect(api.listApplications).toHaveBeenLastCalledWith(
     { offset: 20, limit: 20 },
