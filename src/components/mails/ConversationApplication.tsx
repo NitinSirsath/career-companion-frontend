@@ -18,17 +18,22 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 
-/** The conversation's application, or the one-click way to give it one. */
-export function ConversationApplication({ conversation }: { conversation: Conversation }) {
+/**
+ * The conversation's application, or the one-click way to give it one. In a table row ("cell")
+ * the way to create one is a quiet link; on a mail's page it is a full button.
+ */
+export function ConversationApplication({
+  conversation,
+  appearance = 'panel',
+}: {
+  conversation: Conversation;
+  appearance?: 'cell' | 'panel';
+}) {
   const { application } = conversation;
   if (application)
     return (
-      <div className="space-y-1">
-        <Link
-          to="/applications/$id"
-          params={{ id: application.id }}
-          className="text-sm font-semibold text-action-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
-        >
+      <div className="flex flex-col items-start gap-1">
+        <Link to="/applications/$id" params={{ id: application.id }} className="text-link">
           {application.companyName}
         </Link>
         {application.jobTitle && (
@@ -43,10 +48,16 @@ export function ConversationApplication({ conversation }: { conversation: Conver
   // The user said earlier that this mail belongs to no application.
   if (conversation.link === 'IGNORED')
     return <p className="text-sm text-text-secondary">No application</p>;
-  return <CreateApplication conversation={conversation} />;
+  return <CreateApplication conversation={conversation} appearance={appearance} />;
 }
 
-function CreateApplication({ conversation }: { conversation: Conversation }) {
+function CreateApplication({
+  conversation,
+  appearance,
+}: {
+  conversation: Conversation;
+  appearance: 'cell' | 'panel';
+}) {
   const link = useLinkConversation(conversation.key);
   const [problem, setProblem] = useState<LinkProblem | null>(null);
   const send = (body: LinkConversation) =>
@@ -72,12 +83,21 @@ function CreateApplication({ conversation }: { conversation: Conversation }) {
         onChoose={(applicationId) => send({ applicationId })}
       />
     );
+  const cell = appearance === 'cell';
   return (
-    <div className="space-y-2">
-      <Button disabled={busy} onClick={() => send({})}>
+    <div className="flex flex-col items-start gap-1">
+      {cell && <span className="text-text-secondary">Not linked</span>}
+      <Button
+        variant={cell ? 'ghost' : 'primary'}
+        size={cell ? 'sm' : 'default'}
+        className={cell ? '-ml-3' : undefined}
+        loading={link.isPending}
+        disabled={busy}
+        onClick={() => send({})}
+      >
         {conversation.link === 'NEEDS_REVIEW' ? 'Choose application' : 'Create application'}
       </Button>
-      {filled && <p className="text-xs text-text-secondary break-words">{filled}</p>}
+      {filled && !cell && <p className="text-xs text-text-secondary break-words">{filled}</p>}
       {problem && (
         <p role="alert" className="text-xs text-status-error">
           {problem.text}
