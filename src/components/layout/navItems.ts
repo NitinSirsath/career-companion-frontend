@@ -8,6 +8,7 @@ import {
   Renew,
   type CarbonIconType,
 } from '@carbon/icons-react';
+import { listSearch } from '../../lib/listMemory';
 
 export interface NavItem {
   to: '/mails' | '/applications' | '/dashboard' | '/gmail' | '/ai' | '/automation' | '/sandbox';
@@ -29,6 +30,11 @@ export const SETTINGS_NAV: readonly NavItem[] = [
   { to: '/ai', label: 'AI provider', icon: MachineLearningModel },
   { to: '/automation', label: 'Automation', icon: Flow },
 ];
+
+/** A list page returns to its last filters and page when opened from the menu. */
+export function rememberedSearch(to: NavItem['to']): Record<string, unknown> | undefined {
+  return to === '/mails' || to === '/applications' ? listSearch(to) : undefined;
+}
 
 /** Dev mode only. */
 export const SANDBOX_NAV: NavItem = { to: '/sandbox', label: 'Mail sandbox', icon: Chemistry };
