@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router';
+import { PageHeader } from '../layout/PageHeader';
 import type { ReactNode } from 'react';
 import { useAppMode } from '../../api/appMode';
 import { useSandboxThreads } from '../../api/sandbox';
@@ -18,15 +19,12 @@ function SandboxFrame({ active, children }: { active: SandboxSection; children: 
   const { data } = useSandboxThreads('inbox', null);
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-semibold tracking-tight">Mail sandbox</h1>
-          <p className="text-sm text-text-secondary">
-            {data ? `Mailbox of ${data.mailbox}. ` : ''}A mail waits here until you sync.
-          </p>
-        </div>
-        <SandboxSyncBar notSynced={data?.notSyncedTotal ?? 0} />
-      </div>
+      <PageHeader
+        className="mb-0"
+        title="Mail sandbox"
+        description={`${data ? `Mailbox of ${data.mailbox}. ` : ''}A mail waits here until you sync.`}
+        actions={<SandboxSyncBar notSynced={data?.notSyncedTotal ?? 0} />}
+      />
       <SandboxAiKeyAlert />
       <div className="flex flex-col gap-6 md:flex-row md:items-start">
         <nav aria-label="Mailbox" className="flex shrink-0 flex-col gap-1 md:w-40">
