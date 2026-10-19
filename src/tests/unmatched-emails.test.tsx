@@ -7,6 +7,7 @@ import { api } from '../api/client';
 import { makeApplication } from './fixtures';
 import { UnmatchedEmailsSection } from '../components/dashboard/UnmatchedEmailsSection';
 import { ApplicationResponse } from '../contracts/application';
+import { chooseFromCombobox } from './choose';
 
 /** The list is part of the old dashboard: kept in the repo, shown on no page. */
 function renderWithProviders(queryClient: QueryClient) {
@@ -110,7 +111,8 @@ describe('Unmatched Emails (COM-36)', () => {
     expect(gmailLink).toHaveAttribute('href', expect.stringContaining('thread-123'));
 
     // Candidate applications render
-    expect(screen.getByRole('option', { name: /Acme Corp/ })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Open Select application to link' }));
+    expect(await screen.findByRole('option', { name: /Acme Corp/ })).toBeInTheDocument();
 
     // Ignore button should NOT render for unmatched emails
     expect(screen.queryByRole('button', { name: /Not related/i })).not.toBeInTheDocument();
@@ -137,10 +139,8 @@ describe('Unmatched Emails (COM-36)', () => {
 
     renderWithProviders(queryClient);
 
-    const selectDropdown = await screen.findByRole('combobox', {
-      name: /Select application to link/i,
-    });
-    fireEvent.change(selectDropdown, { target: { value: 'app-1' } });
+    await screen.findByRole('combobox', { name: /Select application to link/i });
+    await chooseFromCombobox('Select application to link', /Acme Corp/);
 
     await waitFor(() => {
       expect(api.resolveUnmatchedEmail).toHaveBeenCalledWith('email-1', { applicationId: 'app-1' });
