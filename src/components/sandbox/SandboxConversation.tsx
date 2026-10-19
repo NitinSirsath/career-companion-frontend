@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router';
+import { Breadcrumb } from '../layout/PageHeader';
 import { useSandboxThread } from '../../api/sandbox';
 import { isApiError } from '../../api/client';
 import { mailCounts, parseSender } from '../../lib/mails';
@@ -15,9 +16,9 @@ export function SandboxConversation({ threadId }: { threadId: string }) {
 
   return (
     <div className="space-y-4">
-      <Link to="/sandbox" className="inline-block text-sm font-medium underline">
-        Back to Inbox
-      </Link>
+      <Breadcrumb>
+        <Link to="/sandbox">Inbox</Link>
+      </Breadcrumb>
       {isLoading && (
         <p role="status" className="text-sm text-text-secondary">
           Reading the conversation…
