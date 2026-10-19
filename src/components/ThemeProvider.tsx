@@ -1,81 +1,64 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-
-export type Theme = 'light' | 'dark' | 'grey' | 'github' | 'monokai';
+import { parseStoredTheme, resolveTheme, type ResolvedTheme, type ThemeChoice } from '../lib/theme';
 
 interface ThemeProviderProps {
   children: React.ReactNode;
-  defaultTheme?: Theme;
   storageKey?: string;
 }
 
 interface ThemeProviderState {
-  theme: Theme;
-  setTheme: (theme: Theme) => void;
+  theme: ThemeChoice;
+  resolvedTheme: ResolvedTheme;
+  setTheme: (theme: ThemeChoice) => void;
 }
 
-const initialState: ThemeProviderState = {
-  theme: 'light',
-  setTheme: () => null,
-};
+// Outside a provider (as in tests) the app shows the light theme and ignores changes.
+const ThemeProviderContext = createContext<ThemeProviderState>({
+  theme: 'system',
+  resolvedTheme: 'light',
+  setTheme: () => undefined,
+});
 
-const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
+const DARK_QUERY = '(prefers-color-scheme: dark)';
 
-export function ThemeProvider({
-  children,
-  defaultTheme = 'light',
-  storageKey = 'vite-ui-theme',
-  ...props
-}: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    const storedTheme = localStorage.getItem(storageKey) as Theme;
-    const validThemes: Theme[] = ['light', 'dark', 'grey', 'github', 'monokai'];
-    if (validThemes.includes(storedTheme)) {
-      return storedTheme;
-    }
-    return defaultTheme;
-  });
+function systemPrefersDark(): boolean {
+  return typeof window.matchMedia === 'function' && window.matchMedia(DARK_QUERY).matches;
+}
+
+export function ThemeProvider({ children, storageKey = 'vite-ui-theme' }: ThemeProviderProps) {
+  const [theme, setThemeState] = useState<ThemeChoice>(() =>
+    parseStoredTheme(localStorage.getItem(storageKey)),
+  );
+  const [prefersDark, setPrefersDark] = useState(systemPrefersDark);
+  const resolvedTheme = resolveTheme(theme, prefersDark);
+
+  // "System" follows the computer while the app is open, not only at start.
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return;
+    const query = window.matchMedia(DARK_QUERY);
+    const onChange = () => setPrefersDark(query.matches);
+    query.addEventListener('change', onChange);
+    return () => query.removeEventListener('change', onChange);
+  }, []);
 
   useEffect(() => {
     const root = window.document.documentElement;
-
-    // Remove all theme classes
-    root.classList.remove(
-      'theme-light',
-      'theme-dark',
-      'theme-grey',
-      'theme-github',
-      'theme-monokai',
-      'dark',
-    );
-
-    // Add the selected theme class
-    root.classList.add(`theme-${theme}`);
-
-    // For some legacy mapping that still might check .dark
-    if (theme === 'dark' || theme === 'github' || theme === 'monokai') {
-      root.classList.add('dark');
-    }
-  }, [theme]);
+    root.classList.remove('theme-light', 'theme-white', 'theme-dark', 'dark');
+    root.classList.add(`theme-${resolvedTheme}`);
+    if (resolvedTheme === 'dark') root.classList.add('dark');
+    root.style.colorScheme = resolvedTheme === 'dark' ? 'dark' : 'light';
+  }, [resolvedTheme]);
 
   const value = {
     theme,
-    setTheme: (theme: Theme) => {
-      localStorage.setItem(storageKey, theme);
-      setTheme(theme);
+    resolvedTheme,
+    setTheme: (next: ThemeChoice) => {
+      localStorage.setItem(storageKey, next);
+      setThemeState(next);
     },
   };
 
-  return (
-    <ThemeProviderContext.Provider {...props} value={value}>
-      {children}
-    </ThemeProviderContext.Provider>
-  );
+  return <ThemeProviderContext.Provider value={value}>{children}</ThemeProviderContext.Provider>;
 }
 
-export const useTheme = () => {
-  const context = useContext(ThemeProviderContext);
-
-  if (context === undefined) throw new Error('useTheme must be used within a ThemeProvider');
-
-  return context;
-};
+export const useTheme = () => useContext(ThemeProviderContext);
