@@ -49,12 +49,6 @@ export const REQUEST_STATE_LABEL: Record<RequestState, string> = {
   DONE: 'Done',
 };
 
-export const REQUEST_STATE_VARIANT: Record<RequestState, 'warning' | 'info' | 'success'> = {
-  OPEN: 'warning',
-  REPLIED: 'info',
-  DONE: 'success',
-};
-
 export const ACTION_FILTERS = [
   { value: 'open', label: REQUEST_STATE_LABEL.OPEN },
   { value: 'replied', label: REQUEST_STATE_LABEL.REPLIED },
