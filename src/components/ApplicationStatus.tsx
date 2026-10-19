@@ -1,25 +1,13 @@
 import { format } from 'date-fns';
-import { Badge } from './ui/badge';
+import { Tag } from './ui/tag';
 import type { ApplicationResponse, ApplicationStatus } from '../contracts/application';
 import { STATUS_LABEL } from '../lib/statusLabels';
-
-const VARIANT: Record<
-  ApplicationStatus,
-  'secondary' | 'info' | 'warning' | 'success' | 'destructive' | 'outline'
-> = {
-  APPLIED: 'secondary',
-  RECRUITER_CONTACT: 'info',
-  ASSESSMENT: 'warning',
-  INTERVIEW: 'info',
-  OFFER: 'success',
-  REJECTED: 'destructive',
-  CLOSED: 'outline',
-};
+import { applicationTag, statusTag } from '../lib/statusTags';
 
 /** A valid null status is shown as a neutral unknown, never defaulted to Applied. */
 export function StatusBadge({ status }: { status: ApplicationStatus | null }) {
-  if (!status) return <Badge variant="outline">Status unknown</Badge>;
-  return <Badge variant={VARIANT[status]}>{STATUS_LABEL[status]}</Badge>;
+  const tag = statusTag(status);
+  return <Tag color={tag.color}>{tag.label}</Tag>;
 }
 
 const SOURCE_LABEL = {
@@ -29,9 +17,9 @@ const SOURCE_LABEL = {
 } as const;
 
 /**
- * Effective status with provenance, shared by list and detail. The 'Applied · via automation'
- * badge appears only without user/AI status (ADR-0002 decision 8). Once status exists, it wins
- * the badge while a separate source label retains the submission fact.
+ * Effective status with provenance, shared by list and detail. The "Sent by automation" tag
+ * appears only without user/AI status (ADR-0002 decision 8). Once status exists, it wins the tag
+ * while a separate source label retains the submission fact.
  */
 export function EffectiveStatus({
   app,
@@ -41,13 +29,10 @@ export function EffectiveStatus({
   detailed?: boolean;
 }) {
   const viaAutomation = app.statusSource === 'UNKNOWN' && app.submittedVia === 'AUTOMATION';
+  const tag = applicationTag(app);
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {viaAutomation ? (
-        <Badge variant="secondary">Application Submitted</Badge>
-      ) : (
-        <StatusBadge status={app.effectiveStatus} />
-      )}
+      <Tag color={tag.color}>{tag.label}</Tag>
       <span className="text-xs text-text-secondary">
         {viaAutomation ? 'Reported by your automation' : SOURCE_LABEL[app.statusSource]}
       </span>
