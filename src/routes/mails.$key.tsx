@@ -4,7 +4,7 @@ import { RouteErrorPage } from '../components/errors/RouteErrorPage';
 import { JobMailPanel } from '../components/mails/JobMailPanel';
 import { MailThreadView } from '../components/mails/MailThreadView';
 import { MailTitle } from '../components/mails/MailTitle';
-import { Badge } from '../components/ui/badge';
+import { Tag } from '../components/ui/tag';
 import { Button } from '../components/ui/button';
 import { CATEGORY_LABEL, companyAndRole } from '../lib/mails';
 
@@ -47,9 +47,9 @@ function JobMailPage() {
           >
             {summary && <span>{summary}</span>}
             {conversation.category && (
-              <Badge variant="outline">{CATEGORY_LABEL[conversation.category]}</Badge>
+              <Tag color="outline">{CATEGORY_LABEL[conversation.category]}</Tag>
             )}
-            {conversation.isNew && <Badge variant="info">New</Badge>}
+            {conversation.isNew && <Tag color="blue">New</Tag>}
           </MailTitle>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
             <div className="lg:col-span-2 min-w-0">
