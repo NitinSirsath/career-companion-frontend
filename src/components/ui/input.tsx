@@ -1,22 +1,25 @@
 import * as React from 'react';
 import { cn } from '../../lib/utils';
 
-export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
+export type InputProps = React.InputHTMLAttributes<HTMLInputElement>;
 
+export const FIELD_CLASS =
+  'w-full border-0 border-b border-border-strong bg-field text-sm text-text-primary transition-colors duration-70 ease-standard placeholder:text-text-tertiary focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-border-focus aria-invalid:outline-2 aria-invalid:-outline-offset-2 aria-invalid:outline-danger-text disabled:cursor-not-allowed disabled:border-transparent disabled:text-text-disabled';
+
+/** IBM Carbon text field: a filled box with a line under it. */
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, ...props }, ref) => {
-    return (
-      <input
-        type={type}
-        className={cn(
-          'flex h-10 w-full rounded-none border border-border-default bg-surface px-3 py-2 text-sm text-text-primary transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:border-transparent disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-surface-disabled',
-          className,
-        )}
-        ref={ref}
-        {...props}
-      />
-    );
-  },
+  ({ className, type, ...props }, ref) => (
+    <input
+      type={type}
+      ref={ref}
+      className={cn(
+        FIELD_CLASS,
+        'flex h-10 px-4 file:border-0 file:bg-transparent file:text-sm',
+        className,
+      )}
+      {...props}
+    />
+  ),
 );
 Input.displayName = 'Input';
 
