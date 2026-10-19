@@ -4,7 +4,7 @@ import { useSandboxThreads } from '../../api/sandbox';
 import type { SandboxFolder, SandboxThread } from '../../contracts/sandbox';
 import { mailDate, parseSender } from '../../lib/mails';
 import { sandboxProblem, threadMark } from '../../lib/sandbox';
-import { Badge } from '../ui/badge';
+import { Tag } from '../ui/tag';
 import { Button } from '../ui/button';
 
 function ThreadRow({ thread, folder }: { thread: SandboxThread; folder: SandboxFolder }) {
@@ -27,9 +27,9 @@ function ThreadRow({ thread, folder }: { thread: SandboxThread; folder: SandboxF
         {thread.subject || '(No subject)'}
         <span className="text-text-secondary"> · {thread.snippet}</span>
       </span>
-      <Badge variant={mark.variant} className="self-start whitespace-nowrap xl:self-auto">
+      <Tag color={mark.color} className="self-start whitespace-nowrap xl:self-auto">
         {mark.label}
-      </Badge>
+      </Tag>
       <span className="shrink-0 text-text-secondary xl:w-28 xl:text-right">
         {mailDate(thread.date)}
       </span>
