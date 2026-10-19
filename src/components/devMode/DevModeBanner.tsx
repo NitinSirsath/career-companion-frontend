@@ -6,9 +6,9 @@ export function DevModeBanner() {
   return (
     <div
       role="status"
-      className="border-b border-status-warning bg-status-warning-subtle px-4 py-2 text-center text-sm font-semibold text-status-warning"
+      className="flex min-h-8 items-center justify-center bg-tag-yellow-bg px-4 text-center text-xs tracking-[0.32px] text-tag-yellow"
     >
-      DEV MODE · Gmail is the mail sandbox. No real mail.
+      Dev mode · Gmail is the mail sandbox. No real mail is sent.
     </div>
   );
 }
