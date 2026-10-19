@@ -128,8 +128,8 @@ describe('Applications Dashboard (/applications)', () => {
     const btn = await screen.findByRole('button', { name: /add application/i });
     fireEvent.click(btn);
 
-    expect(await screen.findByText(/track new application/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/company name/i)).toBeInTheDocument();
+    expect(await screen.findByRole('dialog', { name: 'Add application' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Company')).toBeInTheDocument();
   });
 
   it('hides the create form again when "Cancel" is clicked', async () => {
@@ -145,13 +145,13 @@ describe('Applications Dashboard (/applications)', () => {
     fireEvent.click(addBtn);
 
     // Verify open
-    expect(await screen.findByText(/track new application/i)).toBeInTheDocument();
+    expect(await screen.findByRole('dialog', { name: 'Add application' })).toBeInTheDocument();
 
     // Close form
     const cancelBtn = screen.getByRole('button', { name: /cancel/i });
     fireEvent.click(cancelBtn);
 
-    expect(screen.queryByText(/track new application/i)).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
 
   // ─── Existing dashboard tests ──────────────────────────────────────────────
@@ -181,7 +181,7 @@ describe('Applications Dashboard (/applications)', () => {
 
     renderWithProviders(queryClient, '/applications');
 
-    expect(await screen.findByText(/failed to load applications/i)).toBeInTheDocument();
+    expect(await screen.findByText(/could not load your applications/i)).toBeInTheDocument();
   });
 
   it('renders application cards with company and role', async () => {
@@ -193,7 +193,7 @@ describe('Applications Dashboard (/applications)', () => {
     renderWithProviders(queryClient, '/applications');
 
     expect(await screen.findByText('Acme Corp')).toBeInTheDocument();
-    expect(screen.getByText('Senior Engineer')).toBeInTheDocument();
+    expect(screen.getByText(/Senior Engineer/)).toBeInTheDocument();
   });
 
   it('shows the user status over a disagreeing AI status (canonical precedence)', async () => {
@@ -205,8 +205,9 @@ describe('Applications Dashboard (/applications)', () => {
     renderWithProviders(queryClient, '/applications');
 
     expect(await screen.findByText('Applied', { selector: 'span' })).toBeInTheDocument();
-    expect(screen.getByText('Set by you')).toBeInTheDocument();
-    expect(screen.getByText(/AI suggests Interview/)).toBeInTheDocument();
+    // Who set it is an icon with its words for screen readers; the AI's other opinion is on the
+    // application's own page.
+    expect(screen.getByText('Status set by you')).toBeInTheDocument();
   });
 
   it('shows the AI status when the user has not set one', async () => {
@@ -218,7 +219,7 @@ describe('Applications Dashboard (/applications)', () => {
     renderWithProviders(queryClient, '/applications');
 
     expect(await screen.findByText('Recruiter contact', { selector: 'span' })).toBeInTheDocument();
-    expect(screen.getByText('Inferred by AI')).toBeInTheDocument();
+    expect(screen.getByText('Status set by the AI from a mail')).toBeInTheDocument();
   });
 
   it('shows a neutral unknown instead of defaulting to Application Received', async () => {
@@ -241,7 +242,22 @@ describe('Applications Dashboard (/applications)', () => {
 
     renderWithProviders(queryClient, '/applications');
 
-    expect(await screen.findByText('2 actions')).toBeInTheDocument();
+    expect(await screen.findByText('2 to do')).toBeInTheDocument();
+  });
+
+  it('names each value on phones, where the header row is hidden', async () => {
+    vi.mocked(api.listApplications).mockResolvedValue({
+      items: [makeApp({ pendingActionCount: 0, recentEvent: null })],
+      metadata: { limit: 20, offset: 0, nextOffset: null },
+    });
+    renderWithProviders(queryClient, '/applications');
+
+    const none = await screen.findByText('None yet');
+    const cell = none.closest('[role="cell"]');
+    expect(cell).toHaveTextContent(/^Last activityNone yet$/);
+    expect(screen.getByText('Last activity', { selector: '[role="cell"] > div' })).toHaveClass(
+      'md:hidden',
+    );
   });
 
   it('does not show action indicator when pendingActionCount is 0', async () => {
@@ -252,7 +268,7 @@ describe('Applications Dashboard (/applications)', () => {
     renderWithProviders(queryClient, '/applications');
 
     await screen.findByText('ZeroActions Inc');
-    expect(screen.queryByText(/\d+ action/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/\d+ to do/)).not.toBeInTheDocument();
   });
 
   it('shows recent event when present', async () => {
@@ -273,7 +289,8 @@ describe('Applications Dashboard (/applications)', () => {
 
     renderWithProviders(queryClient, '/applications');
 
-    expect(await screen.findByText(/email processed/i)).toBeInTheDocument();
+    // The latest event in plain words: a mail with no sender kept is "A job mail".
+    expect(await screen.findByText('A job mail')).toBeInTheDocument();
   });
 
   it('renders multiple application cards', async () => {
@@ -593,13 +610,13 @@ describe('application discovery controls (S9)', () => {
     fireEvent.change(screen.getByLabelText('Search company or job title'), {
       target: { value: 'Acme' },
     });
-    await screen.findByText(/Search unavailable/);
+    await screen.findByText(/Could not load your applications/);
     expect(api.listApplications).toHaveBeenLastCalledWith(
       { archive: 'active', q: 'Acme', limit: 20, offset: 0 },
       expect.anything(),
     );
     expect(screen.getByLabelText('Search company or job title')).toHaveValue('Acme');
-    fireEvent.click(screen.getByRole('button', { name: 'Rejected' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'Rejected' }));
     await waitFor(() =>
       expect(api.listApplications).toHaveBeenLastCalledWith(
         { archive: 'active', q: 'Acme', effectiveStatus: 'REJECTED', limit: 20, offset: 0 },
@@ -686,9 +703,9 @@ describe('application discovery completion (AD-02)', () => {
         expect.anything(),
       ),
     );
-    fireEvent.click(screen.getByRole('button', { name: 'All' })); // Was UNKNOWN status, but since we removed it, this test needs adjustment. Actually, UNKNOWN apps are in ALL.
+    fireEvent.click(screen.getByRole('tab', { name: 'All' })); // Was UNKNOWN status, but since we removed it, this test needs adjustment. Actually, UNKNOWN apps are in ALL.
     // wait, how to filter UNKNOWN now? There is no tab for UNKNOWN.
-    fireEvent.click(screen.getByRole('button', { name: 'Sent by automation' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'Sent by automation' }));
     await chooseOption(
       screen.getByRole('combobox', { name: 'Application visibility' }),
       'All applications',
@@ -706,8 +723,9 @@ describe('application discovery completion (AD-02)', () => {
     fireEvent.click(screen.getAllByRole('link', { name: 'Applications' })[0]);
     await screen.findByLabelText('Sort applications');
     expect(screen.getByLabelText('Search company or job title')).toHaveValue('target');
-    expect(screen.getByRole('button', { name: 'Sent by automation' })).toHaveClass(
-      'border-foreground',
+    expect(screen.getByRole('tab', { name: 'Sent by automation' })).toHaveAttribute(
+      'aria-selected',
+      'true',
     );
     expect(screen.getByRole('combobox', { name: 'Application visibility' })).toHaveTextContent(
       'All applications',
@@ -729,7 +747,7 @@ describe('application discovery completion (AD-02)', () => {
         expect.anything(),
       ),
     );
-    expect(screen.getByText('Applied date unknown')).toBeInTheDocument();
+    expect(screen.getByText('Unknown')).toBeInTheDocument();
   });
 
   it('resets paging for sort and source and clears all discovery controls', async () => {
@@ -749,14 +767,14 @@ describe('application discovery completion (AD-02)', () => {
         expect.anything(),
       ),
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Sent by automation' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'Sent by automation' }));
     await waitFor(() =>
       expect(api.listApplications).toHaveBeenLastCalledWith(
         expect.objectContaining({ offset: 0, submittedVia: 'AUTOMATION' }),
         expect.anything(),
       ),
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Clear filters' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Clear all' }));
     await waitFor(() =>
       expect(api.listApplications).toHaveBeenLastCalledWith(
         { offset: 0, limit: 20, archive: 'active' },
@@ -766,7 +784,7 @@ describe('application discovery completion (AD-02)', () => {
     expect(screen.getByRole('combobox', { name: 'Sort applications' })).toHaveTextContent(
       'Newest added',
     );
-    expect(screen.getByRole('button', { name: 'All' })).toHaveClass('border-foreground');
+    expect(screen.getByRole('tab', { name: 'All' })).toHaveAttribute('aria-selected', 'true');
   });
 
   it('retries a failed filtered read and refreshes newly recorded intake without posting', async () => {
@@ -776,13 +794,14 @@ describe('application discovery completion (AD-02)', () => {
     });
     renderWithProviders(qc, '/applications');
     await screen.findByText('No applications yet');
-    fireEvent.click(screen.getByRole('button', { name: 'Sent by automation' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('Temporarily unavailable');
-    expect(screen.getByRole('button', { name: 'Sent by automation' })).toHaveClass(
-      'border-foreground',
+    fireEvent.click(screen.getByRole('tab', { name: 'Sent by automation' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Could not load your applications');
+    expect(screen.getByRole('tab', { name: 'Sent by automation' })).toHaveAttribute(
+      'aria-selected',
+      'true',
     );
     vi.mocked(api.listApplications).mockResolvedValue(page([]));
-    fireEvent.click(screen.getByRole('button', { name: 'Retry applications' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
     await screen.findByText('No matching applications');
     expect(screen.getByRole('link', { name: 'Automation review' })).toHaveAttribute(
       'href',
