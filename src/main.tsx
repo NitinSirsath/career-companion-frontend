@@ -9,6 +9,7 @@ import { ThemeProvider } from './components/ThemeProvider';
 import { AppErrorBoundary } from './components/errors/AppErrorBoundary';
 import { RouteErrorPage } from './components/errors/RouteErrorPage';
 import { NotFoundPage } from './components/errors/NotFoundPage';
+import { ToastProvider } from './components/ui/toast';
 
 const queryClient = new QueryClient();
 
@@ -43,10 +44,12 @@ function App() {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="light" storageKey="career-companion-theme">
-        <AppErrorBoundary>
-          <App />
-        </AppErrorBoundary>
+      <ThemeProvider storageKey="career-companion-theme">
+        <ToastProvider>
+          <AppErrorBoundary>
+            <App />
+          </AppErrorBoundary>
+        </ToastProvider>
       </ThemeProvider>
     </QueryClientProvider>
   </StrictMode>,
