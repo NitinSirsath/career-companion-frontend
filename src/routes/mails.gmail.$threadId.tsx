@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useMailThread } from '../api/mailbox';
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
+import { Breadcrumb } from '../components/layout/PageHeader';
 import { MailThreadView } from '../components/mails/MailThreadView';
 import { MailTitle } from '../components/mails/MailTitle';
 
@@ -15,14 +16,18 @@ function GmailMailPage() {
   const { data } = useMailThread(threadId);
   return (
     <div className="space-y-6">
-      <Link
-        to="/mails"
-        search={{ tab: 'gmail' }}
-        className="inline-block text-sm font-medium underline"
+      <MailTitle
+        title={data ? data.subject || '(No subject)' : 'Mail'}
+        threadId={threadId}
+        breadcrumb={
+          <Breadcrumb>
+            <Link to="/mails">Mails</Link>
+            <Link to="/mails" search={{ tab: 'gmail' }}>
+              Gmail
+            </Link>
+          </Breadcrumb>
+        }
       >
-        Back to Gmail
-      </Link>
-      <MailTitle title={data ? data.subject || '(No subject)' : 'Mail'} threadId={threadId}>
         <span>From your Gmail inbox · read live · nothing stored</span>
       </MailTitle>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
