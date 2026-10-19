@@ -35,7 +35,8 @@ export function ConversationAction({
     <div className="space-y-2">
       <p
         className={cn(
-          'text-sm font-semibold break-words',
+          'text-sm break-words',
+          detailed && 'font-semibold',
           asked.state === 'DONE' && 'text-text-secondary',
         )}
       >
