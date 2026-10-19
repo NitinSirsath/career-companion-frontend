@@ -4,7 +4,7 @@ import { useGmailAddress, useMailboxThreads } from '../../api/mailbox';
 import type { MailboxThread } from '../../contracts/mailbox';
 import { mailDate, parseSender, snippetText } from '../../lib/mails';
 import { cn } from '../../lib/utils';
-import { Badge } from '../ui/badge';
+import { Tag } from '../ui/tag';
 import { Button } from '../ui/button';
 import { MailboxProblem } from './MailboxProblem';
 
@@ -29,9 +29,9 @@ function ThreadRow({ thread }: { thread: MailboxThread }) {
         )}
       </span>
       {thread.conversationKey && (
-        <Badge variant="info" className="self-start sm:self-auto">
+        <Tag color="blue" className="self-start sm:self-auto">
           Job mail
-        </Badge>
+        </Tag>
       )}
       <span className={cn('shrink-0 sm:w-28 sm:text-right', strong || 'text-text-secondary')}>
         {mailDate(thread.date)}
