@@ -21,8 +21,8 @@ import { eventLabel } from '../lib/eventLabels';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { Badge } from '../components/ui/badge';
-import { NativeSelect } from '../components/ui/native-select';
+import { Tag } from '../components/ui/tag';
+import { Select } from '../components/ui/select';
 
 import { Pagination } from '../components/ui/pagination';
 import {
@@ -50,11 +50,11 @@ function ApplicationCard({ app }: { app: ApplicationResponse }) {
           <div className="flex items-center gap-3 flex-wrap">
             <h3 className="font-semibold text-base break-words">{app.companyName}</h3>
             <EffectiveStatus app={app} />
-            {app.archivedAt && <Badge>Archived</Badge>}
+            {app.archivedAt && <Tag>Archived</Tag>}
             {app.pendingActionCount > 0 && (
-              <Badge variant="warning">
+              <Tag color="yellow">
                 {app.pendingActionCount} action{app.pendingActionCount > 1 ? 's' : ''}
-              </Badge>
+              </Tag>
             )}
           </div>
 
@@ -265,9 +265,9 @@ function ApplicationsDashboard({
           <div className="flex space-x-6 overflow-x-auto whitespace-nowrap">
             {[
               { id: 'ALL', label: 'All' },
-              { id: 'RECEIVED', label: 'Application Received' },
-              { id: 'SUBMITTED', label: 'Application Submitted' },
-              { id: 'RECRUITER_CONTACT', label: 'Recruiter Contact' },
+              { id: 'RECEIVED', label: 'Applied' },
+              { id: 'SUBMITTED', label: 'Sent by automation' },
+              { id: 'RECRUITER_CONTACT', label: 'Recruiter contact' },
               { id: 'INTERVIEW', label: 'Interview' },
               { id: 'ASSESSMENT', label: 'Assessment' },
               { id: 'OFFER', label: 'Offer' },
@@ -289,35 +289,29 @@ function ApplicationsDashboard({
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 pt-4">
-          <div className="space-y-2">
-            <Label htmlFor="application-archive-filter">Application visibility</Label>
-            <NativeSelect
-              id="application-archive-filter"
-              value={archive}
-              onChange={(event) =>
-                changeFilters({ archive: event.target.value as DiscoveryView['archive'] })
-              }
-            >
-              <option value="active">Active</option>
-              <option value="archived">Archived</option>
-              <option value="all">All applications</option>
-            </NativeSelect>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="application-sort">Sort applications</Label>
-            <NativeSelect
-              id="application-sort"
-              value={sort}
-              onChange={(event) =>
-                changeFilters({ sort: event.target.value as DiscoveryView['sort'] })
-              }
-            >
-              <option value="added_desc">Newest added</option>
-              <option value="applied_desc">Applied date: newest first</option>
-              <option value="applied_asc">Applied date: oldest first</option>
-              <option value="company_asc">Company: A–Z</option>
-            </NativeSelect>
-          </div>
+          <Select<DiscoveryView['archive']>
+            id="application-archive-filter"
+            label="Application visibility"
+            value={archive}
+            options={[
+              { value: 'active', label: 'Active' },
+              { value: 'archived', label: 'Archived' },
+              { value: 'all', label: 'All applications' },
+            ]}
+            onValueChange={(next) => changeFilters({ archive: next })}
+          />
+          <Select<DiscoveryView['sort']>
+            id="application-sort"
+            label="Sort applications"
+            value={sort}
+            options={[
+              { value: 'added_desc', label: 'Newest added' },
+              { value: 'applied_desc', label: 'Applied date: newest first' },
+              { value: 'applied_asc', label: 'Applied date: oldest first' },
+              { value: 'company_asc', label: 'Company: A to Z' },
+            ]}
+            onValueChange={(next) => changeFilters({ sort: next })}
+          />
         </div>
         <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-text-secondary">
           <p>
