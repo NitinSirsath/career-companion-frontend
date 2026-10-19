@@ -140,7 +140,7 @@ describe('AI provider page: choosing and setting up a provider', () => {
     expect(await screen.findByText('Google Gemini')).toBeInTheDocument();
     expect(screen.getByText('Free tier available')).toBeInTheDocument();
     expect(screen.getByText(/subscription is not an API key/)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'AI Provider' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'AI provider' })).toBeInTheDocument();
   });
 
   it('guides key setup with a password field that is never prefilled, plus data use and consent', async () => {
