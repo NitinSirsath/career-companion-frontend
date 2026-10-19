@@ -1,0 +1,40 @@
+name: Finish design-1 once (temporary)
+# Renames and deletes files on feat/design-1-foundation and commits only that.
+# Lives only on the throwaway branch tmp/design-1-finish, which is deleted afterwards.
+on:
+  push:
+    branches: [tmp/design-1-finish]
+permissions:
+  contents: write
+concurrency:
+  group: finish-design-1-once
+  cancel-in-progress: false
+jobs:
+  finish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: feat/design-1-foundation
+      - name: Check the hand commits
+        run: |
+          if [ "$(git rev-parse 'HEAD^{tree}')" != "b022127d706f930b64ce43d3ae776c33ab585bef" ]; then
+            echo "The hand commits do not match the reviewed files. Nothing was changed."
+            exit 1
+          fi
+      - name: Rename and delete
+        run: |
+          git rm -q src/components/ui/badge.tsx
+          git rm -q src/components/ui/native-select.tsx
+      - name: Commit only the reviewed result
+        run: |
+          if [ "$(git write-tree)" != "dbe871737c74cc42d2775ee8e8e7baa4822806ba" ]; then
+            echo "The result does not match the reviewed tree. Nothing was pushed."
+            git status --short
+            exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(ui): remove the replaced badge and native select'
+          git push origin HEAD:feat/design-1-foundation
