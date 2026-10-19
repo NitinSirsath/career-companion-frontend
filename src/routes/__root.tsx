@@ -73,6 +73,7 @@ function LoggedInShell({ children }: LoggedInShellProps) {
           {/* One width for every page: the full width up to 1584px, centred beyond. */}
           <div key={section} className="mx-auto w-full max-w-[1584px] animate-page-in">
             {children}
+          </div>
         </main>
 
         <MobileNav user={user} />
