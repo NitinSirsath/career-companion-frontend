@@ -7,9 +7,9 @@ import type { ApplicationResponse } from '../../contracts/application';
 import type { PendingSubmission, ResolveSubmissionRequest } from '../../contracts/submission';
 import { platformLabel } from '../../lib/eventLabels';
 import { safeHttpUrl } from '../../lib/safeUrl';
-import { Badge } from '../ui/badge';
+import { Tag } from '../ui/tag';
 import { Button } from '../ui/button';
-import { NativeSelect } from '../ui/native-select';
+import { ApplicationPicker } from '../ApplicationPicker';
 import { Pagination } from '../ui/pagination';
 
 const dateTime = (value: string) => format(new Date(value), 'MMM d, yyyy · h:mm a');
@@ -69,28 +69,17 @@ function SubmissionCard({
           )}
         </div>
         <div className="flex flex-col gap-2 shrink-0 w-full md:w-[280px]">
-          <label htmlFor={selectId} className="text-xs font-medium">
-            Link to an existing application
-          </label>
-          <div className="flex gap-2">
-            <NativeSelect
+          <div className="flex items-end gap-2">
+            <ApplicationPicker
               id={selectId}
-              className="h-9 py-1"
+              label="Link to an existing application"
+              applications={applications}
               value={applicationId}
               disabled={disabled}
-              onChange={(e) => setApplicationId(e.target.value)}
-            >
-              <option value="">Select application…</option>
-              {applications.map((app) => (
-                <option key={app.id} value={app.id}>
-                  {app.companyName}
-                  {app.jobTitle ? ` — ${app.jobTitle}` : ''}
-                </option>
-              ))}
-            </NativeSelect>
+              onChange={setApplicationId}
+            />
             <Button
-              size="sm"
-              className="h-9"
+              variant="tertiary"
               disabled={disabled || !applicationId}
               onClick={() => onResolve({ action: 'link', applicationId })}
             >
@@ -168,7 +157,7 @@ export function PendingSubmissionsSection({
   return (
     <section aria-labelledby="pending-submissions-heading" className="space-y-4">
       <h3 id="pending-submissions-heading" className="text-lg font-medium flex items-center gap-2">
-        Automation submissions to review <Badge variant="secondary">{count}</Badge>
+        Automation submissions to review <Tag color="gray">{count}</Tag>
       </h3>
       <p className="text-xs text-text-secondary">
         Your automation reported these applications, but Career Companion could not match them with
