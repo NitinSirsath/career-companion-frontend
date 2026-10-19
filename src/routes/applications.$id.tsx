@@ -1,4 +1,5 @@
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
+import { Breadcrumb } from '../components/layout/PageHeader';
 import { FollowUpEditor, SnoozeControl, ArchiveControl } from '../components/FollowThrough';
 import { MatchCorrectionDialog } from '../components/MatchCorrectionDialog';
 import { ApplicationConversations } from '../components/mails/ApplicationConversations';
@@ -321,20 +322,10 @@ function ApplicationDetailPage() {
   const canEdit = !!application && !applicationQuery.isError;
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Link
-          to="/applications"
-          className="hover:underline hover:text-foreground transition-colors"
-        >
-          Applications
-        </Link>
-        <span>/</span>
-        <span className="text-foreground font-medium">
-          {application?.companyName ?? 'Application'}
-        </span>
-      </div>
+    <div className="space-y-8">
+      <Breadcrumb current={application?.companyName ?? 'Application'}>
+        <Link to="/applications">Applications</Link>
+      </Breadcrumb>
 
       {/* Application */}
       {applicationQuery.isLoading && (
