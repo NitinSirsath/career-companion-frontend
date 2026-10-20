@@ -4,12 +4,13 @@ import { differenceInCalendarDays, format } from 'date-fns';
 import { api, isApiError } from '../../api/client';
 import {
   INTEGRATION_TOKEN_EXPIRY_WARNING_DAYS,
-  INTEGRATION_TOKEN_MAX_ACTIVE,
   type IntegrationToken,
 } from '../../contracts/integrationToken';
 import { Tag } from '../ui/tag';
 import { Button } from '../ui/button';
 import { Pagination } from '../ui/pagination';
+import { SectionError } from '../ui/section-error';
+import { SkeletonList } from '../ui/skeleton';
 
 const STATUS = {
   active: { label: 'Active', color: 'green' },
@@ -45,10 +46,10 @@ function TokenRow({ token, now }: { token: IntegrationToken; now: Date }) {
   });
   const status = STATUS[token.status];
   return (
-    <li className="border border-border-default bg-surface p-4 flex flex-col md:flex-row md:items-center gap-3 justify-between">
+    <li className="flex flex-col justify-between gap-3 border-t border-border-subtle py-3 first:border-t-0 first:pt-0 md:flex-row md:items-center">
       <div className="min-w-0 space-y-1">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="font-medium break-words">{token.name}</span>
+          <span className="text-sm break-words">{token.name}</span>
           <Tag color={status.color}>{status.label}</Tag>
         </div>
         <p className="text-xs text-text-secondary">
@@ -61,7 +62,7 @@ function TokenRow({ token, now }: { token: IntegrationToken; now: Date }) {
         </p>
         <ExpiryWarning token={token} now={now} />
         {revoke.isError && (
-          <p role="alert" className="text-xs text-status-error">
+          <p role="alert" className="text-xs text-danger-text">
             {isApiError(revoke.error) && revoke.error.outcomeUncertain
               ? 'We could not confirm the revoke. The list has been refreshed: check the status before trying again.'
               : `Could not revoke: ${revoke.error.message}`}
@@ -93,7 +94,7 @@ function TokenRow({ token, now }: { token: IntegrationToken; now: Date }) {
           ) : (
             <Button
               size="sm"
-              variant="tertiary"
+              variant="danger-ghost"
               onClick={() => setConfirming(true)}
               aria-label={`Revoke ${token.name}`}
             >
@@ -115,22 +116,16 @@ export function TokenList() {
   });
   const now = new Date();
   return (
-    <section aria-labelledby="tokens-heading" className="space-y-3">
-      <h3 id="tokens-heading" className="text-lg font-semibold">
-        Your tokens
-      </h3>
-      <p className="text-xs text-text-secondary">
-        Up to {INTEGRATION_TOKEN_MAX_ACTIVE} active tokens. Revoked tokens stay listed.
-      </p>
-      {isLoading && <p role="status">Loading tokens…</p>}
-      {error && <p role="alert">Could not load tokens: {error.message}</p>}
+    <div className="flex flex-col gap-3">
+      {isLoading && <SkeletonList rows={2} label="Loading tokens" />}
+      {error && <SectionError title="Could not load your tokens" />}
       {data && data.items.length === 0 && (
         <p className="text-sm text-text-secondary">
-          {offset > 0 ? 'No tokens on this page.' : 'No tokens yet.'}
+          {offset > 0 ? 'No tokens on this page.' : 'No tokens yet. Create one in step 1.'}
         </p>
       )}
       {data && data.items.length > 0 && (
-        <ul className="space-y-2">
+        <ul className="flex flex-col">
           {data.items.map((token) => (
             <TokenRow key={token.id} token={token} now={now} />
           ))}
@@ -145,6 +140,6 @@ export function TokenList() {
           onNext={() => data.metadata.nextOffset != null && setOffset(data.metadata.nextOffset)}
         />
       )}
-    </section>
+    </div>
   );
 }
