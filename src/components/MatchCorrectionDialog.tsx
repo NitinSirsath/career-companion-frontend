@@ -1,4 +1,5 @@
-import { useId, useState } from 'react';
+import { useId, useImperativeHandle, useState, type Ref } from 'react';
+import type { DialogHandle } from '../lib/dialogs';
 import { ApplicationPicker } from './ApplicationPicker';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, isApiError } from '../api/client';
@@ -18,11 +19,17 @@ export function MatchCorrectionDialog({
   matchState,
   applicationId,
   label = 'Change link',
+  ref,
+  trigger = true,
 }: {
   emailId: string;
   matchState: 'MATCHED' | 'IGNORED';
   applicationId: string | null;
   label?: string;
+  /** Opens the dialog from elsewhere, such as a row's "…" menu. */
+  ref?: Ref<DialogHandle>;
+  /** False when the dialog opens only through its handle. */
+  trigger?: boolean;
 }) {
   const client = useQueryClient();
   const id = useId();
@@ -88,13 +95,16 @@ export function MatchCorrectionDialog({
     }
     setOpen(value);
   };
+  useImperativeHandle(ref, () => ({ open: () => changeOpen(true) }));
   return (
     <Dialog open={open} onOpenChange={changeOpen}>
-      <DialogTrigger asChild>
-        <Button variant="tertiary" size="sm">
-          {label}
-        </Button>
-      </DialogTrigger>
+      {trigger && (
+        <DialogTrigger asChild>
+          <Button variant="tertiary" size="sm">
+            {label}
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Correct email link</DialogTitle>
