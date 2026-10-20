@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from '@tanstack/react-router';
 import { Reply } from '@carbon/icons-react';
-import { useDevMode } from '../../api/appMode';
+import { useSandboxMailbox } from '../../api/appMode';
 import { useCanSendMail } from '../../api/mailbox';
 import { allowSendingUrl, replyHint } from '../../lib/mailReply';
 import { parseSender } from '../../lib/mails';
@@ -71,7 +71,7 @@ export function MailReplyBox({
   onCheck: () => void;
   onSending?: (text: string | null) => void;
 }) {
-  const devMode = useDevMode();
+  const sandbox = useSandboxMailbox();
   const canSend = useCanSendMail();
   const mailPath = useLocation({ select: (location) => location.pathname });
   const [open, setOpen] = useState(false);
@@ -82,7 +82,7 @@ export function MailReplyBox({
     if (open) page?.scrollTo?.({ top: page.scrollHeight, behavior: 'smooth' });
   }, [open]);
   // The mailbox itself: Gmail in prod, the mail sandbox in dev mode.
-  const elsewhere = devMode ? (
+  const elsewhere = sandbox ? (
     <Link to="/sandbox/$threadId" params={{ threadId }} className="text-sm text-link">
       Open in the mail sandbox
     </Link>
@@ -124,7 +124,7 @@ export function MailReplyBox({
         threadId={threadId}
         replyTo={replyTo}
         replyCc={replyCc}
-        hint={replyHint(devMode)}
+        hint={replyHint(sandbox)}
         onCheck={onCheck}
         onSending={onSending}
       >
