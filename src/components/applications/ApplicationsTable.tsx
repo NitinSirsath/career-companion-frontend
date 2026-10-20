@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Flow, MachineLearningModel, User, type CarbonIconType } from '@carbon/icons-react';
+import { Flow, MachineLearningModel, User } from '@carbon/icons-react';
 import { format } from 'date-fns';
 import type { ApplicationResponse } from '../../contracts/application';
 import { activityLine } from '../../lib/applicationsView';
@@ -10,10 +10,13 @@ import { DataTable, ROW_LINK_CLASS } from '../ui/data-table';
 import { OverflowMenu } from '../ui/menu';
 import { Tag } from '../ui/tag';
 
-const SOURCE: Record<'USER' | 'AI' | 'AUTOMATION', { icon: CarbonIconType; label: string }> = {
-  USER: { icon: User, label: 'Status set by you' },
-  AI: { icon: MachineLearningModel, label: 'Status set by the AI from a mail' },
-  AUTOMATION: { icon: Flow, label: 'Reported by your automation' },
+const SOURCE: Record<'USER' | 'AI' | 'AUTOMATION', { icon: ReactNode; label: string }> = {
+  USER: { icon: <User size={16} aria-hidden="true" />, label: 'Status set by you' },
+  AI: {
+    icon: <MachineLearningModel size={16} aria-hidden="true" />,
+    label: 'Status set by the AI from a mail',
+  },
+  AUTOMATION: { icon: <Flow size={16} aria-hidden="true" />, label: 'Reported by your automation' },
 };
 
 function sourceOf(app: ApplicationResponse): keyof typeof SOURCE | null {
@@ -24,13 +27,12 @@ function sourceOf(app: ApplicationResponse): keyof typeof SOURCE | null {
 function StatusCell({ app }: { app: ApplicationResponse }) {
   const tag = applicationTag(app);
   const source = sourceOf(app);
-  const Icon = source && SOURCE[source].icon;
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Tag color={tag.color}>{tag.label}</Tag>
-      {Icon && source && (
+      {source && (
         <span className="text-text-secondary" title={SOURCE[source].label}>
-          <Icon size={16} aria-hidden="true" />
+          {SOURCE[source].icon}
           <span className="sr-only">{SOURCE[source].label}</span>
         </span>
       )}

@@ -3,7 +3,8 @@ import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { FollowUpEditor, SnoozeControl, ArchiveControl } from '../components/FollowThrough';
+import { ArchiveControl } from '../components/ArchiveControl';
+import { FollowUpEditor, SnoozeControl } from '../components/FollowThrough';
 import { api, ApiError } from '../api/client';
 import { makeApplication } from './fixtures';
 import {
@@ -118,8 +119,9 @@ it('fills in a timed deadline in local time and saves it unchanged', async () =>
   show(<FollowUpEditor applicationId="app-1" action={timed} />);
   fireEvent.click(screen.getByRole('button', { name: 'Edit follow-up' }));
   expect(screen.getByLabelText('Date')).toHaveValue('2026-10-21');
-  expect(screen.getByLabelText('Time (optional for deadline)')).toHaveValue('01:30');
-  expect(screen.getByLabelText('Timezone or UTC offset')).toHaveValue('Asia/Kolkata');
+  expect(screen.getByLabelText('Time (optional)')).toHaveValue('01:30');
+  // The time zone is picked from a searchable list that starts with the computer's own zone.
+  expect(screen.getByRole('combobox', { name: 'Time zone' })).toHaveValue('Asia/Kolkata');
   fireEvent.click(screen.getByRole('button', { name: 'Save follow-up' }));
   await waitFor(() =>
     expect(api.editFollowUp).toHaveBeenCalledWith(

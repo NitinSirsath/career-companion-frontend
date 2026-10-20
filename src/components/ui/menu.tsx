@@ -1,3 +1,4 @@
+import type { Ref } from 'react';
 import { Menu as BaseMenu } from '@base-ui/react/menu';
 import { OverflowMenuVertical } from '@carbon/icons-react';
 import { cn } from '../../lib/utils';
@@ -17,13 +18,22 @@ interface OverflowMenuProps {
   actions: readonly MenuAction[];
   size?: 'icon' | 'icon-sm';
   className?: string;
+  /** The "…" button, for giving focus back to it after a dialog the menu opened. */
+  triggerRef?: Ref<HTMLButtonElement>;
 }
 
 /** The "…" menu for a row or a page: actions that are not the main one. */
-export function OverflowMenu({ label, actions, size = 'icon-sm', className }: OverflowMenuProps) {
+export function OverflowMenu({
+  label,
+  actions,
+  size = 'icon-sm',
+  className,
+  triggerRef,
+}: OverflowMenuProps) {
   return (
     <BaseMenu.Root>
       <BaseMenu.Trigger
+        ref={triggerRef}
         aria-label={label}
         className={cn(
           'inline-flex shrink-0 cursor-pointer items-center justify-center text-text-primary transition-colors duration-70 ease-standard hover:bg-layer-hover data-popup-open:bg-layer-hover',

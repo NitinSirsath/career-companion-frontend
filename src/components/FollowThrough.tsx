@@ -1,66 +1,33 @@
-import { useRef, useState } from 'react';
+import { useImperativeHandle, useRef, useState, type Ref } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { api, isApiError } from '../api/client';
-import type { ApplicationActionResponse, ApplicationResponse } from '../contracts/application';
+import type { ApplicationActionResponse } from '../contracts/application';
 import type { CreateFollowUp } from '../contracts/action';
 import { resolveTemporal } from '../contracts/temporal';
-import { browserTimeZone } from '../lib/workspace';
 import { localDateTime } from '../lib/deadline';
-import { applyAcknowledgedApplication } from '../lib/applicationCache';
+import {
+  focusLater,
+  refreshFollowThrough,
+  type DialogHandle,
+  type TriggerOptions,
+} from '../lib/dialogs';
+import { browserTimeZone } from '../lib/workspace';
+import { Field, TimeFields } from './TimeFields';
 import { Button } from './ui/button';
-import { Dialog, DialogContent, DialogTitle } from './ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from './ui/dialog';
+import { InlineNotification } from './ui/notification';
+import { Textarea } from './ui/textarea';
 
-const keys = [
-  'workspace',
-  'actions',
-  'application-actions',
-  'application',
-  'applications',
-  'agenda',
-];
-const inputClass = 'block border border-border bg-background p-2 w-full';
-function TimeFields({
-  date,
-  time,
-  zone,
-  setDate,
-  setTime,
-  setZone,
-}: {
-  date: string;
-  time: string;
-  zone: string;
-  setDate: (v: string) => void;
-  setTime: (v: string) => void;
-  setZone: (v: string) => void;
-}) {
-  return (
-    <>
-      <label className="block text-sm">
-        Date
-        <input
-          className={inputClass}
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-        />
-      </label>
-      <label className="block text-sm">
-        Time (optional for deadline)
-        <input
-          className={inputClass}
-          type="time"
-          value={time}
-          onChange={(e) => setTime(e.target.value)}
-        />
-      </label>
-      <label className="block text-sm">
-        Timezone or UTC offset
-        <input className={inputClass} value={zone} onChange={(e) => setZone(e.target.value)} />
-      </label>
-    </>
-  );
-}
+const CLOCK_CHANGE =
+  'If the clocks change at that time in this time zone, choose another time or the UTC zone.';
+
 function manualDeadline(date: string, time: string, zone: string): CreateFollowUp['deadline'] {
   if (!date && !time) return null;
   const value = resolveTemporal({
@@ -70,19 +37,25 @@ function manualDeadline(date: string, time: string, zone: string): CreateFollowU
   });
   if (value.precision === 'DATE') return { precision: 'DATE', value: value.date! };
   if (value.precision === 'DATETIME') return { precision: 'DATETIME', value: value.instant! };
-  throw Error(
-    'Enter a valid date and explicit timezone. Ambiguous daylight-saving times need a UTC offset.',
-  );
+  throw Error(`Enter a date, and a time zone with the time. ${CLOCK_CHANGE}`);
 }
+
+/** Adds or edits a personal follow-up: a to-do only for the user, with an optional due time. */
 export function FollowUpEditor({
   applicationId,
   action,
   disabled = false,
+  ref,
+  trigger: showTrigger = true,
+  triggerVariant = 'tertiary',
+  triggerIcon,
+  returnFocus,
 }: {
   applicationId: string;
   action?: ApplicationActionResponse;
   disabled?: boolean;
-}) {
+  ref?: Ref<DialogHandle>;
+} & TriggerOptions) {
   const client = useQueryClient(),
     trigger = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false),
@@ -97,13 +70,13 @@ export function FollowUpEditor({
     [frozen, setFrozen] = useState<CreateFollowUp | null>(null),
     [checkedAbsent, setCheckedAbsent] = useState(false),
     [editFailed, setEditFailed] = useState(false);
+  const giveFocusBack = () => focusLater(showTrigger ? trigger : returnFocus);
   const close = () => {
     if (pending) return;
     setOpen(false);
-    queueMicrotask(() => trigger.current?.focus());
+    giveFocusBack();
   };
-  const refresh = () =>
-    Promise.all(keys.map((key) => client.invalidateQueries({ queryKey: [key] })));
+  const refresh = () => refreshFollowThrough(client);
   const begin = () => {
     if (!frozen) {
       const zone = browserTimeZone();
@@ -122,6 +95,7 @@ export function FollowUpEditor({
     }
     setOpen(true);
   };
+  useImperativeHandle(ref, () => ({ open: begin }));
   const save = async (retrySame = false) => {
     if (pending || editFailed || (frozen && !retrySame)) return;
     let draft: CreateFollowUp;
@@ -132,7 +106,7 @@ export function FollowUpEditor({
         deadline: manualDeadline(date, time, zone),
       };
       if (!draft.description || draft.description.length > 500)
-        throw Error('Enter 1–500 characters.');
+        throw Error('Write what to do, in 1 to 500 characters.');
     } catch (e) {
       setError((e as Error).message);
       return;
@@ -150,17 +124,17 @@ export function FollowUpEditor({
       setFrozen(null);
       setCheckedAbsent(false);
       setOpen(false);
-      queueMicrotask(() => trigger.current?.focus());
+      giveFocusBack();
     } catch (e) {
       if (!action && (!isApiError(e) || e.outcomeUncertain)) {
         setFrozen(draft);
         setCheckedAbsent(false);
         setError(
-          'Creation is uncertain. Check the saved receipt before retrying. Your draft and request identity are retained.',
+          'We could not confirm that it was saved. Check before you try again: your text is kept.',
         );
       } else {
         setEditFailed(Boolean(action));
-        setError('Could not save. Review the refreshed state before another attempt.');
+        setError('Not saved. Close this and look at the follow-up again before another try.');
       }
     } finally {
       setPending(false);
@@ -174,24 +148,36 @@ export function FollowUpEditor({
       await api.followUpByRequest(frozen.clientRequestId);
       setFrozen(null);
       setOpen(false);
-      queueMicrotask(() => trigger.current?.focus());
+      giveFocusBack();
     } catch (e) {
       setCheckedAbsent(isApiError(e) && e.status === 404);
       setError(
         isApiError(e) && e.status === 404
-          ? 'No receipt is visible yet; the earlier request may still be running. Check again or deliberately retry the same request.'
-          : 'The receipt could not be checked. Keep this draft and try checking again.',
+          ? 'It is not there yet; the first try may still be running. Check again, or send the same follow-up once more.'
+          : 'We could not check it. Your text is kept: check again in a moment.',
       );
     } finally {
       setPending(false);
       await refresh();
     }
   };
+  let triggerLabel = 'Add follow-up';
+  if (action) triggerLabel = 'Edit follow-up';
+  else if (frozen) triggerLabel = 'Resolve follow-up creation';
   return (
     <>
-      <Button ref={trigger} size="sm" variant="tertiary" disabled={disabled} onClick={begin}>
-        {action ? 'Edit follow-up' : frozen ? 'Resolve follow-up creation' : 'Add follow-up'}
-      </Button>
+      {showTrigger && (
+        <Button
+          ref={trigger}
+          size={triggerVariant === 'tertiary' ? 'sm' : 'default'}
+          variant={triggerVariant}
+          disabled={disabled}
+          onClick={begin}
+        >
+          {triggerLabel}
+          {triggerIcon}
+        </Button>
+      )}
       <Dialog
         open={open}
         onOpenChange={(value) => {
@@ -199,36 +185,40 @@ export function FollowUpEditor({
         }}
       >
         <DialogContent>
-          <DialogTitle>{action ? 'Edit personal follow-up' : 'Add personal follow-up'}</DialogTitle>
-          <p className="text-sm my-3">
-            For your own tracking. This does not send an email or notification.
-          </p>
           <form
-            className="space-y-4"
             onSubmit={(e) => {
               e.preventDefault();
               void save();
             }}
           >
-            <fieldset disabled={pending || !!frozen || editFailed} className="space-y-4">
-              <label className="block text-sm">
-                Follow-up description
-                <textarea
-                  className={inputClass}
+            <DialogHeader>
+              <DialogTitle>{action ? 'Edit your follow-up' : 'Add a follow-up'}</DialogTitle>
+              <DialogDescription>A to-do only for you. Nothing is sent.</DialogDescription>
+            </DialogHeader>
+            <fieldset disabled={pending || !!frozen || editFailed} className="flex flex-col gap-6">
+              <Field label="Follow-up description">
+                <Textarea
                   maxLength={500}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   required
                 />
-              </label>
-              <p className="text-sm">
-                Optional deadline; leave date and time empty for undated work.
+              </Field>
+              <TimeFields
+                {...{ date, time, zone, setDate, setTime, setZone }}
+                timeLabel="Time (optional)"
+              />
+              <p className="-mt-3 text-xs text-text-secondary">
+                Leave the date empty for a follow-up with no due date.
               </p>
-              <TimeFields {...{ date, time, zone, setDate, setTime, setZone }} />
             </fieldset>
-            {error && <p role="alert">{error}</p>}
-            <div className="flex flex-wrap gap-2 justify-end">
-              <Button type="button" variant="tertiary" disabled={pending} onClick={close}>
+            {error && (
+              <InlineNotification kind="error" className="mt-6">
+                {error}
+              </InlineNotification>
+            )}
+            <DialogFooter>
+              <Button type="button" variant="secondary" disabled={pending} onClick={close}>
                 Close
               </Button>
               {frozen ? (
@@ -247,20 +237,26 @@ export function FollowUpEditor({
                   Save follow-up
                 </Button>
               )}
-            </div>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
     </>
   );
 }
+
+/** Hides an open to-do until a chosen time. Its due date stays as it is. */
 export function SnoozeControl({
   action,
   disabled = false,
+  ref,
+  trigger: showTrigger = true,
+  returnFocus,
 }: {
   action: ApplicationActionResponse;
   disabled?: boolean;
-}) {
+  ref?: Ref<DialogHandle>;
+} & TriggerOptions) {
   const client = useQueryClient(),
     trigger = useRef<HTMLButtonElement>(null);
   const [snapshot, setSnapshot] = useState<ApplicationActionResponse | null>(null),
@@ -271,12 +267,23 @@ export function SnoozeControl({
     [time, setTime] = useState(''),
     [zone, setZone] = useState(browserTimeZone);
   const snoozed = !!action.snoozedUntil;
+  const giveFocusBack = () => focusLater(showTrigger ? trigger : returnFocus);
   const close = () => {
     if (!pending) {
       setSnapshot(null);
-      queueMicrotask(() => trigger.current?.focus());
+      giveFocusBack();
     }
   };
+  const begin = () => {
+    if (action.status !== 'PENDING') return;
+    setSnapshot(action);
+    setFailed(false);
+    setError('');
+    setDate('');
+    setTime('');
+    setZone(browserTimeZone());
+  };
+  useImperativeHandle(ref, () => ({ open: begin }));
   const save = async (unsnooze = false) => {
     if (!snapshot || pending || failed) return;
     const timing = resolveTemporal({
@@ -290,9 +297,7 @@ export function SnoozeControl({
         !timing.instant ||
         Date.parse(timing.instant) <= Date.now())
     ) {
-      setError(
-        'Choose a future date, time and explicit timezone. Ambiguous times need a UTC offset.',
-      );
+      setError(`Choose a date and time in the future, and a time zone. ${CLOCK_CHANGE}`);
       return;
     }
     setPending(true);
@@ -303,34 +308,28 @@ export function SnoozeControl({
         snoozedUntil: unsnooze ? null : timing.instant,
       });
       setSnapshot(null);
-      queueMicrotask(() => trigger.current?.focus());
+      giveFocusBack();
     } catch {
       setFailed(true);
-      setError(
-        'Save could not be confirmed. Close and review the refreshed action before retrying.',
-      );
+      setError('We could not confirm the snooze. Close this and look at the to-do again.');
     } finally {
       setPending(false);
-      await Promise.all(keys.map((key) => client.invalidateQueries({ queryKey: [key] })));
+      await refreshFollowThrough(client);
     }
   };
   return (
     <>
-      <Button
-        ref={trigger}
-        size="sm"
-        variant="tertiary"
-        disabled={disabled || action.status !== 'PENDING'}
-        onClick={() => {
-          setSnapshot(action);
-          setFailed(false);
-          setError('');
-          setDate('');
-          setTime('');
-        }}
-      >
-        {snoozed ? 'Change snooze' : 'Snooze'}
-      </Button>
+      {showTrigger && (
+        <Button
+          ref={trigger}
+          size="sm"
+          variant="tertiary"
+          disabled={disabled || action.status !== 'PENDING'}
+          onClick={begin}
+        >
+          {snoozed ? 'Change snooze' : 'Snooze'}
+        </Button>
+      )}
       <Dialog
         open={!!snapshot}
         onOpenChange={(value) => {
@@ -338,22 +337,27 @@ export function SnoozeControl({
         }}
       >
         <DialogContent>
-          <DialogTitle>Snooze action</DialogTitle>
-          <p className="text-sm my-3">
-            Hide this pending action until the chosen time. Its deadline stays unchanged. No
-            reminder is sent.
-          </p>
           <form
-            className="space-y-4"
             onSubmit={(e) => {
               e.preventDefault();
               void save();
             }}
           >
-            <TimeFields {...{ date, time, zone, setDate, setTime, setZone }} />
-            {error && <p role="alert">{error}</p>}
-            <div className="flex flex-wrap gap-2 justify-end">
-              <Button type="button" variant="tertiary" disabled={pending} onClick={close}>
+            <DialogHeader>
+              <DialogTitle>Snooze this step</DialogTitle>
+              <DialogDescription>
+                It leaves your lists and comes back at this time. Its due date stays. No reminder is
+                sent.
+              </DialogDescription>
+            </DialogHeader>
+            <TimeFields {...{ date, time, zone, setDate, setTime, setZone }} timeLabel="Time" />
+            {error && (
+              <InlineNotification kind="error" className="mt-6">
+                {error}
+              </InlineNotification>
+            )}
+            <DialogFooter>
+              <Button type="button" variant="secondary" disabled={pending} onClick={close}>
                 Close
               </Button>
               {snapshot?.snoozedUntil && (
@@ -369,89 +373,8 @@ export function SnoozeControl({
               <Button type="submit" disabled={pending || failed}>
                 Save snooze
               </Button>
-            </div>
+            </DialogFooter>
           </form>
-        </DialogContent>
-      </Dialog>
-    </>
-  );
-}
-export function ArchiveControl({
-  application,
-  disabled = false,
-}: {
-  application: ApplicationResponse;
-  disabled?: boolean;
-}) {
-  const client = useQueryClient(),
-    trigger = useRef<HTMLButtonElement>(null);
-  const [snapshot, setSnapshot] = useState<ApplicationResponse | null>(null),
-    [pending, setPending] = useState(false),
-    [error, setError] = useState('');
-  const close = () => {
-    if (!pending) {
-      setSnapshot(null);
-      queueMicrotask(() => trigger.current?.focus());
-    }
-  };
-  const save = async () => {
-    if (!snapshot || pending || error) return;
-    setPending(true);
-    try {
-      const saved = await api.archiveApplication(snapshot.id, {
-        expectedArchiveRevision: snapshot.archiveRevision,
-        archived: !snapshot.archivedAt,
-      });
-      applyAcknowledgedApplication(client, saved);
-      setSnapshot(null);
-      queueMicrotask(() => trigger.current?.focus());
-    } catch {
-      setError(
-        'Save could not be confirmed. Close and review the refreshed application before retrying.',
-      );
-    } finally {
-      setPending(false);
-      await Promise.all(keys.map((key) => client.invalidateQueries({ queryKey: [key] })));
-    }
-  };
-  return (
-    <>
-      <Button
-        ref={trigger}
-        size="sm"
-        variant="tertiary"
-        disabled={disabled}
-        onClick={() => {
-          setSnapshot(application);
-          setError('');
-        }}
-      >
-        {application.archivedAt ? 'Restore application' : 'Archive application'}
-      </Button>
-      <Dialog
-        open={!!snapshot}
-        onOpenChange={(value) => {
-          if (!value) close();
-        }}
-      >
-        <DialogContent>
-          <DialogTitle>
-            {snapshot?.archivedAt ? 'Restore application' : 'Archive application'}
-          </DialogTitle>
-          <p className="my-4 text-sm">
-            {snapshot?.archivedAt
-              ? 'Return this application and its pending work to your active views. Prior notifications will not be replayed.'
-              : 'Hide this application from active lists, work and agenda. Status, history and linked emails are preserved; linked mail continues to be tracked. Restore before adding or editing work.'}
-          </p>
-          {error && <p role="alert">{error}</p>}
-          <div className="flex gap-3 justify-end">
-            <Button disabled={pending} variant="tertiary" onClick={close}>
-              Close
-            </Button>
-            <Button disabled={pending || !!error} onClick={() => void save()}>
-              {snapshot?.archivedAt ? 'Restore' : 'Archive'}
-            </Button>
-          </div>
         </DialogContent>
       </Dialog>
     </>

@@ -13,6 +13,7 @@ import { showToast } from '../ui/toast';
 import { ConversationAction } from './ConversationAction';
 import { ConversationApplication } from './ConversationApplication';
 import { MailType } from './MailType';
+import { TodoState } from './TodoState';
 
 /** The row's "…" menu: change what the mail needs, and open it in Gmail. */
 function RowMenu({ conversation }: { conversation: Conversation }) {
@@ -127,9 +128,20 @@ const FULL_COLUMNS: ColumnDef<Conversation>[] = [
   }),
 ];
 
+// The application page lists its steps above, so here each conversation shows only its to-do state.
 const COMPACT_COLUMNS: ColumnDef<Conversation>[] = [
   column('mail', 'Mail', (c) => <MailCell conversation={c} />),
-  column('step', 'Next step', (c) => <ConversationAction conversation={c} controls={false} />),
+  column(
+    'todo',
+    'To-do',
+    (c) =>
+      c.request ? (
+        <TodoState state={c.request.state} />
+      ) : (
+        <span className="text-xs text-text-secondary">None</span>
+      ),
+    { phoneLabel: 'To-do' },
+  ),
   column(
     'last',
     'Last mail',
@@ -163,7 +175,7 @@ export function ConversationTable({
       getRowId={(c) => c.key}
       gridTemplate={
         compact
-          ? 'minmax(220px,2fr) minmax(200px,2fr) 112px'
+          ? 'minmax(220px,1fr) 140px 112px'
           : '8px minmax(220px,2.2fr) 120px minmax(220px,2fr) minmax(170px,1.4fr) 112px 32px'
       }
       {...rest}
