@@ -607,10 +607,11 @@ describe('row badges', () => {
     });
   });
 
-  it('keeps the other states as they are', () => {
-    expect(mailAIView({ processingState: 'COMPLETED', aiStatus: null }).badge).toBe('COMPLETED');
+  it('words the other states plainly', () => {
+    expect(mailAIView({ processingState: 'COMPLETED', aiStatus: null }).badge).toBe('Read');
+    expect(mailAIView({ processingState: 'PROCESSING', aiStatus: null }).badge).toBe('Reading');
     expect(mailAIView({ processingState: 'PENDING', aiStatus: null })).toMatchObject({
-      badge: 'PENDING',
+      badge: 'Queued',
       info: null,
     });
     expect(mailAIView({ processingState: 'PROCESSING', processingRetryable: true }).badge).toBe(
