@@ -1,40 +1,51 @@
 import { useEffect, useState } from 'react';
 import type { MailMessage } from '../../contracts/mailbox';
 import { hasRemoteImages, mailFrameDocument, MailColors, setsOwnColors } from '../../lib/mailHtml';
+import { mailText } from '../../lib/mailThread';
 import { Button } from '../ui/button';
 
-/** The theme's text and card colours, or null when the page has none (as in tests). */
-function readThemeColors(): MailColors | null {
+/** The theme's text colour and the card's colour, or null when the page has none (as in tests). */
+function readThemeColors(background: string): MailColors | null {
   const css = getComputedStyle(document.documentElement);
   const text = css.getPropertyValue('--text-primary').trim();
-  const background = css.getPropertyValue('--surface').trim();
-  return text && background ? { text, background } : null;
+  const page = css.getPropertyValue(background).trim();
+  return text && page ? { text, background: page } : null;
 }
 
 /** The theme's colours, read again when the theme changes the root element's classes. */
-function useThemeColors(): MailColors | null {
-  const [colors, setColors] = useState(readThemeColors);
+function useThemeColors(background: string): MailColors | null {
+  const [, setThemeChanges] = useState(0);
   useEffect(() => {
-    const observer = new MutationObserver(() => setColors(readThemeColors()));
+    const observer = new MutationObserver(() => setThemeChanges((count) => count + 1));
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     return () => observer.disconnect();
   }, []);
-  return colors;
+  return readThemeColors(background);
 }
 
 /**
  * The sender's HTML in a frame that cannot run scripts, send forms or reach the network. The
  * frame shares the page's origin only so its height can be read; nothing inside it can use that.
  */
-function MailFrame({ html, showImages }: { html: string; showImages: boolean }) {
+function MailFrame({
+  html,
+  showImages,
+  showQuote,
+  mine,
+}: {
+  html: string;
+  showImages: boolean;
+  showQuote: boolean;
+  mine: boolean;
+}) {
   const [height, setHeight] = useState(160);
-  const theme = useThemeColors();
+  const theme = useThemeColors(mine ? '--tint' : '--surface');
   const colors = theme && !setsOwnColors(html) ? theme : undefined;
   return (
     <iframe
       title="Mail text"
       sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
-      srcDoc={mailFrameDocument(html, showImages, colors)}
+      srcDoc={mailFrameDocument(html, showImages, colors, !showQuote)}
       className="block w-full border-0"
       style={{ height }}
       onLoad={(event) => {
@@ -45,26 +56,41 @@ function MailFrame({ html, showImages }: { html: string; showImages: boolean }) 
   );
 }
 
-/** A message's text: plain text as it is, HTML inside the safe frame. */
-export function MailBody({ message }: { message: MailMessage }) {
+/**
+ * A message's text: plain text as it is, HTML inside the safe frame. The quoted earlier mail is
+ * left out unless `showQuote` is on.
+ */
+export function MailBody({
+  message,
+  showQuote = true,
+  mine = false,
+}: {
+  message: MailMessage;
+  showQuote?: boolean;
+  /** The user's own mail, drawn on the tinted card. */
+  mine?: boolean;
+}) {
   const [showImages, setShowImages] = useState(false);
-  if (!message.html)
+  const { html, own, quoted } = mailText(message);
+  if (!html) {
     return (
-      <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-        {message.text?.trim() || 'This mail has no text.'}
-      </p>
+      <div className="max-w-[75ch] space-y-3 text-sm leading-[22px] break-words whitespace-pre-wrap">
+        <p>{own || 'This mail has no text.'}</p>
+        {quoted && showQuote && <p className="animate-open text-text-secondary">{quoted}</p>}
+      </div>
     );
+  }
   return (
     <div className="space-y-3">
-      {!showImages && hasRemoteImages(message.html) && (
+      {!showImages && hasRemoteImages(html) && (
         <div className="flex flex-wrap items-center gap-3 text-xs text-text-secondary">
           <span>Pictures are hidden, so the sender cannot tell that you opened this mail.</span>
-          <Button variant="tertiary" size="sm" onClick={() => setShowImages(true)}>
+          <Button variant="ghost" size="sm" onClick={() => setShowImages(true)}>
             Show images
           </Button>
         </div>
       )}
-      <MailFrame html={message.html} showImages={showImages} />
+      <MailFrame html={html} showImages={showImages} showQuote={showQuote} mine={mine} />
     </div>
   );
 }
