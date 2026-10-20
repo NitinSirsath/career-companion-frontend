@@ -7,10 +7,12 @@ import type { ApplicationResponse } from '../../contracts/application';
 import type { PendingSubmission, ResolveSubmissionRequest } from '../../contracts/submission';
 import { platformLabel } from '../../lib/eventLabels';
 import { safeHttpUrl } from '../../lib/safeUrl';
-import { Tag } from '../ui/tag';
 import { Button } from '../ui/button';
 import { ApplicationPicker } from '../ApplicationPicker';
+import { SettingsSection } from '../layout/SettingsSection';
+import { InlineNotification } from '../ui/notification';
 import { Pagination } from '../ui/pagination';
+import { SectionError } from '../ui/section-error';
 
 const dateTime = (value: string) => format(new Date(value), 'MMM d, yyyy · h:mm a');
 
@@ -37,13 +39,13 @@ function SubmissionCard({
   const selectId = `link-${submission.id}`;
   return (
     <article
-      aria-label={`Submission: ${submission.company} — ${submission.jobTitle}`}
-      className="border border-border-default border-l-4 border-l-status-success bg-surface p-4"
+      aria-label={`Submission: ${submission.company} · ${submission.jobTitle}`}
+      className="border-t border-border-subtle pt-4 first:border-t-0 first:pt-0"
     >
       <div className="flex flex-col md:flex-row gap-6 justify-between">
         <div className="flex-1 min-w-0 space-y-1 break-words">
           <p className="text-sm font-semibold">
-            {submission.company} — {submission.jobTitle}
+            {submission.company} · {submission.jobTitle}
           </p>
           <p className="text-xs text-text-secondary">{where.join(' · ')}</p>
           <p className="text-xs text-text-secondary">
@@ -53,7 +55,7 @@ function SubmissionCard({
           </p>
           {submission.confirmationText && (
             <p className="text-xs">
-              <span className="font-medium text-muted-foreground">Confirmation shown:</span>{' '}
+              <span className="text-text-secondary">The site said:</span>{' '}
               <span className="whitespace-pre-wrap">{submission.confirmationText}</span>
             </p>
           )}
@@ -62,7 +64,7 @@ function SubmissionCard({
               href={jobUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs underline text-action-primary"
+              className="text-xs text-link"
             >
               Open job posting
             </a>
@@ -86,22 +88,25 @@ function SubmissionCard({
               Link
             </Button>
           </div>
-          <Button
-            size="sm"
-            variant="secondary"
-            disabled={disabled}
-            onClick={() => onResolve({ action: 'create' })}
-          >
-            Create application
-          </Button>
-          <Button
-            size="sm"
-            variant="tertiary"
-            disabled={disabled}
-            onClick={() => onResolve({ action: 'ignore' })}
-          >
-            Ignore
-          </Button>
+          <div className="flex flex-wrap gap-1">
+            <Button
+              size="sm"
+              variant="ghost"
+              className="-ml-3"
+              disabled={disabled}
+              onClick={() => onResolve({ action: 'create' })}
+            >
+              Create application
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              disabled={disabled}
+              onClick={() => onResolve({ action: 'ignore' })}
+            >
+              Ignore
+            </Button>
+          </div>
         </div>
       </div>
     </article>
@@ -150,29 +155,38 @@ export function PendingSubmissionsSection({
     },
   });
 
-  if (error) return <p role="alert">Could not load automation submissions: {error.message}</p>;
+  if (error)
+    return (
+      <SettingsSection title="Waiting for a match">
+        <SectionError title="Could not load the submissions from your automation" />
+      </SettingsSection>
+    );
   if (isLoading || !data || (data.items.length === 0 && offset === 0 && !notice)) return null;
   const count = `${data.items.length}${data.metadata.nextOffset != null ? '+' : ''}`;
 
   return (
-    <section aria-labelledby="pending-submissions-heading" className="space-y-4">
-      <h3 id="pending-submissions-heading" className="text-lg font-medium flex items-center gap-2">
-        Automation submissions to review <Tag color="gray">{count}</Tag>
-      </h3>
-      <p className="text-xs text-text-secondary">
-        Your automation reported these applications, but Career Companion could not match them with
-        certainty. If the application is archived, restore it before linking.
-      </p>
-      <Link to="/applications" className="text-sm underline">
-        Find and restore applications using the Archived filter
-      </Link>
-      {notice && (
-        <p role="alert" className="text-sm">
-          {notice}
-        </p>
-      )}
+    <SettingsSection
+      title="Waiting for a match"
+      help={
+        <>
+          <span className="block">
+            {count} {count === '1' ? 'submission' : 'submissions'} your automation reported that the
+            app could not match with certainty. An archived application must be restored before you
+            link it.
+          </span>
+          <Link
+            to="/applications"
+            search={{ archive: 'archived' }}
+            className="mt-2 block text-link"
+          >
+            Find archived applications
+          </Link>
+        </>
+      }
+    >
+      {notice && <InlineNotification kind="warning">{notice}</InlineNotification>}
       {data.items.length === 0 && <p className="text-sm">No submissions on this page.</p>}
-      <div className="space-y-3">
+      <div className="flex flex-col gap-4">
         {data.items.map((submission) => (
           <SubmissionCard
             key={submission.id}
@@ -192,6 +206,6 @@ export function PendingSubmissionsSection({
           onNext={() => data.metadata.nextOffset != null && setOffset(data.metadata.nextOffset)}
         />
       )}
-    </section>
+    </SettingsSection>
   );
 }
