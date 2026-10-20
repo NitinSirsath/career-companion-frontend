@@ -1,501 +1,101 @@
-import { RouteErrorPage } from '../components/errors/RouteErrorPage';
-import { listSearch } from '../lib/listMemory';
-import type { ApplicationsSearch } from '../lib/applicationsView';
-import { Breadcrumb } from '../components/layout/PageHeader';
-import { FollowUpEditor, SnoozeControl, ArchiveControl } from '../components/FollowThrough';
-import { MatchCorrectionDialog } from '../components/MatchCorrectionDialog';
-import { ApplicationConversations } from '../components/mails/ApplicationConversations';
-import { deadlineLabel } from '../lib/deadline';
-import { useState } from 'react';
-import { Pagination } from '../components/ui/pagination';
+import { useMemo, useState } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { format } from 'date-fns';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/client';
-import { ApplicationEventResponse, ApplicationActionListItem } from '../contracts/application';
-import { actionState } from '../lib/actionState';
+import { ApplicationFacts } from '../components/applications/ApplicationFacts';
+import { ApplicationHeader } from '../components/applications/ApplicationHeader';
+import { ApplicationHistory } from '../components/applications/ApplicationHistory';
+import { NextSteps } from '../components/applications/NextSteps';
+import { RouteErrorPage } from '../components/errors/RouteErrorPage';
+import { Breadcrumb } from '../components/layout/PageHeader';
+import { ApplicationConversations } from '../components/mails/ApplicationConversations';
 import { Button } from '../components/ui/button';
-import { EffectiveStatus } from '../components/ApplicationStatus';
-import { STATUS_LABEL } from '../lib/statusLabels';
-import { StatusEditor } from '../components/StatusEditor';
+import { InlineNotification } from '../components/ui/notification';
+import { SectionError } from '../components/ui/section-error';
+import { SkeletonList } from '../components/ui/skeleton';
+import { mailSenders } from '../lib/applicationDetail';
 import { applicationQueryOptions } from '../lib/applicationCache';
-import { AnalyzedBy } from '../components/ai/AnalyzedBy';
-import { AUTOMATION_SUBMITTED, eventLabel, platformLabel } from '../lib/eventLabels';
+import type { ApplicationsSearch } from '../lib/applicationsView';
+import { listSearch } from '../lib/listMemory';
 
 export const Route = createFileRoute('/applications/$id')({
   errorComponent: RouteErrorPage,
   component: ApplicationDetailPage,
 });
 
-const dateTime = (value: string) => format(new Date(value), 'MMM d, yyyy · h:mm a');
-
-// ─── Timeline dot ─────────────────────────────────────────────────────────────
-
-function TimelineDot({ type }: { type: string }) {
-  const colorMap: Record<string, string> = {
-    EMAIL_PROCESSED: 'bg-status-info',
-    [AUTOMATION_SUBMITTED]: 'bg-status-success',
-    STATE_INFERRED: 'bg-status-neutral',
-    NOTE_ADDED: 'bg-status-neutral',
-  };
-  const color = colorMap[type] ?? 'bg-muted-foreground';
-  return <span className={`mt-1 shrink-0 h-2.5 w-2.5 rounded-full ${color}`} aria-hidden="true" />;
-}
-
-// ─── AI state change (AI status only; never the user's effective status) ──────
-
-function AiStateChange({ event }: { event: ApplicationEventResponse }) {
-  const { oldState, newState } = event;
-  if (!oldState && !newState) return null;
-  let text: string;
-  if (oldState && newState && oldState === newState)
-    text = `AI status unchanged: ${STATUS_LABEL[newState]}`;
-  else if (oldState && newState)
-    text = `AI status: ${STATUS_LABEL[oldState]} → ${STATUS_LABEL[newState]}`;
-  else text = `AI status: ${STATUS_LABEL[(newState ?? oldState)!]}`;
-  return <p className="text-xs text-text-secondary mt-1">{text}</p>;
-}
-
-// ─── Automation submission (reported by the user's tool; never AI, never email) ─
-
-function AutomationSubmission({ event }: { event: ApplicationEventResponse }) {
-  const submission = event.sourceSubmission;
-  if (!submission)
-    return <p className="text-xs text-text-secondary">Submission details unavailable</p>;
-  return (
-    <div className="text-xs text-text-secondary break-words space-y-0.5">
-      <p>
-        Reported by your automation · {platformLabel(submission.platform)}
-        {submission.destinationHost && <> · {submission.destinationHost}</>}
-      </p>
-      <p>
-        Submitted <time dateTime={submission.submittedAt}>{dateTime(submission.submittedAt)}</time>
-      </p>
-      {submission.confirmationText && (
-        <p>
-          Confirmation shown:{' '}
-          <span className="text-text-primary whitespace-pre-wrap">
-            {submission.confirmationText}
-          </span>
-        </p>
-      )}
-    </div>
-  );
-}
-
-// ─── Timeline event item (rendered as text; React escapes all values) ─────────
-
-function TimelineEventItem({ event }: { event: ApplicationEventResponse }) {
-  const source = event.sourceEmail;
-  const automation = event.type === AUTOMATION_SUBMITTED;
-  return (
-    <li className={`flex gap-4 ${event.retiredAt ? 'text-text-secondary' : ''}`}>
-      <div className="flex flex-col items-center">
-        <TimelineDot type={event.type} />
-      </div>
-      <div className="pb-5 flex-1 min-w-0 space-y-1">
-        <div className="flex items-start justify-between gap-2 flex-wrap">
-          <p className="text-sm font-semibold">{eventLabel(event.type)}</p>
-          <p className="text-xs text-text-secondary whitespace-nowrap">
-            Recorded <time dateTime={event.recordedAt}>{dateTime(event.recordedAt)}</time>
-          </p>
-        </div>
-        {automation ? (
-          <AutomationSubmission event={event} />
-        ) : source ? (
-          <div className="text-xs text-text-secondary break-words">
-            <p>
-              Source email:{' '}
-              <span className="text-text-primary">{source.subject || '(No subject)'}</span>
-              {source.sender && <> · from {source.sender}</>}
-            </p>
-            <p>
-              {source.receivedAt ? (
-                <>
-                  Email date <time dateTime={source.receivedAt}>{dateTime(source.receivedAt)}</time>
-                </>
-              ) : (
-                'Email date unknown'
-              )}
-            </p>
-            <Link
-              to="/mails/$key"
-              params={{ key: source.id }}
-              className="inline-block underline text-action-primary"
-            >
-              Open mail
-            </Link>
-          </div>
-        ) : (
-          <p className="text-xs text-text-secondary">Source email unavailable</p>
-        )}
-        {event.retiredAt ? (
-          <div className="text-xs text-text-secondary">
-            <p>
-              {event.retiredReason === 'EMAIL_MOVED'
-                ? 'Moved to another application'
-                : 'Unlinked from this application'}{' '}
-              · {dateTime(event.retiredAt)}
-            </p>
-            <p>No longer counts toward this application's AI status</p>
-          </div>
-        ) : (
-          !automation && <AiStateChange event={event} />
-        )}
-        {!automation && !event.retiredAt && source && (
-          <MatchCorrectionDialog
-            emailId={source.id}
-            matchState="MATCHED"
-            applicationId={event.applicationId}
-            label="Wrong application?"
-          />
-        )}
-        {!automation && (event.description || event.provenance) && (
-          <div className="text-xs text-text-secondary">
-            <p className="font-medium">AI interpretation (not verified source text)</p>
-            <AnalyzedBy provider={event.analyzedBy?.provider} model={event.analyzedBy?.model} />
-            {event.description && <p className="break-words">{event.description}</p>}
-            {event.provenance && <p className="italic break-words">{event.provenance}</p>}
-          </div>
-        )}
-      </div>
-    </li>
-  );
-}
-
-// ─── Action item ──────────────────────────────────────────────────────────────
-
-const STATE_BOX = {
-  open: 'border-border-default border-l-4 border-l-status-warning bg-surface',
-  replied: 'border-border-default bg-surface',
-  closed: 'border-border-default bg-surface-subtle',
-} as const;
-const STATE_DOT = {
-  open: 'bg-status-warning',
-  replied: 'bg-status-success',
-  closed: 'bg-muted-foreground',
-} as const;
-const STATE_TEXT = {
-  open: 'text-status-warning',
-  replied: 'text-status-success',
-  closed: 'text-muted-foreground',
-} as const;
-
-function ActionItem({
-  action,
-  archived,
-}: {
-  action: ApplicationActionListItem;
-  archived: boolean;
-}) {
-  const isPending = action.status === 'PENDING';
-  const state = actionState(action);
-  const queryClient = useQueryClient();
-
-  const updateMutation = useMutation({
-    retry: false,
-    mutationFn: ({ status }: { status: 'COMPLETED' | 'DISMISSED' }) =>
-      api.updateAction(action.id, { status, expectedActionRevision: action.actionRevision }),
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['application-actions', action.applicationId] });
-      queryClient.invalidateQueries({ queryKey: ['applications'] });
-      queryClient.invalidateQueries({ queryKey: ['application', action.applicationId] });
-      queryClient.invalidateQueries({ queryKey: ['actions'] });
-      void queryClient.invalidateQueries({ queryKey: ['workspace'] });
-    },
-  });
-
-  return (
-    <div
-      className={`flex flex-col sm:flex-row items-start gap-3 p-3 rounded-none border ${STATE_BOX[state.tone]}`}
-    >
-      <span
-        className={`mt-0.5 shrink-0 h-2 w-2 rounded-full ${STATE_DOT[state.tone]}`}
-        aria-hidden="true"
-      />
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium">
-          {action.description ||
-            action.type
-              .replace(/_/g, ' ')
-              .toLowerCase()
-              .replace(/\b\w/g, (c: string) => c.toUpperCase())}
-        </p>
-        <p className="text-xs text-text-secondary">
-          {action.origin === 'USER'
-            ? 'Personal follow-up'
-            : action.emailId
-              ? 'From email'
-              : 'Source unknown'}
-        </p>
-        {action.snoozedUntil && (
-          <p className="text-xs">
-            Snooze ends {new Date(action.snoozedUntil).toLocaleString()}. Original deadline
-            unchanged.
-          </p>
-        )}
-        <div className="flex items-center gap-2 mt-1 flex-wrap">
-          <span className={`text-xs font-semibold ${STATE_TEXT[state.tone]}`}>{state.label}</span>
-          {state.note && <span className="text-xs text-muted-foreground">{state.note}</span>}
-          {!state.note && action.deadline && (
-            <span className="text-xs text-muted-foreground">Due {deadlineLabel(action, true)}</span>
-          )}
-        </div>
-      </div>
-      {action.origin === 'USER' && !archived && (
-        <FollowUpEditor applicationId={action.applicationId} action={action} />
-      )}
-      {updateMutation.isError && (
-        <p role="alert">Could not update action: {updateMutation.error.message}</p>
-      )}
-      {isPending && !archived && (
-        <div className="flex flex-wrap gap-2 self-start">
-          <Button
-            variant="primary"
-            size="sm"
-            className="h-7 text-xs px-2"
-            disabled={updateMutation.isPending}
-            onClick={() => updateMutation.mutate({ status: 'COMPLETED' })}
-          >
-            Complete
-          </Button>
-          <Button
-            variant="tertiary"
-            size="sm"
-            className="h-7 text-xs px-2 text-muted-foreground"
-            disabled={updateMutation.isPending}
-            onClick={() => updateMutation.mutate({ status: 'DISMISSED' })}
-          >
-            Dismiss
-          </Button>
-          <SnoozeControl action={action} />
-        </div>
-      )}
-    </div>
-  );
-}
-
-function SectionError({
-  label,
-  message,
-  onRetry,
-}: {
-  label: string;
-  message: string;
-  onRetry: () => void;
-}) {
-  return (
-    <div
-      role="alert"
-      className="p-4 text-sm text-destructive border border-destructive/20 bg-destructive/5 flex flex-wrap items-center gap-3"
-    >
-      <span>
-        Failed to load {label}: {message}
-      </span>
-      <Button size="sm" variant="tertiary" onClick={onRetry}>
-        Retry
-      </Button>
-    </div>
-  );
-}
-
-// ─── Main page ────────────────────────────────────────────────────────────────
-
 function ApplicationDetailPage() {
   const { id } = Route.useParams();
   const queryClient = useQueryClient();
-
   const [eventsOffset, setEventsOffset] = useState(0);
-  const [actionsOffset, setActionsOffset] = useState(0);
   const applicationQuery = useQuery(applicationQueryOptions(queryClient, id));
   const eventsQuery = useQuery({
     queryKey: ['application-events', id, eventsOffset],
     queryFn: ({ signal }) => api.getApplicationEvents(id, { offset: eventsOffset }, { signal }),
   });
-  const actionsQuery = useQuery({
-    queryKey: ['application-actions', id, actionsOffset],
-    queryFn: ({ signal }) => api.getApplicationActions(id, { offset: actionsOffset }, { signal }),
-  });
-
   const application = applicationQuery.data;
   const events = eventsQuery.data?.items;
-  const actions = actionsQuery.data?.items;
+  const senders = useMemo(() => mailSenders(events ?? []), [events]);
   // Editing needs a currently valid application read; a stale cached copy is shown but not editable.
   const canEdit = !!application && !applicationQuery.isError;
 
+  const breadcrumb = (
+    <Breadcrumb current={application?.companyName}>
+      <Link to="/applications" search={listSearch<ApplicationsSearch>('/applications')}>
+        Applications
+      </Link>
+    </Breadcrumb>
+  );
+
   return (
-    <div className="space-y-8">
-      <Breadcrumb current={application?.companyName ?? 'Application'}>
-        <Link to="/applications" search={listSearch<ApplicationsSearch>('/applications')}>
-          Applications
-        </Link>
-      </Breadcrumb>
-
-      {/* Application */}
-      {applicationQuery.isLoading && (
-        <div
-          className="p-8 text-center text-muted-foreground border border-dashed"
-          role="status"
-          aria-label="Loading application details"
-        >
-          Loading application details...
-        </div>
-      )}
-      {applicationQuery.isError && (
-        <SectionError
-          label={
-            application ? 'the latest application data (showing earlier data)' : 'application data'
-          }
-          message={applicationQuery.error.message}
-          onRetry={() => void applicationQuery.refetch()}
+    <div className="flex flex-col gap-6">
+      {application ? (
+        <ApplicationHeader
+          key={application.id}
+          application={application}
+          canEdit={canEdit}
+          breadcrumb={breadcrumb}
         />
+      ) : (
+        breadcrumb
       )}
-      {application && (
-        <div className="border border-border bg-card text-card-foreground p-6 space-y-4">
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div className="min-w-0">
-              <h2 className="text-2xl font-semibold tracking-tight break-words">
-                {application.companyName}
-              </h2>
-              {application.jobTitle && (
-                <p className="text-muted-foreground mt-0.5">{application.jobTitle}</p>
-              )}
-              {application.location && (
-                <p className="text-sm text-muted-foreground">{application.location}</p>
-              )}
-              {application.appliedAt && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Applied {format(new Date(application.appliedAt), 'MMM d, yyyy')}
-                </p>
-              )}
-            </div>
-          </div>
-          <div className="space-y-3">
-            {application.archivedAt && (
-              <p className="text-sm">
-                Archived — history and linked mail are preserved. Restore to edit work.
-              </p>
-            )}
-            <EffectiveStatus app={application} detailed />
-            <div className="flex flex-wrap gap-2">
-              <ArchiveControl application={application} disabled={!canEdit} />
-              {!application.archivedAt && (
-                <FollowUpEditor applicationId={application.id} disabled={!canEdit} />
-              )}
-            </div>
-            {!application.archivedAt && (
-              <StatusEditor key={application.id} application={application} canEdit={canEdit} />
-            )}
-          </div>
-        </div>
-      )}
-
-      <ApplicationConversations applicationId={id} />
-      {/* Actions section — independent of history and status editing */}
-      <section className="space-y-3" aria-labelledby="actions-heading">
-        <h3 id="actions-heading" className="text-lg font-semibold">
-          Actions
-        </h3>
-        {actionsQuery.isLoading && (
-          <p role="status" className="text-sm text-muted-foreground">
-            Loading actions...
-          </p>
-        )}
-        {actionsQuery.isError && (
-          <SectionError
-            label="actions"
-            message={actionsQuery.error.message}
-            onRetry={() => void actionsQuery.refetch()}
-          />
-        )}
-        {actions && (
-          <>
-            <div className="space-y-2">
-              {actions.length === 0 && (
-                <p className="text-sm text-muted-foreground">
-                  {actionsOffset > 0 ? 'No actions on this page.' : 'No actions yet.'}
-                </p>
-              )}
-              {actions.map((action) => (
-                <ActionItem key={action.id} action={action} archived={!!application?.archivedAt} />
-              ))}
-            </div>
-            {(actionsOffset > 0 || actionsQuery.data?.metadata.nextOffset != null) && (
-              <Pagination
-                offset={actionsOffset}
-                limit={20}
-                hasNext={actionsQuery.data?.metadata.nextOffset != null}
-                onPrevious={() => setActionsOffset(Math.max(0, actionsOffset - 20))}
-                onNext={() =>
-                  actionsQuery.data?.metadata.nextOffset != null &&
-                  setActionsOffset(actionsQuery.data.metadata.nextOffset)
-                }
-              />
-            )}
-          </>
-        )}
-      </section>
-
-      {/* History section — recording order; independent of status editing */}
-      <section className="space-y-3" aria-labelledby="history-heading">
-        <h3 id="history-heading" className="text-lg font-semibold">
-          Timeline
-        </h3>
-        <p className="text-xs text-text-secondary">
-          Listed in the order the app recorded them. Email dates come from the email, and submission
-          times from your automation; neither may be when the recruitment event happened.
-        </p>
-        {eventsQuery.isLoading && (
-          <p role="status" className="text-sm text-muted-foreground">
-            Loading history...
-          </p>
-        )}
-        {eventsQuery.isError && (
-          <SectionError
-            label="history"
-            message={eventsQuery.error.message}
-            onRetry={() => void eventsQuery.refetch()}
-          />
-        )}
-        {events &&
-          (events.length === 0 ? (
-            <div
-              className="p-10 text-center text-muted-foreground border border-dashed"
-              role="status"
-            >
-              <p className="text-sm font-medium mb-1">No events yet</p>
-              <p className="text-xs">
-                Events appear when emails are processed or your automation reports a submission.
-              </p>
-            </div>
-          ) : (
-            <div className="border border-border bg-card text-card-foreground p-6">
-              <div className="relative">
-                <div
-                  className="absolute left-[5px] top-3 bottom-3 w-px bg-border"
-                  aria-hidden="true"
-                />
-                <ol className="space-y-0">
-                  {events.map((event) => (
-                    <TimelineEventItem key={event.id} event={event} />
-                  ))}
-                </ol>
-              </div>
-            </div>
-          ))}
-        {events && (eventsOffset > 0 || eventsQuery.data?.metadata.nextOffset != null) && (
-          <Pagination
-            offset={eventsOffset}
-            limit={20}
-            hasNext={eventsQuery.data?.metadata.nextOffset != null}
-            onPrevious={() => setEventsOffset(Math.max(0, eventsOffset - 20))}
-            onNext={() =>
-              eventsQuery.data?.metadata.nextOffset != null &&
-              setEventsOffset(eventsQuery.data.metadata.nextOffset)
+      {applicationQuery.isLoading && <SkeletonList rows={2} label="Loading this application" />}
+      {applicationQuery.isError &&
+        (application ? (
+          <InlineNotification
+            kind="warning"
+            title="This may be out of date."
+            action={
+              <Button
+                variant="ghost"
+                size="sm"
+                className="-my-1.5"
+                onClick={() => void applicationQuery.refetch()}
+              >
+                Try again
+              </Button>
             }
+          >
+            The latest version did not load, so you see an earlier one. Changes are off until it
+            loads.
+          </InlineNotification>
+        ) : (
+          <SectionError
+            title="Could not load this application"
+            onRetry={() => void applicationQuery.refetch()}
           />
-        )}
-      </section>
+        ))}
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="flex min-w-0 flex-col gap-6">
+          <NextSteps applicationId={id} archived={!!application?.archivedAt} senders={senders} />
+          <ApplicationConversations applicationId={id} />
+          <ApplicationHistory
+            query={eventsQuery}
+            offset={eventsOffset}
+            onOffset={setEventsOffset}
+          />
+        </div>
+        {application && <ApplicationFacts application={application} events={events ?? []} />}
+      </div>
     </div>
   );
 }
