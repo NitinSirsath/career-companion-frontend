@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { Portfolio, SidePanelClose, SidePanelOpen } from '@carbon/icons-react';
-import { useDevMode } from '../../api/appMode';
+import { useDevMode, useSandboxMailbox } from '../../api/appMode';
 import type { User } from '../../api/auth';
 import { cn } from '../../lib/utils';
 import { AccountMenu } from './AccountMenu';
@@ -41,6 +41,7 @@ function NavLink({
 /** The side menu on laptops: daily pages, then settings; it can shrink to icons. */
 export function Sidebar({ user }: { user: User | null }) {
   const devMode = useDevMode();
+  const sandbox = useSandboxMailbox();
   const [collapsed, setCollapsed] = useMenuCollapsed();
   const ToggleIcon = collapsed ? SidePanelOpen : SidePanelClose;
   return (
@@ -73,7 +74,9 @@ export function Sidebar({ user }: { user: User | null }) {
           {SETTINGS_NAV.map((item) => (
             <NavLink key={item.to} item={item} collapsed={collapsed} />
           ))}
-          {devMode && <NavLink item={SANDBOX_NAV} collapsed={collapsed} badge="Dev" />}
+          {sandbox && (
+            <NavLink item={SANDBOX_NAV} collapsed={collapsed} badge={devMode ? 'Dev' : 'Test'} />
+          )}
         </div>
       </nav>
 
