@@ -35,8 +35,8 @@ export const allowSendingUrl = (mailPath: string) =>
 
 export const replyHint = (devMode: boolean) =>
   devMode
-    ? 'Dev mode: the reply goes to the mail sandbox. No real mail is sent. The earlier mail is quoted below your text.'
-    : 'Sent from your Gmail, in this conversation. The earlier mail is quoted below your text.';
+    ? 'Dev mode: the reply goes to the mail sandbox. No real mail is sent. Your earlier mails are added below your text, as in any mail app.'
+    : 'Sent from your Gmail, in this conversation. Your earlier mails are added below your text, as in any mail app.';
 
 /** "Priya Nair", "Priya Nair and Daniel Okafor", "Priya Nair, Daniel Okafor and Lena Fischer". */
 const nameList = (names: string[]) =>

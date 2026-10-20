@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useId, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { useForm, type FieldError, type UseFormRegisterReturn } from 'react-hook-form';
 import type { z } from 'zod';
 import { useSendMailReply } from '../../api/mailbox';
@@ -13,6 +13,10 @@ import {
   type ReplyProblem,
 } from '../../lib/mailReply';
 import { Button } from '../ui/button';
+import { InlineNotification } from '../ui/notification';
+import { Select } from '../ui/select';
+import { showToast } from '../ui/toast';
+import { parseSender } from '../../lib/mails';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 
@@ -26,30 +30,16 @@ function ReplyOutcome({
   sentNote: string | null;
   problem: ReplyProblem | null;
 }) {
-  if (sentNote)
-    return (
-      <p role="status" className="border border-status-success p-3 text-sm">
-        {sentNote}
-      </p>
-    );
+  if (sentNote) return <InlineNotification kind="success">{sentNote}</InlineNotification>;
   if (problem?.kind === 'unconfirmed')
     return (
-      <div role="alert" className="space-y-1 border border-status-error p-3 text-sm">
-        <p className="font-semibold text-status-error">
-          Could not confirm that your reply was sent
-        </p>
-        <p>
-          Gmail did not answer in time. The reply may have gone out. Check the conversation before
-          you send it again, so the same mail does not go out twice.
-        </p>
-      </div>
+      <InlineNotification kind="error" title="Could not confirm that your reply was sent.">
+        Gmail did not answer in time. The reply may have gone out. Check the conversation before you
+        send it again, so the same mail does not go out twice.
+      </InlineNotification>
     );
   if (problem?.kind === 'not-sent')
-    return (
-      <p role="alert" className="text-sm text-status-error">
-        {problem.message}
-      </p>
-    );
+    return <InlineNotification kind="error">{problem.message}</InlineNotification>;
   return null;
 }
 
@@ -67,7 +57,7 @@ function ReplyButtons({
 }) {
   if (!unconfirmed)
     return (
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" loading={pending} title="Send reply (⌘ Enter)">
         {pending ? 'Sending…' : 'Send reply'}
       </Button>
     );
@@ -98,37 +88,42 @@ function ReplyReceivers({
   toAll: boolean;
   onToAll: (toAll: boolean) => void;
 }) {
-  if (!others.length)
-    return (
-      <p className="break-words text-sm">
-        <span className="font-semibold">Reply</span>{' '}
-        <span className="text-text-secondary">to {replyTo}</span>
-      </p>
-    );
+  const line = (label: string, people: string[]) => (
+    <span className="flex min-w-0 flex-wrap items-center gap-2">
+      <span className="w-6 text-xs text-text-secondary">{label}</span>
+      {people.map((person) => (
+        <span key={person} className="bg-tag-gray-bg px-2 text-xs leading-6 text-tag-gray">
+          {parseSender(person).name}
+        </span>
+      ))}
+    </span>
+  );
+  const chips = (
+    <span className="flex min-w-0 flex-col gap-1">
+      {line('To', [replyTo])}
+      {toAll && line('Cc', others)}
+    </span>
+  );
+  if (!others.length) return chips;
   const choice = replyChoice(replyTo, others, toAll);
+  const all = replyChoice(replyTo, others, true);
+  const one = replyChoice(replyTo, others, false);
   return (
-    <div className="space-y-2">
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-        <p className="text-sm font-semibold">{choice.title}</p>
-        <Button
-          type="button"
-          variant="ghost"
-          className="h-auto min-h-11 whitespace-normal break-words px-0 text-left text-action-primary underline hover:bg-transparent"
-          onClick={() => onToAll(!toAll)}
-        >
-          {choice.other}
-        </Button>
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        {chips}
+        <Select<'all' | 'one'>
+          label="Who gets this reply"
+          hideLabel
+          className="w-64"
+          value={toAll ? 'all' : 'one'}
+          options={[
+            { value: 'all', label: all.title },
+            { value: 'one', label: one.title },
+          ]}
+          onValueChange={(next) => onToAll(next === 'all')}
+        />
       </div>
-      <dl className="grid grid-cols-[2rem_minmax(0,1fr)] gap-x-2 gap-y-1 bg-surface-subtle p-3 text-sm">
-        <dt className="text-text-secondary">To</dt>
-        <dd className="break-words">{replyTo}</dd>
-        {toAll && (
-          <>
-            <dt className="text-text-secondary">Cc</dt>
-            <dd className="break-words">{others.join(', ')}</dd>
-          </>
-        )}
-      </dl>
       {choice.leftOut && <p className="text-xs text-text-secondary">{choice.leftOut}</p>}
     </div>
   );
@@ -138,22 +133,53 @@ function ReplyReceivers({
 function ReplyTextField({
   input,
   error,
+  onSubmitKey,
 }: {
   input: UseFormRegisterReturn<'text'>;
   error: FieldError | undefined;
+  /** Cmd+Enter or Ctrl+Enter sends. */
+  onSubmitKey: () => void;
 }) {
   const id = useId();
   return (
-    <div className="space-y-2">
-      <Label htmlFor={id}>Your reply</Label>
-      <Textarea id={id} rows={5} {...input} />
+    <div className="flex flex-col gap-2">
+      <Label htmlFor={id} className="sr-only">
+        Your reply
+      </Label>
+      <Textarea
+        id={id}
+        rows={5}
+        placeholder="Write your reply"
+        className="min-h-32 resize-y"
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+            event.preventDefault();
+            onSubmitKey();
+          }
+        }}
+        {...input}
+      />
       {error && (
-        <p className="text-sm text-status-error">
+        <p className="text-sm text-danger-text">
           {error.type === 'too_big' ? REPLY_TOO_LONG : REPLY_TEXT_PROBLEM}
         </p>
       )}
     </div>
   );
+}
+
+interface MailReplyFormProps {
+  threadId: string;
+  replyTo: string;
+  /** The other people on the answered mail: a reply goes to them too unless the user says not. */
+  replyCc: string[];
+  hint: string;
+  /** Reads the conversation again, so the user sees whether an unconfirmed reply is there. */
+  onCheck: () => void;
+  /** Another way to answer, shown beside the button. */
+  children?: React.ReactNode;
+  /** The text on its way while it sends, then null: the conversation shows it at once. */
+  onSending?: (text: string | null) => void;
 }
 
 /**
@@ -167,17 +193,8 @@ export function MailReplyForm({
   hint,
   onCheck,
   children,
-}: {
-  threadId: string;
-  replyTo: string;
-  /** The other people on the answered mail: a reply goes to them too unless the user says not. */
-  replyCc: string[];
-  hint: string;
-  /** Reads the conversation again, so the user sees whether an unconfirmed reply is there. */
-  onCheck: () => void;
-  /** Another way to answer, shown beside the button. */
-  children?: React.ReactNode;
-}) {
+  onSending,
+}: MailReplyFormProps) {
   const [replyId, setReplyId] = useState(() => crypto.randomUUID());
   const [all, setAll] = useState(true);
   const toAll = all && replyCc.length > 0;
@@ -186,23 +203,29 @@ export function MailReplyForm({
     resolver: zodResolver(ReplyTextSchema),
     defaultValues: { text: '' },
   });
+  // The form shows when the user opens the reply box, by click or "R": they want to type now.
+  const { setFocus } = form;
+  useEffect(() => setFocus('text'), [setFocus]);
   const problem = send.isError ? replyProblem(send.error) : null;
   const unconfirmed = problem?.kind === 'unconfirmed';
   // Names who the sent reply went to, whatever the user chooses for the next one.
   const sentTo = send.isSuccess && send.variables.toAll ? replyCc : [];
 
   const submit = (id: string) =>
-    form.handleSubmit(({ text }) =>
+    form.handleSubmit(({ text }) => {
+      onSending?.(text);
       send.mutate(
         { replyId: id, text, ...(toAll ? { toAll } : {}) },
         {
           onSuccess: () => {
             form.reset({ text: '' });
             setReplyId(crypto.randomUUID());
+            showToast(replySentNote(replyTo, toAll ? replyCc : []));
           },
+          onSettled: () => onSending?.(null),
         },
-      ),
-    );
+      );
+    });
   // The user's own decision after an unconfirmed send: a new reply with a new ID.
   const sendAgain = () => {
     const next = crypto.randomUUID();
@@ -215,14 +238,18 @@ export function MailReplyForm({
       onSubmit={submit(replyId)}
       noValidate
       aria-label="Reply"
-      className="space-y-3 border border-border-strong p-4"
+      className="flex animate-open flex-col gap-3 bg-surface p-4"
     >
       <ReplyOutcome
         sentNote={send.isSuccess ? replySentNote(replyTo, sentTo) : null}
         problem={problem}
       />
       <ReplyReceivers replyTo={replyTo} others={replyCc} toAll={toAll} onToAll={setAll} />
-      <ReplyTextField input={form.register('text')} error={form.formState.errors.text} />
+      <ReplyTextField
+        input={form.register('text')}
+        error={form.formState.errors.text}
+        onSubmitKey={() => void submit(replyId)()}
+      />
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
         <p className="min-w-0 flex-1 basis-64 text-xs text-text-secondary">
           {unconfirmed ? 'Your text is kept here until you leave the page.' : hint}

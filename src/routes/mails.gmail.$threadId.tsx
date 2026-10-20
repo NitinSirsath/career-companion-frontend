@@ -30,12 +30,15 @@ function GmailMailPage() {
       >
         <span>From your Gmail inbox · read live · nothing stored</span>
       </MailTitle>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        <div className="lg:col-span-2 min-w-0">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="min-w-0">
           <MailThreadView threadId={threadId} />
         </div>
-        <aside aria-label="About this mail" className="border border-border-default p-4 space-y-2">
-          <h2 className="text-xs font-semibold text-text-secondary">Not a job mail</h2>
+        <aside
+          aria-label="About this mail"
+          className="flex flex-col gap-2 bg-surface px-6 py-5 lg:sticky lg:top-6"
+        >
+          <h2 className="text-xs tracking-[0.32px] text-text-secondary">Not a job mail</h2>
           <p className="text-sm">
             This mail is shown as Gmail has it. Career Companion did not analyze it and keeps
             nothing from it.

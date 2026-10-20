@@ -536,6 +536,7 @@ describe('mail details in dev mode', () => {
     });
     post.mockResolvedValue({ id: 'sent-1', threadId: THREAD, sentAt: '2026-10-12T10:20:00.000Z' });
     show(`/mails/gmail/${THREAD}`);
+    fireEvent.click(await screen.findByRole('button', { name: /^Reply to .*…/ }));
     const form = within(await screen.findByRole('form', { name: 'Reply' }));
     expect(
       form.getByText(/^Dev mode: the reply goes to the mail sandbox\. No real mail is sent\./),

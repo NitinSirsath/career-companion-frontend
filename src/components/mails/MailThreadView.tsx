@@ -1,40 +1,107 @@
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { useGmailAddress, useMailThread } from '../../api/mailbox';
-import { mailCounts } from '../../lib/mails';
+import type { ConversationMail } from '../../contracts/conversation';
+import type { MailMessage } from '../../contracts/mailbox';
+import { dayLabel, initiallyFolded, readingFor } from '../../lib/mailThread';
+import { SkeletonList } from '../ui/skeleton';
+import { Spinner } from '../ui/spinner';
 import { MailboxProblem } from './MailboxProblem';
 import { MailMessageCard } from './MailMessageCard';
 import { MailReplyBox } from './MailReplyBox';
 
+/** What the job side adds to a conversation: what the AI read, and which mail asks for the to-do. */
+export interface ThreadJobContext {
+  mails: readonly ConversationMail[];
+  askingMessageId: string | null;
+}
+
+/** The reply on its way: shown at once at the end of the conversation, then replaced by the sent mail. */
+function SendingCard({ text }: { text: string }) {
+  return (
+    <article aria-label="Your reply, sending" className="animate-open bg-tint p-4 md:ml-12">
+      <p className="max-w-[75ch] text-sm leading-[22px] break-words whitespace-pre-wrap">{text}</p>
+      <p role="status" className="mt-2 flex items-center gap-2 text-xs text-text-secondary">
+        <Spinner />
+        Sending…
+      </p>
+    </article>
+  );
+}
+
+/** The day lines and the mails of a conversation, older mails folded to one line each. */
+function Messages({
+  messages,
+  mailbox,
+  job,
+}: {
+  messages: MailMessage[];
+  mailbox: string | null;
+  job?: ThreadJobContext;
+}) {
+  const [folded, setFolded] = useState(() => initiallyFolded(messages.map((m) => m.id)));
+  const fold = (id: string, value: boolean) =>
+    setFolded((current) => {
+      const next = new Set(current);
+      if (value) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  return messages.map((message, index) => {
+    const day = dayLabel(message.date);
+    const newDay = index === 0 || dayLabel(messages[index - 1].date) !== day;
+    const last = index === messages.length - 1;
+    return (
+      <Fragment key={message.id}>
+        {newDay && (
+          <div className="flex min-h-8 items-center gap-4 text-xs tracking-[0.32px] text-text-secondary before:h-px before:flex-1 before:bg-border-subtle after:h-px after:flex-1 after:bg-border-subtle">
+            {day}
+          </div>
+        )}
+        <MailMessageCard
+          message={message}
+          mailbox={mailbox}
+          reading={job ? readingFor(message.id, job.mails) : null}
+          asks={!!job && job.askingMessageId === message.id}
+          folded={folded.has(message.id)}
+          onFold={last ? undefined : (value) => fold(message.id, value)}
+        />
+      </Fragment>
+    );
+  });
+}
+
 /**
- * One Gmail thread read live when the page opens: every message in order, with the user's own
- * replies, and the box to reply from here. Shared by job mails and plain Gmail mails. The text
- * is shown and then dropped.
+ * One Gmail thread read live when the page opens, as a conversation: oldest first, the newest
+ * next to the reply box, each mail with only its own text. Shared by job mails and plain Gmail
+ * mails. The text is shown and then dropped.
  */
-export function MailThreadView({ threadId }: { threadId: string }) {
+export function MailThreadView({ threadId, job }: { threadId: string; job?: ThreadJobContext }) {
   const { data, error, isLoading, refetch } = useMailThread(threadId);
   const mailbox = useGmailAddress();
-  const fromYou = data?.messages.filter((message) => message.sentByUser).length ?? 0;
+  const [sending, setSending] = useState<string | null>(null);
+  const end = useRef<HTMLDivElement>(null);
+  const loaded = !!data;
+  // A long conversation opens at its newest mail, beside the reply box.
+  useEffect(() => {
+    if (loaded && end.current?.scrollIntoView) end.current.scrollIntoView({ block: 'nearest' });
+  }, [loaded]);
+
   return (
-    <section aria-label="Conversation" className="space-y-4">
-      {isLoading && (
-        <p role="status" className="text-sm text-text-secondary">
-          Reading this mail from Gmail…
-        </p>
-      )}
+    <section aria-label="Conversation" className="flex flex-col gap-2">
+      {isLoading && <SkeletonList rows={3} label="Reading this mail from Gmail" />}
       {error && <MailboxProblem error={error} onRetry={() => void refetch()} />}
       {data && (
         <>
-          <h2 className="text-sm font-semibold text-text-secondary">
-            Conversation · {mailCounts(data.messages.length, fromYou)}
-          </h2>
-          {data.messages.map((message) => (
-            <MailMessageCard key={message.id} message={message} mailbox={mailbox} />
-          ))}
+          <Messages key={threadId} messages={data.messages} mailbox={mailbox} job={job} />
+          {sending && <SendingCard text={sending} />}
+          <div ref={end} />
           <MailReplyBox
             threadId={threadId}
             subject={data.subject}
             replyTo={data.replyTo}
             replyCc={data.replyCc}
             onCheck={() => void refetch()}
+            onSending={setSending}
           />
         </>
       )}

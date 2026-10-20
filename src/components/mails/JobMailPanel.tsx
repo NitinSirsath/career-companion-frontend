@@ -1,50 +1,145 @@
 import type { ReactNode } from 'react';
-import type { ConversationDetail, ConversationMail } from '../../contracts/conversation';
-import { aiReading, mailDateTime } from '../../lib/mails';
-import { AnalyzedBy } from '../ai/AnalyzedBy';
-import { ConversationAction } from './ConversationAction';
+import { ArrowDown, Calendar } from '@carbon/icons-react';
+import { useSetRequestState } from '../../api/conversations';
+import type { ConversationDetail } from '../../contracts/conversation';
+import { askingMessageId, dueIn, keyDates } from '../../lib/mailThread';
+import {
+  mailDateTime,
+  parseSender,
+  requestControls,
+  requestDetail,
+  requestTitle,
+  scheduleLine,
+} from '../../lib/mails';
+import { Button } from '../ui/button';
+import { InlineNotification } from '../ui/notification';
+import { showToast } from '../ui/toast';
 import { ConversationApplication } from './ConversationApplication';
+import { TodoState } from './TodoState';
 
 function PanelSection({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="border border-border-default p-4 space-y-3">
-      <h2 className="text-xs font-semibold text-text-secondary">{title}</h2>
+    <section aria-label={title} className="flex flex-col gap-3 bg-surface px-6 py-5">
+      <h2 className="text-xs tracking-[0.32px] text-text-secondary">{title}</h2>
       {children}
     </section>
   );
 }
 
-function AiReading({ mail, only }: { mail: ConversationMail; only: boolean }) {
-  const rows = aiReading(mail);
-  const which = only ? 'this mail' : `the mail of ${mailDateTime(mail.receivedAt)}`;
+/** Scrolls to a mail of the conversation and flashes it, so the user sees which mail asks. */
+function showMail(gmailMessageId: string) {
+  const mail = document.getElementById(`mail-${gmailMessageId}`);
+  if (!mail) return;
+  mail.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+  mail.classList.remove('animate-flash');
+  void mail.offsetWidth;
+  mail.classList.add('animate-flash');
+}
+
+/** What the conversation needs now: the request, its due date, its state and the buttons. */
+function NextStep({ detail }: { detail: ConversationDetail }) {
+  const { conversation, mails } = detail;
+  const change = useSetRequestState(conversation.key);
+  const asked = conversation.request;
+  if (!asked) {
+    const schedule = scheduleLine(conversation);
+    return (
+      <PanelSection title="Next step">
+        <p className="text-xl leading-7">{schedule ?? 'Nothing needed from you'}</p>
+      </PanelSection>
+    );
+  }
+  const title = requestTitle(asked);
+  const detailLine = requestDetail(asked);
+  const source = mails.find((mail) => mail.id === asked.emailId);
+  const messageId = askingMessageId(detail);
   return (
-    <PanelSection title={`What the AI read in ${which}`}>
-      {rows.length === 0 && <p className="text-sm">The AI read nothing more from this mail.</p>}
-      <dl className="grid grid-cols-3 gap-x-3 gap-y-2 text-sm">
-        {rows.map((row) => (
-          <div key={row.label} className="contents">
-            <dt className="text-text-secondary">{row.label}</dt>
-            <dd className="col-span-2 break-words">{row.value}</dd>
-          </div>
+    <PanelSection title="Next step">
+      <p className="text-xl leading-7 break-words">{title}</p>
+      {asked.state === 'OPEN' && asked.deadline && (
+        <p className="flex items-center gap-2 text-sm">
+          <Calendar size={16} aria-hidden="true" />
+          {detailLine}
+          <span className="text-xs text-text-secondary">{dueIn(asked.deadline, new Date())}</span>
+        </p>
+      )}
+      <div className="flex flex-wrap items-center gap-2">
+        <TodoState state={asked.state} />
+        {asked.state === 'REPLIED' && detailLine && (
+          <span className="text-xs text-text-secondary">{detailLine}</span>
+        )}
+      </div>
+      <div className="flex flex-wrap gap-2 pt-1">
+        {requestControls(asked.state, true).map((control, index) => (
+          <Button
+            key={control.label}
+            variant={index === 0 && control.state === 'DONE' ? 'primary' : 'ghost'}
+            aria-label={`${control.label}: ${title}`}
+            loading={change.isPending && change.variables?.state === control.state}
+            disabled={change.isPending}
+            onClick={() =>
+              change.mutate(
+                { emailId: asked.emailId, state: control.state },
+                {
+                  onSuccess: () =>
+                    showToast(control.state === 'DONE' ? 'Marked done' : 'Asked again'),
+                },
+              )
+            }
+          >
+            {control.label}
+          </Button>
         ))}
-      </dl>
-      <p className="text-xs text-text-secondary">
-        This is the AI's reading, not the mail's own words.
-      </p>
-      <AnalyzedBy provider={mail.analyzedBy?.provider} model={mail.analyzedBy?.model} details />
+      </div>
+      {asked.state === 'REPLIED' && (
+        <p className="text-xs text-text-secondary">
+          We saw that you replied. We do not read what you wrote.
+        </p>
+      )}
+      {change.isError && (
+        <InlineNotification kind="error">
+          Could not update: {change.error.message}
+        </InlineNotification>
+      )}
+      {source && messageId && (
+        <button
+          type="button"
+          onClick={() => showMail(messageId)}
+          className="flex cursor-pointer items-center gap-1.5 border-t border-border-subtle pt-3 text-left text-sm text-link"
+        >
+          <ArrowDown size={16} aria-hidden="true" />
+          From {source.sender ? `${parseSender(source.sender).name}'s` : 'this'} mail,{' '}
+          {mailDateTime(source.receivedAt)}
+        </button>
+      )}
     </PanelSection>
   );
 }
 
-/** The job side of a mail's details: what it needs, its application, and what the AI read. */
+/**
+ * The job side of a mail's details, beside the conversation: what to do now, the dates the
+ * mails name, and the application. What the AI read sits under each mail instead.
+ */
 export function JobMailPanel({ detail }: { detail: ConversationDetail }) {
   const { conversation, mails } = detail;
   const canCreate = !conversation.application && conversation.link !== 'IGNORED';
+  const dates = keyDates(mails);
   return (
-    <aside aria-label="About this job mail" className="space-y-4">
-      <PanelSection title="What this mail needs from you">
-        <ConversationAction conversation={conversation} detailed />
-      </PanelSection>
+    <aside aria-label="About this job mail" className="flex flex-col gap-4 lg:sticky lg:top-6">
+      <NextStep detail={detail} />
+      {dates.length > 0 && (
+        <PanelSection title="Key dates">
+          <dl className="grid grid-cols-[110px_minmax(0,1fr)] gap-x-4 gap-y-2 text-sm">
+            {dates.map((date) => (
+              <div key={date.label} className="contents">
+                <dt className="text-text-secondary">{date.label}</dt>
+                <dd className="break-words">{date.value}</dd>
+              </div>
+            ))}
+          </dl>
+          <p className="text-xs text-text-secondary">As the mails wrote them.</p>
+        </PanelSection>
+      )}
       <PanelSection title="Application">
         {canCreate && <p className="text-sm">This conversation has no application yet.</p>}
         <ConversationApplication conversation={conversation} />
@@ -55,10 +150,6 @@ export function JobMailPanel({ detail }: { detail: ConversationDetail }) {
           </p>
         )}
       </PanelSection>
-      {/* Newest first: the newest mail is the one the action and the type come from. */}
-      {[...mails].reverse().map((mail) => (
-        <AiReading key={mail.id} mail={mail} only={mails.length === 1} />
-      ))}
     </aside>
   );
 }
