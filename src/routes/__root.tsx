@@ -15,6 +15,9 @@ import { NotFoundPage } from '../components/errors/NotFoundPage';
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
 import { DevModeBanner } from '../components/devMode/DevModeBanner';
 
+/** Pages for signed-out visitors: the sign-in, and the test account sign-in. */
+const SIGN_IN_PAGES = ['/login', '/test-login'];
+
 interface RouterContext {
   user: User | null;
 }
@@ -25,10 +28,11 @@ interface LoggedInShellProps {
 
 export const Route = createRootRouteWithContext<RouterContext>()({
   beforeLoad: async ({ location, context }) => {
-    if (!context.user && location.pathname !== '/login') {
+    const signInPage = SIGN_IN_PAGES.includes(location.pathname);
+    if (!context.user && !signInPage) {
       throw redirect({ to: '/login' });
     }
-    if (context.user && location.pathname === '/login') {
+    if (context.user && signInPage) {
       throw redirect({ to: '/' });
     }
   },
