@@ -1,4 +1,4 @@
-import { useDevMode } from '../../api/appMode';
+import { useSandboxMailbox } from '../../api/appMode';
 import { getGmailConversationUrl } from '../../utils/gmail';
 
 interface GmailLinkProps {
@@ -11,8 +11,8 @@ interface GmailLinkProps {
 
 export function GmailLink({ threadId, className = '', subject, reply = false }: GmailLinkProps) {
   // Dev-mode mail lives in the mail sandbox: there is no Gmail conversation to open.
-  const devMode = useDevMode();
-  if (!threadId || devMode) return null;
+  const sandbox = useSandboxMailbox();
+  if (!threadId || sandbox) return null;
 
   return (
     <a
