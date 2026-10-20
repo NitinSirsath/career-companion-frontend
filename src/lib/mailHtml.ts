@@ -1,3 +1,4 @@
+import { HIDE_HTML_QUOTE_CSS } from './mailThread';
 /** True when the sender's HTML points at pictures on the internet. */
 export const hasRemoteImages = (html: string): boolean =>
   /<img\b[^>]*\bsrc\s*=\s*["']?\s*https?:/i.test(html);
@@ -25,9 +26,14 @@ const WHITE_PAGE = 'color:#161616;background:#ffffff';
  * Pictures load only after the user asks for them. Links open in a new tab.
  *
  * With `colors`, a mail that sets none of its own takes the theme's; otherwise it is shown on the
- * white page a sender writes for.
+ * white page a sender writes for. With `hideQuote`, the quoted earlier mail stays hidden.
  */
-export function mailFrameDocument(html: string, showImages: boolean, colors?: MailColors): string {
+export function mailFrameDocument(
+  html: string,
+  showImages: boolean,
+  colors?: MailColors,
+  hideQuote = false,
+): string {
   const images = showImages ? 'img-src https: data:' : 'img-src data:';
   const policy = `default-src 'none'; style-src 'unsafe-inline'; ${images}`;
   const page = colors ? `color:${colors.text};background:${colors.background}` : WHITE_PAGE;
@@ -38,7 +44,7 @@ export function mailFrameDocument(html: string, showImages: boolean, colors?: Ma
     `<meta http-equiv="Content-Security-Policy" content="${policy}">`,
     '<meta name="referrer" content="no-referrer"><base target="_blank">',
     `<style>body{margin:0;padding:4px;font:14px/1.6 system-ui,sans-serif;${page};`,
-    `overflow-wrap:anywhere}img{max-width:100%;height:auto}${links}</style>`,
+    `overflow-wrap:anywhere}img{max-width:100%;height:auto}${links}${hideQuote ? HIDE_HTML_QUOTE_CSS : ''}</style>`,
     `</head><body>${html}</body></html>`,
   ].join('');
 }
