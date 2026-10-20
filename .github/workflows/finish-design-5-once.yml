@@ -1,0 +1,39 @@
+name: Finish design-5 once (temporary)
+# Renames and deletes files on feat/design-5-application-details and commits only that.
+# Lives only on the throwaway branch tmp/design-5-finish, which is deleted afterwards.
+on:
+  push:
+    branches: [tmp/design-5-finish]
+permissions:
+  contents: write
+concurrency:
+  group: finish-design-5-once
+  cancel-in-progress: false
+jobs:
+  finish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: feat/design-5-application-details
+      - name: Check the hand commits
+        run: |
+          if [ "$(git rev-parse 'HEAD^{tree}')" != "e317dc910a61929aba6585f9e54c0ac93e4f52c0" ]; then
+            echo "The hand commits do not match the reviewed files. Nothing was changed."
+            exit 1
+          fi
+      - name: Rename and delete
+        run: |
+          git rm -q src/components/StatusEditor.tsx
+      - name: Commit only the reviewed result
+        run: |
+          if [ "$(git write-tree)" != "ce0dfdbfd0c503e6944c08323337e82626e10d02" ]; then
+            echo "The result does not match the reviewed tree. Nothing was pushed."
+            git status --short
+            exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(applications): remove the old status editor'
+          git push origin HEAD:feat/design-5-application-details
