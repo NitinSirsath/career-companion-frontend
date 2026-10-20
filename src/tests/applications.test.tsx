@@ -336,9 +336,8 @@ describe('Application Detail Page (/applications/$id)', () => {
 
     renderWithProviders(queryClient, '/applications/app-1');
 
-    expect(
-      await screen.findByRole('status', { name: /loading application details/i }),
-    ).toBeInTheDocument();
+    expect(await screen.findByText('Loading next steps')).toBeInTheDocument();
+    expect(screen.getByText('Loading history')).toBeInTheDocument();
   });
 
   it('shows error state when events API fails', async () => {
@@ -354,10 +353,10 @@ describe('Application Detail Page (/applications/$id)', () => {
 
     renderWithProviders(queryClient, '/applications/app-1');
 
-    expect(await screen.findByText(/failed to load history/i)).toBeInTheDocument();
+    expect(await screen.findByText(/could not load the history/i)).toBeInTheDocument();
     // A history failure does not hide the application or block editing.
     expect(screen.getByRole('heading', { name: 'Acme Corp' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Change status' })).toBeEnabled();
+    expect(screen.getByRole('combobox', { name: /Change status/ })).toBeEnabled();
   });
 
   it('shows empty timeline when no events exist', async () => {
@@ -376,7 +375,7 @@ describe('Application Detail Page (/applications/$id)', () => {
 
     renderWithProviders(queryClient, '/applications/app-1');
 
-    expect(await screen.findByText(/no events yet/i)).toBeInTheDocument();
+    expect(await screen.findByText(/^Nothing yet\. Mails the AI reads/)).toBeInTheDocument();
   });
 
   it('marks retired evidence and offers correction only on the active source email', async () => {
@@ -393,9 +392,13 @@ describe('Application Detail Page (/applications/$id)', () => {
       metadata: { limit: 20, offset: 0, nextOffset: null },
     });
     renderWithProviders(queryClient, '/applications/app-1');
-    expect(await screen.findByText(/Moved to another application/)).toBeInTheDocument();
-    expect(screen.getByText(/No longer counts toward/)).toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: 'Wrong application?' })).toHaveLength(1);
+    expect(await screen.findByText(/^Moved to another application on/)).toBeInTheDocument();
+    expect(screen.getByText(/no longer counts toward the AI's status/)).toBeInTheDocument();
+    // Only the mail that still counts offers "Wrong application?" in its "…" menu.
+    const menus = screen.getAllByRole('button', { name: /^More for Mail from/ });
+    expect(menus).toHaveLength(1);
+    fireEvent.click(menus[0]);
+    expect(await screen.findByRole('menuitem', { name: 'Wrong application?' })).toBeInTheDocument();
   });
 
   it('renders timeline events in order (first event appears first in DOM)', async () => {
@@ -429,11 +432,11 @@ describe('Application Detail Page (/applications/$id)', () => {
 
     renderWithProviders(queryClient, '/applications/app-1');
 
-    const descriptions = await screen.findAllByText(/Application detected|Recruiter outreach/);
-    expect(descriptions.length).toBe(2);
+    const lines = await screen.findAllByText(/^The AI set the status to/);
+    expect(lines.length).toBe(2);
     // First in DOM = earliest (ASC ordering from backend, preserved by frontend)
-    expect(descriptions[0].textContent).toContain('Application detected');
-    expect(descriptions[1].textContent).toContain('Recruiter outreach');
+    expect(lines[0].textContent).toContain('Applied');
+    expect(lines[1].textContent).toContain('Recruiter contact');
   });
 
   it('displays event type label', async () => {
@@ -472,7 +475,7 @@ describe('Application Detail Page (/applications/$id)', () => {
     renderWithProviders(queryClient, '/applications/app-1');
 
     expect(
-      await screen.findByText('AI status: Recruiter contact → Assessment'),
+      await screen.findByText('The AI moved the status from Recruiter contact to Assessment'),
     ).toBeInTheDocument();
   });
 
@@ -493,8 +496,9 @@ describe('Application Detail Page (/applications/$id)', () => {
     renderWithProviders(queryClient, '/applications/app-1');
 
     expect(await screen.findByText('Submit portfolio')).toBeInTheDocument();
-    expect(screen.getByText('Due Feb 15, 2026')).toBeInTheDocument();
-    expect(screen.getByText('Needs action')).toBeInTheDocument();
+    expect(screen.getByText(/^Due Feb 15, 2026 · /)).toBeInTheDocument();
+    expect(screen.getByText('1 open')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Complete' })).toBeInTheDocument();
   });
 
   it('shows an action whose mail the user replied to as replied, still to mark done', async () => {
@@ -515,7 +519,7 @@ describe('Application Detail Page (/applications/$id)', () => {
 
     expect(await screen.findByText('Replied')).toBeInTheDocument();
     expect(screen.getByText(/^You replied Feb 3/)).toBeInTheDocument();
-    expect(screen.queryByText('Due Feb 15, 2026')).not.toBeInTheDocument();
+    expect(screen.queryByText(/^Due Feb 15, 2026/)).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Complete' })).toBeInTheDocument();
   });
 
@@ -535,8 +539,9 @@ describe('Application Detail Page (/applications/$id)', () => {
 
     renderWithProviders(queryClient, '/applications/app-1');
 
-    expect(await screen.findByText('gemini-flash')).toBeInTheDocument();
-    expect(screen.getByText(/AI interpretation/)).toBeInTheDocument();
+    fireEvent.click(await screen.findByRole('button', { name: 'Show the AI note' }));
+    expect(screen.getByText('gemini-flash')).toBeInTheDocument();
+    expect(screen.getByText(/the AI's reading, not the mail's own words/)).toBeInTheDocument();
   });
 
   it('renders the company name in the header', async () => {
@@ -718,7 +723,7 @@ describe('application discovery completion (AD-02)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     await screen.findByText('Showing 21–21');
     fireEvent.click(screen.getByRole('link', { name: /Automation target/ }));
-    await screen.findByRole('button', { name: 'Change status' });
+    await screen.findByRole('combobox', { name: /Change status/ });
     // The breadcrumb and both nav surfaces lead through the same existing parent route.
     fireEvent.click(screen.getAllByRole('link', { name: 'Applications' })[0]);
     await screen.findByLabelText('Sort applications');
