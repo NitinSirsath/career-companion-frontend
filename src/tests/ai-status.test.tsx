@@ -754,6 +754,8 @@ describe('provenance on the application timeline', () => {
       ]),
     );
     show('/applications/app-1');
+    // The AI's note is folded on the history row; opening it names who read the mail.
+    fireEvent.click(await screen.findByRole('button', { name: 'Show the AI note' }));
     expect(
       await screen.findByText('Analyzed by Google Gemini · Gemini 2.5 Flash'),
     ).toBeInTheDocument();
