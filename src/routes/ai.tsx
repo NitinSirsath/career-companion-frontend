@@ -9,6 +9,9 @@ import { AIStatusPanel } from '../components/ai/AIStatusPanel';
 import { ProviderPicker } from '../components/ai/ProviderPicker';
 import { ProviderSetupForm } from '../components/ai/ProviderSetupForm';
 import { saveNote } from '../lib/aiProviderPage';
+import { InlineNotification } from '../components/ui/notification';
+import { SectionError } from '../components/ui/section-error';
+import { SkeletonList } from '../components/ui/skeleton';
 
 export const Route = createFileRoute('/ai')({
   errorComponent: RouteErrorPage,
@@ -38,24 +41,17 @@ function AIProviderPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       <PageHeader
         className="mb-0"
         title="AI provider"
         description="Career Companion uses your own AI account to read job mails. Your key is stored encrypted and never shown again."
       />
 
-      {isLoading && <p>Loading AI settings…</p>}
-      {error && <p role="alert">Could not load AI settings: {error.message}</p>}
+      {isLoading && <SkeletonList rows={3} label="Loading AI settings" />}
+      {error && <SectionError title="Could not load your AI settings" />}
 
-      {savedNote && (
-        <p
-          role="status"
-          className="border border-status-success bg-status-success-subtle p-3 text-sm"
-        >
-          {savedNote}
-        </p>
-      )}
+      {savedNote && <InlineNotification kind="success">{savedNote}</InlineNotification>}
 
       {settings && formProvider && (
         <ProviderSetupForm
