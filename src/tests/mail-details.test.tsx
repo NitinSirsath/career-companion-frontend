@@ -581,10 +581,12 @@ describe('application page', () => {
       expect.anything(),
     );
 
-    expect(await screen.findByRole('link', { name: 'Open mail' })).toHaveAttribute(
-      'href',
-      '/mails/email-7',
-    );
+    // A history row names its mail and links to it.
+    expect(
+      await screen.findByRole('link', {
+        name: 'Mail from careers@northwind.example: We received your application',
+      }),
+    ).toHaveAttribute('href', '/mails/email-7');
     // The menu has an Agenda entry; the application page itself links to no Agenda.
     expect(
       within(screen.getByRole('main')).queryByRole('link', { name: /agenda/i }),
