@@ -73,7 +73,7 @@ function renderAutomation() {
     </QueryClientProvider>,
   );
 }
-const card = async (name = 'Submission: Acme Inc. — Backend Engineer') =>
+const card = async (name = 'Submission: Acme Inc. · Backend Engineer') =>
   within(await screen.findByRole('article', { name }));
 
 beforeEach(() => {
@@ -114,17 +114,15 @@ describe('pending submissions panel', () => {
       ),
     );
     renderAutomation();
-    const heading = await screen.findByRole('heading', {
-      name: /Automation submissions to review/,
-    });
-    expect(heading).toHaveTextContent('2+');
+    const section = await screen.findByRole('region', { name: 'Waiting for a match' });
+    expect(section).toHaveTextContent('2+ submissions your automation reported');
     const first = await card();
     expect(
       first.getByText(/Workday · acme\.wd1\.myworkdayjobs\.com · Pune · hybrid/),
     ).toBeInTheDocument();
     expect(first.getByText('Thank you for applying')).toBeInTheDocument();
-    const second = await card('Submission: <img src=x onerror=alert(1)> — QA');
-    expect(second.getByText('<img src=x onerror=alert(1)> — QA')).toBeInTheDocument();
+    const second = await card('Submission: <img src=x onerror=alert(1)> · QA');
+    expect(second.getByText('<img src=x onerror=alert(1)> · QA')).toBeInTheDocument();
     expect(second.getByText('<script>x</script>')).toBeInTheDocument();
     expect(document.querySelector('img[src="x"], article script')).toBeNull();
   });
@@ -138,7 +136,7 @@ describe('pending submissions panel', () => {
     expect(link).toHaveAttribute('href', 'https://acme.wd1.myworkdayjobs.com/jobs/1');
     expect(link).toHaveAttribute('target', '_blank');
     expect(link).toHaveAttribute('rel', 'noopener noreferrer');
-    expect((await card('Submission: Acme Inc. — QA')).queryByRole('link')).not.toBeInTheDocument();
+    expect((await card('Submission: Acme Inc. · QA')).queryByRole('link')).not.toBeInTheDocument();
     expect(safeHttpUrl('data:text/html,x')).toBeNull();
     expect(safeHttpUrl('not a url')).toBeNull();
   });
@@ -204,8 +202,6 @@ describe('pending submissions panel', () => {
     renderAutomation();
     await screen.findByRole('heading', { name: 'Automation' });
     await waitFor(() => expect(api.getPendingSubmissions).toHaveBeenCalled());
-    expect(
-      screen.queryByRole('heading', { name: /Automation submissions to review/ }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Waiting for a match' })).not.toBeInTheDocument();
   });
 });
