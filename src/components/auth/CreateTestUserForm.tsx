@@ -18,7 +18,12 @@ export function CreateTestUserForm({ onSignedIn }: { onSignedIn: () => void }) {
   const onSubmit = form.handleSubmit((input) => create.mutate(input, { onSuccess: onSignedIn }));
 
   return (
-    <form onSubmit={onSubmit} noValidate aria-label="Create test user" className="space-y-4">
+    <form
+      onSubmit={onSubmit}
+      noValidate
+      aria-label="Create test user"
+      className="flex flex-col gap-6"
+    >
       <div className="space-y-2">
         <Label htmlFor="new-name">
           Name <span className="font-normal text-text-secondary">(optional)</span>
@@ -58,7 +63,12 @@ export function CreateTestUserForm({ onSignedIn }: { onSignedIn: () => void }) {
           {signInProblem(create.error)}
         </p>
       )}
-      <Button type="submit" variant="secondary" className="w-full" disabled={create.isPending}>
+      <Button
+        type="submit"
+        variant="secondary"
+        className="w-full justify-center"
+        loading={create.isPending}
+      >
         {create.isPending ? 'Creating…' : 'Create test user'}
       </Button>
       <p className="text-sm text-text-secondary">
