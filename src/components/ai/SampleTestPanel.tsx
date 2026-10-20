@@ -5,6 +5,7 @@ import type { AISampleTestResponse } from '../../contracts/ai';
 import { modelName } from '../../lib/aiLabels';
 import { sampleTestProblem } from '../../lib/aiProviderPage';
 import { Button } from '../ui/button';
+import { InlineNotification } from '../ui/notification';
 
 /**
  * Optional proof that the saved key and models return Career Companion's structured output. The
@@ -70,21 +71,18 @@ export function SampleTestPanel({
     : [];
 
   return (
-    <section
-      aria-label="Sample email test"
-      className="border border-border-default bg-surface p-4 space-y-3"
-    >
+    <section aria-label="Sample email test" className="flex flex-col items-start gap-3">
       <p className="text-sm text-text-secondary">
         Runs both AI steps on a built-in example recruiter email, never your mail. It costs a few
         tokens on your {providerName} account and counts toward today&apos;s safety limit.
       </p>
-      <Button variant="secondary" onClick={run} disabled={running}>
+      <Button variant="tertiary" onClick={run} loading={running}>
         {running ? 'Testing…' : 'Try a sample email'}
       </Button>
       {problem && (
-        <p role="alert" className="text-sm text-status-error">
+        <InlineNotification kind="error" className="self-stretch">
           {problem}
-        </p>
+        </InlineNotification>
       )}
       {result && (
         <div role="status" className="space-y-2">
@@ -97,7 +95,7 @@ export function SampleTestPanel({
             {rows.map(([label, value]) => (
               <div key={label} className="contents">
                 <dt className="text-text-secondary">{label}</dt>
-                <dd>{value ?? '—'}</dd>
+                <dd>{value ?? 'None'}</dd>
               </div>
             ))}
           </dl>
