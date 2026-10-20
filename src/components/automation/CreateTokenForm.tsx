@@ -5,6 +5,7 @@ import { INTEGRATION_TOKEN_DEFAULT_EXPIRY_DAYS } from '../../contracts/integrati
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
+import { InlineNotification } from '../ui/notification';
 import { Select } from '../ui/select';
 
 const EXPIRY_OPTIONS = [30, 90, 180, 365];
@@ -68,11 +69,8 @@ export function CreateTokenForm() {
 
   if (created)
     return (
-      <section
-        aria-label="Token created"
-        className="border border-status-warning bg-status-warning-subtle p-4 space-y-3"
-      >
-        <p className="font-semibold">Copy your new token “{created.name}” now</p>
+      <section aria-label="Token created" className="flex flex-col gap-3 bg-notice-warning p-4">
+        <p className="text-sm font-semibold">Copy your new token “{created.name}” now</p>
         <p className="text-sm">
           It will not be shown again. Anyone who has it can add submissions to your account until it
           expires or you revoke it. Keep it out of any repository.
@@ -95,7 +93,7 @@ export function CreateTokenForm() {
           <Button type="button" size="sm" onClick={() => void copy()}>
             Copy token
           </Button>
-          <Button type="button" size="sm" variant="tertiary" onClick={() => setCreated(null)}>
+          <Button type="button" size="sm" variant="ghost" onClick={() => setCreated(null)}>
             Done, I saved it
           </Button>
           {copied === 'yes' && (
@@ -113,55 +111,57 @@ export function CreateTokenForm() {
     );
 
   return (
-    <form
-      onSubmit={submit}
-      aria-label="Create a token"
-      className="border border-border-default bg-surface p-4 space-y-4"
-    >
-      <h3 className="text-lg font-semibold">Create a token</h3>
-      <div className="grid gap-4 md:grid-cols-[1fr_200px]">
-        <div className="space-y-1">
-          <Label htmlFor="token-name">Name</Label>
+    <form onSubmit={submit} aria-label="Create a token" className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-end gap-4">
+        <div className="flex max-w-80 min-w-56 flex-1 flex-col">
+          <Label htmlFor="token-name" className="mb-2 text-xs text-text-secondary">
+            Name
+          </Label>
           <Input
             id="token-name"
             value={name}
             maxLength={100}
-            placeholder="e.g. Work laptop"
+            placeholder="For example, Work laptop"
             onChange={(e) => setName(e.target.value)}
           />
         </div>
         <Select<string>
           id="token-expiry"
           label="Expires after"
+          className="w-44"
           value={String(days)}
           options={EXPIRY_OPTIONS.map((d) => ({ value: String(d), label: `${d} days` }))}
           onValueChange={(next) => setDays(Number(next))}
         />
+        <Button type="submit" disabled={uncertain} loading={pending}>
+          {pending ? 'Creating…' : 'Create token'}
+        </Button>
       </div>
-      {problem && (
-        <p role="alert" className="text-sm text-status-error">
-          {problem}
-        </p>
-      )}
+      <p className="text-xs text-text-secondary">
+        The token is shown once. Copy it before you leave the page.
+      </p>
+      {problem && <InlineNotification kind="error">{problem}</InlineNotification>}
       {uncertain && (
-        <div
-          role="alert"
-          className="border border-status-warning bg-status-warning-subtle p-3 text-sm space-y-2"
+        <InlineNotification
+          kind="warning"
+          title="Token creation outcome unknown"
+          action={
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="-my-1.5"
+              onClick={() => setUncertain(false)}
+            >
+              I checked the list
+            </Button>
+          }
         >
-          <p className="font-semibold">Token creation outcome unknown</p>
-          <p>
-            We could not confirm whether the token was created. The list below has been refreshed.
-            If a new token appears there, revoke it: its value cannot be shown again. Then create a
-            new one.
-          </p>
-          <Button type="button" size="sm" variant="tertiary" onClick={() => setUncertain(false)}>
-            I checked the list
-          </Button>
-        </div>
+          We could not confirm whether the token was created. The list below has been refreshed. If
+          a new token appears there, revoke it: its value cannot be shown again. Then create a new
+          one.
+        </InlineNotification>
       )}
-      <Button type="submit" disabled={pending || uncertain}>
-        {pending ? 'Creating…' : 'Create token'}
-      </Button>
     </form>
   );
 }
