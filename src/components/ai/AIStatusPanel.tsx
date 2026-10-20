@@ -12,9 +12,12 @@ import {
   waitingText,
 } from '../../lib/aiProviderPage';
 import { startProcessingRefresh } from '../../lib/processingRefresh';
-import { Tag } from '../ui/tag';
+import { SettingsSection } from '../layout/SettingsSection';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
+import { OverflowMenu, type MenuAction } from '../ui/menu';
+import { InlineNotification } from '../ui/notification';
+import { Tag } from '../ui/tag';
 import { Emphasized } from './AIAccessNotice';
 import { SampleTestPanel } from './SampleTestPanel';
 
@@ -54,18 +57,82 @@ function ModelRow({ settings, model }: { settings: AISettingsResponse; model: Mo
 /** A key the provider has not confirmed yet, while AI can be used. */
 function NotConfirmedNotice({ title, detail }: { title: string; detail: string }) {
   return (
-    <div
-      role="status"
-      className="border border-status-warning bg-status-warning-subtle p-3 text-sm space-y-1"
-    >
-      <p className="font-medium">{title}</p>
-      <p>{detail}</p>
-    </div>
+    <InlineNotification kind="warning" title={title}>
+      {detail}
+    </InlineNotification>
   );
 }
 
-/** The configured AI provider: status with one fix, models, our own counts, and actions. */
-export function AIStatusPanel({
+/** What stops or limits AI now, with the one fix, in the provider's own words where it gave any. */
+function AccessNotice({ copy }: { copy: NonNullable<ReturnType<typeof accessCopy>> }) {
+  return (
+    <InlineNotification kind="warning" title={copy.title}>
+      <span className="flex flex-col gap-1">
+        <span>
+          <Emphasized text={copy.detail} strong={copy.strong} />
+        </span>
+        {copy.hint && <span>{copy.hint}</span>}
+        {copy.fix?.href && (
+          <a className="text-link" href={copy.fix.href} target="_blank" rel="noopener noreferrer">
+            {copy.fix.label}
+          </a>
+        )}
+      </span>
+    </InlineNotification>
+  );
+}
+
+/** Asks before the key is removed: new mail then waits until AI is set up again. */
+function RemoveDialog({
+  name,
+  open,
+  onOpenChange,
+}: {
+  name: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const queryClient = useQueryClient();
+  const remove = useMutation({
+    mutationFn: () => api.removeAISettings(),
+    retry: false,
+    onSuccess: () => onOpenChange(false),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['aiSettings'] }),
+  });
+  return (
+    <Dialog open={open} onOpenChange={(value) => !remove.isPending && onOpenChange(value)}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Remove your {name} key?</DialogTitle>
+        </DialogHeader>
+        <p className="text-sm">
+          New emails will wait until you set up AI again. Emails and applications already processed
+          stay. You can also revoke the key with {name}.
+        </p>
+        {remove.isError && (
+          <InlineNotification kind="error" className="mt-4">
+            Removing could not be confirmed. The status shows what is saved now.
+          </InlineNotification>
+        )}
+        <DialogFooter>
+          <Button
+            variant="secondary"
+            onClick={() => onOpenChange(false)}
+            disabled={remove.isPending}
+          >
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={() => remove.mutate()} loading={remove.isPending}>
+            {remove.isPending ? 'Removing…' : 'Remove key'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/** The provider row: who reads the mail, whether it works, and what the user can do about it. */
+function ProviderSection({
   settings,
   onUpdate,
   onSwitch,
@@ -83,7 +150,6 @@ export function AIStatusPanel({
   const notConfirmed = notConfirmedNotice(settings, lastCheck);
   const badge = notConfirmed ? NOT_CONFIRMED_BADGE : STATE_BADGE[settings.access.state];
   const checkNote = checkNoteShown(lastCheck, checkFailed, notConfirmed !== null);
-
   // No key is involved, so ordinary mutations are fine here.
   const check = useMutation({
     mutationFn: () => api.checkAISettings(),
@@ -100,62 +166,71 @@ export function AIStatusPanel({
       queryClient.invalidateQueries({ queryKey: ['aiSettings'] });
     },
   });
-  const remove = useMutation({
-    mutationFn: () => api.removeAISettings(),
-    retry: false,
-    onSuccess: () => setRemoving(false),
-    onSettled: () => queryClient.invalidateQueries({ queryKey: ['aiSettings'] }),
-  });
-
-  const { usageToday: usage, models } = settings;
+  const more: MenuAction[] = [
+    ...(onSwitch ? [{ label: 'Switch provider', onSelect: onSwitch }] : []),
+    { label: 'Remove provider…', danger: true, onSelect: () => setRemoving(true) },
+  ];
   return (
-    <section
-      aria-label="AI provider status"
-      className="border border-border-default bg-surface p-6 space-y-5"
-    >
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h3 className="text-lg font-semibold">{name}</h3>
-          <p className="text-sm text-text-secondary">
+    <SettingsSection title="Provider" help="Who reads your job mails.">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex min-w-0 flex-col gap-1">
+          <span className="flex flex-wrap items-center gap-3">
+            <span className="text-xl leading-7">{name}</span>
+            <Tag color={badge.color}>{badge.label}</Tag>
+          </span>
+          <span className="text-xs tracking-[0.32px] text-text-secondary">
             {settings.access.verified ? 'Key verified' : 'Key saved'}
             {settings.access.lastCheckedAt &&
               ` · last checked ${format(new Date(settings.access.lastCheckedAt), 'MMM d, h:mm a')}`}
-          </p>
+          </span>
         </div>
-        <Tag color={badge.color}>{badge.label}</Tag>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="tertiary" onClick={() => check.mutate()} loading={check.isPending}>
+            {check.isPending ? 'Checking…' : 'Check again'}
+          </Button>
+          <Button variant="secondary" onClick={onUpdate}>
+            Change models or key
+          </Button>
+          <OverflowMenu label="More provider actions" size="icon" actions={more} />
+        </div>
       </div>
-
       {notConfirmed && <NotConfirmedNotice {...notConfirmed} />}
-
-      {copy && (
-        <div
-          role="status"
-          className="border border-status-warning bg-status-warning-subtle p-3 text-sm space-y-1"
-        >
-          <p className="font-medium">{copy.title}</p>
-          <p>
-            <Emphasized text={copy.detail} strong={copy.strong} />
-          </p>
-          {copy.hint && <p>{copy.hint}</p>}
-          {copy.fix?.href && (
-            <a className="underline" href={copy.fix.href} target="_blank" rel="noopener noreferrer">
-              {copy.fix.label}
-            </a>
-          )}
-        </div>
+      {copy && <AccessNotice copy={copy} />}
+      {checkNote && (
+        <p role="status" className="text-sm">
+          {checkNote}
+        </p>
       )}
+      <RemoveDialog name={name} open={removing} onOpenChange={setRemoving} />
+    </SettingsSection>
+  );
+}
 
-      <dl className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2 text-sm">
-        <dt className="text-text-secondary">API key</dt>
-        <dd>Saved (hidden)</dd>
-        {models && (
-          <>
-            <dt className="text-text-secondary">Fast screening</dt>
-            <ModelRow settings={settings} model={models.fast} />
-            <dt className="text-text-secondary">Detailed analysis</dt>
-            <ModelRow settings={settings} model={models.detailed} />
-          </>
-        )}
+/** How much Career Companion used today, against its own daily safeguard. */
+function UsageSection({ settings }: { settings: AISettingsResponse }) {
+  const name = providerName(settings.provider);
+  const { usageToday: usage } = settings;
+  const limit = settings.safetyLimit.callsPerDay;
+  const share = limit > 0 ? Math.min(100, (usage.calls / limit) * 100) : 0;
+  return (
+    <SettingsSection
+      title="Use today"
+      help={`Career Companion's own daily limit keeps a mistake from using up your credit. It is not ${name}'s limit.`}
+    >
+      <div
+        role="meter"
+        aria-label="AI calls used today"
+        aria-valuemin={0}
+        aria-valuemax={limit}
+        aria-valuenow={usage.calls}
+        className="h-1 max-w-100 bg-layer-accent"
+      >
+        <div
+          className="h-full bg-link transition-[width] duration-240"
+          style={{ width: `${share}%` }}
+        />
+      </div>
+      <dl className="grid grid-cols-[112px_minmax(0,1fr)] gap-x-4 gap-y-2 text-sm">
         <dt className="text-text-secondary">Today</dt>
         <dd>
           Career Companion sent {usage.calls} AI {usage.calls === 1 ? 'call' : 'calls'} (
@@ -164,70 +239,57 @@ export function AIStatusPanel({
         </dd>
         <dt className="text-text-secondary">Safety limit</dt>
         <dd>
-          {settings.safetyLimit.callsPerDay} AI calls a day: Career Companion&apos;s safeguard, not{' '}
-          {name}&apos;s quota.
+          {limit} AI calls a day: Career Companion&apos;s safeguard, not {name}&apos;s quota.
         </dd>
-        {settings.waitingEmails > 0 && (
-          <>
-            <dt className="text-text-secondary">Waiting</dt>
-            <dd>{waitingText(settings)}</dd>
-          </>
-        )}
       </dl>
+    </SettingsSection>
+  );
+}
 
-      {checkNote && (
-        <p role="status" className="text-sm">
-          {checkNote}
-        </p>
-      )}
-
-      <div className="flex flex-wrap gap-3">
-        <Button variant="secondary" onClick={() => check.mutate()} disabled={check.isPending}>
-          {check.isPending ? 'Checking…' : 'Check again'}
-        </Button>
-        <Button variant="tertiary" onClick={onUpdate}>
-          Change models or key
-        </Button>
-        {onSwitch && (
-          <Button variant="tertiary" onClick={onSwitch}>
-            Switch provider
-          </Button>
-        )}
-        <Button variant="danger" onClick={() => setRemoving(true)}>
-          Remove
-        </Button>
-      </div>
-
-      {settings.provider && <SampleTestPanel providerId={settings.provider} providerName={name} />}
-
-      <Dialog open={removing} onOpenChange={setRemoving}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Remove your {name} key?</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm">
-            New emails will wait until you set up AI again. Emails and applications already
-            processed stay. You can also revoke the key with {name}.
-          </p>
-          {remove.isError && (
-            <p role="alert" className="text-sm text-status-error">
-              Removing could not be confirmed. The status shows what is saved now.
-            </p>
+/** The configured AI provider: status with one fix, models, our own counts, and a sample test. */
+export function AIStatusPanel({
+  settings,
+  onUpdate,
+  onSwitch,
+}: {
+  settings: AISettingsResponse;
+  onUpdate: () => void;
+  onSwitch?: () => void;
+}) {
+  const { models } = settings;
+  const name = providerName(settings.provider);
+  return (
+    <div aria-label="AI provider status" role="group" className="flex flex-col">
+      <ProviderSection settings={settings} onUpdate={onUpdate} onSwitch={onSwitch} />
+      <SettingsSection
+        title="Models"
+        help="A fast model sorts new mail; a detailed model reads each job mail."
+      >
+        <dl className="grid grid-cols-[136px_minmax(0,1fr)] gap-x-4 gap-y-3 text-sm">
+          <dt className="text-text-secondary">API key</dt>
+          <dd>Saved (hidden)</dd>
+          {models && (
+            <>
+              <dt className="text-text-secondary">Fast screening</dt>
+              <ModelRow settings={settings} model={models.fast} />
+              <dt className="text-text-secondary">Detailed analysis</dt>
+              <ModelRow settings={settings} model={models.detailed} />
+            </>
           )}
-          <DialogFooter>
-            <Button
-              variant="tertiary"
-              onClick={() => setRemoving(false)}
-              disabled={remove.isPending}
-            >
-              Cancel
-            </Button>
-            <Button variant="danger" onClick={() => remove.mutate()} disabled={remove.isPending}>
-              {remove.isPending ? 'Removing…' : 'Remove key'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </section>
+          {settings.waitingEmails > 0 && (
+            <>
+              <dt className="text-text-secondary">Waiting</dt>
+              <dd>{waitingText(settings)}</dd>
+            </>
+          )}
+        </dl>
+      </SettingsSection>
+      <UsageSection settings={settings} />
+      {settings.provider && (
+        <SettingsSection title="Try it" help="Check the whole setup on a sample mail.">
+          <SampleTestPanel providerId={settings.provider} providerName={name} />
+        </SettingsSection>
+      )}
+    </div>
   );
 }
