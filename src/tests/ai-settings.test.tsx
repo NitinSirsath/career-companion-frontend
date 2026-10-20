@@ -395,7 +395,9 @@ describe('AI provider page: status and actions', () => {
     vi.mocked(api.getAISettings).mockResolvedValue(ready);
     vi.mocked(api.removeAISettings).mockResolvedValue({ removed: true });
     renderPage();
-    fireEvent.click(await screen.findByRole('button', { name: 'Remove' }));
+    // Removing is a danger action, so it sits in the "…" menu.
+    fireEvent.click(await screen.findByRole('button', { name: 'More provider actions' }));
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Remove provider…' }));
     expect(
       await screen.findByText(/New emails will wait until you set up AI again/),
     ).toBeInTheDocument();
