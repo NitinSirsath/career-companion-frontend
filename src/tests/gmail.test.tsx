@@ -1,13 +1,14 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, cleanup, within } from '@testing-library/react';
 import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { api } from '../api/client';
 
 // Mock the API client
-vi.mock('../api/client', () => ({
+vi.mock('../api/client', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../api/client')>()),
   api: {
     getGmailStatus: vi.fn(),
     getMessages: vi.fn(),
@@ -68,11 +69,11 @@ describe('Gmail Route', () => {
         metadata: { limit: 20, offset: 0, nextOffset: null },
       });
       renderWithProviders();
-      await screen.findByText('Email Sync');
+      await screen.findByRole('heading', { name: 'Sync' });
       if (unscannedGap) {
         const notice = screen.getByText(/Mail received between/);
-        expect(notice).toHaveTextContent('Jan 1, 2026');
-        expect(notice).toHaveTextContent('Jan 15, 2026');
+        expect(notice).toHaveTextContent('Thu 1 Jan 2026');
+        expect(notice).toHaveTextContent('Thu 15 Jan 2026');
         expect(notice).not.toHaveAttribute('role', 'alert');
       } else expect(screen.queryByText(/Mail received between/)).not.toBeInTheDocument();
       expect(
@@ -97,9 +98,10 @@ describe('Gmail Route', () => {
         metadata: { limit: 20, offset: 0, nextOffset: null },
       });
       renderWithProviders();
+      expect(await screen.findByText('Next sync')).toBeInTheDocument();
       if (nextScheduledSyncAt)
-        expect(await screen.findByText(/Next automatic sync:/)).toBeInTheDocument();
-      else expect(await screen.findByText('Automatic sync is off.')).toBeInTheDocument();
+        expect(screen.queryByText('Automatic sync is off.')).not.toBeInTheDocument();
+      else expect(screen.getByText('Automatic sync is off.')).toBeInTheDocument();
     },
   );
 
@@ -114,10 +116,10 @@ describe('Gmail Route', () => {
 
     renderWithProviders();
 
-    expect(await screen.findByText('Connection Status')).toBeInTheDocument();
-    expect(screen.getByText('Gmail not connected')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Connection' })).toBeInTheDocument();
+    expect(await screen.findByText('Gmail not connected')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Connect Gmail' })).toBeInTheDocument();
-    expect(screen.queryByText('Email Sync')).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Sync' })).not.toBeInTheDocument();
   });
 
   it('renders "connected" state correctly', async () => {
@@ -139,7 +141,29 @@ describe('Gmail Route', () => {
     expect(await screen.findByText('Connected as')).toBeInTheDocument();
     expect(screen.getByText('user@gmail.com')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Disconnect' })).toBeInTheDocument();
-    expect(screen.getByText('Email Sync')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Sync' })).toBeInTheDocument();
+  });
+
+  it('asks before it disconnects Gmail', async () => {
+    vi.mocked(api.getGmailStatus).mockResolvedValue({
+      connected: true,
+      gmailEmail: 'user@gmail.com',
+      status: 'CONNECTED',
+      syncStatus: 'IDLE',
+      lastSyncedAt: null,
+    });
+    vi.mocked(api.getMessages).mockResolvedValue({
+      items: [],
+      metadata: { limit: 20, offset: 0, nextOffset: null },
+    });
+    vi.mocked(api.disconnectGmail).mockResolvedValue({ disconnected: true } as never);
+    renderWithProviders();
+    fireEvent.click(await screen.findByRole('button', { name: 'Disconnect' }));
+    expect(await screen.findByText('Disconnect Gmail?')).toBeInTheDocument();
+    expect(api.disconnectGmail).not.toHaveBeenCalled();
+    const dialog = screen.getByRole('dialog');
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Disconnect' }));
+    await waitFor(() => expect(api.disconnectGmail).toHaveBeenCalledTimes(1));
   });
 
   it('navigates to /api/gmail/connect when Connect Gmail is clicked', async () => {
@@ -193,7 +217,7 @@ describe('Gmail Route', () => {
 
     renderWithProviders();
 
-    const syncButton = await screen.findByRole('button', { name: 'Sync Now' });
+    const syncButton = await screen.findByRole('button', { name: 'Sync now' });
     fireEvent.click(syncButton);
 
     await waitFor(() => expect(api.triggerSync).toHaveBeenCalledTimes(1));
@@ -217,7 +241,7 @@ describe('Gmail Route', () => {
 
     renderWithProviders();
 
-    const syncButton = await screen.findByRole('button', { name: 'Sync Now' });
+    const syncButton = await screen.findByRole('button', { name: 'Sync now' });
     expect(syncButton).not.toBeDisabled();
 
     // 2. Setup triggerSync to fail (simulate timeout or 409)
@@ -238,11 +262,11 @@ describe('Gmail Route', () => {
 
     // 4. Verify it recovers and shows error
     expect(
-      await screen.findByText('Error syncing: A sync is already in progress'),
+      await screen.findByText('The sync did not start. Try again in a moment.'),
     ).toBeInTheDocument();
 
     // 5. Verify the button is re-enabled because onSettled invalidated the query and fetched IDLE
-    expect(await screen.findByRole('button', { name: 'Sync Now' })).not.toBeDisabled();
+    expect(await screen.findByRole('button', { name: 'Sync now' })).not.toBeDisabled();
   });
 
   it('renders a Gmail link when threadId is provided', async () => {
