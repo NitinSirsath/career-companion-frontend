@@ -6,6 +6,7 @@ import { EMAIL_PROBLEM, PASSWORD_MISSING, signInProblem } from '../../lib/signIn
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
+import { InlineNotification } from '../ui/notification';
 
 /** Sign-in with email and password. `onSignedIn` runs once the session exists. */
 export function PasswordSignInForm({ onSignedIn }: { onSignedIn: () => void }) {
@@ -18,28 +19,30 @@ export function PasswordSignInForm({ onSignedIn }: { onSignedIn: () => void }) {
   const onSubmit = form.handleSubmit((input) => login.mutate(input, { onSuccess: onSignedIn }));
 
   return (
-    <form onSubmit={onSubmit} noValidate aria-label="Sign in" className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="signin-email">Email</Label>
+    <form onSubmit={onSubmit} noValidate aria-label="Sign in" className="flex flex-col gap-6">
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="signin-email" className="text-xs text-text-secondary">
+          Email
+        </Label>
         <Input id="signin-email" type="email" autoComplete="username" {...form.register('email')} />
-        {errors.email && <p className="text-sm text-status-error">{EMAIL_PROBLEM}</p>}
+        {errors.email && <p className="text-xs text-status-error">{EMAIL_PROBLEM}</p>}
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="signin-password">Password</Label>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="signin-password" className="text-xs text-text-secondary">
+          Password
+        </Label>
         <Input
           id="signin-password"
           type="password"
           autoComplete="current-password"
           {...form.register('password')}
         />
-        {errors.password && <p className="text-sm text-status-error">{PASSWORD_MISSING}</p>}
+        {errors.password && <p className="text-xs text-status-error">{PASSWORD_MISSING}</p>}
       </div>
       {login.isError && (
-        <p role="alert" className="text-sm text-status-error">
-          {signInProblem(login.error)}
-        </p>
+        <InlineNotification kind="error">{signInProblem(login.error)}</InlineNotification>
       )}
-      <Button type="submit" className="w-full" disabled={login.isPending}>
+      <Button type="submit" className="w-full justify-center" loading={login.isPending}>
         {login.isPending ? 'Signing in…' : 'Sign in'}
       </Button>
     </form>

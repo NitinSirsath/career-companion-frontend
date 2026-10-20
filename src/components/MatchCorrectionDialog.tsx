@@ -100,7 +100,7 @@ export function MatchCorrectionDialog({
     <Dialog open={open} onOpenChange={changeOpen}>
       {trigger && (
         <DialogTrigger asChild>
-          <Button variant="tertiary" size="sm">
+          <Button variant="ghost" size="sm" className="-ml-3">
             {label}
           </Button>
         </DialogTrigger>

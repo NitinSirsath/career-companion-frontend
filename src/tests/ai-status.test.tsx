@@ -295,7 +295,7 @@ describe('Gmail Sync row badges and the (i)', () => {
     show('/gmail');
     // AI access is ready: only the model this mail needs is paused.
     expect(await screen.findByText('Waiting for AI')).toBeInTheDocument();
-    expect(screen.getByText('PENDING')).toBeInTheDocument();
+    expect(screen.getByText('Queued')).toBeInTheDocument();
     // A tap opens the (i), for phones.
     const why = screen.getByRole('button', { name: 'Why is this mail waiting?' });
     fireEvent.click(why);

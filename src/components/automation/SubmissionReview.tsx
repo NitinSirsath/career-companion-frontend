@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchApplicationsPage } from '../../lib/applicationCache';
+import { InlineNotification } from '../ui/notification';
 import { Pagination } from '../ui/pagination';
 import { PendingSubmissionsSection } from './PendingSubmissionsSection';
 
@@ -24,7 +25,11 @@ export function SubmissionReview() {
 
   return (
     <>
-      {error && <p role="alert">Could not load applications: {error.message}</p>}
+      {error && (
+        <InlineNotification kind="error">
+          Could not load your applications to link a submission to.
+        </InlineNotification>
+      )}
       {(offset > 0 || nextOffset !== null) && (
         <section aria-label="Applications for matching">
           <p className="text-sm">Browse applications available in the review list below.</p>

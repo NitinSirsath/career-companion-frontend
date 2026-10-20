@@ -131,12 +131,10 @@ export function ProviderSetupForm({
     <form
       onSubmit={submit}
       aria-label={`Set up ${name}`}
-      className="border border-border-default bg-surface p-6 space-y-6"
+      className="space-y-6 bg-surface px-6 py-5"
     >
       <div className="space-y-2">
-        <h3 className="text-lg font-semibold">
-          {sameProvider ? `Update ${name}` : `Set up ${name}`}
-        </h3>
+        <h3 className="text-xl leading-7">{sameProvider ? `Update ${name}` : `Set up ${name}`}</h3>
         {provider.costModel === 'PAID_ONLY' && (
           <p className="text-sm text-status-warning">
             {name} requires paid API billing. Set up billing before you create a key.

@@ -10,6 +10,7 @@ import {
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
+import { InlineNotification } from '../ui/notification';
 
 /** Sets the first password, or changes it. A change also asks for the current password. */
 export function SetPasswordForm({ hasPassword }: { hasPassword: boolean }) {
@@ -28,21 +29,26 @@ export function SetPasswordForm({ hasPassword }: { hasPassword: boolean }) {
   const title = hasPassword ? 'Change password' : 'Set password';
 
   return (
-    <form onSubmit={onSubmit} noValidate aria-label={title} className="space-y-4">
-      <h2 className="text-lg font-medium">{title}</h2>
+    <form
+      onSubmit={onSubmit}
+      noValidate
+      aria-label={title}
+      className="flex max-w-80 flex-col gap-6"
+    >
       {!hasPassword && (
         <p className="text-sm text-text-secondary">
           With a password you can also sign in with your email, without Google.
         </p>
       )}
       {hasPassword && (
-        <div className="space-y-2">
-          <Label htmlFor="current-password">Current password</Label>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="current-password" className="text-xs text-text-secondary">
+            Current password
+          </Label>
           <Input
             id="current-password"
             type="password"
             autoComplete="current-password"
-            className="max-w-sm"
             // An empty field means it was not given.
             {...form.register('currentPassword', {
               setValueAs: (value: string) => value || undefined,
@@ -53,28 +59,30 @@ export function SetPasswordForm({ hasPassword }: { hasPassword: boolean }) {
           )}
         </div>
       )}
-      <div className="space-y-2">
-        <Label htmlFor="new-password">New password</Label>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="new-password" className="text-xs text-text-secondary">
+          New password
+        </Label>
         <Input
           id="new-password"
           type="password"
           autoComplete="new-password"
-          className="max-w-sm"
           {...form.register('newPassword')}
         />
         <p
-          className={`text-sm ${errors.newPassword ? 'text-status-error' : 'text-text-secondary'}`}
+          className={`text-xs ${errors.newPassword ? 'text-status-error' : 'text-text-secondary'}`}
         >
           {PASSWORD_PROBLEM}
         </p>
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="repeat-password">Repeat new password</Label>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="repeat-password" className="text-xs text-text-secondary">
+          Repeat new password
+        </Label>
         <Input
           id="repeat-password"
           type="password"
           autoComplete="new-password"
-          className="max-w-sm"
           {...form.register('repeatPassword')}
         />
         {errors.repeatPassword && (
@@ -82,18 +90,18 @@ export function SetPasswordForm({ hasPassword }: { hasPassword: boolean }) {
         )}
       </div>
       {save.isError && (
-        <p role="alert" className="text-sm text-status-error">
-          {signInProblem(save.error)}
-        </p>
+        <InlineNotification kind="error">{signInProblem(save.error)}</InlineNotification>
       )}
       {save.isSuccess && (
-        <p role="status" className="text-sm text-status-success">
+        <p role="status" className="text-sm text-ok">
           Password saved.
         </p>
       )}
-      <Button type="submit" disabled={save.isPending}>
-        {save.isPending ? 'Saving…' : 'Save password'}
-      </Button>
+      <div>
+        <Button type="submit" loading={save.isPending}>
+          {save.isPending ? 'Saving…' : 'Save password'}
+        </Button>
+      </div>
     </form>
   );
 }
