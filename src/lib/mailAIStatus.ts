@@ -360,6 +360,13 @@ type RowMail = Pick<
   'processingState' | 'processingStuck' | 'processingRetryable' | 'aiStatus'
 >;
 
+/** The plain words for where a mail is, when nothing more needs saying. */
+const STATE_WORDS: Record<string, string> = {
+  PENDING: 'Queued',
+  PROCESSING: 'Reading',
+  COMPLETED: 'Read',
+};
+
 /**
  * The AI Status cell of a Gmail Sync row: the plain badge, its (i), and whether to offer a retry.
  * `pauses` are the running pauses of the models the setup uses (AI settings).
@@ -368,7 +375,7 @@ export function mailAIView(message: RowMail, pauses: readonly AIModelPause[] = [
   const status = message.aiStatus ?? null;
   const state = message.processingState ?? 'PENDING';
   const view: MailAIView = {
-    badge: state,
+    badge: STATE_WORDS[state] ?? state,
     tone: 'neutral',
     info: null,
     question: 'Why is this mail waiting?',
