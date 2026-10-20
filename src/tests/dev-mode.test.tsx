@@ -84,7 +84,7 @@ describe('Gmail connection wording', () => {
     expect(gmailConnectionCopy(true, null)).toEqual({
       connect: 'Connect sandbox mailbox',
       notConnected:
-        'Not connected. In dev mode your Gmail account is the mail sandbox: no Google account is used.',
+        'Not connected. Here your Gmail account is the mail sandbox: no Google account is used.',
       connectedNote: 'Sandbox mailbox.',
     });
   });

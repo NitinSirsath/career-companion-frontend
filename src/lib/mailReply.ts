@@ -33,9 +33,10 @@ export function replyProblem(error: unknown): ReplyProblem {
 export const allowSendingUrl = (mailPath: string) =>
   `/api/gmail/connect?returnTo=${encodeURIComponent(mailPath)}`;
 
-export const replyHint = (devMode: boolean) =>
-  devMode
-    ? 'Dev mode: the reply goes to the mail sandbox. No real mail is sent. Your earlier mails are added below your text, as in any mail app.'
+/** `sandbox`: the user's mailbox is the mail sandbox (dev mode, or a test account). */
+export const replyHint = (sandbox: boolean) =>
+  sandbox
+    ? 'The reply goes to the mail sandbox. No real mail is sent. Your earlier mails are added below your text, as in any mail app.'
     : 'Sent from your Gmail, in this conversation. Your earlier mails are added below your text, as in any mail app.';
 
 /** "Priya Nair", "Priya Nair and Daniel Okafor", "Priya Nair, Daniel Okafor and Lena Fischer". */

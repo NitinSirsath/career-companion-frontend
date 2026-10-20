@@ -539,7 +539,7 @@ describe('mail details in dev mode', () => {
     fireEvent.click(await screen.findByRole('button', { name: /^Reply to .*…/ }));
     const form = within(await screen.findByRole('form', { name: 'Reply' }));
     expect(
-      form.getByText(/^Dev mode: the reply goes to the mail sandbox\. No real mail is sent\./),
+      form.getByText(/^The reply goes to the mail sandbox\. No real mail is sent\./),
     ).toBeInTheDocument();
     expect(form.getByRole('link', { name: 'Open in the mail sandbox' })).toHaveAttribute(
       'href',

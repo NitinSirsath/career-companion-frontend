@@ -12,6 +12,7 @@ export interface User {
   id: string;
   email: string;
   name: string | null;
+  testAccount?: boolean;
 }
 
 export const authKeys = { profile: ['auth', 'profile'] as const };
@@ -46,6 +47,11 @@ export async function loginWithPassword(input: PasswordLoginRequest): Promise<Us
   return UserProfileSchema.parse(await api.post<unknown>('/api/auth/login', input));
 }
 
+/** The test sign-in: test accounts only, which use the mail sandbox instead of Gmail. */
+export async function loginToTestAccount(input: PasswordLoginRequest): Promise<UserProfile> {
+  return UserProfileSchema.parse(await api.post<unknown>('/api/auth/test-login', input));
+}
+
 /** Dev mode only: the backend answers 404 in prod mode. */
 export async function registerTestUser(input: RegisterRequest): Promise<UserProfile> {
   return UserProfileSchema.parse(await api.post<unknown>('/api/auth/register', input));
@@ -62,7 +68,9 @@ export function useProfile() {
   });
 }
 
-export const usePasswordLogin = () => useMutation({ mutationFn: loginWithPassword });
+/** The normal sign-in, or the test sign-in when `testAccount` is set. */
+export const usePasswordLogin = (testAccount = false) =>
+  useMutation({ mutationFn: testAccount ? loginToTestAccount : loginWithPassword });
 
 export const useRegisterTestUser = () => useMutation({ mutationFn: registerTestUser });
 

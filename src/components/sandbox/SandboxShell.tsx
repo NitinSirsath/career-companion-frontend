@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { PageHeader } from '../layout/PageHeader';
 import type { ReactNode } from 'react';
-import { useAppMode } from '../../api/appMode';
+import { useAppMode, useTestAccount } from '../../api/appMode';
 import { useSandboxThreads } from '../../api/sandbox';
 import { cn } from '../../lib/utils';
 import { NotFoundPage } from '../errors/NotFoundPage';
@@ -56,8 +56,8 @@ function SandboxFrame({ active, children }: { active: SandboxSection; children: 
 }
 
 /**
- * Every Mail sandbox page sits in this. The sandbox exists in dev mode only: in prod mode its
- * pages are "not found" and nothing is asked of the sandbox API.
+ * Every Mail sandbox page sits in this. The sandbox exists in dev mode and for test accounts: for
+ * anyone else its pages are "not found" and nothing is asked of the sandbox API.
  */
 export function SandboxShell({
   active,
@@ -67,7 +67,8 @@ export function SandboxShell({
   children: ReactNode;
 }) {
   const mode = useAppMode();
-  if (mode === undefined) return null;
-  if (mode !== 'dev') return <NotFoundPage />;
+  const testAccount = useTestAccount();
+  if (mode === undefined || (mode !== 'dev' && testAccount === undefined)) return null;
+  if (mode !== 'dev' && !testAccount) return <NotFoundPage />;
   return <SandboxFrame active={active}>{children}</SandboxFrame>;
 }

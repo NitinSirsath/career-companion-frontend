@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Dialog } from '@base-ui/react/dialog';
 import { Link } from '@tanstack/react-router';
 import { Close, OverflowMenuHorizontal, User as UserIcon } from '@carbon/icons-react';
-import { useDevMode } from '../../api/appMode';
+import { useSandboxMailbox } from '../../api/appMode';
 import type { User } from '../../api/auth';
 import { THEME_CHOICES } from '../../lib/theme';
 import { cn } from '../../lib/utils';
@@ -29,7 +29,7 @@ function SheetLink({ item, onPick }: { item: NavItem; onPick: () => void }) {
 
 /** Everything that is not in the bottom bar: settings, the sandbox, the account and the theme. */
 function MoreSheet({ user, onPick }: { user: User | null; onPick: () => void }) {
-  const devMode = useDevMode();
+  const sandbox = useSandboxMailbox();
   const { theme, setTheme } = useTheme();
   const name = user?.name || user?.email || 'Account';
   return (
@@ -47,7 +47,7 @@ function MoreSheet({ user, onPick }: { user: User | null; onPick: () => void }) 
       {SETTINGS_NAV.map((item) => (
         <SheetLink key={item.to} item={item} onPick={onPick} />
       ))}
-      {devMode && <SheetLink item={SANDBOX_NAV} onPick={onPick} />}
+      {sandbox && <SheetLink item={SANDBOX_NAV} onPick={onPick} />}
       <p className="mt-2 border-t border-border-subtle px-4 pt-4 pb-2 text-xs tracking-[0.32px] text-text-secondary">
         Theme
       </p>

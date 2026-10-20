@@ -3,7 +3,15 @@ import { isApiError } from '../api/client';
 import { PASSWORD_MIN_LENGTH, SetPasswordRequestSchema } from '../contracts/auth';
 
 /** Server answers that are already written for the user to read. */
-const SAY_AS_IS = ['INVALID_CREDENTIALS', 'TOO_MANY_ATTEMPTS', 'WRONG_PASSWORD', 'EMAIL_TAKEN'];
+const SAY_AS_IS = [
+  'INVALID_CREDENTIALS',
+  'TOO_MANY_ATTEMPTS',
+  'WRONG_PASSWORD',
+  'EMAIL_TAKEN',
+  'USE_TEST_LOGIN',
+  'NOT_TEST_ACCOUNT',
+  'TEST_ACCOUNT',
+];
 
 /** What to tell the user when signing in, creating a user or saving a password did not work. */
 export function signInProblem(error: unknown): string {
@@ -19,6 +27,7 @@ export function googleSignInProblem(code: string): string {
   if (code === 'denied') return 'You denied the sign-in request. Please try again.';
   if (code === 'csrf') return 'Your session expired or was invalid. Please try signing in again.';
   if (code === 'expired') return 'Your session has expired. Please sign in again.';
+  if (code === 'test_account') return 'This is a test account. Sign in on the test sign-in page.';
   return 'An unexpected authentication error occurred. Please try again.';
 }
 

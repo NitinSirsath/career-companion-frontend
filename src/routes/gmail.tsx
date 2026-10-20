@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { z } from 'zod';
-import { useDevMode } from '../api/appMode';
+import { useSandboxMailbox } from '../api/appMode';
 import { useGmailStatus } from '../api/gmail';
 import { AIAccessNotice } from '../components/ai/AIAccessNotice';
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
@@ -36,7 +36,7 @@ function ConnectProblem({ error }: { error: string }) {
 function GmailPage() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: '/gmail' });
-  const devMode = useDevMode();
+  const sandbox = useSandboxMailbox();
   const [offset, setOffset] = useState(0);
   // Google sends the user back with the problem in the URL; it shows once, then the URL is clean.
   const [connectError] = useState(() => search.gmailError ?? null);
@@ -63,14 +63,14 @@ function GmailPage() {
           status={status}
           loading={isLoading}
           failed={!!error}
-          devMode={devMode}
+          devMode={sandbox}
           onDisconnected={() => setOffset(0)}
         />
         {status && connected && (
           <>
             <GmailSync status={status} onAccepted={() => setOffset(0)} />
             <GmailLookback status={status} />
-            <ProcessedMails devMode={devMode} offset={offset} onOffset={setOffset} />
+            <ProcessedMails devMode={sandbox} offset={offset} onOffset={setOffset} />
           </>
         )}
       </div>

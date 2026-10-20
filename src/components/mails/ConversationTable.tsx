@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { Link } from '@tanstack/react-router';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useSetRequestState } from '../../api/conversations';
-import { useDevMode } from '../../api/appMode';
+import { useSandboxMailbox } from '../../api/appMode';
 import type { Conversation } from '../../contracts/conversation';
 import { conversationSummary, mailDate, requestControls, requestTitle } from '../../lib/mails';
 import { cn } from '../../lib/utils';
@@ -18,7 +18,7 @@ import { TodoState } from './TodoState';
 /** The row's "…" menu: change what the mail needs, and open it in Gmail. */
 function RowMenu({ conversation }: { conversation: Conversation }) {
   const change = useSetRequestState(conversation.key);
-  const devMode = useDevMode();
+  const sandbox = useSandboxMailbox();
   const asked = conversation.request;
   const actions: MenuAction[] = [];
   if (asked) {
@@ -47,7 +47,7 @@ function RowMenu({ conversation }: { conversation: Conversation }) {
       });
     }
   }
-  if (conversation.threadId && !devMode) {
+  if (conversation.threadId && !sandbox) {
     const url = getGmailConversationUrl(conversation.threadId);
     actions.push({
       label: 'Open in Gmail',

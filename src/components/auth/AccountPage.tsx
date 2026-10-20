@@ -25,20 +25,32 @@ export function AccountPage() {
               ]}
             />
           </SettingsSection>
-          <SettingsSection
-            title={profile.hasPassword ? 'Change password' : 'Set password'}
-            help={
-              <>
-                <span className="font-semibold text-text-primary">Forgot your password?</span>{' '}
-                {profile.hasGoogle
-                  ? 'Sign in with Google and set a new one here. The app sends no reset mail.'
-                  : 'The app sends no reset mail. In dev mode, create another test user.'}
-              </>
-            }
-          >
-            {/* A new form after the first password is saved: it then asks for the current one. */}
-            <SetPasswordForm key={String(profile.hasPassword)} hasPassword={profile.hasPassword} />
-          </SettingsSection>
+          {profile.testAccount ? (
+            <SettingsSection title="Password" help="This is a test account.">
+              <p className="text-sm text-text-secondary">
+                Your password is set on the server. Ask the person who gave you this account to
+                change it.
+              </p>
+            </SettingsSection>
+          ) : (
+            <SettingsSection
+              title={profile.hasPassword ? 'Change password' : 'Set password'}
+              help={
+                <>
+                  <span className="font-semibold text-text-primary">Forgot your password?</span>{' '}
+                  {profile.hasGoogle
+                    ? 'Sign in with Google and set a new one here. The app sends no reset mail.'
+                    : 'The app sends no reset mail. In dev mode, create another test user.'}
+                </>
+              }
+            >
+              {/* A new form after the first password is saved: it then asks for the current one. */}
+              <SetPasswordForm
+                key={String(profile.hasPassword)}
+                hasPassword={profile.hasPassword}
+              />
+            </SettingsSection>
+          )}
           <SettingsSection
             title="Appearance"
             help="System follows your computer's light or dark setting."

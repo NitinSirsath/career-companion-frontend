@@ -8,9 +8,18 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { InlineNotification } from '../ui/notification';
 
-/** Sign-in with email and password. `onSignedIn` runs once the session exists. */
-export function PasswordSignInForm({ onSignedIn }: { onSignedIn: () => void }) {
-  const login = usePasswordLogin();
+/**
+ * Sign-in with email and password. `onSignedIn` runs once the session exists. `testAccount`: the
+ * test sign-in, for test accounts only.
+ */
+export function PasswordSignInForm({
+  onSignedIn,
+  testAccount = false,
+}: {
+  onSignedIn: () => void;
+  testAccount?: boolean;
+}) {
+  const login = usePasswordLogin(testAccount);
   const form = useForm<PasswordLoginRequest>({
     resolver: zodResolver(PasswordLoginRequestSchema),
     defaultValues: { email: '', password: '' },

@@ -62,6 +62,9 @@ import type {
   ResolveSubmissionResponse,
 } from '../contracts';
 
+/** Pages a signed-out visitor may be on; a 401 there is a wrong password, not an expiry. */
+const SIGN_IN_PATHS = ['/login', '/test-login'];
+
 /** Shared client deadline (Sprint 5). Mutations reuse it; do not add competing timeouts. */
 export const REQUEST_TIMEOUT_MS = 15_000;
 
@@ -146,8 +149,8 @@ export class ApiClient {
 
       if (!response.ok) {
         if (response.status === 401) {
-          // Prevent redirect loop if already on login page
-          if (!window.location.pathname.startsWith('/login')) {
+          // Prevent redirect loop if already on a sign-in page
+          if (!SIGN_IN_PATHS.some((path) => window.location.pathname.startsWith(path))) {
             window.location.href = '/login?error=expired';
           }
         }
