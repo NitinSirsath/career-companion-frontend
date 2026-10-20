@@ -31,6 +31,7 @@ vi.mock('../api/client', async (importOriginal) => ({
 }));
 
 import { routeTree } from '../routeTree.gen';
+import { chooseOption } from './choose';
 
 const page = <T,>(items: T[]) => ({ items, metadata: { limit: 20, offset: 0, nextOffset: null } });
 const reply = makeMailMessage({
@@ -136,31 +137,35 @@ describe('job mail details', () => {
     expect(
       await screen.findByRole('heading', { name: 'Interview: first round availability' }),
     ).toBeInTheDocument();
-    const mail = within(await screen.findByRole('article'));
+    const article = await screen.findByRole('article');
+    const mail = within(article);
     expect(mail.getByText('Priya Nair')).toBeInTheDocument();
-    expect(mail.getByText('priya.nair@northwind.example')).toBeInTheDocument();
+    // The address shows on hover; Gmail labels are left out as noise.
+    expect(mail.getByTitle('priya.nair@northwind.example')).toBeInTheDocument();
     expect(mail.getByText('to me')).toBeInTheDocument();
-    expect(mail.getByText('Job search')).toBeInTheDocument();
+    expect(mail.queryByText('Job search')).not.toBeInTheDocument();
     expect(mail.getByText('Could you share the dates you are free next week?')).toBeInTheDocument();
-    expect(mail.getByText('· PDF · 184 KB')).toBeInTheDocument();
+    expect(mail.getByText('PDF · 184 KB')).toBeInTheDocument();
     expect(mail.getByRole('link', { name: 'Download JD.pdf' })).toHaveAttribute(
       'href',
       '/api/mailbox/messages/message-1/attachments/1',
     );
-    expect(screen.getByText('Conversation · 1 mail')).toBeInTheDocument();
+    expect(screen.getByText('1 mail')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /^Open email .* in Gmail$/ })).toHaveAttribute(
       'href',
       expect.stringContaining('thread-1'),
     );
-    expect(screen.getByRole('link', { name: /^Reply to email .* in Gmail$/ })).toBeInTheDocument();
 
     const panel = within(screen.getByRole('complementary', { name: 'About this job mail' }));
     expect(panel.getByText('Send your available dates')).toBeInTheDocument();
     expect(panel.getByRole('button', { name: /^Mark done/ })).toBeInTheDocument();
     expect(panel.getByRole('button', { name: 'Create application' })).toBeInTheDocument();
-    expect(panel.getByText('What the AI read in this mail')).toBeInTheDocument();
-    expect(panel.getByText('First round, video')).toBeInTheDocument();
-    expect(panel.getByText(/not the mail's own words/)).toBeInTheDocument();
+    // The AI's reading sits under the mail it read, not in the side panel.
+    expect(panel.queryByText(/What the AI read/)).not.toBeInTheDocument();
+    expect(mail.getByText('Asks you')).toBeInTheDocument();
+    fireEvent.click(mail.getByRole('button', { name: /^AI read:/ }));
+    expect(mail.getByText('First round, video')).toBeInTheDocument();
+    expect(mail.getByText(/not the mail's own words/)).toBeInTheDocument();
 
     // The mark ends with the conversation's own key, not the email ID in the URL.
     await waitFor(() =>
@@ -196,10 +201,9 @@ describe('job mail details', () => {
     expect(mails).toHaveLength(2);
     expect(within(mails[0]).getByText('Priya Nair')).toBeInTheDocument();
     expect(within(mails[1]).getByText('You')).toBeInTheDocument();
-    expect(within(mails[1]).getByText('Your reply')).toBeInTheDocument();
     expect(within(mails[1]).getByText('to Priya Nair')).toBeInTheDocument();
     expect(within(mails[1]).getByText('I am free on Tuesday after 2 PM.')).toBeInTheDocument();
-    expect(screen.getByText('Conversation · 2 mails · 1 from you')).toBeInTheDocument();
+    expect(screen.getByText('2 mails · 1 from you')).toBeInTheDocument();
 
     const panel = within(screen.getByRole('complementary', { name: 'About this job mail' }));
     expect(panel.getByText('Replied')).toBeInTheDocument();
@@ -285,21 +289,37 @@ describe('a mail that is not a job mail', () => {
     );
     expect(api.post).not.toHaveBeenCalled();
     // A plain Gmail mail can be answered from here too.
+    fireEvent.click(screen.getByRole('button', { name: /^Reply to Meera…/ }));
     expect(
-      within(screen.getByRole('form', { name: 'Reply' })).getByText(/^to Meera </),
+      within(await screen.findByRole('form', { name: 'Reply' })).getByText('Meera'),
     ).toBeInTheDocument();
   });
 });
 
 describe('replying from the mail details page', () => {
-  const box = async () => within(await screen.findByRole('form', { name: 'Reply' }));
+  /** Opens the docked reply box, which waits as one line until the user starts a reply. */
+  const box = async () => {
+    fireEvent.click(await screen.findByRole('button', { name: /^Reply to .*…/ }));
+    return within(await screen.findByRole('form', { name: 'Reply' }));
+  };
   const write = (form: Awaited<ReturnType<typeof box>>, text: string) =>
     fireEvent.change(form.getByLabelText('Your reply'), { target: { value: text } });
+
+  it('puts the cursor in the reply when the box opens, by click or by "R"', async () => {
+    show('/mails/thread-1');
+    const form = await box();
+    expect(form.getByLabelText('Your reply')).toHaveFocus();
+    cleanup();
+    show('/mails/thread-1');
+    await screen.findByRole('button', { name: /^Reply to .*…/ });
+    fireEvent.keyDown(document.body, { key: 'r' });
+    expect(await screen.findByLabelText('Your reply')).toHaveFocus();
+  });
 
   it('says who the reply goes to and offers no way to change it', async () => {
     show('/mails/thread-1');
     const form = await box();
-    expect(form.getByText(`to ${PRIYA}`)).toBeInTheDocument();
+    expect(form.getByText('To').nextElementSibling).toHaveTextContent('Priya Nair');
     expect(form.queryByRole('textbox', { name: /^to/i })).not.toBeInTheDocument();
     expect(form.getByText(/^Sent from your Gmail, in this conversation\./)).toBeInTheDocument();
     // Gmail itself stays one click away.
@@ -359,8 +379,8 @@ describe('replying from the mail details page', () => {
         within(screen.getByRole('article')).getByText('to me, Daniel Okafor · cc Lena Fischer'),
       ).toBeInTheDocument();
       expect(form.getByText('Reply to all · 3 people')).toBeInTheDocument();
-      expect(form.getByText('To').nextElementSibling).toHaveTextContent(PRIYA);
-      expect(form.getByText('Cc').nextElementSibling).toHaveTextContent(`${DANIEL}, ${LENA}`);
+      expect(form.getByText('To').nextElementSibling).toHaveTextContent('Priya Nair');
+      expect(form.getByText('Cc').parentElement).toHaveTextContent('CcDaniel OkaforLena Fischer');
       // The two choices are all there is: no address can be typed.
       expect(form.getAllByRole('textbox')).toHaveLength(1);
 
@@ -379,7 +399,10 @@ describe('replying from the mail details page', () => {
     it('goes to the sender alone when the user chooses that, says who is left out, and can go back', async () => {
       show('/mails/thread-1');
       const form = await box();
-      fireEvent.click(form.getByRole('button', { name: 'Reply only to Priya Nair' }));
+      await chooseOption(
+        form.getByRole('combobox', { name: 'Who gets this reply' }),
+        'Reply only to Priya Nair',
+      );
       expect(form.getByText('Reply only to Priya Nair')).toBeInTheDocument();
       expect(form.queryByText('Cc')).not.toBeInTheDocument();
       expect(
@@ -395,7 +418,10 @@ describe('replying from the mail details page', () => {
       });
 
       // Going back changes the next reply, not the note about the one that was sent.
-      fireEvent.click(form.getByRole('button', { name: 'Reply to all 3 people' }));
+      await chooseOption(
+        form.getByRole('combobox', { name: 'Who gets this reply' }),
+        'Reply to all · 3 people',
+      );
       expect(form.getByText('Reply to all · 3 people')).toBeInTheDocument();
       expect(form.getByText('Cc')).toBeInTheDocument();
       expect(form.getByText('Reply sent to Priya Nair.')).toBeInTheDocument();
@@ -406,7 +432,7 @@ describe('replying from the mail details page', () => {
     show('/mails/thread-1');
     const form = await box();
     expect(within(await screen.findByRole('article')).getByText('to me')).toBeInTheDocument();
-    expect(form.queryByRole('button', { name: /^Reply (only )?to/ })).not.toBeInTheDocument();
+    expect(form.queryByRole('combobox', { name: 'Who gets this reply' })).not.toBeInTheDocument();
     expect(form.queryByText('Cc')).not.toBeInTheDocument();
   });
 
