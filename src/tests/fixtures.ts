@@ -25,6 +25,7 @@ export function makeApplication(overrides: Partial<ApplicationResponse> = {}): A
     recentEvent: null,
     pendingActionCount: 0,
     submittedVia: null,
+    automation: null,
     ...overrides,
   } as ApplicationResponse;
   return { ...base, ...deriveStatus(base.aiStatus, base.userStatus), ...pickDerived(overrides) };
