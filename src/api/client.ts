@@ -25,6 +25,9 @@ import {
   IntegrationTokenSchema,
   ListApplicationsResponseSchema,
   ListIntegrationTokensResponseSchema,
+  McpConnectionResponseSchema,
+  ListApplicationSubmissionsResponseSchema,
+  ListNotSubmittedJobsResponseSchema,
   ListPendingSubmissionsResponseSchema,
   ResolveSubmissionResponseSchema,
   ListApplicationEventsResponseSchema,
@@ -57,6 +60,9 @@ import type {
   CreateIntegrationTokenResponse,
   IntegrationToken,
   ListIntegrationTokensResponse,
+  McpConnectionResponse,
+  ListApplicationSubmissionsResponse,
+  ListNotSubmittedJobsResponse,
   ListPendingSubmissionsResponse,
   ResolveSubmissionRequest,
   ResolveSubmissionResponse,
@@ -444,6 +450,15 @@ export class ApiClient {
     );
   }
 
+  /** The address the automation reaches this backend at; null when it is this page's own. */
+  async getMcpConnection(options?: RequestOptions): Promise<McpConnectionResponse> {
+    return this.request(
+      '/api/integration-tokens/connection',
+      { method: 'GET', cache: 'no-store', signal: options?.signal },
+      McpConnectionResponseSchema,
+    );
+  }
+
   /**
    * The only response that carries a plaintext token. Call it directly from an event handler, not
    * through a cached mutation, and keep the result only in component state: TanStack's caches keep
@@ -475,6 +490,30 @@ export class ApiClient {
       `/api/submissions/pending?offset=${params.offset ?? 0}&limit=${params.limit ?? 20}`,
       { method: 'GET', cache: 'no-store', signal: options?.signal },
       ListPendingSubmissionsResponseSchema,
+    );
+  }
+
+  /** Everything the automation reported for this application, newest first. */
+  async getApplicationSubmissions(
+    id: string,
+    options?: RequestOptions,
+  ): Promise<ListApplicationSubmissionsResponse> {
+    return this.request(
+      `/api/applications/${id}/submissions`,
+      { method: 'GET', cache: 'no-store', signal: options?.signal },
+      ListApplicationSubmissionsResponseSchema,
+    );
+  }
+
+  /** Jobs the automation did not apply to, newest first. */
+  async getNotSubmittedJobs(
+    params: { offset?: number; limit?: number } = {},
+    options?: RequestOptions,
+  ): Promise<ListNotSubmittedJobsResponse> {
+    return this.request(
+      `/api/submissions/not-submitted?offset=${params.offset ?? 0}&limit=${params.limit ?? 20}`,
+      { method: 'GET', cache: 'no-store', signal: options?.signal },
+      ListNotSubmittedJobsResponseSchema,
     );
   }
 
