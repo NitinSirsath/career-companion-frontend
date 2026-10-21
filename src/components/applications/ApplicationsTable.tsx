@@ -5,7 +5,9 @@ import { Flow, MachineLearningModel, User } from '@carbon/icons-react';
 import { format } from 'date-fns';
 import type { ApplicationResponse } from '../../contracts/application';
 import { activityLine } from '../../lib/applicationsView';
+import { platformLabel } from '../../lib/eventLabels';
 import { applicationTag, ARCHIVED_TAG } from '../../lib/statusTags';
+import { JobLink } from '../automation/JobLink';
 import { DataTable, ROW_LINK_CLASS } from '../ui/data-table';
 import { OverflowMenu } from '../ui/menu';
 import { Tag } from '../ui/tag';
@@ -56,6 +58,25 @@ function RowMenu({ app }: { app: ApplicationResponse }) {
   );
 }
 
+/** The applied date; for an automation row also the time its automation reported. */
+function AppliedCell({ app }: { app: ApplicationResponse }) {
+  if (!app.appliedAt) return <span className="text-text-tertiary">Unknown</span>;
+  const applied = new Date(app.appliedAt);
+  // The time is shown only when the applied date is the automation's own submission time.
+  const timed =
+    app.automation && new Date(app.automation.submittedAt).getTime() === applied.getTime();
+  return (
+    <div className="flex flex-col">
+      <span>{format(applied, 'd MMM yyyy')}</span>
+      {timed && (
+        <span className="text-xs tracking-[0.32px] text-text-secondary">
+          {format(applied, 'h:mm a')}
+        </span>
+      )}
+    </div>
+  );
+}
+
 const column = (
   id: string,
   header: ReactNode,
@@ -81,6 +102,15 @@ const COLUMNS: ColumnDef<ApplicationResponse>[] = [
       <span className="text-xs tracking-[0.32px] break-words text-text-secondary">
         {[app.jobTitle, app.location].filter(Boolean).join(' · ')}
       </span>
+      {app.automation && (
+        <span className="flex items-center gap-1 text-xs tracking-[0.32px] text-text-secondary">
+          {platformLabel(app.automation.platform)}
+          <JobLink
+            url={app.automation.jobUrl}
+            label={`Open the job post for ${app.companyName} in a new tab`}
+          />
+        </span>
+      )}
     </div>
   )),
   column('status', 'Status', (app) => <StatusCell app={app} />),
@@ -95,17 +125,7 @@ const COLUMNS: ColumnDef<ApplicationResponse>[] = [
       ),
     { phoneLabel: 'To do' },
   ),
-  column(
-    'applied',
-    'Applied',
-    (app) =>
-      app.appliedAt ? (
-        format(new Date(app.appliedAt), 'd MMM yyyy')
-      ) : (
-        <span className="text-text-tertiary">Unknown</span>
-      ),
-    { phoneLabel: 'Applied' },
-  ),
+  column('applied', 'Applied', (app) => <AppliedCell app={app} />, { phoneLabel: 'Applied' }),
   column(
     'activity',
     'Last activity',
