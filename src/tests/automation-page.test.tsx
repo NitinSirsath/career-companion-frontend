@@ -17,6 +17,10 @@ vi.mock('../api/client', async (importOriginal) => {
       listIntegrationTokens: vi.fn(),
       createIntegrationToken: vi.fn(),
       revokeIntegrationToken: vi.fn(),
+      getMcpConnection: vi.fn(),
+      getPendingSubmissions: vi.fn(),
+      listApplications: vi.fn(),
+      getNotSubmittedJobs: vi.fn(),
     },
   };
 });
@@ -44,7 +48,7 @@ const page = <T,>(items: T[]) => ({ items, metadata: { limit: 20, offset: 0, nex
 let queryClient: QueryClient;
 let storageWrites: string[];
 
-function renderPage(path = '/automation') {
+function renderPage(path = '/automation?tab=setup') {
   const router = createRouter({
     routeTree,
     history: createMemoryHistory({ initialEntries: [path] }),
@@ -85,6 +89,10 @@ beforeEach(() => {
   queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   vi.mocked(api.getGmailStatus).mockResolvedValue({ connected: false } as never);
   vi.mocked(api.listIntegrationTokens).mockResolvedValue(page([]));
+  vi.mocked(api.getMcpConnection).mockResolvedValue({ serverAddress: null });
+  vi.mocked(api.getPendingSubmissions).mockResolvedValue(page([]));
+  vi.mocked(api.listApplications).mockResolvedValue(page([]));
+  vi.mocked(api.getNotSubmittedJobs).mockResolvedValue(page([]));
   storageWrites = [];
   vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (key: string, value: string) {
     storageWrites.push(`${key}=${value}`);
@@ -94,7 +102,7 @@ afterEach(() => vi.restoreAllMocks());
 
 describe('navigation', () => {
   it('links to the Automation page next to AI provider, on desktop and under More on phones', async () => {
-    renderPage('/automation');
+    renderPage();
     expect(await screen.findByRole('heading', { name: 'Automation' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Automation' })).toHaveAttribute('href', '/automation');
     expect(screen.getByRole('link', { name: 'AI provider' })).toBeInTheDocument();
@@ -105,7 +113,7 @@ describe('navigation', () => {
       '/automation',
     );
     fireEvent.click(within(more).getByRole('button', { name: 'Close' }));
-    expect(screen.getByText(`${window.location.origin}/mcp`)).toBeInTheDocument();
+    expect(await screen.findByText(`${window.location.origin}/mcp`)).toBeInTheDocument();
   });
 });
 
