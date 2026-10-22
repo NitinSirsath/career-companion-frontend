@@ -102,7 +102,7 @@ const FULL_COLUMNS: ColumnDef<Conversation>[] = [
   column('new', <span className="sr-only">New</span>, (c) => <NewDot isNew={c.isNew} />, {
     className: 'hidden md:block',
   }),
-  column('mail', 'Mail', (c) => <MailCell conversation={c} />),
+  column('mail', 'Mail', (c) => <MailCell conversation={c} />, { count: true }),
   column('type', 'Type', (c) => c.category && <MailType category={c.category} />),
   column('step', 'Next step', (c) => <ConversationAction conversation={c} controls={false} />, {
     sortKey: 'needs',
@@ -130,7 +130,7 @@ const FULL_COLUMNS: ColumnDef<Conversation>[] = [
 
 // The application page lists its steps above, so here each conversation shows only its to-do state.
 const COMPACT_COLUMNS: ColumnDef<Conversation>[] = [
-  column('mail', 'Mail', (c) => <MailCell conversation={c} />),
+  column('mail', 'Mail', (c) => <MailCell conversation={c} />, { count: true }),
   column(
     'todo',
     'To-do',
