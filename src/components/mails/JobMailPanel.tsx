@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
-import { ArrowDown, Calendar } from '@carbon/icons-react';
+import { useState, type ReactNode } from 'react';
+import { ArrowDown, Calendar, ChevronDown } from '@carbon/icons-react';
 import { useSetRequestState } from '../../api/conversations';
 import type { ConversationDetail } from '../../contracts/conversation';
 import { askingMessageId, dueIn, keyDates } from '../../lib/mailThread';
@@ -11,17 +11,58 @@ import {
   requestTitle,
   scheduleLine,
 } from '../../lib/mails';
+import { cn } from '../../lib/utils';
+import { useIsPhone } from '../layout/useIsPhone';
 import { Button } from '../ui/button';
+import { Collapse } from '../ui/collapse';
 import { InlineNotification } from '../ui/notification';
 import { showToast } from '../ui/toast';
 import { ConversationApplication } from './ConversationApplication';
 import { TodoState } from './TodoState';
 
-function PanelSection({ title, children }: { title: string; children: ReactNode }) {
+/** On phones a card that folds: its title is a button, the rest opens under it. */
+function FoldedSection({ title, children }: { title: string; children: ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <section aria-label={title} className="border border-border-subtle bg-surface">
+      <h2>
+        <button
+          type="button"
+          aria-expanded={open}
+          onClick={() => setOpen(!open)}
+          className="flex min-h-13 w-full cursor-pointer items-center justify-between gap-3 px-4 text-left text-sm font-semibold"
+        >
+          {title}
+          <ChevronDown
+            size={16}
+            aria-hidden="true"
+            className={cn('transition-transform duration-150 ease-standard', open && 'rotate-180')}
+          />
+        </button>
+      </h2>
+      <Collapse open={open}>
+        <div className="flex flex-col gap-3 px-4 pb-4">{children}</div>
+      </Collapse>
+    </section>
+  );
+}
+
+function PanelSection({
+  title,
+  fold = false,
+  children,
+}: {
+  title: string;
+  /** Folded on phones, so the conversation stays near the top. */
+  fold?: boolean;
+  children: ReactNode;
+}) {
+  const phone = useIsPhone();
+  if (fold && phone) return <FoldedSection title={title}>{children}</FoldedSection>;
   return (
     <section
       aria-label={title}
-      className="flex flex-col gap-3 border border-border-subtle bg-surface p-6"
+      className="flex flex-col gap-3 border border-border-subtle bg-surface p-6 max-md:p-4"
     >
       <h2 className="mb-1 text-sm font-semibold">{title}</h2>
       {children}
@@ -129,10 +170,14 @@ export function JobMailPanel({ detail }: { detail: ConversationDetail }) {
   const canCreate = !conversation.application && conversation.link !== 'IGNORED';
   const dates = keyDates(mails);
   return (
-    <aside aria-label="About this job mail" className="flex flex-col gap-4 lg:sticky lg:top-20">
+    // On phones it sits above the conversation: the next step first, the rest folded.
+    <aside
+      aria-label="About this job mail"
+      className="flex flex-col gap-4 max-md:order-first max-md:gap-2 lg:sticky lg:top-20"
+    >
       <NextStep detail={detail} />
       {dates.length > 0 && (
-        <PanelSection title="Key dates">
+        <PanelSection title="Key dates" fold>
           <dl className="grid grid-cols-[110px_minmax(0,1fr)] gap-x-4 gap-y-2 text-sm">
             {dates.map((date) => (
               <div key={date.label} className="contents">
@@ -144,7 +189,7 @@ export function JobMailPanel({ detail }: { detail: ConversationDetail }) {
           <p className="text-xs text-text-secondary">As the mails wrote them.</p>
         </PanelSection>
       )}
-      <PanelSection title="Application">
+      <PanelSection title="Application" fold>
         {canCreate && <p className="text-sm">This conversation has no application yet.</p>}
         <ConversationApplication conversation={conversation} />
         {canCreate && (
