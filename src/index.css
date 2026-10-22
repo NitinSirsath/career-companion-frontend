@@ -135,6 +135,7 @@
   --animate-reveal: reveal 240ms cubic-bezier(0.2, 0, 0.38, 0.9);
   --animate-flash: flash 700ms cubic-bezier(0.2, 0, 0.38, 0.9);
   --animate-shimmer: shimmer 1.4s linear infinite;
+  --animate-startup-line: startup-line 1.4s cubic-bezier(0.2, 0, 0.38, 0.9) infinite;
 
   @keyframes page-in {
     from {
@@ -178,6 +179,15 @@
   @keyframes flash {
     from {
       background-color: var(--flash);
+    }
+  }
+  /* The start-up screen's thin line: a short bar runs across it, again and again. */
+  @keyframes startup-line {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(260%);
     }
   }
   @keyframes shimmer {

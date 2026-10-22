@@ -1,21 +1,13 @@
 import { useDevMode } from '../../api/appMode';
-import { googleSignInProblem } from '../../lib/signIn';
+import { googleSignInProblem, googleSignInUrl, openApp } from '../../lib/signIn';
 import { Button } from '../ui/button';
 import { InlineNotification } from '../ui/notification';
 import { CreateTestUserForm } from './CreateTestUserForm';
 import { PasswordSignInForm } from './PasswordSignInForm';
 import { SignInBar } from './SignInBar';
 
-/** A fresh page load, so the app starts again with the new session. */
-const openApp = () => {
-  window.location.href = '/';
-};
-const startGoogleSignIn = () => {
-  window.location.href = '/api/auth/connect';
-};
-
 /** Google sign-in under the password form, and what a new or forgetful user can do. */
-function GoogleSignIn() {
+function GoogleSignIn({ next }: { next: string | null }) {
   return (
     <>
       <div className="flex items-center gap-3 text-xs text-text-secondary">
@@ -23,7 +15,13 @@ function GoogleSignIn() {
         or
         <span className="h-px flex-1 bg-border-subtle" />
       </div>
-      <Button variant="tertiary" className="w-full justify-center" onClick={startGoogleSignIn}>
+      <Button
+        variant="tertiary"
+        className="w-full justify-center"
+        onClick={() => {
+          window.location.href = googleSignInUrl(next);
+        }}
+      >
         Sign in with Google
       </Button>
       <div className="flex flex-col gap-2 border-t border-border-subtle pt-4 text-xs text-text-secondary">
@@ -44,7 +42,7 @@ function GoogleSignIn() {
  * Sign-in: one card under the top bar. Prod mode: email and password, or Google. Dev mode has no
  * Google account, so it offers email and password and a form to create a test user.
  */
-export function LoginPage({ error }: { error?: string }) {
+export function LoginPage({ error, next = null }: { error?: string; next?: string | null }) {
   const devMode = useDevMode();
   return (
     <div className="min-h-screen bg-background font-sans text-text-primary">
@@ -68,8 +66,8 @@ export function LoginPage({ error }: { error?: string }) {
             {error && (
               <InlineNotification kind="error">{googleSignInProblem(error)}</InlineNotification>
             )}
-            <PasswordSignInForm onSignedIn={openApp} />
-            {!devMode && <GoogleSignIn />}
+            <PasswordSignInForm onSignedIn={() => openApp(next)} />
+            {!devMode && <GoogleSignIn next={next} />}
           </section>
           {devMode && (
             <section
@@ -79,7 +77,7 @@ export function LoginPage({ error }: { error?: string }) {
               <h2 id="test-user-title" className="text-xl leading-7 font-normal">
                 Create test user
               </h2>
-              <CreateTestUserForm onSignedIn={openApp} />
+              <CreateTestUserForm onSignedIn={() => openApp(next)} />
             </section>
           )}
         </div>

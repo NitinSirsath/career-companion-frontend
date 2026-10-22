@@ -6,6 +6,7 @@ import {
   type ErrorComponentProps,
 } from '@tanstack/react-router';
 import type { User } from '../api/auth';
+import { safeNextPath, SIGN_IN_PAGES } from '../lib/signIn';
 import { BreadcrumbProvider } from '../components/layout/Breadcrumb';
 import { Sidebar } from '../components/layout/Sidebar';
 import { MobileNav } from '../components/layout/MobileNav';
@@ -15,9 +16,6 @@ import { ProcessingRefreshObserver } from '../components/ProcessingRefreshObserv
 import { DevErrorTrigger } from '../components/errors/DevErrorTrigger';
 import { NotFoundPage } from '../components/errors/NotFoundPage';
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
-
-/** Pages for signed-out visitors: the sign-in, and the test account sign-in. */
-const SIGN_IN_PAGES = ['/login', '/test-login'];
 
 interface RouterContext {
   user: User | null;
@@ -31,10 +29,16 @@ export const Route = createRootRouteWithContext<RouterContext>()({
   beforeLoad: async ({ location, context }) => {
     const signInPage = SIGN_IN_PAGES.includes(location.pathname);
     if (!context.user && !signInPage) {
-      throw redirect({ to: '/login' });
+      // After sign-in the user comes back to the page asked for.
+      throw redirect({
+        to: '/login',
+        search: location.href === '/' ? {} : { next: location.href },
+      });
     }
     if (context.user && signInPage) {
-      throw redirect({ to: '/' });
+      const next = safeNextPath((location.search as { next?: unknown }).next);
+      // `href` keeps the page's own search, as the address had it.
+      throw redirect({ to: '/', href: next ?? undefined });
     }
   },
   errorComponent: RootRouteError,

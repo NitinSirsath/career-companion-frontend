@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { TRY_TIMEOUT_MS } from '../lib/startup';
 import { api } from './client';
 import {
   UserProfileSchema,
@@ -17,21 +18,42 @@ export interface User {
 
 export const authKeys = { profile: ['auth', 'profile'] as const };
 
-export async function getCurrentUser(): Promise<User | null> {
-  try {
-    const headers: Record<string, string> = {};
+export type SignInAnswer =
+  | { kind: 'signed-in'; user: User }
+  | { kind: 'signed-out' }
+  /** No answer in time, a network error or a 5xx, as while the free server wakes up. */
+  | { kind: 'no-answer' };
 
-    // using raw fetch directly to bypass throwing error on 401
+/**
+ * Asks the server who is signed in. Only a 401 means signed out: a server that does not answer
+ * never sends a signed-in user to the sign-in page. Plain fetch, so a 401 sends nobody anywhere.
+ */
+export async function checkSignIn(signal?: AbortSignal): Promise<SignInAnswer> {
+  const controller = new AbortController();
+  const stop = () => controller.abort();
+  const timer = setTimeout(stop, TRY_TIMEOUT_MS);
+  signal?.addEventListener('abort', stop);
+  try {
     const response = await fetch('/api/auth/me', {
       credentials: 'include',
-      headers,
+      cache: 'no-store',
+      signal: controller.signal,
     });
-    if (response.status === 401) return null;
-    if (!response.ok) throw new Error('Auth error');
-    return response.json();
-  } catch (err: any) {
-    return null;
+    if (response.status === 401) return { kind: 'signed-out' };
+    if (!response.ok) return { kind: 'no-answer' };
+    return { kind: 'signed-in', user: (await response.json()) as User };
+  } catch {
+    return { kind: 'no-answer' };
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener('abort', stop);
   }
+}
+
+/** The signed-in user, or null when signed out or when the server gave no answer. */
+export async function getCurrentUser(): Promise<User | null> {
+  const answer = await checkSignIn();
+  return answer.kind === 'signed-in' ? answer.user : null;
 }
 
 export async function logout(): Promise<void> {

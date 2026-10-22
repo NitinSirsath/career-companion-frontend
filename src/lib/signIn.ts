@@ -31,6 +31,30 @@ export function googleSignInProblem(code: string): string {
   return 'An unexpected authentication error occurred. Please try again.';
 }
 
+/** Pages for signed-out visitors: the sign-in, and the test account sign-in. */
+export const SIGN_IN_PAGES = ['/login', '/test-login'];
+
+/**
+ * The page to open after sign-in, from the `next` in the sign-in page's address. Only a path
+ * inside the app counts: one leading "/", then printable characters with no backslash, and not
+ * a sign-in page itself. Anything else gives null, and the app opens its home page.
+ */
+export function safeNextPath(value: unknown): string | null {
+  if (typeof value !== 'string' || !/^\/(?![/\\])[\x21-\x7e]*$/.test(value)) return null;
+  if (value.includes('\\')) return null;
+  return SIGN_IN_PAGES.includes(value.split(/[?#]/)[0]) ? null : value;
+}
+
+/** After sign-in: a fresh page load of the page asked for, so the app starts with the new session. */
+export function openApp(next: string | null) {
+  window.location.href = next ?? '/';
+}
+
+/** Where Google sign-in starts; the server sends the user back to `next` afterwards. */
+export function googleSignInUrl(next: string | null): string {
+  return next ? `/api/auth/connect?returnTo=${encodeURIComponent(next)}` : '/api/auth/connect';
+}
+
 export const EMAIL_PROBLEM = 'Enter a valid email address.';
 export const PASSWORD_PROBLEM = `Use at least ${PASSWORD_MIN_LENGTH} characters.`;
 export const PASSWORD_MISSING = 'Enter your password.';

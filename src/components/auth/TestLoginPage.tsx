@@ -1,16 +1,13 @@
+import { useSearch } from '@tanstack/react-router';
+import { openApp, safeNextPath } from '../../lib/signIn';
 import { PasswordSignInForm } from './PasswordSignInForm';
 import { SignInBar } from './SignInBar';
-
-/** A fresh page load, so the app starts again with the new session. */
-const openApp = () => {
-  window.location.href = '/';
-};
 
 /**
  * The test account sign-in. Not linked from the normal sign-in page: whoever hands out a test
  * account shares its address. Test accounts use the mail sandbox instead of Gmail.
  */
-export function TestLoginPage() {
+export function TestLoginPage({ next = null }: { next?: string | null }) {
   return (
     <div className="min-h-screen bg-background font-sans text-text-primary">
       <SignInBar />
@@ -28,9 +25,15 @@ export function TestLoginPage() {
               provider.
             </p>
           </div>
-          <PasswordSignInForm onSignedIn={openApp} testAccount />
+          <PasswordSignInForm onSignedIn={() => openApp(next)} testAccount />
         </section>
       </main>
     </div>
   );
+}
+
+/** The test sign-in as the router opens it, with the page to open afterwards. */
+export function TestLoginRoute() {
+  const { next } = useSearch({ from: '/test-login' });
+  return <TestLoginPage next={safeNextPath(next)} />;
 }
