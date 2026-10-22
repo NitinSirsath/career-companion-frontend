@@ -1,14 +1,12 @@
 import { Link } from '@tanstack/react-router';
-import { Portfolio, SidePanelClose, SidePanelOpen } from '@carbon/icons-react';
+import { SidePanelClose, SidePanelOpen } from '@carbon/icons-react';
 import { useDevMode, useSandboxMailbox } from '../../api/appMode';
-import type { User } from '../../api/auth';
 import { cn } from '../../lib/utils';
-import { AccountMenu } from './AccountMenu';
 import { MAIN_NAV, rememberedSearch, SANDBOX_NAV, SETTINGS_NAV, type NavItem } from './navItems';
-import { useMenuCollapsed } from './useMenuCollapsed';
 
+// The chosen page has a light blue tint with blue text; the other items are dark with grey icons.
 const LINK_CLASS =
-  'flex h-10 items-center gap-3 overflow-hidden px-4 text-sm whitespace-nowrap text-text-secondary transition-colors duration-70 ease-standard hover:bg-layer-hover hover:text-text-primary [&.active]:bg-surface-selected [&.active]:font-semibold [&.active]:text-text-primary [&.active_svg]:text-link';
+  'flex h-9 shrink-0 items-center gap-3 overflow-hidden px-3 text-sm whitespace-nowrap text-text-primary transition-colors duration-70 ease-standard hover:bg-layer-hover [&_svg]:text-text-secondary [&.active]:bg-tint [&.active]:text-tint-text [&.active_svg]:text-link';
 
 function NavLink({
   item,
@@ -30,7 +28,7 @@ function NavLink({
       <Icon size={16} aria-hidden="true" className="shrink-0" />
       <span className={cn('flex-1', collapsed && 'sr-only')}>{item.label}</span>
       {badge && !collapsed && (
-        <span className="bg-tag-yellow-bg px-1.5 text-[11px] leading-5 text-tag-yellow">
+        <span className="bg-tag-yellow-bg px-1.5 text-[12px] leading-5 text-tag-yellow">
           {badge}
         </span>
       )}
@@ -38,54 +36,57 @@ function NavLink({
   );
 }
 
-/** The side menu on laptops: daily pages, then settings; it can shrink to icons. */
-export function Sidebar({ user }: { user: User | null }) {
+/** The side menu on laptops, under the top bar: daily pages, then settings; it can shrink to icons. */
+export function Sidebar({
+  collapsed,
+  onCollapsedChange,
+}: {
+  collapsed: boolean;
+  onCollapsedChange: (collapsed: boolean) => void;
+}) {
   const devMode = useDevMode();
   const sandbox = useSandboxMailbox();
-  const [collapsed, setCollapsed] = useMenuCollapsed();
   const ToggleIcon = collapsed ? SidePanelOpen : SidePanelClose;
   return (
     <aside
       className={cn(
-        'sticky top-0 hidden h-screen shrink-0 flex-col border-r border-border-subtle bg-surface transition-[width] duration-240 ease-standard md:flex',
-        collapsed ? 'w-12' : 'w-64',
+        'sticky top-14 hidden h-[calc(100vh-3.5rem)] shrink-0 flex-col border-r border-border-subtle bg-background transition-[width] duration-240 ease-standard md:flex',
+        collapsed ? 'w-14' : 'w-72',
       )}
     >
-      <div className="flex h-12 shrink-0 items-center gap-3 overflow-hidden border-b border-border-subtle px-4">
-        <Portfolio size={16} aria-hidden="true" className="shrink-0 text-link" />
-        <span className={cn('font-semibold whitespace-nowrap', collapsed && 'sr-only')}>
-          Career Companion
-        </span>
-      </div>
-
-      <nav aria-label="Main" className="flex-1 overflow-x-hidden overflow-y-auto py-2">
+      <nav
+        aria-label="Main"
+        className="flex flex-1 flex-col gap-0.5 overflow-x-hidden overflow-y-auto px-2 pt-4 pb-6"
+      >
         {MAIN_NAV.map((item) => (
           <NavLink key={item.to} item={item} collapsed={collapsed} />
         ))}
-        <div className="mt-2 border-t border-border-subtle pt-2">
-          <p className={cn('px-4 pt-2 pb-1 text-xs text-text-tertiary', collapsed && 'sr-only')}>
-            Settings
-          </p>
-          {SETTINGS_NAV.map((item) => (
-            <NavLink key={item.to} item={item} collapsed={collapsed} />
-          ))}
-          {sandbox && (
-            <NavLink item={SANDBOX_NAV} collapsed={collapsed} badge={devMode ? 'Dev' : 'Test'} />
+        <p
+          className={cn(
+            'px-3 pt-6 pb-2 text-xs whitespace-nowrap text-text-secondary',
+            collapsed && 'sr-only',
           )}
-        </div>
+        >
+          Settings
+        </p>
+        {SETTINGS_NAV.map((item) => (
+          <NavLink key={item.to} item={item} collapsed={collapsed} />
+        ))}
+        {sandbox && (
+          <NavLink item={SANDBOX_NAV} collapsed={collapsed} badge={devMode ? 'Dev' : 'Test'} />
+        )}
       </nav>
 
       <button
         type="button"
-        onClick={() => setCollapsed(!collapsed)}
+        onClick={() => onCollapsedChange(!collapsed)}
         aria-label={collapsed ? 'Expand menu' : 'Collapse menu'}
         title={collapsed ? 'Expand menu' : undefined}
-        className="flex h-10 shrink-0 cursor-pointer items-center gap-3 overflow-hidden border-t border-border-subtle px-4 text-sm whitespace-nowrap text-text-secondary transition-colors duration-70 ease-standard hover:bg-layer-hover hover:text-text-primary"
+        className="flex h-12 shrink-0 cursor-pointer items-center gap-3 overflow-hidden border-t border-border-subtle px-5 text-sm whitespace-nowrap text-text-primary transition-colors duration-70 ease-standard hover:bg-layer-hover"
       >
-        <ToggleIcon size={16} aria-hidden="true" className="shrink-0" />
+        <ToggleIcon size={16} aria-hidden="true" className="shrink-0 text-text-secondary" />
         <span className={cn(collapsed && 'sr-only')}>Collapse menu</span>
       </button>
-      <AccountMenu user={user} collapsed={collapsed} />
     </aside>
   );
 }
