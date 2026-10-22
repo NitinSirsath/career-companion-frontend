@@ -70,7 +70,7 @@ function MailCell({ conversation }: { conversation: Conversation }) {
       >
         {conversation.subject || '(No subject)'}
       </Link>
-      <span className="text-xs tracking-[0.32px] break-words text-text-secondary">
+      <span className="text-xs break-words text-text-secondary">
         {conversationSummary(conversation)}
       </span>
     </div>
@@ -119,7 +119,7 @@ const FULL_COLUMNS: ColumnDef<Conversation>[] = [
   column(
     'last',
     'Last mail',
-    (c) => <span className="text-xs tracking-[0.32px]">{mailDate(c.lastReceivedAt)}</span>,
+    (c) => <span className="text-xs">{mailDate(c.lastReceivedAt)}</span>,
     { sortKey: 'newest', phoneLabel: 'Last mail' },
   ),
   column('menu', <span className="sr-only">Actions</span>, (c) => <RowMenu conversation={c} />, {
@@ -145,7 +145,7 @@ const COMPACT_COLUMNS: ColumnDef<Conversation>[] = [
   column(
     'last',
     'Last mail',
-    (c) => <span className="text-xs tracking-[0.32px]">{mailDate(c.lastReceivedAt)}</span>,
+    (c) => <span className="text-xs">{mailDate(c.lastReceivedAt)}</span>,
     { phoneLabel: 'Last mail' },
   ),
 ];
