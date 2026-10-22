@@ -14,7 +14,7 @@ interface EmptyStateProps {
 export function EmptyState({ title, children, action, className }: EmptyStateProps) {
   return (
     <div className={cn('flex animate-fade-in flex-col items-start gap-2 py-10', className)}>
-      <p className="text-xl leading-7">{title}</p>
+      <p className="text-base font-semibold">{title}</p>
       {children && <div className="text-sm text-text-secondary">{children}</div>}
       {action && <div className="mt-2">{action}</div>}
     </div>
