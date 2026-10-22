@@ -657,12 +657,17 @@ describe('section isolation and evidence', () => {
 describe('creation outcome recovery', () => {
   const fill = () =>
     fireEvent.change(screen.getByLabelText('Company'), { target: { value: 'Linear' } });
-  const submit = () => fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+  // The header's button; the list's last row opens the same form.
+  const open = async () =>
+    fireEvent.click((await screen.findAllByRole('button', { name: 'Add application' }))[0]);
+  const saveButton = () =>
+    within(screen.getByRole('dialog')).getByRole('button', { name: 'Add application' });
+  const submit = () => fireEvent.click(saveButton());
 
   it('keeps the draft, reconciles owned reads and never replays the POST', async () => {
     vi.mocked(api.createApplication).mockRejectedValue(new ApiError('unexpected', 'contract', 201));
     show('/applications');
-    fireEvent.click(await screen.findByRole('button', { name: 'Add application' }));
+    await open();
     fill();
     vi.mocked(api.listApplications).mockResolvedValue(
       page([makeApplication({ companyName: 'Linear' })]),
@@ -671,7 +676,7 @@ describe('creation outcome recovery', () => {
     expect(await screen.findByText('Creation outcome unknown')).toBeInTheDocument();
     await screen.findByRole('button', { name: 'Create anyway' });
     expect(screen.getByLabelText('Company')).toHaveValue('Linear');
-    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
+    expect(saveButton()).toBeDisabled();
     submit();
     expect(api.createApplication).toHaveBeenCalledTimes(1);
     expect(screen.getByText(/does not prove which request created it/)).toBeInTheDocument();
@@ -685,7 +690,7 @@ describe('creation outcome recovery', () => {
   it('refreshes the visible active-list cache during uncertain creation recovery', async () => {
     vi.mocked(api.createApplication).mockRejectedValue(new ApiError('lost', 'network'));
     show('/applications');
-    fireEvent.click(await screen.findByRole('button', { name: 'Add application' }));
+    await open();
     fill();
     vi.mocked(api.listApplications).mockResolvedValue(
       page([makeApplication({ companyName: 'Recovered company' })]),
@@ -704,12 +709,12 @@ describe('creation outcome recovery', () => {
   it('stays blocked and offers a read retry when reconciliation fails', async () => {
     vi.mocked(api.createApplication).mockRejectedValue(new ApiError('timed out', 'timeout'));
     show('/applications');
-    fireEvent.click(await screen.findByRole('button', { name: 'Add application' }));
+    await open();
     fill();
     vi.mocked(api.listApplications).mockRejectedValue(new ApiError('network', 'network'));
     submit();
     expect(await screen.findByText('Your applications could not be loaded.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
+    expect(saveButton()).toBeDisabled();
     expect(screen.queryByRole('button', { name: 'Create anyway' })).not.toBeInTheDocument();
     vi.mocked(api.listApplications).mockResolvedValue(page([]));
     fireEvent.click(screen.getByRole('button', { name: 'Retry refresh' }));
@@ -722,14 +727,14 @@ describe('creation outcome recovery', () => {
       new ApiError('Invalid request data', 'http', 400, 'VALIDATION_ERROR'),
     );
     show('/applications');
-    fireEvent.click(await screen.findByRole('button', { name: 'Add application' }));
+    await open();
     fill();
     submit();
     expect(
       await screen.findByText(/Error creating application: Invalid request data/),
     ).toBeInTheDocument();
     expect(screen.queryByText('Creation outcome unknown')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled();
+    expect(saveButton()).toBeEnabled();
   });
 });
 
