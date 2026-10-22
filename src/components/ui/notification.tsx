@@ -51,7 +51,7 @@ export function InlineNotification({
           {title && <span className="font-semibold">{title} </span>}
           {children}
         </div>
-        {action && <div className="shrink-0">{action}</div>
+        {action && <div className="shrink-0">{action}</div>}
       </div>
     </Reveal>
   );
