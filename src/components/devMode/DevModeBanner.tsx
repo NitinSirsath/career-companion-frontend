@@ -12,11 +12,12 @@ export function DevModeBanner() {
     <div
       role="status"
       title="Gmail is the mail sandbox. No real mail is sent."
-      className="flex shrink-0 items-center gap-2 border-l border-border-subtle px-3 text-xs whitespace-nowrap text-tag-yellow md:px-5"
+      className="flex shrink-0 items-center gap-2 border-l border-border-subtle px-2.5 text-xs whitespace-nowrap text-tag-yellow md:px-5"
     >
-      <span aria-hidden="true" className="size-2 bg-tag-yellow" />
-      {devMode ? 'Dev mode' : 'Test account'}{' '}
-      <span className="hidden md:inline">· mail sandbox</span>
+      <span aria-hidden="true" className="hidden size-2 bg-tag-yellow md:block" />
+      {/* Phones show only "Dev" or "Test": the bar's cells leave no room for more. */}
+      {devMode ? 'Dev' : 'Test'}
+      <span className="hidden md:inline">{devMode ? ' mode' : ' account'} · mail sandbox</span>
     </div>
   );
 }
