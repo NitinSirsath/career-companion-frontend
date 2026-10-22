@@ -3,6 +3,7 @@ import type { MailMessage } from '../../contracts/mailbox';
 import { hasRemoteImages, mailFrameDocument, MailColors, setsOwnColors } from '../../lib/mailHtml';
 import { mailText } from '../../lib/mailThread';
 import { Button } from '../ui/button';
+import { Collapse } from '../ui/collapse';
 
 /** The theme's text colour and the card's colour, or null when the page has none (as in tests). */
 function readThemeColors(background: string): MailColors | null {
@@ -46,7 +47,7 @@ function MailFrame({
       title="Mail text"
       sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
       srcDoc={mailFrameDocument(html, showImages, colors, !showQuote)}
-      className="block w-full border-0"
+      className="block w-full border-0 transition-[height] duration-240 ease-standard"
       style={{ height }}
       onLoad={(event) => {
         const page = event.currentTarget.contentDocument?.documentElement;
@@ -74,9 +75,14 @@ export function MailBody({
   const { html, own, quoted } = mailText(message);
   if (!html) {
     return (
-      <div className="max-w-[75ch] space-y-3 text-sm leading-[22px] break-words whitespace-pre-wrap">
+      <div className="max-w-[75ch] text-sm leading-[22px] break-words whitespace-pre-wrap">
         <p>{own || 'This mail has no text.'}</p>
-        {quoted && showQuote && <p className="animate-open text-text-secondary">{quoted}</p>}
+        {quoted && (
+          <Collapse open={showQuote}>
+            {/* The gap sits inside, so a closed quote leaves no space behind. */}
+            <p className="pt-3 text-text-secondary">{quoted}</p>
+          </Collapse>
+        )}
       </div>
     );
   }

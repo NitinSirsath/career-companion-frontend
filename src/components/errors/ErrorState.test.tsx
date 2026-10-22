@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { ErrorState } from './ErrorState';
 
 describe('ErrorState', () => {
@@ -16,7 +16,10 @@ describe('ErrorState', () => {
 
     render(<ErrorState title="Something went wrong" message="Please try again." error={error} />);
 
-    expect(screen.getByText('Details')).toBeInTheDocument();
+    const toggle = screen.getByRole('button', { name: 'Details' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByText('secret failure')).toBeInTheDocument();
     expect(screen.getByText(/Error: secret failure/)).toBeInTheDocument();
   });

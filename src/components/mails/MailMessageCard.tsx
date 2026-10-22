@@ -14,6 +14,7 @@ import {
 import { cn } from '../../lib/utils';
 import { AnalyzedBy } from '../ai/AnalyzedBy';
 import { Avatar } from '../ui/avatar';
+import { Collapse } from '../ui/collapse';
 import { Tag } from '../ui/tag';
 import { MailBody } from './MailBody';
 
@@ -66,8 +67,8 @@ function AiReadingStrip({ mail }: { mail: ConversationMail }) {
           )}
         />
       </button>
-      {open && (
-        <div className="flex animate-open flex-col gap-3 px-4 pb-4 pl-10">
+      <Collapse open={open}>
+        <div className="flex flex-col gap-3 px-4 pb-4 pl-10">
           <dl className="grid grid-cols-[120px_minmax(0,1fr)] gap-x-4 gap-y-1.5 text-sm">
             {rows.map((row) => (
               <div key={row.label} className="contents">
@@ -81,7 +82,7 @@ function AiReadingStrip({ mail }: { mail: ConversationMail }) {
           </p>
           <AnalyzedBy provider={mail.analyzedBy?.provider} model={mail.analyzedBy?.model} details />
         </div>
-      )}
+      </Collapse>
     </div>
   );
 }
@@ -194,7 +195,8 @@ interface MailMessageCardProps {
 
 /**
  * One mail of a conversation. Their mails sit on the plain card; the user's are tinted and set in
- * from the left, so who said what reads at a glance. The quoted earlier mail is hidden.
+ * from the left, so who said what reads at a glance. The quoted earlier mail is hidden. Folding
+ * and opening slide between the one-line form and the whole mail.
  */
 export function MailMessageCard({
   message,
@@ -208,33 +210,38 @@ export function MailMessageCard({
   const mine = message.sentByUser;
   const name = mine ? 'You' : parseSender(message.from).name;
 
-  if (folded) return <FoldedMail message={message} onOpen={() => onFold?.(false)} />;
-
   return (
-    <article
-      id={`mail-${message.id}`}
-      aria-label={`Mail from ${name}, ${mailDateTime(message.date)}`}
-      className={cn('animate-open', mine ? 'bg-tint md:ml-12' : 'bg-surface')}
-    >
-      <MailHeader
-        message={message}
-        mailbox={mailbox}
-        asks={asks}
-        onFold={onFold && (() => onFold(true))}
-      />
-      <div className="flex flex-col gap-3 px-4 pb-4 md:pl-[60px]">
-        <MailBody message={message} showQuote={quoteOpen} mine={mine} />
-        {message.truncated && (
-          <p className="text-xs text-text-secondary">
-            This mail is very long and was cut here. Open it in Gmail to read all of it.
-          </p>
-        )}
-        {mailText(message).hasQuote && (
-          <QuoteToggle open={quoteOpen} onToggle={() => setQuoteOpen(!quoteOpen)} />
-        )}
-        {message.attachments.length > 0 && <Attachments message={message} />}
-      </div>
-      {reading && <AiReadingStrip mail={reading} />}
-    </article>
+    <div>
+      <Collapse open={folded}>
+        <FoldedMail message={message} onOpen={() => onFold?.(false)} />
+      </Collapse>
+      <Collapse open={!folded}>
+        <article
+          id={`mail-${message.id}`}
+          aria-label={`Mail from ${name}, ${mailDateTime(message.date)}`}
+          className={mine ? 'bg-tint md:ml-12' : 'bg-surface'}
+        >
+          <MailHeader
+            message={message}
+            mailbox={mailbox}
+            asks={asks}
+            onFold={onFold && (() => onFold(true))}
+          />
+          <div className="flex flex-col gap-3 px-4 pb-4 md:pl-[60px]">
+            <MailBody message={message} showQuote={quoteOpen} mine={mine} />
+            {message.truncated && (
+              <p className="text-xs text-text-secondary">
+                This mail is very long and was cut here. Open it in Gmail to read all of it.
+              </p>
+            )}
+            {mailText(message).hasQuote && (
+              <QuoteToggle open={quoteOpen} onToggle={() => setQuoteOpen(!quoteOpen)} />
+            )}
+            {message.attachments.length > 0 && <Attachments message={message} />}
+          </div>
+          {reading && <AiReadingStrip mail={reading} />}
+        </article>
+      </Collapse>
+    </div>
   );
 }

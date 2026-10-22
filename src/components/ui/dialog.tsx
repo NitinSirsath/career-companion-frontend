@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Dialog as BaseDialog } from '@base-ui/react/dialog';
 import { Close } from '@carbon/icons-react';
 import { cn } from '../../lib/utils';
+import { AutoHeight } from './auto-height';
 
 export function Dialog({
   open,
@@ -34,8 +35,9 @@ export function DialogTrigger({
 }
 
 /**
- * A modal: fades and rises in 240ms and leaves the same way. It has a close button; Escape and a
- * click outside also close it.
+ * A modal: fades and rises in 240ms and leaves the same way. When its content changes height (an
+ * error, a notice, the next step) it grows or shrinks smoothly and stays centred. It has a close
+ * button; Escape and a click outside also close it.
  */
 export function DialogContent({
   className,
@@ -48,12 +50,13 @@ export function DialogContent({
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <BaseDialog.Popup
           className={cn(
-            'relative flex max-h-[90vh] w-full max-w-lg flex-col overflow-y-auto bg-surface px-4 pt-4 pb-0 text-text-primary outline-none transition-[opacity,transform] duration-240 ease-entrance data-ending-style:translate-y-6 data-ending-style:opacity-0 data-ending-style:ease-exit data-starting-style:translate-y-6 data-starting-style:opacity-0',
+            'relative flex max-h-[90vh] w-full max-w-lg flex-col overflow-y-auto bg-surface text-text-primary outline-none transition-[opacity,translate] duration-240 ease-entrance data-ending-style:translate-y-6 data-ending-style:opacity-0 data-ending-style:ease-exit data-starting-style:translate-y-6 data-starting-style:opacity-0',
             className,
           )}
           {...props}
         >
-          {children}
+          {/* The padding sits inside the moving box, so the footer's full-width buttons are not cut. */}
+          <AutoHeight contentClassName="flex flex-col px-4 pt-4">{children}</AutoHeight>
           <BaseDialog.Close
             aria-label="Close dialog"
             className="absolute top-0 right-0 flex size-12 cursor-pointer items-center justify-center text-text-primary transition-colors duration-70 ease-standard hover:bg-layer-hover"

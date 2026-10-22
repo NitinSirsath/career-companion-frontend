@@ -7,6 +7,7 @@ import {
   type CarbonIconType,
 } from '@carbon/icons-react';
 import { cn } from '../../lib/utils';
+import { Reveal } from './reveal';
 
 type Kind = 'info' | 'success' | 'warning' | 'error';
 
@@ -27,7 +28,10 @@ interface InlineNotificationProps {
   className?: string;
 }
 
-/** A short notice inside a page. Errors announce themselves to screen readers. */
+/**
+ * A short notice inside a page. It grows in when it appears, so the page or dialog moves instead
+ * of jumping. Errors announce themselves to screen readers.
+ */
 export function InlineNotification({
   kind = 'info',
   title,
@@ -37,16 +41,18 @@ export function InlineNotification({
 }: InlineNotificationProps) {
   const { box, icon, Icon } = LOOK[kind];
   return (
-    <div
-      role={kind === 'error' ? 'alert' : 'status'}
-      className={cn('flex animate-open items-start gap-3 px-4 py-3 text-sm', box, className)}
-    >
-      <Icon size={16} aria-hidden="true" className={cn('mt-0.5 shrink-0', icon)} />
-      <div className="min-w-0 flex-1">
-        {title && <span className="font-semibold">{title} </span>}
-        {children}
+    <Reveal className={className}>
+      <div
+        role={kind === 'error' ? 'alert' : 'status'}
+        className={cn('flex items-start gap-3 px-4 py-3 text-sm', box)}
+      >
+        <Icon size={16} aria-hidden="true" className={cn('mt-0.5 shrink-0', icon)} />
+        <div className="min-w-0 flex-1">
+          {title && <span className="font-semibold">{title} </span>}
+          {children}
+        </div>
+        {action && <div className="shrink-0">{action}</div>}
       </div>
-      {action && <div className="shrink-0">{action}</div>}
-    </div>
+    </Reveal>
   );
 }

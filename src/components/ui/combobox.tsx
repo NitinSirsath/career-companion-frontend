@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Combobox as BaseCombobox } from '@base-ui/react/combobox';
 import { Checkmark, ChevronDown } from '@carbon/icons-react';
 import { cn } from '../../lib/utils';
+import { AutoHeight } from './auto-height';
 import { ITEM_CLASS, POPUP_CLASS } from './select';
 import { Spinner } from './spinner';
 
@@ -110,7 +111,8 @@ export function Combobox<T>({
             aria-busy={loading || undefined}
             className={cn(POPUP_CLASS, 'w-[var(--anchor-width)] max-w-[var(--available-width)]')}
           >
-            <div className="max-h-[min(var(--available-height),20rem)] overflow-y-auto overscroll-contain">
+            {/* The list's height follows the results as the user types, instead of jumping. */}
+            <AutoHeight contentClassName="max-h-[min(var(--available-height),20rem)] overflow-y-auto overscroll-contain">
               <BaseCombobox.Status>
                 {loading && (
                   <div className="flex min-h-10 items-center gap-2 px-4 text-sm text-text-secondary">
@@ -138,7 +140,7 @@ export function Combobox<T>({
                   </BaseCombobox.Item>
                 )}
               </BaseCombobox.List>
-            </div>
+            </AutoHeight>
           </BaseCombobox.Popup>
         </BaseCombobox.Positioner>
       </BaseCombobox.Portal>
