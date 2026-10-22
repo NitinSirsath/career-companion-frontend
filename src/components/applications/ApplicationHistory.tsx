@@ -28,7 +28,7 @@ function SubmissionFacts({ event }: { event: ApplicationEventResponse }) {
   const submission = event.sourceSubmission;
   if (!submission) return null;
   return (
-    <div className="flex flex-col gap-1 text-xs tracking-[0.32px] text-text-secondary">
+    <div className="flex flex-col gap-1 text-xs text-text-secondary">
       <p>
         Sent <time dateTime={submission.submittedAt}>{dateAndTime(submission.submittedAt)}</time>,
         as your automation reported it
@@ -61,7 +61,7 @@ function AiNote({ event }: { event: ApplicationEventResponse }) {
         {open ? 'Hide the AI note' : 'Show the AI note'}
       </Button>
       <Collapse open={open}>
-        <div className="flex flex-col gap-1 bg-layer-accent px-3 py-2 text-xs tracking-[0.32px] text-text-secondary">
+        <div className="flex flex-col gap-1 bg-layer-accent px-3 py-2 text-xs text-text-secondary">
           {event.description && <p className="break-words">{event.description}</p>}
           {event.provenance && <p className="break-words italic">{event.provenance}</p>}
           <p>This is the AI's reading, not the mail's own words.</p>
@@ -130,10 +130,8 @@ function HistoryRow({ event }: { event: ApplicationEventResponse }) {
         ) : (
           <span className="break-words">{entry.title}</span>
         )}
-        {entry.detail && (
-          <span className="text-xs tracking-[0.32px] text-text-secondary">{entry.detail}</span>
-        )}
-        {retired && <span className="text-xs tracking-[0.32px]">{retired}</span>}
+        {entry.detail && <span className="text-xs text-text-secondary">{entry.detail}</span>}
+        {retired && <span className="text-xs">{retired}</span>}
         {entry.kind === 'automation' && <SubmissionFacts event={event} />}
         {entry.kind !== 'automation' && !retired && <AiNote event={event} />}
       </div>
@@ -141,7 +139,7 @@ function HistoryRow({ event }: { event: ApplicationEventResponse }) {
         <time
           dateTime={event.recordedAt}
           title={`Recorded ${dateAndTime(event.recordedAt)}`}
-          className="pt-0.5 text-xs tracking-[0.32px] whitespace-nowrap text-text-secondary"
+          className="pt-0.5 text-xs whitespace-nowrap text-text-secondary"
         >
           {mailDateTime(event.recordedAt)}
         </time>
@@ -167,12 +165,15 @@ export function ApplicationHistory({
   const events = query.data?.items;
   const nextOffset = query.data?.metadata.nextOffset ?? null;
   return (
-    <section aria-labelledby="history-heading" className="flex flex-col bg-surface px-6 py-5">
+    <section
+      aria-labelledby="history-heading"
+      className="flex flex-col border border-border-subtle bg-surface px-6 py-5"
+    >
       <div className="flex flex-col gap-1 pb-3">
         <h2 id="history-heading" className="text-xl leading-7">
           History
         </h2>
-        <p className="text-xs tracking-[0.32px] text-text-secondary">
+        <p className="text-xs text-text-secondary">
           In the order the app recorded it. A mail's own date can be earlier.
         </p>
       </div>
