@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { Breadcrumb } from '../layout/PageHeader';
+import { Breadcrumb } from '../layout/Breadcrumb';
 import { useSandboxThread } from '../../api/sandbox';
 import { isApiError } from '../../api/client';
 import { mailCounts, parseSender } from '../../lib/mails';
