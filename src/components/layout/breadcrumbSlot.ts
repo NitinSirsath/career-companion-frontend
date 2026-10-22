@@ -8,6 +8,9 @@ export interface BreadcrumbSlot {
   claimed: boolean;
   /** Called by a page's breadcrumb; returns the call that gives the place back. */
   claim: () => () => void;
+  /** Where in the phone top bar a page puts its own buttons, such as search and add. */
+  actionsTarget: HTMLElement | null;
+  setActionsTarget: (element: HTMLElement | null) => void;
 }
 
 export const BreadcrumbSlotContext = createContext<BreadcrumbSlot | null>(null);
