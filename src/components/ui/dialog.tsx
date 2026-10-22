@@ -50,7 +50,7 @@ export function DialogContent({
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <BaseDialog.Popup
           className={cn(
-            'relative flex max-h-[90vh] w-full max-w-lg flex-col overflow-y-auto bg-surface text-text-primary outline-none transition-[opacity,translate] duration-240 ease-entrance data-ending-style:translate-y-6 data-ending-style:opacity-0 data-ending-style:ease-exit data-starting-style:translate-y-6 data-starting-style:opacity-0',
+            'relative flex max-h-[90vh] w-full max-w-lg flex-col overflow-y-auto border border-border-subtle bg-surface text-text-primary shadow-popup outline-none transition-[opacity,translate] duration-240 ease-entrance data-ending-style:translate-y-6 data-ending-style:opacity-0 data-ending-style:ease-exit data-starting-style:translate-y-6 data-starting-style:opacity-0',
             className,
           )}
           {...props}
