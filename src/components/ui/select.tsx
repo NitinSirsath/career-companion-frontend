@@ -28,9 +28,12 @@ interface SelectProps<V extends string> {
   className?: string;
 }
 
-/** Shared popup look for every dropdown: the menu colour, a thin border and a short open. */
+/**
+ * Shared popup look for every dropdown: the menu colour, a thin border, and an open that fades
+ * and grows out of the side next to its field (150ms); it closes in 110ms.
+ */
 export const POPUP_CLASS =
-  'border border-border-default bg-menu py-1 text-text-primary outline-none origin-[var(--transform-origin)] transition-[opacity,transform] duration-110 ease-entrance data-ending-style:duration-70 data-ending-style:ease-exit data-ending-style:opacity-0 data-starting-style:-translate-y-1 data-starting-style:opacity-0';
+  'border border-border-default bg-menu py-1 text-text-primary outline-none origin-[var(--transform-origin)] transition-[opacity,scale] duration-150 ease-entrance data-ending-style:scale-[0.98] data-ending-style:opacity-0 data-ending-style:duration-110 data-ending-style:ease-exit data-starting-style:scale-[0.96] data-starting-style:opacity-0';
 
 export const ITEM_CLASS =
   'flex min-h-10 cursor-pointer items-center justify-between gap-4 px-4 py-2 text-sm text-text-primary outline-none select-none transition-colors duration-70 ease-standard data-highlighted:bg-menu-hover data-disabled:cursor-not-allowed data-disabled:text-text-disabled';
