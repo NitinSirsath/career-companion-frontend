@@ -7,6 +7,7 @@ import type { MailboxThread } from '../../contracts/mailbox';
 import { mailDate, parseSender, snippetText } from '../../lib/mails';
 import { cn } from '../../lib/utils';
 import { DataTable, ROW_LINK_CLASS } from '../ui/data-table';
+import { PAGE_BUTTON } from '../ui/pagination';
 import { EmptyState } from '../ui/empty-state';
 import { InlineNotification } from '../ui/notification';
 import { Tag } from '../ui/tag';
@@ -42,6 +43,7 @@ const COLUMNS: ColumnDef<MailboxThread>[] = [
   {
     id: 'from',
     header: () => 'From',
+    meta: { count: true },
     cell: ({ row }) => (
       <span className={cn('block truncate', row.original.unread && 'font-semibold')}>
         {parseSender(row.original.from).name}
@@ -79,9 +81,6 @@ const COLUMNS: ColumnDef<MailboxThread>[] = [
   },
 ];
 
-const PAGE_BUTTON =
-  'flex size-12 cursor-pointer items-center justify-center border-l border-border-subtle text-text-primary transition-colors duration-70 ease-standard hover:bg-layer-hover disabled:cursor-not-allowed disabled:text-text-disabled disabled:hover:bg-transparent';
-
 /** The Whole inbox tab: the user's inbox read live, nothing stored. */
 export function GmailInbox() {
   // Gmail pages forward by token only, so the tokens walked so far are the way back.
@@ -117,9 +116,9 @@ export function GmailInbox() {
           loading={isLoading}
           empty={data && <EmptyState title="No mail in this part of your inbox" />}
           footer={
-            <div className="flex h-12 items-center justify-between border-t border-border-subtle bg-surface pl-4">
-              <span className="text-xs">Newest mail first, as in Gmail</span>
-              <div className="flex">
+            <div className="flex items-center justify-between gap-4 py-3 pr-2 pl-4">
+              <span className="text-xs text-text-secondary">Newest mail first, as in Gmail</span>
+              <div className="flex gap-2">
                 <button
                   type="button"
                   aria-label="Newer"
