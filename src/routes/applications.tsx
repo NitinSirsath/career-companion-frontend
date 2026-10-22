@@ -22,6 +22,7 @@ import { fetchApplicationsPage } from '../lib/applicationCache';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
+import { Reveal } from '../components/ui/reveal';
 import { Select } from '../components/ui/select';
 
 import { Pagination } from '../components/ui/pagination';
@@ -209,17 +210,21 @@ function ApplicationsDashboard({
           </DialogHeader>
           <form onSubmit={onSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="companyName">Company</Label>
-                <Input
-                  id="companyName"
-                  placeholder="e.g. Linear"
-                  {...form.register('companyName')}
-                />
+              <div>
+                <div className="space-y-2">
+                  <Label htmlFor="companyName">Company</Label>
+                  <Input
+                    id="companyName"
+                    placeholder="e.g. Linear"
+                    {...form.register('companyName')}
+                  />
+                </div>
                 {form.formState.errors.companyName && (
-                  <p className="text-sm text-destructive">
-                    {form.formState.errors.companyName.message}
-                  </p>
+                  <Reveal>
+                    <p className="pt-2 text-sm text-destructive">
+                      {form.formState.errors.companyName.message}
+                    </p>
+                  </Reveal>
                 )}
               </div>
               <div className="space-y-2">
