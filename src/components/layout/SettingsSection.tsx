@@ -21,7 +21,8 @@ export function SettingsSection({
     <section
       aria-labelledby={headingId}
       className={cn(
-        'flex flex-col gap-4 border-t border-border-subtle py-8 lg:flex-row lg:gap-12',
+        // The page header's line is above the first one, so it draws no line of its own.
+        'flex flex-col gap-4 border-t border-border-subtle py-8 first-of-type:border-t-0 first-of-type:pt-2 lg:flex-row lg:gap-12',
         className,
       )}
     >
