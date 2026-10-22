@@ -108,7 +108,7 @@ export function processedColumns({
       header: () => 'Received',
       meta: { phoneLabel: 'Received' },
       cell: ({ row }) => (
-        <span className="text-xs tracking-[0.32px]">
+        <span className="text-xs">
           {row.original.receivedAt
             ? format(new Date(row.original.receivedAt), 'MMM d, yyyy')
             : 'Unknown'}
