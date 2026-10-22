@@ -21,9 +21,9 @@ function PanelSection({ title, children }: { title: string; children: ReactNode 
   return (
     <section
       aria-label={title}
-      className="flex flex-col gap-3 border border-border-subtle bg-surface px-6 py-5"
+      className="flex flex-col gap-3 border border-border-subtle bg-surface p-6"
     >
-      <h2 className="text-xs text-text-secondary">{title}</h2>
+      <h2 className="mb-1 text-sm font-semibold">{title}</h2>
       {children}
     </section>
   );
@@ -48,7 +48,7 @@ function NextStep({ detail }: { detail: ConversationDetail }) {
     const schedule = scheduleLine(conversation);
     return (
       <PanelSection title="Next step">
-        <p className="text-xl leading-7">{schedule ?? 'Nothing needed from you'}</p>
+        <p className="text-base">{schedule ?? 'Nothing needed from you'}</p>
       </PanelSection>
     );
   }
@@ -58,7 +58,7 @@ function NextStep({ detail }: { detail: ConversationDetail }) {
   const messageId = askingMessageId(detail);
   return (
     <PanelSection title="Next step">
-      <p className="text-xl leading-7 break-words">{title}</p>
+      <p className="text-base break-words">{title}</p>
       {asked.state === 'OPEN' && asked.deadline && (
         <p className="flex items-center gap-2 text-sm">
           <Calendar size={16} aria-hidden="true" />
@@ -76,7 +76,8 @@ function NextStep({ detail }: { detail: ConversationDetail }) {
         {requestControls(asked.state, true).map((control, index) => (
           <Button
             key={control.label}
-            variant={index === 0 && control.state === 'DONE' ? 'primary' : 'ghost'}
+            size="sm"
+            variant={index === 0 && control.state === 'DONE' ? 'secondary' : 'ghost'}
             aria-label={`${control.label}: ${title}`}
             loading={change.isPending && change.variables?.state === control.state}
             disabled={change.isPending}
