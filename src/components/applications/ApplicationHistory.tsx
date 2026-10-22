@@ -17,6 +17,7 @@ import { AnalyzedBy } from '../ai/AnalyzedBy';
 import type { DialogHandle } from '../../lib/dialogs';
 import { MatchCorrectionDialog } from '../MatchCorrectionDialog';
 import { Button } from '../ui/button';
+import { Collapse } from '../ui/collapse';
 import { OverflowMenu, type MenuAction } from '../ui/menu';
 import { Pagination } from '../ui/pagination';
 import { SectionError } from '../ui/section-error';
@@ -49,24 +50,24 @@ function AiNote({ event }: { event: ApplicationEventResponse }) {
   const [open, setOpen] = useState(false);
   if (!event.description && !event.provenance) return null;
   return (
-    <div className="flex flex-col items-start">
+    <div className="flex flex-col">
       <Button
         variant="ghost"
         size="sm"
-        className="-ml-3"
+        className="-ml-3 self-start"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
       >
         {open ? 'Hide the AI note' : 'Show the AI note'}
       </Button>
-      {open && (
-        <div className="flex w-full animate-open flex-col gap-1 bg-layer-accent px-3 py-2 text-xs tracking-[0.32px] text-text-secondary">
+      <Collapse open={open}>
+        <div className="flex flex-col gap-1 bg-layer-accent px-3 py-2 text-xs tracking-[0.32px] text-text-secondary">
           {event.description && <p className="break-words">{event.description}</p>}
           {event.provenance && <p className="break-words italic">{event.provenance}</p>}
           <p>This is the AI's reading, not the mail's own words.</p>
           <AnalyzedBy provider={event.analyzedBy?.provider} model={event.analyzedBy?.model} />
         </div>
-      )}
+      </Collapse>
     </div>
   );
 }
