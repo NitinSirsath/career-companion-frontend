@@ -86,29 +86,34 @@ const column = (
 });
 
 const COLUMNS: ColumnDef<ApplicationResponse>[] = [
-  column('company', 'Company', (app) => (
-    <div className="flex flex-col gap-0.5">
-      <Link
-        to="/applications/$id"
-        params={{ id: app.id }}
-        className={`${ROW_LINK_CLASS} font-semibold break-words`}
-      >
-        {app.companyName}
-      </Link>
-      <span className="text-xs break-words text-text-secondary">
-        {[app.jobTitle, app.location].filter(Boolean).join(' · ')}
-      </span>
-      {app.automation && (
-        <span className="flex items-center gap-1 text-xs text-text-secondary">
-          {platformLabel(app.automation.platform)}
-          <JobLink
-            url={app.automation.jobUrl}
-            label={`Open the job post for ${app.companyName} in a new tab`}
-          />
+  column(
+    'company',
+    'Company',
+    (app) => (
+      <div className="flex flex-col gap-0.5">
+        <Link
+          to="/applications/$id"
+          params={{ id: app.id }}
+          className={`${ROW_LINK_CLASS} font-semibold break-words`}
+        >
+          {app.companyName}
+        </Link>
+        <span className="text-xs break-words text-text-secondary">
+          {[app.jobTitle, app.location].filter(Boolean).join(' · ')}
         </span>
-      )}
-    </div>
-  )),
+        {app.automation && (
+          <span className="flex items-center gap-1 text-xs text-text-secondary">
+            {platformLabel(app.automation.platform)}
+            <JobLink
+              url={app.automation.jobUrl}
+              label={`Open the job post for ${app.companyName} in a new tab`}
+            />
+          </span>
+        )}
+      </div>
+    ),
+    { count: true },
+  ),
   column('status', 'Status', (app) => <StatusCell app={app} />),
   column(
     'todo',
