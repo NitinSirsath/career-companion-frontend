@@ -196,7 +196,7 @@ describe('Job mails tab', () => {
     expect(
       cells.getByRole('link', { name: 'Interview: first round availability' }),
     ).toHaveAttribute('href', '/mails/thread-1');
-    expect(screen.getByRole('tab', { name: /^Job mails/ })).toHaveTextContent('Job mails1');
+    expect(screen.getByRole('tab', { name: /^Job mails/ })).toHaveTextContent('Job mails (1)');
 
     vi.mocked(api.post).mockResolvedValue({});
     fireEvent.click(cells.getByRole('button', { name: 'Create application' }));

@@ -10,10 +10,11 @@ interface PaginationProps {
   summary?: string;
 }
 
-const PAGE_BUTTON =
-  'flex size-12 cursor-pointer items-center justify-center border-l border-border-subtle text-text-primary transition-colors duration-70 ease-standard hover:bg-layer-hover disabled:cursor-not-allowed disabled:text-text-disabled disabled:hover:bg-transparent';
+/** A small bordered square with an arrow, for the page before or after. */
+export const PAGE_BUTTON =
+  'flex size-8 cursor-pointer items-center justify-center border border-border-default bg-background text-text-primary transition-colors duration-70 ease-standard hover:bg-layer-hover disabled:cursor-not-allowed disabled:border-border-subtle disabled:text-text-disabled disabled:hover:bg-transparent';
 
-/** The bar under a list: the page number, and buttons for the page before and after. */
+/** The line under a list, with no frame: the page number, and buttons for the page before and after. */
 export function Pagination({
   offset,
   limit,
@@ -26,11 +27,11 @@ export function Pagination({
   const isFirstPage = offset === 0;
 
   return (
-    <div className="flex h-12 items-center justify-between border-t border-border-subtle bg-surface pl-4">
-      <span role="status" className="text-xs text-text-primary">
+    <div className="flex items-center justify-between gap-4 py-3 pr-2 pl-4">
+      <span role="status" className="text-xs text-text-secondary">
         {summary ?? `Page ${currentPage}`}
       </span>
-      <div className="flex">
+      <div className="flex gap-2">
         <button
           type="button"
           aria-label="Previous"

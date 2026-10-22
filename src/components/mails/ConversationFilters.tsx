@@ -6,6 +6,7 @@ import {
   TYPE_OPTIONS,
   type MailsSearch,
 } from '../../lib/mails';
+import { cn } from '../../lib/utils';
 import { Select } from '../ui/select';
 import { FilterChips, Toolbar, ToolbarSearch, type FilterChip } from '../ui/toolbar';
 import { useSearchText } from '../useSearchText';
@@ -78,6 +79,35 @@ function activeChips(
   return chips;
 }
 
+/** "New only": a bordered box like the filter buttons in the toolbar, a plain checkbox in the sheet. */
+function NewOnly({
+  layout,
+  checked,
+  onChange,
+}: {
+  layout: 'inline' | 'sheet';
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <label
+      className={cn(
+        'flex h-10 cursor-pointer items-center gap-2 text-sm whitespace-nowrap',
+        layout === 'inline' &&
+          'border border-border-default bg-field px-3 transition-colors duration-70 ease-standard hover:bg-layer-hover',
+      )}
+    >
+      <input
+        type="checkbox"
+        className="size-4 accent-[var(--text-primary)]"
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+      />
+      New only
+    </label>
+  );
+}
+
 /** The Job mails toolbar: search, the filters, "New only" and the sort; then the active filters. */
 export function ConversationFilters({ search, onChange }: ConversationFiltersProps) {
   const [text, setText] = useSearchText(search.q ?? '', (q) => onChange({ q: q || undefined }));
@@ -108,15 +138,11 @@ export function ConversationFilters({ search, onChange }: ConversationFiltersPro
         options={APPLICATION_FILTERS}
         onChange={(application) => onChange({ application })}
       />
-      <label className="flex h-12 cursor-pointer items-center gap-2 px-4 text-sm whitespace-nowrap">
-        <input
-          type="checkbox"
-          className="size-4 accent-[var(--text-primary)]"
-          checked={search.unseen === true}
-          onChange={(event) => onChange({ unseen: event.target.checked || undefined })}
-        />
-        New only
-      </label>
+      <NewOnly
+        layout={layout}
+        checked={search.unseen === true}
+        onChange={(unseen) => onChange({ unseen: unseen || undefined })}
+      />
     </>
   );
   return (

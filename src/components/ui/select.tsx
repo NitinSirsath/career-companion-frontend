@@ -10,7 +10,7 @@ export interface SelectOption<V extends string> {
 
 interface SelectProps<V extends string> {
   label: string;
-  /** "field": the label sits above a full box. "inline": the label sits inside, for toolbars. */
+  /** "field": the label sits above a full box. "inline": a filter button, "Label: value". */
   appearance?: 'field' | 'inline';
   /** Keeps the label for screen readers only (field appearance). */
   hideLabel?: boolean;
@@ -81,7 +81,7 @@ export function Select<V extends string>({
           className={cn(
             'group flex cursor-pointer items-center justify-between gap-2 text-left text-sm text-text-primary transition-colors duration-70 ease-standard outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-border-focus data-disabled:cursor-not-allowed data-disabled:text-text-disabled',
             inline
-              ? 'h-12 bg-transparent px-4 whitespace-nowrap hover:bg-layer-hover'
+              ? 'h-10 border border-border-default bg-field px-3 whitespace-nowrap hover:bg-layer-hover'
               : 'h-10 w-full border border-border-default bg-field px-3 hover:bg-layer-hover',
           )}
         >

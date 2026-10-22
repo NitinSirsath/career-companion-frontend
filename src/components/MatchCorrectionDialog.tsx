@@ -161,7 +161,7 @@ export function MatchCorrectionDialog({
         )}
         <DialogFooter>
           <Button
-            variant="tertiary"
+            variant="secondary"
             disabled={mutation.isPending}
             onClick={() => changeOpen(false)}
           >

@@ -4,7 +4,10 @@ import { Dialog } from '@base-ui/react/dialog';
 import { cn } from '../../lib/utils';
 import { Button } from './button';
 
-/** The bar above a table: search on the left, then filters. On phones the filters open in a sheet. */
+/**
+ * The row above a table: a bordered search that takes the free width, then each filter as a
+ * bordered button. On phones the filters open in a sheet.
+ */
 export function Toolbar({
   search,
   filters,
@@ -20,17 +23,17 @@ export function Toolbar({
 }) {
   const [open, setOpen] = React.useState(false);
   return (
-    <div className="flex items-stretch border-b border-border-subtle bg-surface">
-      <div className="min-w-0 flex-1">{search}</div>
+    <div className="flex flex-wrap items-stretch gap-2">
+      <div className="min-w-0 flex-1 basis-60">{search}</div>
       {filters && (
-        <div className="hidden items-stretch md:flex [&>*]:border-l [&>*]:border-border-subtle">
+        <div className="hidden flex-wrap items-stretch gap-2 md:flex">
           {filters('inline')}
           {end?.('inline')}
         </div>
       )}
       {filters && (
         <Dialog.Root open={open} onOpenChange={setOpen}>
-          <Dialog.Trigger className="flex h-12 shrink-0 cursor-pointer items-center gap-2 border-l border-border-subtle px-4 text-sm md:hidden">
+          <Dialog.Trigger className="flex h-10 shrink-0 cursor-pointer items-center gap-2 border border-border-default bg-field px-3 text-sm transition-colors duration-70 ease-standard hover:bg-layer-hover md:hidden">
             <Filter size={16} aria-hidden="true" />
             Filters
             {filterCount > 0 && (
@@ -80,7 +83,7 @@ export function ToolbarSearch({
 }) {
   const id = React.useId();
   return (
-    <div className="flex h-12 items-center gap-3 px-4 text-text-secondary focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-border-focus">
+    <div className="flex h-10 items-center gap-2.5 border border-border-default bg-field px-3 text-text-secondary focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-border-focus">
       <Search size={16} aria-hidden="true" className="shrink-0" />
       <label htmlFor={id} className="sr-only">
         {label}
@@ -115,7 +118,7 @@ export function FilterChips({
 }) {
   if (chips.length === 0) return null;
   return (
-    <div className="flex flex-wrap items-center gap-2 border-b border-border-subtle bg-surface px-4 py-3">
+    <div className="flex flex-wrap items-center gap-2 pt-3">
       {summary && <span className="text-xs text-text-secondary">{summary}</span>}
       {chips.map((chip) => (
         <span

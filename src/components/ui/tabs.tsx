@@ -18,7 +18,10 @@ interface TabsProps<V extends string> {
   className?: string;
 }
 
-/** Line tabs: the underline slides to the chosen tab. Put `TabPanel`s inside as children. */
+/**
+ * Segmented tabs in a bordered group, each with its count: "Job mails (5)". The chosen one has a
+ * light blue tint. Put `TabPanel`s inside as children.
+ */
 export function Tabs<V extends string>({
   label,
   items,
@@ -35,23 +38,18 @@ export function Tabs<V extends string>({
     >
       <BaseTabs.List
         aria-label={label}
-        className="relative flex overflow-x-auto border-b border-border-subtle"
+        className="inline-flex max-w-full overflow-x-auto border border-border-subtle align-top"
       >
         {items.map((item) => (
           <BaseTabs.Tab
             key={item.value}
             value={item.value}
-            className="flex h-12 shrink-0 cursor-pointer items-center gap-2 px-4 text-sm whitespace-nowrap text-text-secondary transition-colors duration-70 ease-standard outline-none hover:bg-layer-hover hover:text-text-primary focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-border-focus data-active:font-semibold data-active:text-text-primary"
+            className="flex h-9 shrink-0 cursor-pointer items-center border-l border-border-subtle px-3.5 text-sm whitespace-nowrap text-text-secondary transition-colors duration-70 ease-standard outline-none first:border-l-0 not-data-active:hover:bg-layer-hover not-data-active:hover:text-text-primary focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-border-focus data-active:bg-tint data-active:text-tint-text"
           >
             {item.label}
-            {item.count !== undefined && (
-              <span className="inline-flex h-5 min-w-6 items-center justify-center bg-surface-selected px-1.5 text-xs font-normal text-text-primary">
-                {item.count}
-              </span>
-            )}
+            {item.count !== undefined && <> ({item.count})</>}
           </BaseTabs.Tab>
         ))}
-        <BaseTabs.Indicator className="absolute bottom-0 left-0 h-0.5 w-(--active-tab-width) translate-x-(--active-tab-left) bg-border-interactive transition-[translate,width] duration-150 ease-standard" />
       </BaseTabs.List>
       {children}
     </BaseTabs.Root>
