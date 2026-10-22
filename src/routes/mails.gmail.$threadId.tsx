@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useMailThread } from '../api/mailbox';
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
-import { Breadcrumb } from '../components/layout/PageHeader';
+import { Breadcrumb } from '../components/layout/Breadcrumb';
 import { MailThreadView } from '../components/mails/MailThreadView';
 import { MailTitle } from '../components/mails/MailTitle';
 
@@ -36,7 +36,7 @@ function GmailMailPage() {
         </div>
         <aside
           aria-label="About this mail"
-          className="flex flex-col gap-2 border border-border-subtle bg-surface px-6 py-5 lg:sticky lg:top-6"
+          className="flex flex-col gap-2 border border-border-subtle bg-surface px-6 py-5 lg:sticky lg:top-20"
         >
           <h2 className="text-xs text-text-secondary">Not a job mail</h2>
           <p className="text-sm">
