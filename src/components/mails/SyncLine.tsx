@@ -1,3 +1,4 @@
+import { Renew } from '@carbon/icons-react';
 import { useGmailStatus, useSyncNow } from '../../api/gmail';
 import { mailDateTime } from '../../lib/mails';
 import { Button } from '../ui/button';
@@ -10,11 +11,12 @@ export function SyncLine() {
   const syncing = sync.isPending || data.syncStatus === 'SYNCING';
   const last = typeof data.lastSyncedAt === 'string' ? data.lastSyncedAt : null;
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex flex-wrap items-center gap-4">
       <span className="text-xs text-text-secondary">
         {last ? `Synced ${mailDateTime(last)}` : 'Not synced yet'}
       </span>
-      <Button variant="ghost" size="sm" loading={syncing} onClick={() => sync.mutate()}>
+      <Button variant="secondary" loading={syncing} onClick={() => sync.mutate()}>
+        {!syncing && <Renew size={16} aria-hidden="true" />}
         {syncing ? 'Syncing…' : 'Sync now'}
       </Button>
     </div>
