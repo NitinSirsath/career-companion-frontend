@@ -101,7 +101,8 @@ describe('home and navigation', () => {
     expect(await screen.findByRole('heading', { name: 'Mails' })).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/mails');
     // The desktop sidebar and the phone bar: both are in the page, one is shown. Agenda is not in
-    // the menu until it works; settings sit in their own group after the daily pages.
+    // the menu until it works; settings sit in their own group after the daily pages. On phones
+    // the bar holds the three daily pages only: the rest are in the top bar's menu.
     const [sidebar, phoneBar] = screen.getAllByRole('navigation', { name: 'Main' });
     expect(
       within(sidebar)
@@ -114,7 +115,8 @@ describe('home and navigation', () => {
         .getAllByRole('link')
         .map((link) => link.textContent),
     ).toEqual(['Mails', 'Applications', 'Dashboard']);
-    expect(within(phoneBar).getByRole('button', { name: 'More' })).toBeInTheDocument();
+    expect(within(phoneBar).queryByRole('button')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Open menu' })).toBeInTheDocument();
   });
 
   it('names the page in the top bar, with the logo and the account button', async () => {
@@ -124,7 +126,9 @@ describe('home and navigation', () => {
     expect(logo).toHaveAttribute('href', '/mails');
     const bar = within(logo.closest('header')!);
     expect(
-      within(bar.getByRole('navigation', { name: 'Breadcrumb' })).getByText('Mails'),
+      within(bar.getByRole('navigation', { name: 'Breadcrumb' }))
+        .getByText('Mails')
+        .closest('li'),
     ).toHaveAttribute('aria-current', 'page');
     expect(bar.getByRole('button', { name: 'Account menu' })).toBeInTheDocument();
   });
