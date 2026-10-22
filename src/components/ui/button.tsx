@@ -15,7 +15,8 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 
 const VARIANTS: Record<ButtonVariant, string> = {
   primary: 'bg-action-primary text-text-inverse hover:bg-action-primary-hover',
-  secondary: 'bg-button-secondary text-text-inverse hover:bg-button-secondary-hover',
+  secondary:
+    'border-border-default bg-background text-text-primary hover:bg-layer-hover disabled:border-border-subtle',
   tertiary:
     'border-button-tertiary text-button-tertiary hover:bg-button-tertiary hover:text-button-tertiary-hover-text disabled:border-text-disabled disabled:bg-transparent',
   ghost: 'text-link hover:bg-layer-hover disabled:bg-transparent',
@@ -32,7 +33,10 @@ const SIZES = {
   'icon-sm': 'size-8 justify-center',
 } as const;
 
-/** IBM Carbon button. One primary button per page or panel; the rest are secondary or quieter. */
+/**
+ * IBM Carbon button. One primary (blue) button per page or panel; secondary is a bordered button on
+ * the page colour; the rest are quieter.
+ */
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
@@ -53,8 +57,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled || loading}
         aria-busy={loading || undefined}
         className={cn(
-          'inline-flex shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap border border-transparent text-sm leading-[18px] tracking-[0.16px] transition-colors duration-70 ease-standard',
-          'disabled:cursor-not-allowed disabled:border-transparent disabled:bg-surface-disabled disabled:text-text-disabled',
+          'inline-flex shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap border border-transparent text-sm leading-[18px] transition-colors duration-70 ease-standard',
+          'disabled:cursor-not-allowed disabled:bg-surface-disabled disabled:text-text-disabled',
+          variant !== 'secondary' && 'disabled:border-transparent',
           VARIANTS[variant],
           iconOnly && variant === 'ghost' && 'text-text-primary',
           SIZES[size],
