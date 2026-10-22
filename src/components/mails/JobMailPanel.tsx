@@ -19,8 +19,11 @@ import { TodoState } from './TodoState';
 
 function PanelSection({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section aria-label={title} className="flex flex-col gap-3 bg-surface px-6 py-5">
-      <h2 className="text-xs tracking-[0.32px] text-text-secondary">{title}</h2>
+    <section
+      aria-label={title}
+      className="flex flex-col gap-3 border border-border-subtle bg-surface px-6 py-5"
+    >
+      <h2 className="text-xs text-text-secondary">{title}</h2>
       {children}
     </section>
   );
