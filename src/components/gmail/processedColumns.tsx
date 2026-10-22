@@ -57,6 +57,7 @@ export function processedColumns({
     {
       id: 'subject',
       header: () => 'Mail',
+      meta: { count: true },
       cell: ({ row }) => {
         const msg = row.original;
         const subject = msg.subject || '(No subject)';
