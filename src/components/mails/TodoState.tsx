@@ -11,7 +11,7 @@ export function TodoState({ state }: { state: RequestState }) {
   if (state === 'OPEN') return <Tag color="yellow">{REQUEST_STATE_LABEL.OPEN}</Tag>;
   const Icon = state === 'REPLIED' ? Reply : Checkmark;
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs tracking-[0.32px] text-text-primary">
+    <span className="inline-flex items-center gap-1.5 text-xs text-text-primary">
       <Icon size={16} aria-hidden="true" />
       {REQUEST_STATE_LABEL[state]}
     </span>
