@@ -1,4 +1,8 @@
+import { useState } from 'react';
+import { ChevronDown } from '@carbon/icons-react';
+import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
+import { Collapse } from '../ui/collapse';
 
 interface ErrorStateProps {
   title: string;
@@ -59,22 +63,40 @@ export function ErrorState({
           </div>
         )}
 
-        {details && (
-          <details className="mt-6 border border-border-default text-left">
-            <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus">
-              Details
-            </summary>
-            <div className="border-t border-border-default p-4 text-xs text-text-secondary">
-              <p className="break-words">{details.message}</p>
-              {details.stack && (
-                <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap break-words font-mono">
-                  {details.stack}
-                </pre>
-              )}
-            </div>
-          </details>
-        )}
+        {details && <ErrorDetails details={details} />}
       </div>
     </section>
+  );
+}
+
+/** The error's own message and stack, folded, for local development only. */
+function ErrorDetails({ details }: { details: ReturnType<typeof errorDetails> }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="mt-6 border border-border-default text-left">
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen(!open)}
+        className="flex w-full cursor-pointer items-center justify-between px-4 py-3 text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-border-focus"
+      >
+        Details
+        <ChevronDown
+          size={16}
+          aria-hidden="true"
+          className={cn('transition-transform duration-150 ease-standard', open && 'rotate-180')}
+        />
+      </button>
+      <Collapse open={open}>
+        <div className="border-t border-border-default p-4 text-xs text-text-secondary">
+          <p className="break-words">{details.message}</p>
+          {details.stack && (
+            <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap break-words font-mono">
+              {details.stack}
+            </pre>
+          )}
+        </div>
+      </Collapse>
+    </div>
   );
 }
