@@ -137,6 +137,12 @@ describe('job mail details', () => {
     expect(
       await screen.findByRole('heading', { name: 'Interview: first round availability' }),
     ).toBeInTheDocument();
+    const breadcrumb = within(screen.getByRole('navigation', { name: 'Breadcrumb' }));
+    expect(breadcrumb.getByRole('link', { name: 'Mails' })).toHaveAttribute('href', '/mails');
+    expect(breadcrumb.getByText('Northwind Robotics').closest('li')).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
     const article = await screen.findByRole('article');
     const mail = within(article);
     expect(mail.getByText('Priya Nair')).toBeInTheDocument();
@@ -566,6 +572,19 @@ describe('application page', () => {
       ]),
     );
     show('/applications/app-1');
+
+    // The top bar says where the page sits: the list above it, then the company.
+    const company = await screen.findByText('Northwind Robotics', { selector: 'nav li > span' });
+    expect(company.closest('li')).toHaveAttribute('aria-current', 'page');
+    const breadcrumb = company.closest('nav')!;
+    expect(breadcrumb).toHaveAccessibleName('Breadcrumb');
+    expect(within(breadcrumb).getByRole('link', { name: 'Applications' })).toHaveAttribute(
+      'href',
+      '/applications',
+    );
+    expect(breadcrumb.closest('header')).toContainElement(
+      screen.getByRole('button', { name: 'Account menu' }),
+    );
 
     const section = within(await screen.findByRole('region', { name: 'Conversations' }));
     const subject = await section.findByRole('link', {

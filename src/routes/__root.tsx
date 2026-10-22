@@ -6,14 +6,15 @@ import {
   type ErrorComponentProps,
 } from '@tanstack/react-router';
 import type { User } from '../api/auth';
+import { BreadcrumbProvider } from '../components/layout/Breadcrumb';
 import { Sidebar } from '../components/layout/Sidebar';
 import { MobileNav } from '../components/layout/MobileNav';
-import { Portfolio } from '@carbon/icons-react';
+import { TopBar } from '../components/layout/TopBar';
+import { useMenuCollapsed } from '../components/layout/useMenuCollapsed';
 import { ProcessingRefreshObserver } from '../components/ProcessingRefreshObserver';
 import { DevErrorTrigger } from '../components/errors/DevErrorTrigger';
 import { NotFoundPage } from '../components/errors/NotFoundPage';
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
-import { DevModeBanner } from '../components/devMode/DevModeBanner';
 
 /** Pages for signed-out visitors: the sign-in, and the test account sign-in. */
 const SIGN_IN_PAGES = ['/login', '/test-login'];
@@ -57,32 +58,32 @@ function RootRouteError(props: ErrorComponentProps) {
 
 function LoggedInShell({ children }: LoggedInShellProps) {
   const { user } = Route.useRouteContext();
+  const [collapsed, setCollapsed] = useMenuCollapsed();
   // The first part of the path: a new section fades in, while a list and its detail pages (one
   // route tree that keeps the list's filters) stay mounted.
   const section = useRouterState({
     select: (state) => state.location.pathname.split('/')[1] ?? '',
   });
   return (
-    <div className="flex min-h-screen bg-background font-sans text-text-primary">
-      <ProcessingRefreshObserver />
-      <Sidebar user={user} />
-      <div className="flex min-w-0 flex-1 flex-col pb-16 md:pb-0">
-        <DevModeBanner />
-        <header className="flex h-12 items-center gap-3 border-b border-border-subtle bg-surface px-4 md:hidden">
-          <Portfolio size={16} className="text-link" aria-hidden="true" />
-          <span className="font-semibold">Career Companion</span>
-        </header>
+    <BreadcrumbProvider>
+      <div className="flex min-h-screen flex-col bg-background font-sans text-text-primary">
+        <ProcessingRefreshObserver />
+        <TopBar user={user} collapsed={collapsed} />
+        <div className="flex min-w-0 flex-1">
+          <Sidebar collapsed={collapsed} onCollapsedChange={setCollapsed} />
+          <div className="flex min-w-0 flex-1 flex-col pb-16 md:pb-0">
+            <main className="flex-1 px-4 py-6 md:px-12 md:py-8">
+              {/* One width for every page: the full width up to 1584px, centred beyond. */}
+              <div key={section} className="mx-auto w-full max-w-[1584px] animate-page-in">
+                {children}
+              </div>
+            </main>
 
-        <main className="flex-1 px-4 py-6 md:px-8 md:py-8">
-          {/* One width for every page: the full width up to 1584px, centred beyond. */}
-          <div key={section} className="mx-auto w-full max-w-[1584px] animate-page-in">
-            {children}
+            <MobileNav user={user} />
           </div>
-        </main>
-
-        <MobileNav user={user} />
+        </div>
       </div>
-    </div>
+    </BreadcrumbProvider>
   );
 }
 

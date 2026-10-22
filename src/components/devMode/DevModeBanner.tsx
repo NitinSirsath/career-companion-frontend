@@ -1,6 +1,9 @@
 import { useDevMode, useTestAccount } from '../../api/appMode';
 
-/** Always visible in dev mode and for a test account, so neither is mistaken for real Gmail. */
+/**
+ * The chip in the top bar, always visible in dev mode and for a test account, so neither is
+ * mistaken for real Gmail.
+ */
 export function DevModeBanner() {
   const devMode = useDevMode();
   const testAccount = useTestAccount();
@@ -8,9 +11,12 @@ export function DevModeBanner() {
   return (
     <div
       role="status"
-      className="flex min-h-8 items-center justify-center bg-tag-yellow-bg px-4 text-center text-xs text-tag-yellow"
+      title="Gmail is the mail sandbox. No real mail is sent."
+      className="flex shrink-0 items-center gap-2 border-l border-border-subtle px-3 text-xs whitespace-nowrap text-tag-yellow md:px-5"
     >
-      {devMode ? 'Dev mode' : 'Test account'} · Gmail is the mail sandbox. No real mail is sent.
+      <span aria-hidden="true" className="size-2 bg-tag-yellow" />
+      {devMode ? 'Dev mode' : 'Test account'}{' '}
+      <span className="hidden md:inline">· mail sandbox</span>
     </div>
   );
 }

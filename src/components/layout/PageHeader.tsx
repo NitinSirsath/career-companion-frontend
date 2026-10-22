@@ -5,7 +5,7 @@ interface PageHeaderProps {
   title: React.ReactNode;
   /** One line under the title. */
   description?: React.ReactNode;
-  /** Detail pages only: where the page sits, built with `Breadcrumb`. */
+  /** Detail pages only: where the page sits, built with `Breadcrumb`. It shows in the top bar. */
   breadcrumb?: React.ReactNode;
   /** Buttons on the right: at most one primary. */
   actions?: React.ReactNode;
@@ -14,7 +14,7 @@ interface PageHeaderProps {
   className?: string;
 }
 
-/** The one page header: breadcrumb, title, one line of description, actions on the right. */
+/** The one page header: title, one line of description, actions on the right. */
 export function PageHeader({
   title,
   description,
@@ -35,33 +35,5 @@ export function PageHeader({
         {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
       </div>
     </header>
-  );
-}
-
-/**
- * "Mails / Lumen Apps": links back up, then (optionally) this page's own short name.
- */
-export function Breadcrumb({ children, current }: { children: React.ReactNode; current?: string }) {
-  const links = React.Children.toArray(children);
-  return (
-    <nav aria-label="Breadcrumb">
-      <ol className="flex flex-wrap items-center gap-2 text-sm">
-        {links.map((link, index) => (
-          <li key={index} className="flex items-center gap-2 [&_a]:text-link">
-            {link}
-            {(current || index < links.length - 1) && (
-              <span aria-hidden="true" className="text-text-secondary">
-                /
-              </span>
-            )}
-          </li>
-        ))}
-        {current && (
-          <li aria-current="page" className="min-w-0 truncate text-text-primary">
-            {current}
-          </li>
-        )}
-      </ol>
-    </nav>
   );
 }

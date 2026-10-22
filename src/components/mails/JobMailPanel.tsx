@@ -128,7 +128,7 @@ export function JobMailPanel({ detail }: { detail: ConversationDetail }) {
   const canCreate = !conversation.application && conversation.link !== 'IGNORED';
   const dates = keyDates(mails);
   return (
-    <aside aria-label="About this job mail" className="flex flex-col gap-4 lg:sticky lg:top-6">
+    <aside aria-label="About this job mail" className="flex flex-col gap-4 lg:sticky lg:top-20">
       <NextStep detail={detail} />
       {dates.length > 0 && (
         <PanelSection title="Key dates">

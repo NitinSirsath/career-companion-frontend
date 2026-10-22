@@ -38,7 +38,7 @@ export function ApplicationFacts({
     rows.push({ label: 'Sent by', value: 'Your automation' });
   const people = mailPeople(events);
   return (
-    <aside aria-label="About this application" className="flex flex-col gap-4 lg:sticky lg:top-6">
+    <aside aria-label="About this application" className="flex flex-col gap-4 lg:sticky lg:top-20">
       <Card title="Details">
         <dl className="grid grid-cols-[96px_minmax(0,1fr)] gap-x-4 gap-y-2 text-sm">
           {rows.map(({ label, value }) => (

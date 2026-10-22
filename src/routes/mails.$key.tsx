@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
+import { Building } from '@carbon/icons-react';
 import { useConversation, useMarkSeenOnOpen } from '../api/conversations';
 import { useMailThread } from '../api/mailbox';
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
 import { JobMailPanel } from '../components/mails/JobMailPanel';
 import { MailThreadView } from '../components/mails/MailThreadView';
 import { MailTitle } from '../components/mails/MailTitle';
-import { Breadcrumb } from '../components/layout/PageHeader';
+import { Breadcrumb } from '../components/layout/Breadcrumb';
 import { MailType } from '../components/mails/MailType';
 import { SectionError } from '../components/ui/section-error';
 import { SkeletonList } from '../components/ui/skeleton';
@@ -37,7 +38,7 @@ function JobMailPage() {
   const summary = conversation && companyAndRole(conversation);
 
   const breadcrumb = (
-    <Breadcrumb current={conversation?.company ?? undefined}>
+    <Breadcrumb current={conversation?.company ?? undefined} currentIcon={Building}>
       <Link to="/mails" search={listSearch<MailsSearch>('/mails')}>
         Mails
       </Link>

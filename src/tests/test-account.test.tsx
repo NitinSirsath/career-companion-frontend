@@ -77,20 +77,18 @@ describe('the mailbox of a test account', () => {
     expect(screen.getByText('gmail')).toBeInTheDocument();
   });
 
-  it('shows the test account banner, and no Gmail link', async () => {
+  it('shows the test account chip, and no Gmail link', async () => {
     renderWithQuery(
       <>
         <DevModeBanner />
         <GmailLink threadId="18c2f0a1b2c3d4e5" subject="Interview" />
       </>,
     );
-    expect(await screen.findByRole('status')).toHaveTextContent(
-      'Test account · Gmail is the mail sandbox. No real mail is sent.',
-    );
+    expect(await screen.findByRole('status')).toHaveTextContent('Test account · mail sandbox');
     expect(screen.queryByRole('link', { name: /in Gmail$/ })).not.toBeInTheDocument();
   });
 
-  it('shows no banner to a real user', async () => {
+  it('shows no chip to a real user', async () => {
     answers('prod', { ...PROFILE, testAccount: false });
     const { container } = renderWithQuery(<DevModeBanner />);
     await waitFor(() => expect(backend).toHaveBeenCalledTimes(2));

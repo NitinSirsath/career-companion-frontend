@@ -13,8 +13,8 @@ export async function logOutAndLeave() {
   window.location.href = '/login';
 }
 
-/** Who is signed in; opens Account, the theme and Log out. */
-export function AccountMenu({ user, collapsed }: { user: User | null; collapsed: boolean }) {
+/** The round picture at the right of the top bar; opens Account, the theme and Log out. */
+export function AccountMenu({ user }: { user: User | null }) {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const name = user?.name || user?.email || 'Account';
@@ -22,21 +22,19 @@ export function AccountMenu({ user, collapsed }: { user: User | null; collapsed:
     <Menu.Root>
       <Menu.Trigger
         aria-label="Account menu"
-        className="flex h-14 w-full shrink-0 cursor-pointer items-center gap-3 border-t border-border-subtle px-3 text-left transition-colors duration-70 ease-standard hover:bg-layer-hover data-popup-open:bg-layer-hover"
+        className="flex w-14 shrink-0 cursor-pointer items-center justify-center border-l border-border-subtle transition-colors duration-70 ease-standard hover:bg-layer-hover data-popup-open:bg-layer-hover"
       >
-        <Avatar name={name} me size="sm" />
-        <span className={cn('flex min-w-0 flex-col leading-4', collapsed && 'sr-only')}>
-          <span className="truncate text-sm text-text-primary">{name}</span>
-          {user?.email && user.email !== name && (
-            <span className="truncate text-xs text-text-secondary">{user.email}</span>
-          )}
-        </span>
+        <Avatar
+          name={name}
+          me
+          className="size-7 rounded-full bg-tint text-[13px] text-link-hover"
+        />
       </Menu.Trigger>
       <Menu.Portal>
-        <Menu.Positioner side="top" align="start" sideOffset={4} className="z-50 outline-none">
-          <Menu.Popup className={cn(POPUP_CLASS, 'w-60')}>
+        <Menu.Positioner side="bottom" align="end" sideOffset={0} className="z-50 outline-none">
+          <Menu.Popup className={cn(POPUP_CLASS, 'w-65')}>
             {user && (
-              <div className="border-b border-border-default px-4 pt-2 pb-3">
+              <div className="mb-1 border-b border-border-subtle px-4 pt-2 pb-3">
                 <p className="truncate text-sm font-semibold">{name}</p>
                 <p className="truncate text-xs text-text-secondary">{user.email}</p>
               </div>
@@ -45,7 +43,7 @@ export function AccountMenu({ user, collapsed }: { user: User | null; collapsed:
               Account
             </Menu.Item>
             <Menu.Group>
-              <Menu.GroupLabel className="px-4 pt-2 pb-1 text-xs text-text-tertiary">
+              <Menu.GroupLabel className="px-4 pt-2 pb-1 text-xs text-text-secondary">
                 Theme
               </Menu.GroupLabel>
               <Menu.RadioGroup value={theme} onValueChange={(next) => setTheme(next)}>
@@ -64,7 +62,7 @@ export function AccountMenu({ user, collapsed }: { user: User | null; collapsed:
                 ))}
               </Menu.RadioGroup>
             </Menu.Group>
-            <Menu.Separator className="my-1 h-px bg-border-default" />
+            <Menu.Separator className="my-1 h-px bg-border-subtle" />
             <Menu.Item className={ITEM_CLASS} onClick={() => void logOutAndLeave()}>
               Log out
             </Menu.Item>
