@@ -14,6 +14,7 @@ import { startProcessingRefresh } from '../../lib/processingRefresh';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
+import { Reveal } from '../ui/reveal';
 import { Select } from '../ui/select';
 
 type Problem = { text: string; link?: { label: string; href: string } };
@@ -234,58 +235,62 @@ export function ProviderSetupForm({
       </p>
 
       {needsConsent && (
-        <section
-          aria-labelledby="ai-data-use"
-          className="space-y-2 border-t border-border-subtle pt-4"
-        >
-          <h4 id="ai-data-use" className="text-sm font-semibold">
-            What is sent to {name}
-          </h4>
-          <p className="text-sm">{AI_DATA_SENT_SUMMARY}</p>
-          <p className="text-sm text-text-secondary">{provider.disclosure.summary}</p>
-          <p className="text-sm text-text-secondary">{provider.disclosure.training}</p>
-          <p className="text-sm text-text-secondary">{provider.disclosure.residency}</p>
-          <a
-            className="text-sm underline text-action-primary"
-            href={provider.links.dataUse}
-            target="_blank"
-            rel="noopener noreferrer"
+        <Reveal>
+          <section
+            aria-labelledby="ai-data-use"
+            className="space-y-2 border-t border-border-subtle pt-4"
           >
-            Read {name}&apos;s terms
-          </a>
-          <div className="flex items-start gap-2">
-            <input
-              id="ai-consent"
-              type="checkbox"
-              className="mt-1 h-4 w-4 cursor-pointer focus-visible:ring-2 focus-visible:ring-border-focus"
-              checked={consent}
-              onChange={(e) => setConsent(e.target.checked)}
-            />
-            <Label htmlFor="ai-consent" className="leading-snug">
-              I understand that these details of my emails are sent to {name} under my own account
-              and its terms. Saving starts processing my waiting emails.
-            </Label>
-          </div>
-        </section>
-      )}
-
-      {problem && (
-        <div
-          role="alert"
-          className="border border-status-error bg-status-error-subtle p-3 text-sm space-y-1"
-        >
-          <p>{problem.text}</p>
-          {problem.link && (
+            <h4 id="ai-data-use" className="text-sm font-semibold">
+              What is sent to {name}
+            </h4>
+            <p className="text-sm">{AI_DATA_SENT_SUMMARY}</p>
+            <p className="text-sm text-text-secondary">{provider.disclosure.summary}</p>
+            <p className="text-sm text-text-secondary">{provider.disclosure.training}</p>
+            <p className="text-sm text-text-secondary">{provider.disclosure.residency}</p>
             <a
-              className="underline"
-              href={problem.link.href}
+              className="text-sm underline text-action-primary"
+              href={provider.links.dataUse}
               target="_blank"
               rel="noopener noreferrer"
             >
-              {problem.link.label}
+              Read {name}&apos;s terms
             </a>
-          )}
-        </div>
+            <div className="flex items-start gap-2">
+              <input
+                id="ai-consent"
+                type="checkbox"
+                className="mt-1 h-4 w-4 cursor-pointer focus-visible:ring-2 focus-visible:ring-border-focus"
+                checked={consent}
+                onChange={(e) => setConsent(e.target.checked)}
+              />
+              <Label htmlFor="ai-consent" className="leading-snug">
+                I understand that these details of my emails are sent to {name} under my own account
+                and its terms. Saving starts processing my waiting emails.
+              </Label>
+            </div>
+          </section>
+        </Reveal>
+      )}
+
+      {problem && (
+        <Reveal>
+          <div
+            role="alert"
+            className="border border-status-error bg-status-error-subtle p-3 text-sm space-y-1"
+          >
+            <p>{problem.text}</p>
+            {problem.link && (
+              <a
+                className="underline"
+                href={problem.link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {problem.link.label}
+              </a>
+            )}
+          </div>
+        </Reveal>
       )}
 
       <div className="flex flex-wrap gap-3">
