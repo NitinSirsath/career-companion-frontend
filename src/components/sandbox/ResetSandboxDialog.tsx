@@ -39,7 +39,7 @@ export function ResetSandboxDialog() {
           </p>
         )}
         <DialogFooter>
-          <Button variant="tertiary" disabled={reset.isPending} onClick={() => setOpen(false)}>
+          <Button variant="secondary" disabled={reset.isPending} onClick={() => setOpen(false)}>
             Cancel
           </Button>
           <Button variant="danger" disabled={reset.isPending} onClick={confirm}>
