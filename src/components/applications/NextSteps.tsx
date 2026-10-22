@@ -13,6 +13,7 @@ import { FollowUpEditor, SnoozeControl } from '../FollowThrough';
 import type { DialogHandle } from '../../lib/dialogs';
 import { TodoState } from '../mails/TodoState';
 import { Button } from '../ui/button';
+import { Collapse } from '../ui/collapse';
 import { OverflowMenu, type MenuAction } from '../ui/menu';
 import { InlineNotification } from '../ui/notification';
 import { Pagination } from '../ui/pagination';
@@ -187,8 +188,8 @@ function DoneSteps({ actions }: { actions: ApplicationActionListItem[] }) {
         />
         Done ({actions.length})
       </button>
-      {open && (
-        <ul className="animate-open">
+      <Collapse open={open}>
+        <ul>
           {actions.map((action) => (
             <li
               key={action.id}
@@ -202,7 +203,7 @@ function DoneSteps({ actions }: { actions: ApplicationActionListItem[] }) {
             </li>
           ))}
         </ul>
-      )}
+      </Collapse>
     </div>
   );
 }
