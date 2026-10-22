@@ -76,7 +76,7 @@ function StepMeta({
       ),
     );
   return (
-    <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs tracking-[0.32px] text-text-secondary">
+    <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-text-secondary">
       {action.repliedAt && (
         <>
           <TodoState state="REPLIED" />
@@ -233,7 +233,10 @@ export function NextSteps({
   const nextOffset = query.data?.metadata.nextOffset ?? null;
 
   return (
-    <section aria-labelledby="steps-heading" className="flex flex-col bg-surface px-6 py-5">
+    <section
+      aria-labelledby="steps-heading"
+      className="flex flex-col border border-border-subtle bg-surface px-6 py-5"
+    >
       <div className="flex items-baseline gap-3 pb-3">
         <h2 id="steps-heading" className="text-xl leading-7">
           Next steps
