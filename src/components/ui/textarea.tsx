@@ -6,7 +6,7 @@ export type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement>;
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ className, ...props }, ref) => (
-    <textarea ref={ref} className={cn(FIELD_CLASS, 'flex px-4 py-2.5', className)} {...props} />
+    <textarea ref={ref} className={cn(FIELD_CLASS, 'flex px-3 py-2.5', className)} {...props} />
   ),
 );
 Textarea.displayName = 'Textarea';
