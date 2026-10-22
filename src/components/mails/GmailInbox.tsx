@@ -72,7 +72,7 @@ const COLUMNS: ColumnDef<MailboxThread>[] = [
     id: 'date',
     header: () => 'Date',
     cell: ({ row }) => (
-      <span className={cn('text-xs tracking-[0.32px]', row.original.unread && 'font-semibold')}>
+      <span className={cn('text-xs', row.original.unread && 'font-semibold')}>
         {mailDate(row.original.date)}
       </span>
     ),
@@ -118,7 +118,7 @@ export function GmailInbox() {
           empty={data && <EmptyState title="No mail in this part of your inbox" />}
           footer={
             <div className="flex h-12 items-center justify-between border-t border-border-subtle bg-surface pl-4">
-              <span className="text-xs tracking-[0.32px]">Newest mail first, as in Gmail</span>
+              <span className="text-xs">Newest mail first, as in Gmail</span>
               <div className="flex">
                 <button
                   type="button"
