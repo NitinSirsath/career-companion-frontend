@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
+import { Building } from '@carbon/icons-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/client';
 import { ApplicationFacts } from '../components/applications/ApplicationFacts';
@@ -8,7 +9,7 @@ import { ApplicationHistory } from '../components/applications/ApplicationHistor
 import { ApplicationTabs } from '../components/applications/ApplicationTabs';
 import { NextSteps } from '../components/applications/NextSteps';
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
-import { Breadcrumb } from '../components/layout/PageHeader';
+import { Breadcrumb } from '../components/layout/Breadcrumb';
 import { ApplicationConversations } from '../components/mails/ApplicationConversations';
 import { Button } from '../components/ui/button';
 import { InlineNotification } from '../components/ui/notification';
@@ -40,7 +41,7 @@ function ApplicationDetailPage() {
   const canEdit = !!application && !applicationQuery.isError;
 
   const breadcrumb = (
-    <Breadcrumb current={application?.companyName}>
+    <Breadcrumb current={application?.companyName} currentIcon={Building}>
       <Link to="/applications" search={listSearch<ApplicationsSearch>('/applications')}>
         Applications
       </Link>
