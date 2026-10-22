@@ -36,9 +36,9 @@ function Card({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section
       aria-label={title}
-      className="flex min-w-0 flex-col gap-3 border border-border-subtle bg-surface px-6 py-5"
+      className="flex min-w-0 flex-col gap-3 border border-border-subtle bg-surface p-6"
     >
-      <h3 className="text-xs text-text-secondary">{title}</h3>
+      <h3 className="mb-1 text-sm font-semibold">{title}</h3>
       {children}
     </section>
   );
