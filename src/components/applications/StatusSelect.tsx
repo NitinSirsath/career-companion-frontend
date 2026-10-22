@@ -113,7 +113,7 @@ export function StatusLine({
           onChoose={onChoose}
         />
       )}
-      <span className="text-xs tracking-[0.32px] text-text-secondary">
+      <span className="text-xs text-text-secondary">
         {busy ? 'Saving…' : statusSourceLine(application)}
       </span>
       {/* One live region that stays the same node, so "Status saved." is read when it is set. */}
