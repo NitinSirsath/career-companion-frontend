@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { Input } from './ui/input';
 import { TimeZoneField } from './TimeZoneField';
 
-const LABEL_CLASS = 'mb-2 text-xs leading-4 tracking-[0.32px] text-text-secondary';
+const LABEL_CLASS = 'mb-2 text-xs text-text-secondary';
 
 /** A labelled box: the label sits above it, as in every form of the app. */
 export function Field({ label, children }: { label: string; children: ReactNode }) {
