@@ -27,7 +27,7 @@ const COLUMNS: ColumnDef<NotSubmittedJob>[] = [
     cell: ({ row: { original: job } }) => (
       <div className="flex flex-col gap-0.5 break-words">
         <span className="font-semibold">{job.company}</span>
-        <span className="text-xs tracking-[0.32px] text-text-secondary">{job.jobTitle}</span>
+        <span className="text-xs text-text-secondary">{job.jobTitle}</span>
       </div>
     ),
   },
@@ -59,7 +59,7 @@ const COLUMNS: ColumnDef<NotSubmittedJob>[] = [
     cell: ({ row: { original: job } }) => (
       <div className="flex flex-col">
         <span>{format(new Date(job.loggedAt), 'd MMM yyyy')}</span>
-        <span className="text-xs tracking-[0.32px] text-text-secondary">
+        <span className="text-xs text-text-secondary">
           {format(new Date(job.loggedAt), 'h:mm a')}
         </span>
       </div>
