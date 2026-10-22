@@ -2,6 +2,8 @@ import type { ReactNode } from 'react';
 import { Link } from '@tanstack/react-router';
 import { Launch, Reply } from '@carbon/icons-react';
 import { useSandboxMailbox } from '../../api/appMode';
+import { cn } from '../../lib/utils';
+import { useIsPhone } from '../layout/useIsPhone';
 import { PageHeader } from '../layout/PageHeader';
 import { Button } from '../ui/button';
 import { GmailLink } from '../ui/GmailLink';
@@ -38,6 +40,7 @@ function MailboxLink({ threadId, subject }: { threadId: string; subject: string 
  * Reply button.
  */
 export function MailTitle({ title, threadId, breadcrumb, children, onReply }: MailTitleProps) {
+  const phone = useIsPhone();
   return (
     <PageHeader
       className="mb-0"
@@ -54,8 +57,13 @@ export function MailTitle({ title, threadId, breadcrumb, children, onReply }: Ma
       actions={
         threadId &&
         onReply && (
-          <Button onClick={onReply}>
-            <Reply size={16} aria-hidden="true" />
+          // On phones the Reply button floats above the bottom bar, in reach of the thumb.
+          <Button
+            onClick={onReply}
+            size={phone ? 'lg' : 'default'}
+            className={cn(phone && 'fixed right-4 bottom-20 z-30 shadow-popup')}
+          >
+            <Reply size={phone ? 20 : 16} aria-hidden="true" />
             Reply
           </Button>
         )
