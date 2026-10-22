@@ -2,11 +2,14 @@ import { Link } from '@tanstack/react-router';
 import { SidePanelClose, SidePanelOpen } from '@carbon/icons-react';
 import { useDevMode, useSandboxMailbox } from '../../api/appMode';
 import { cn } from '../../lib/utils';
-import { MAIN_NAV, rememberedSearch, SANDBOX_NAV, SETTINGS_NAV, type NavItem } from './navItems';
-
-// The chosen page has a light blue tint with blue text; the other items are dark with grey icons.
-const LINK_CLASS =
-  'flex h-9 shrink-0 items-center gap-3 overflow-hidden px-3 text-sm whitespace-nowrap text-text-primary transition-colors duration-70 ease-standard hover:bg-layer-hover [&_svg]:text-text-secondary [&.active]:bg-tint [&.active]:text-tint-text [&.active_svg]:text-link';
+import {
+  MAIN_NAV,
+  NAV_LINK_CLASS,
+  rememberedSearch,
+  SANDBOX_NAV,
+  SETTINGS_NAV,
+  type NavItem,
+} from './navItems';
 
 function NavLink({
   item,
@@ -22,7 +25,7 @@ function NavLink({
     <Link
       to={item.to}
       search={rememberedSearch(item.to)}
-      className={LINK_CLASS}
+      className={NAV_LINK_CLASS}
       title={collapsed ? item.label : undefined}
     >
       <Icon size={16} aria-hidden="true" className="shrink-0" />
