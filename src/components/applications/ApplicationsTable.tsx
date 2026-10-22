@@ -94,7 +94,7 @@ const COLUMNS: ColumnDef<ApplicationResponse>[] = [
         <Link
           to="/applications/$id"
           params={{ id: app.id }}
-          className={`${ROW_LINK_CLASS} font-semibold break-words`}
+          className={`${ROW_LINK_CLASS} break-words`}
         >
           {app.companyName}
         </Link>
@@ -153,6 +153,7 @@ interface ApplicationsTableProps {
   loading?: boolean;
   empty?: ReactNode;
   toolbar?: ReactNode;
+  endRow?: ReactNode;
   footer?: ReactNode;
 }
 
