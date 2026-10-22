@@ -117,6 +117,18 @@ describe('home and navigation', () => {
     expect(within(phoneBar).getByRole('button', { name: 'More' })).toBeInTheDocument();
   });
 
+  it('names the page in the top bar, with the logo and the account button', async () => {
+    show('/mails');
+    expect(await screen.findByRole('heading', { name: 'Mails' })).toBeInTheDocument();
+    const logo = screen.getByRole('link', { name: 'Career Companion' });
+    expect(logo).toHaveAttribute('href', '/mails');
+    const bar = within(logo.closest('header')!);
+    expect(
+      within(bar.getByRole('navigation', { name: 'Breadcrumb' })).getByText('Mails'),
+    ).toHaveAttribute('aria-current', 'page');
+    expect(bar.getByRole('button', { name: 'Account menu' })).toBeInTheDocument();
+  });
+
   it('shrinks the side menu to icons and remembers it', async () => {
     localStorage.removeItem('career-companion-menu');
     show('/mails');
