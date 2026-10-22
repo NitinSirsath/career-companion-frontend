@@ -53,7 +53,7 @@ function Messages({
     return (
       <Fragment key={message.id}>
         {newDay && (
-          <div className="flex min-h-8 items-center gap-4 text-xs tracking-[0.32px] text-text-secondary before:h-px before:flex-1 before:bg-border-subtle after:h-px after:flex-1 after:bg-border-subtle">
+          <div className="flex min-h-8 items-center gap-4 text-xs text-text-secondary before:h-px before:flex-1 before:bg-border-subtle after:h-px after:flex-1 after:bg-border-subtle">
             {day}
           </div>
         )}
