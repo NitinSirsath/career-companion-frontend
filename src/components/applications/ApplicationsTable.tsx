@@ -68,11 +68,7 @@ function AppliedCell({ app }: { app: ApplicationResponse }) {
   return (
     <div className="flex flex-col">
       <span>{format(applied, 'd MMM yyyy')}</span>
-      {timed && (
-        <span className="text-xs tracking-[0.32px] text-text-secondary">
-          {format(applied, 'h:mm a')}
-        </span>
-      )}
+      {timed && <span className="text-xs text-text-secondary">{format(applied, 'h:mm a')}</span>}
     </div>
   );
 }
@@ -99,11 +95,11 @@ const COLUMNS: ColumnDef<ApplicationResponse>[] = [
       >
         {app.companyName}
       </Link>
-      <span className="text-xs tracking-[0.32px] break-words text-text-secondary">
+      <span className="text-xs break-words text-text-secondary">
         {[app.jobTitle, app.location].filter(Boolean).join(' · ')}
       </span>
       {app.automation && (
-        <span className="flex items-center gap-1 text-xs tracking-[0.32px] text-text-secondary">
+        <span className="flex items-center gap-1 text-xs text-text-secondary">
           {platformLabel(app.automation.platform)}
           <JobLink
             url={app.automation.jobUrl}
@@ -135,7 +131,7 @@ const COLUMNS: ColumnDef<ApplicationResponse>[] = [
       return (
         <div className="flex flex-col">
           <span>{activity.what}</span>
-          <span className="text-xs tracking-[0.32px] text-text-secondary">{activity.when}</span>
+          <span className="text-xs text-text-secondary">{activity.when}</span>
         </div>
       );
     },
