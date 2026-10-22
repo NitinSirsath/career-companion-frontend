@@ -24,11 +24,7 @@ export function AccountMenu({ user }: { user: User | null }) {
         aria-label="Account menu"
         className="flex w-14 shrink-0 cursor-pointer items-center justify-center border-l border-border-subtle transition-colors duration-70 ease-standard hover:bg-layer-hover data-popup-open:bg-layer-hover"
       >
-        <Avatar
-          name={name}
-          me
-          className="size-7 rounded-full bg-tint text-[13px] text-link-hover"
-        />
+        <Avatar name={name} me className="size-7 text-[13px]" />
       </Menu.Trigger>
       <Menu.Portal>
         <Menu.Positioner side="bottom" align="end" sideOffset={0} className="z-50 outline-none">

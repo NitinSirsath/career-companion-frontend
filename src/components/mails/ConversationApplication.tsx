@@ -33,7 +33,15 @@ export function ConversationApplication({
   if (application)
     return (
       <div className="flex flex-col items-start gap-1">
-        <Link to="/applications/$id" params={{ id: application.id }} className="text-link">
+        <Link
+          to="/applications/$id"
+          params={{ id: application.id }}
+          className={
+            appearance === 'panel'
+              ? 'text-base text-text-primary underline decoration-border-default underline-offset-[3px] hover:decoration-text-primary'
+              : 'text-link'
+          }
+        >
           {application.companyName}
         </Link>
         {application.jobTitle && (

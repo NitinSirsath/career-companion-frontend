@@ -50,6 +50,26 @@ function useReplyKey(onReply: () => void) {
 }
 
 /**
+ * Whether the reply box is open. "R" opens it, and so does each click on the page's Reply button,
+ * counted in `replyAsks`.
+ */
+function useReplyOpen(replyAsks: number): [boolean, (open: boolean) => void] {
+  const [open, setOpen] = useState(false);
+  useReplyKey(() => setOpen(true));
+  const [askedFor, setAskedFor] = useState(replyAsks);
+  if (askedFor !== replyAsks) {
+    setAskedFor(replyAsks);
+    setOpen(true);
+  }
+  // The open box is tall: bring the page to its end, so the newest mail shows above the box.
+  useEffect(() => {
+    const page = document.scrollingElement;
+    if (open) page?.scrollTo?.({ top: page.scrollHeight, behavior: 'smooth' });
+  }, [open]);
+  return [open, setOpen];
+}
+
+/**
  * Replying from the mail details page, docked under the conversation like a chat box: one line
  * until the user starts a reply. The same box in both modes: it sends from the user's Gmail in
  * prod and into the mail sandbox in dev mode. Who the reply goes to comes from the conversation:
@@ -62,6 +82,7 @@ export function MailReplyBox({
   replyCc,
   onCheck,
   onSending,
+  replyAsks = 0,
 }: {
   threadId: string;
   subject: string | null;
@@ -70,17 +91,13 @@ export function MailReplyBox({
   replyCc: string[];
   onCheck: () => void;
   onSending?: (text: string | null) => void;
+  /** Goes up each time the page's Reply button is clicked: the box opens. */
+  replyAsks?: number;
 }) {
   const sandbox = useSandboxMailbox();
   const canSend = useCanSendMail();
   const mailPath = useLocation({ select: (location) => location.pathname });
-  const [open, setOpen] = useState(false);
-  useReplyKey(() => setOpen(true));
-  // The open box is tall: bring the page to its end, so the newest mail shows above the box.
-  useEffect(() => {
-    const page = document.scrollingElement;
-    if (open) page?.scrollTo?.({ top: page.scrollHeight, behavior: 'smooth' });
-  }, [open]);
+  const [open, setOpen] = useReplyOpen(replyAsks);
   // The mailbox itself: Gmail in prod, the mail sandbox in dev mode.
   const elsewhere = sandbox ? (
     <Link to="/sandbox/$threadId" params={{ threadId }} className="text-sm text-link">

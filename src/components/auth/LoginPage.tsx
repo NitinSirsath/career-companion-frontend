@@ -1,11 +1,10 @@
-import { Portfolio } from '@carbon/icons-react';
 import { useDevMode } from '../../api/appMode';
 import { googleSignInProblem } from '../../lib/signIn';
-import { DevModeBanner } from '../devMode/DevModeBanner';
 import { Button } from '../ui/button';
 import { InlineNotification } from '../ui/notification';
 import { CreateTestUserForm } from './CreateTestUserForm';
 import { PasswordSignInForm } from './PasswordSignInForm';
+import { SignInBar } from './SignInBar';
 
 /** A fresh page load, so the app starts again with the new session. */
 const openApp = () => {
@@ -42,19 +41,15 @@ function GoogleSignIn() {
 }
 
 /**
- * Sign-in: one card on the grey page. Prod mode: email and password, or Google. Dev mode has no
+ * Sign-in: one card under the top bar. Prod mode: email and password, or Google. Dev mode has no
  * Google account, so it offers email and password and a form to create a test user.
  */
 export function LoginPage({ error }: { error?: string }) {
   const devMode = useDevMode();
   return (
     <div className="min-h-screen bg-background font-sans text-text-primary">
-      <DevModeBanner />
+      <SignInBar />
       <main className="mx-auto flex w-full max-w-4xl animate-fade-in flex-col items-center gap-8 px-4 py-16">
-        <p className="flex items-center gap-3 text-sm font-semibold">
-          <Portfolio size={20} aria-hidden="true" className="text-link" />
-          Career Companion
-        </p>
         <div className="flex w-full flex-wrap items-start justify-center gap-6">
           <section
             aria-labelledby="sign-in-title"

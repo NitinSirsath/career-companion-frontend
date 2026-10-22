@@ -32,15 +32,13 @@ function MailFrame({
   html,
   showImages,
   showQuote,
-  mine,
 }: {
   html: string;
   showImages: boolean;
   showQuote: boolean;
-  mine: boolean;
 }) {
   const [height, setHeight] = useState(160);
-  const theme = useThemeColors(mine ? '--tint' : '--surface');
+  const theme = useThemeColors('--surface');
   const colors = theme && !setsOwnColors(html) ? theme : undefined;
   return (
     <iframe
@@ -64,12 +62,9 @@ function MailFrame({
 export function MailBody({
   message,
   showQuote = true,
-  mine = false,
 }: {
   message: MailMessage;
   showQuote?: boolean;
-  /** The user's own mail, drawn on the tinted card. */
-  mine?: boolean;
 }) {
   const [showImages, setShowImages] = useState(false);
   const { html, own, quoted } = mailText(message);
@@ -96,7 +91,7 @@ export function MailBody({
           </Button>
         </div>
       )}
-      <MailFrame html={html} showImages={showImages} showQuote={showQuote} mine={mine} />
+      <MailFrame html={html} showImages={showImages} showQuote={showQuote} />
     </div>
   );
 }

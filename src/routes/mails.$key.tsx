@@ -1,33 +1,24 @@
+import { useState } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Building } from '@carbon/icons-react';
 import { useConversation, useMarkSeenOnOpen } from '../api/conversations';
-import { useMailThread } from '../api/mailbox';
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
 import { JobMailPanel } from '../components/mails/JobMailPanel';
+import { MailFacts } from '../components/mails/MailFacts';
 import { MailThreadView } from '../components/mails/MailThreadView';
 import { MailTitle } from '../components/mails/MailTitle';
 import { Breadcrumb } from '../components/layout/Breadcrumb';
-import { MailType } from '../components/mails/MailType';
 import { SectionError } from '../components/ui/section-error';
 import { SkeletonList } from '../components/ui/skeleton';
-import { Tag } from '../components/ui/tag';
 import { listSearch } from '../lib/listMemory';
 import { askingMessageId } from '../lib/mailThread';
 import { InlineNotification } from '../components/ui/notification';
-import { companyAndRole, mailCounts, type MailsSearch } from '../lib/mails';
+import type { MailsSearch } from '../lib/mails';
 
 export const Route = createFileRoute('/mails/$key')({
   errorComponent: RouteErrorPage,
   component: JobMailPage,
 });
-
-/** "3 mails · 1 from you", counted in the conversation as Gmail has it now. */
-function LiveMailCount({ threadId }: { threadId: string }) {
-  const { data } = useMailThread(threadId);
-  if (!data) return null;
-  const fromYou = data.messages.filter((message) => message.sentByUser).length;
-  return <span>{mailCounts(data.messages.length, fromYou)}</span>;
-}
 
 /** A job mail's details: the conversation as Gmail has it, beside what it means for the search. */
 function JobMailPage() {
@@ -35,7 +26,8 @@ function JobMailPage() {
   const { data, error, isLoading, refetch } = useConversation(key);
   const conversation = data?.conversation;
   useMarkSeenOnOpen(conversation);
-  const summary = conversation && companyAndRole(conversation);
+  // Counts the header's Reply clicks; each one opens the reply box under the conversation.
+  const [replyAsks, setReplyAsks] = useState(0);
 
   const breadcrumb = (
     <Breadcrumb current={conversation?.company ?? undefined} currentIcon={Building}>
@@ -65,15 +57,9 @@ function JobMailPage() {
             title={conversation.subject || '(No subject)'}
             threadId={conversation.threadId}
             breadcrumb={breadcrumb}
+            onReply={() => setReplyAsks((asks) => asks + 1)}
           >
-            {summary && <span>{summary}</span>}
-            {conversation.category && <MailType category={conversation.category} />}
-            {conversation.threadId ? (
-              <LiveMailCount threadId={conversation.threadId} />
-            ) : (
-              <span>{mailCounts(conversation.mailCount, conversation.sentCount)}</span>
-            )}
-            {conversation.isNew && <Tag color="blue">New</Tag>}
+            <MailFacts conversation={conversation} />
           </MailTitle>
           <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
             <div className="min-w-0">
@@ -81,6 +67,7 @@ function JobMailPage() {
                 <MailThreadView
                   threadId={conversation.threadId}
                   job={{ mails: data.mails, askingMessageId: askingMessageId(data) }}
+                  replyAsks={replyAsks}
                 />
               ) : (
                 <InlineNotification>

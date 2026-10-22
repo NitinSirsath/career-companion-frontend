@@ -9,7 +9,7 @@ export function initials(name: string): string {
     .join('');
 }
 
-/** A square with a person's initials. "me" is the user, tinted blue. */
+/** A circle with a person's initials. "me" is the user, on the light blue tint. */
 export function Avatar({
   name,
   me = false,
@@ -25,9 +25,9 @@ export function Avatar({
     <span
       aria-hidden="true"
       className={cn(
-        'inline-flex shrink-0 items-center justify-center font-semibold',
+        'inline-flex shrink-0 items-center justify-center rounded-full font-semibold',
         size === 'md' ? 'size-8 text-xs' : 'size-6 text-[11px]',
-        me ? 'bg-tag-blue-bg text-tag-blue' : 'bg-tag-gray-bg text-tag-gray',
+        me ? 'bg-tint text-link-hover' : 'bg-tag-gray-bg text-tag-gray',
         className,
       )}
     >

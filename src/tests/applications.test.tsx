@@ -117,7 +117,7 @@ describe('Applications Dashboard (/applications)', () => {
     await screen.findByRole('button', { name: /add application/i });
   });
 
-  it('reveals the create form when "Add Application" is clicked', async () => {
+  it('opens the create form from the header button and from the last row of the list', async () => {
     vi.mocked(api.listApplications).mockResolvedValue({
       items: [],
       metadata: { limit: 20, offset: 0, nextOffset: null },
@@ -125,11 +125,20 @@ describe('Applications Dashboard (/applications)', () => {
 
     renderWithProviders(queryClient, '/applications');
 
-    const btn = await screen.findByRole('button', { name: /add application/i });
-    fireEvent.click(btn);
+    // The header's button, and the row at the end of the list once it has loaded.
+    const adds = () => screen.getAllByRole('button', { name: /add application/i });
+    await waitFor(() => expect(adds()).toHaveLength(2));
+    const [header, lastRow] = adds();
+    fireEvent.click(header);
 
     expect(await screen.findByRole('dialog', { name: 'Add application' })).toBeInTheDocument();
     expect(screen.getByLabelText('Company')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+
+    // The row at the end of the list opens the same form.
+    fireEvent.click(lastRow);
+    expect(await screen.findByRole('dialog', { name: 'Add application' })).toBeInTheDocument();
   });
 
   it('hides the create form again when "Cancel" is clicked', async () => {
@@ -141,7 +150,7 @@ describe('Applications Dashboard (/applications)', () => {
     renderWithProviders(queryClient, '/applications');
 
     // Open form
-    const addBtn = await screen.findByRole('button', { name: /add application/i });
+    const [addBtn] = await screen.findAllByRole('button', { name: /add application/i });
     fireEvent.click(addBtn);
 
     // Verify open

@@ -226,6 +226,33 @@ describe('job mail details', () => {
     expect(api.post).not.toHaveBeenCalled();
   });
 
+  it('names the company, role, status and mail count under the title, and the way to Gmail', async () => {
+    detail = {
+      ...detail,
+      conversation: makeConversation({
+        link: 'LINKED',
+        application: {
+          id: '33333333-3333-4333-8333-333333333333',
+          companyName: 'Northwind Robotics',
+          jobTitle: 'Senior Platform Engineer',
+          effectiveStatus: 'INTERVIEW',
+          archived: false,
+        },
+      }),
+    };
+    show('/mails/thread-1');
+    const title = await screen.findByRole('heading', {
+      name: 'Interview: first round availability',
+    });
+    const header = within(title.closest('header')!);
+    expect(header.getByText('Northwind Robotics')).toBeInTheDocument();
+    expect(header.getByText('Senior Platform Engineer')).toBeInTheDocument();
+    expect(header.getByText('Interview')).toBeInTheDocument();
+    expect(await header.findByText('1 mail')).toBeInTheDocument();
+    expect(header.getByRole('link', { name: /in Gmail$/ })).toBeInTheDocument();
+    expect(header.getByRole('button', { name: 'Reply' })).toBeInTheDocument();
+  });
+
   it('keeps the job panel when Gmail cannot be read', async () => {
     thread = new ApiError(
       'Gmail access ended. Reconnect Gmail.',
@@ -319,6 +346,13 @@ describe('replying from the mail details page', () => {
     show('/mails/thread-1');
     await screen.findByRole('button', { name: /^Reply to .*…/ });
     fireEvent.keyDown(document.body, { key: 'r' });
+    expect(await screen.findByLabelText('Your reply')).toHaveFocus();
+  });
+
+  it('opens the reply box from the Reply button next to the title', async () => {
+    show('/mails/thread-1');
+    await screen.findByRole('button', { name: /^Reply to .*…/ });
+    fireEvent.click(screen.getByRole('button', { name: 'Reply' }));
     expect(await screen.findByLabelText('Your reply')).toHaveFocus();
   });
 

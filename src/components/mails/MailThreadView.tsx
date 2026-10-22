@@ -18,7 +18,10 @@ export interface ThreadJobContext {
 /** The reply on its way: shown at once at the end of the conversation, then replaced by the sent mail. */
 function SendingCard({ text }: { text: string }) {
   return (
-    <article aria-label="Your reply, sending" className="animate-open bg-tint p-4 md:ml-12">
+    <article
+      aria-label="Your reply, sending"
+      className="animate-open border border-border-subtle bg-surface p-4"
+    >
       <p className="max-w-[75ch] text-sm leading-[22px] break-words whitespace-pre-wrap">{text}</p>
       <p role="status" className="mt-2 flex items-center gap-2 text-xs text-text-secondary">
         <Spinner />
@@ -75,7 +78,16 @@ function Messages({
  * next to the reply box, each mail with only its own text. Shared by job mails and plain Gmail
  * mails. The text is shown and then dropped.
  */
-export function MailThreadView({ threadId, job }: { threadId: string; job?: ThreadJobContext }) {
+export function MailThreadView({
+  threadId,
+  job,
+  replyAsks = 0,
+}: {
+  threadId: string;
+  job?: ThreadJobContext;
+  /** Goes up each time the page's Reply button is clicked. */
+  replyAsks?: number;
+}) {
   const { data, error, isLoading, refetch } = useMailThread(threadId);
   const mailbox = useGmailAddress();
   const [sending, setSending] = useState<string | null>(null);
@@ -102,6 +114,7 @@ export function MailThreadView({ threadId, job }: { threadId: string; job?: Thre
             replyCc={data.replyCc}
             onCheck={() => void refetch()}
             onSending={setSending}
+            replyAsks={replyAsks}
           />
         </>
       )}

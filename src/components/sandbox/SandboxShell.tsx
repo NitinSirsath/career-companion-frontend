@@ -11,8 +11,8 @@ import { SandboxSyncBar } from './SandboxSyncBar';
 export type SandboxSection = 'inbox' | 'sent' | 'compose' | 'thread';
 
 const folderClass =
-  'flex items-center justify-between px-3 py-2 text-sm text-text-primary hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus';
-const selected = 'bg-surface-selected font-semibold';
+  'flex items-center justify-between px-3 py-2 text-sm text-text-primary hover:bg-layer-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus';
+const selected = 'bg-tint text-tint-text hover:bg-tint';
 
 /** Title, sync, the AI key warning and the folders around a sandbox page. */
 function SandboxFrame({ active, children }: { active: SandboxSection; children: ReactNode }) {

@@ -117,10 +117,7 @@ function FoldedMail({ message, onOpen }: { message: MailMessage; onOpen: () => v
       type="button"
       onClick={onOpen}
       aria-label={`Open the mail from ${name}, ${mailDateTime(message.date)}`}
-      className={cn(
-        'grid min-h-12 w-full cursor-pointer grid-cols-[32px_minmax(0,140px)_minmax(0,1fr)_auto] items-center gap-3 px-4 py-2 text-left text-sm transition-colors duration-70 ease-standard hover:bg-layer-hover',
-        mine ? 'bg-tint md:ml-12 md:w-[calc(100%-3rem)]' : 'border border-border-subtle bg-surface',
-      )}
+      className="grid min-h-12 w-full cursor-pointer grid-cols-[32px_minmax(0,140px)_minmax(0,1fr)_auto] items-center gap-3 border border-border-subtle bg-surface px-4 py-2 text-left text-sm transition-colors duration-70 ease-standard hover:bg-layer-hover"
     >
       <Avatar name={name} me={mine} />
       <span className="truncate font-semibold">{name}</span>
@@ -194,9 +191,9 @@ interface MailMessageCardProps {
 }
 
 /**
- * One mail of a conversation. Their mails sit on the plain card; the user's are tinted and set in
- * from the left, so who said what reads at a glance. The quoted earlier mail is hidden. Folding
- * and opening slide between the one-line form and the whole mail.
+ * One mail of a conversation, on a card with a thin line; the user's own mails carry the blue
+ * "You" picture. The quoted earlier mail is hidden. Folding and opening slide between the
+ * one-line form and the whole mail.
  */
 export function MailMessageCard({
   message,
@@ -219,7 +216,7 @@ export function MailMessageCard({
         <article
           id={`mail-${message.id}`}
           aria-label={`Mail from ${name}, ${mailDateTime(message.date)}`}
-          className={mine ? 'bg-tint md:ml-12' : 'border border-border-subtle bg-surface'}
+          className="border border-border-subtle bg-surface"
         >
           <MailHeader
             message={message}
@@ -228,7 +225,7 @@ export function MailMessageCard({
             onFold={onFold && (() => onFold(true))}
           />
           <div className="flex flex-col gap-3 px-4 pb-4 md:pl-[60px]">
-            <MailBody message={message} showQuote={quoteOpen} mine={mine} />
+            <MailBody message={message} showQuote={quoteOpen} />
             {message.truncated && (
               <p className="text-xs text-text-secondary">
                 This mail is very long and was cut here. Open it in Gmail to read all of it.

@@ -47,6 +47,7 @@ import { rememberListSearch } from '../lib/listMemory';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -184,8 +185,8 @@ function ApplicationsDashboard({
               {!isFetching && <Renew size={16} aria-hidden="true" />}
             </Button>
             <Button onClick={() => setShowCreateForm(true)}>
-              Add application
               <Add size={16} aria-hidden="true" />
+              Add application
             </Button>
           </>
         }
@@ -207,10 +208,14 @@ function ApplicationsDashboard({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add application</DialogTitle>
+            <DialogDescription>
+              For a job you applied to outside the app. Mails from this company join it by
+              themselves.
+            </DialogDescription>
           </DialogHeader>
           <form onSubmit={onSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5">
+              <div className="md:col-span-2">
                 <div className="space-y-2">
                   <Label htmlFor="companyName">Company</Label>
                   <Input
@@ -227,7 +232,7 @@ function ApplicationsDashboard({
                   </Reveal>
                 )}
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="jobTitle">Job title (optional)</Label>
                 <Input
                   id="jobTitle"
@@ -322,7 +327,7 @@ function ApplicationsDashboard({
                 disabled={createMutation.isPending || !!recovery}
                 variant="primary"
               >
-                {createMutation.isPending ? 'Saving...' : 'Save'}
+                {createMutation.isPending ? 'Adding…' : 'Add application'}
               </Button>
             </DialogFooter>
           </form>
@@ -332,6 +337,18 @@ function ApplicationsDashboard({
       <ApplicationsTable
         applications={error ? [] : applications}
         loading={isLoading}
+        endRow={
+          !error && (
+            <button
+              type="button"
+              onClick={() => setShowCreateForm(true)}
+              className="flex h-12 w-full cursor-pointer items-center gap-2.5 border-b border-border-subtle px-4 text-left text-sm text-text-primary transition-colors duration-70 ease-standard hover:bg-layer-hover"
+            >
+              <Add size={16} aria-hidden="true" />
+              Add application
+            </button>
+          )
+        }
         toolbar={
           <div>
             <Toolbar
