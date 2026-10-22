@@ -50,18 +50,18 @@ export function DialogContent({
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <BaseDialog.Popup
           className={cn(
-            'relative flex max-h-[90vh] w-full max-w-lg flex-col overflow-y-auto border border-border-subtle bg-surface text-text-primary shadow-popup outline-none transition-[opacity,translate] duration-240 ease-entrance data-ending-style:translate-y-6 data-ending-style:opacity-0 data-ending-style:ease-exit data-starting-style:translate-y-6 data-starting-style:opacity-0',
+            'relative flex max-h-[90vh] w-full max-w-[560px] flex-col overflow-y-auto border border-border-subtle bg-surface text-text-primary shadow-popup outline-none transition-[opacity,translate] duration-240 ease-entrance data-ending-style:translate-y-6 data-ending-style:opacity-0 data-ending-style:ease-exit data-starting-style:translate-y-6 data-starting-style:opacity-0',
             className,
           )}
           {...props}
         >
-          {/* The padding sits inside the moving box, so the footer's full-width buttons are not cut. */}
-          <AutoHeight contentClassName="flex flex-col px-4 pt-4">{children}</AutoHeight>
+          {/* The padding sits inside the moving box, so the footer's line runs edge to edge. */}
+          <AutoHeight contentClassName="flex flex-col px-6 pt-6">{children}</AutoHeight>
           <BaseDialog.Close
             aria-label="Close dialog"
-            className="absolute top-0 right-0 flex size-12 cursor-pointer items-center justify-center text-text-primary transition-colors duration-70 ease-standard hover:bg-layer-hover"
+            className="absolute top-5 right-5 flex size-8 cursor-pointer items-center justify-center text-text-secondary transition-colors duration-70 ease-standard hover:bg-layer-hover hover:text-text-primary"
           >
-            <Close size={20} aria-hidden="true" />
+            <Close size={16} aria-hidden="true" />
           </BaseDialog.Close>
         </BaseDialog.Popup>
       </div>
@@ -70,14 +70,14 @@ export function DialogContent({
 }
 
 export function DialogHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('mb-6 flex flex-col gap-1 pr-10 text-left', className)} {...props} />;
+  return <div className={cn('mb-6 flex flex-col gap-2 pr-10 text-left', className)} {...props} />;
 }
 
 export function DialogTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
   return (
     <BaseDialog.Title
       render={<h3 />}
-      className={cn('text-xl leading-7 font-normal', className)}
+      className={cn('text-xl leading-7 font-semibold', className)}
       {...props}
     />
   );
@@ -92,12 +92,12 @@ export function DialogDescription({
   );
 }
 
-/** The buttons along the bottom edge, each taking an equal share, as in IBM Carbon. */
+/** The buttons at the bottom right, under a line: the secondary one, then the main one. */
 export function DialogFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={cn(
-        '-mx-4 mt-8 flex [&>button]:h-16 [&>button]:flex-1 [&>button]:items-start [&>button]:justify-start [&>button]:px-4 [&>button]:pt-3.5',
+        '-mx-6 mt-6 flex flex-wrap justify-end gap-2 border-t border-border-subtle px-6 py-4',
         className,
       )}
       {...props}
