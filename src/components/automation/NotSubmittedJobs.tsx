@@ -24,6 +24,7 @@ const COLUMNS: ColumnDef<NotSubmittedJob>[] = [
   {
     id: 'job',
     header: 'Company',
+    meta: { count: true },
     cell: ({ row: { original: job } }) => (
       <div className="flex flex-col gap-0.5 break-words">
         <span className="font-semibold">{job.company}</span>
