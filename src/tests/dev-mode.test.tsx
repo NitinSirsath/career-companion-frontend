@@ -51,14 +51,14 @@ describe('app mode', () => {
 });
 
 describe('dev mode UI', () => {
-  it('shows the DEV MODE banner in dev mode', async () => {
+  it('shows the dev mode chip in dev mode', async () => {
     renderWithQuery(<DevModeBanner />);
-    expect(await screen.findByRole('status')).toHaveTextContent(
-      /^Dev mode · Gmail is the mail sandbox/,
-    );
+    const chip = await screen.findByRole('status');
+    expect(chip).toHaveTextContent(/^Dev mode · mail sandbox$/);
+    expect(chip).toHaveAttribute('title', 'Gmail is the mail sandbox. No real mail is sent.');
   });
 
-  it('shows no banner in prod mode', async () => {
+  it('shows no chip in prod mode', async () => {
     backendAnswers({ mode: 'prod' });
     const { container } = renderWithQuery(<DevModeBanner />);
     await waitFor(() => expect(modeFetch).toHaveBeenCalled());
