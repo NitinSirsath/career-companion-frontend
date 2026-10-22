@@ -74,14 +74,18 @@ export function ToolbarSearch({
   onChange,
   placeholder,
   maxLength = 100,
+  id: givenId,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
   maxLength?: number;
+  /** For a button elsewhere that puts the cursor in this box, such as the phone top bar's search. */
+  id?: string;
 }) {
-  const id = React.useId();
+  const ownId = React.useId();
+  const id = givenId ?? ownId;
   return (
     <div className="flex h-10 items-center gap-2.5 border border-border-default bg-field px-3 text-text-secondary focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-border-focus">
       <Search size={16} aria-hidden="true" className="shrink-0" />
