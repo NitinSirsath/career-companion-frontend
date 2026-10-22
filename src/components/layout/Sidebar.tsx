@@ -63,12 +63,7 @@ export function Sidebar({ user }: { user: User | null }) {
           <NavLink key={item.to} item={item} collapsed={collapsed} />
         ))}
         <div className="mt-2 border-t border-border-subtle pt-2">
-          <p
-            className={cn(
-              'px-4 pt-2 pb-1 text-xs tracking-[0.32px] text-text-tertiary',
-              collapsed && 'sr-only',
-            )}
-          >
+          <p className={cn('px-4 pt-2 pb-1 text-xs text-text-tertiary', collapsed && 'sr-only')}>
             Settings
           </p>
           {SETTINGS_NAV.map((item) => (

@@ -11,7 +11,7 @@ export function SyncLine() {
   const last = typeof data.lastSyncedAt === 'string' ? data.lastSyncedAt : null;
   return (
     <div className="flex items-center gap-1">
-      <span className="text-xs tracking-[0.32px] text-text-secondary">
+      <span className="text-xs text-text-secondary">
         {last ? `Synced ${mailDateTime(last)}` : 'Not synced yet'}
       </span>
       <Button variant="ghost" size="sm" loading={syncing} onClick={() => sync.mutate()}>

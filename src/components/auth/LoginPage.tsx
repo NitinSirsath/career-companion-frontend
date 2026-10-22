@@ -58,7 +58,7 @@ export function LoginPage({ error }: { error?: string }) {
         <div className="flex w-full flex-wrap items-start justify-center gap-6">
           <section
             aria-labelledby="sign-in-title"
-            className="flex w-full max-w-sm flex-col gap-6 bg-surface p-8"
+            className="flex w-full max-w-sm flex-col gap-6 border border-border-subtle bg-surface p-8"
           >
             <div className="flex flex-col gap-2">
               <h1 id="sign-in-title" className="text-[28px] leading-9 font-normal">
@@ -79,7 +79,7 @@ export function LoginPage({ error }: { error?: string }) {
           {devMode && (
             <section
               aria-labelledby="test-user-title"
-              className="flex w-full max-w-sm flex-col gap-6 bg-surface p-8"
+              className="flex w-full max-w-sm flex-col gap-6 border border-border-subtle bg-surface p-8"
             >
               <h2 id="test-user-title" className="text-xl leading-7 font-normal">
                 Create test user

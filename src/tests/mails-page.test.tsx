@@ -138,7 +138,6 @@ describe('home and navigation', () => {
     expect(screen.getAllByRole('menuitemradio').map((item) => item.textContent)).toEqual([
       'System',
       'Light',
-      'White',
       'Dark',
     ]);
   });

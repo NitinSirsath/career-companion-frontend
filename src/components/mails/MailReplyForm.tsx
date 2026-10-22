@@ -238,7 +238,7 @@ export function MailReplyForm({
       onSubmit={submit(replyId)}
       noValidate
       aria-label="Reply"
-      className="flex animate-open flex-col gap-3 bg-surface p-4"
+      className="flex animate-open flex-col gap-3 border border-border-subtle bg-surface p-4"
     >
       <ReplyOutcome
         sentNote={send.isSuccess ? replySentNote(replyTo, sentTo) : null}

@@ -27,7 +27,7 @@ export function Pagination({
 
   return (
     <div className="flex h-12 items-center justify-between border-t border-border-subtle bg-surface pl-4">
-      <span role="status" className="text-xs tracking-[0.32px] text-text-primary">
+      <span role="status" className="text-xs text-text-primary">
         {summary ?? `Page ${currentPage}`}
       </span>
       <div className="flex">

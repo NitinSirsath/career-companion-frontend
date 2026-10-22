@@ -31,7 +31,9 @@ export function SettingsSection({
         </h2>
         {help && <div className="text-sm text-text-secondary">{help}</div>}
       </div>
-      <div className="flex min-w-0 flex-1 flex-col gap-4 bg-surface px-6 py-5">{children}</div>
+      <div className="flex min-w-0 flex-1 flex-col gap-4 border border-border-subtle bg-surface px-6 py-5">
+        {children}
+      </div>
     </section>
   );
 }

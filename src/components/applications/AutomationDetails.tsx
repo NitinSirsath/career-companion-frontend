@@ -34,8 +34,11 @@ function UrlValue({ value }: { value: string | null }) {
 
 function Card({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section aria-label={title} className="flex min-w-0 flex-col gap-3 bg-surface px-6 py-5">
-      <h3 className="text-xs tracking-[0.32px] text-text-secondary">{title}</h3>
+    <section
+      aria-label={title}
+      className="flex min-w-0 flex-col gap-3 border border-border-subtle bg-surface px-6 py-5"
+    >
+      <h3 className="text-xs text-text-secondary">{title}</h3>
       {children}
     </section>
   );

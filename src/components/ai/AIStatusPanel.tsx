@@ -178,7 +178,7 @@ function ProviderSection({
             <span className="text-xl leading-7">{name}</span>
             <Tag color={badge.color}>{badge.label}</Tag>
           </span>
-          <span className="text-xs tracking-[0.32px] text-text-secondary">
+          <span className="text-xs text-text-secondary">
             {settings.access.verified ? 'Key verified' : 'Key saved'}
             {settings.access.lastCheckedAt &&
               ` · last checked ${format(new Date(settings.access.lastCheckedAt), 'MMM d, h:mm a')}`}

@@ -4,12 +4,12 @@ import { applicationTag, statusTag, STATUS_TAG_COLOR } from '../lib/statusTags';
 import { initials } from '../components/ui/avatar';
 
 describe('themes', () => {
-  it('keeps System, Light, White and Dark, and falls back to System for anything else', () => {
+  it('keeps System, Light and Dark, and falls back to System for anything else', () => {
     expect(parseStoredTheme('light')).toBe('light');
-    expect(parseStoredTheme('white')).toBe('white');
     expect(parseStoredTheme('dark')).toBe('dark');
     expect(parseStoredTheme('system')).toBe('system');
-    for (const removed of ['grey', 'github', 'monokai', null, '']) {
+    // A saved White, from before the flat themes, opens as System.
+    for (const removed of ['white', 'grey', 'github', 'monokai', null, '']) {
       expect(parseStoredTheme(removed)).toBe('system');
     }
   });
@@ -18,7 +18,6 @@ describe('themes', () => {
     expect(resolveTheme('system', true)).toBe('dark');
     expect(resolveTheme('system', false)).toBe('light');
     expect(resolveTheme('light', true)).toBe('light');
-    expect(resolveTheme('white', true)).toBe('white');
     expect(resolveTheme('dark', false)).toBe('dark');
   });
 });

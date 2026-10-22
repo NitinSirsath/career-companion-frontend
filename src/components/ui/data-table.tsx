@@ -163,7 +163,7 @@ export function DataTable<T>({
                       )}
                     >
                       {meta?.phoneLabel && (
-                        <div className="mb-0.5 text-xs tracking-[0.32px] text-text-secondary md:hidden">
+                        <div className="mb-0.5 text-xs text-text-secondary md:hidden">
                           {meta.phoneLabel}
                         </div>
                       )}

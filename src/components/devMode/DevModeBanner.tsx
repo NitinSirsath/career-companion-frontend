@@ -8,7 +8,7 @@ export function DevModeBanner() {
   return (
     <div
       role="status"
-      className="flex min-h-8 items-center justify-center bg-tag-yellow-bg px-4 text-center text-xs tracking-[0.32px] text-tag-yellow"
+      className="flex min-h-8 items-center justify-center bg-tag-yellow-bg px-4 text-center text-xs text-tag-yellow"
     >
       {devMode ? 'Dev mode' : 'Test account'} · Gmail is the mail sandbox. No real mail is sent.
     </div>

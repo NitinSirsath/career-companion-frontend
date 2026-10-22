@@ -36,9 +36,9 @@ function GmailMailPage() {
         </div>
         <aside
           aria-label="About this mail"
-          className="flex flex-col gap-2 bg-surface px-6 py-5 lg:sticky lg:top-6"
+          className="flex flex-col gap-2 border border-border-subtle bg-surface px-6 py-5 lg:sticky lg:top-6"
         >
-          <h2 className="text-xs tracking-[0.32px] text-text-secondary">Not a job mail</h2>
+          <h2 className="text-xs text-text-secondary">Not a job mail</h2>
           <p className="text-sm">
             This mail is shown as Gmail has it. Career Companion did not analyze it and keeps
             nothing from it.

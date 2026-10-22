@@ -12,7 +12,7 @@ import { logOutAndLeave } from './AccountMenu';
 import { MAIN_NAV, rememberedSearch, SANDBOX_NAV, SETTINGS_NAV, type NavItem } from './navItems';
 
 const BAR_ITEM =
-  'flex h-full w-full cursor-pointer flex-col items-center justify-center gap-1 text-xs tracking-[0.32px] text-text-secondary transition-colors duration-70 ease-standard [&.active]:font-semibold [&.active]:text-text-primary [&.active]:shadow-[inset_0_2px_0_var(--border-interactive)] [&.active_svg]:text-link';
+  'flex h-full w-full cursor-pointer flex-col items-center justify-center gap-1 text-xs text-text-secondary transition-colors duration-70 ease-standard [&.active]:font-semibold [&.active]:text-text-primary [&.active]:shadow-[inset_0_2px_0_var(--border-interactive)] [&.active_svg]:text-link';
 
 const SHEET_ROW =
   'flex min-h-12 w-full items-center gap-3 px-4 text-left text-sm text-text-primary transition-colors duration-70 ease-standard hover:bg-layer-hover';
@@ -43,12 +43,12 @@ function MoreSheet({ user, onPick }: { user: User | null; onPick: () => void }) 
           )}
         </span>
       </div>
-      <p className="px-4 pt-4 pb-1 text-xs tracking-[0.32px] text-text-secondary">Settings</p>
+      <p className="px-4 pt-4 pb-1 text-xs text-text-secondary">Settings</p>
       {SETTINGS_NAV.map((item) => (
         <SheetLink key={item.to} item={item} onPick={onPick} />
       ))}
       {sandbox && <SheetLink item={SANDBOX_NAV} onPick={onPick} />}
-      <p className="mt-2 border-t border-border-subtle px-4 pt-4 pb-2 text-xs tracking-[0.32px] text-text-secondary">
+      <p className="mt-2 border-t border-border-subtle px-4 pt-4 pb-2 text-xs text-text-secondary">
         Theme
       </p>
       <div

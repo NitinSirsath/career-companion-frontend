@@ -72,21 +72,18 @@ export function Combobox<T>({
       <div className={cn('flex flex-col', className)}>
         <label
           htmlFor={inputId}
-          className={cn(
-            'mb-2 text-xs leading-4 tracking-[0.32px] text-text-secondary',
-            hideLabel && 'sr-only',
-          )}
+          className={cn('mb-2 text-xs text-text-secondary', hideLabel && 'sr-only')}
         >
           {label}
         </label>
-        <BaseCombobox.InputGroup className="relative flex h-10 items-center border-b border-border-strong bg-field focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-border-focus">
+        <BaseCombobox.InputGroup className="relative flex h-10 items-center border border-border-default bg-field focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-border-focus">
           {/* Named twice on purpose: while the list is open the page around it, label included, is
               hidden from screen readers, and the box must keep its name. */}
           <BaseCombobox.Input
             id={inputId}
             aria-label={label}
             placeholder={placeholder}
-            className="h-full w-full min-w-0 bg-transparent pr-10 pl-4 text-sm text-text-primary outline-none placeholder:text-text-tertiary disabled:text-text-disabled"
+            className="h-full w-full min-w-0 bg-transparent pr-10 pl-3 text-sm text-text-primary outline-none placeholder:text-text-tertiary disabled:text-text-disabled"
           />
           <BaseCombobox.Trigger
             aria-label={`Open ${label}`}
@@ -99,11 +96,7 @@ export function Combobox<T>({
             />
           </BaseCombobox.Trigger>
         </BaseCombobox.InputGroup>
-        {helperText && (
-          <p className="mt-2 text-xs leading-4 tracking-[0.32px] text-text-secondary">
-            {helperText}
-          </p>
-        )}
+        {helperText && <p className="mt-2 text-xs text-text-secondary">{helperText}</p>}
       </div>
       <BaseCombobox.Portal>
         <BaseCombobox.Positioner align="start" className="z-50 outline-none">
