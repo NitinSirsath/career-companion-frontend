@@ -2,7 +2,11 @@ import { useEffect } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { AIAccessNotice } from '../components/ai/AIAccessNotice';
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
+import { TopBarActions } from '../components/layout/Breadcrumb';
 import { PageHeader } from '../components/layout/PageHeader';
+import { TopBarSearch } from '../components/layout/TopBarButtons';
+import { useIsPhone } from '../components/layout/useIsPhone';
+import { MAIL_SEARCH_ID } from '../components/mails/ConversationFilters';
 import { GmailInbox } from '../components/mails/GmailInbox';
 import { JobMails } from '../components/mails/JobMails';
 import { MailsTabs } from '../components/mails/MailsTabs';
@@ -18,6 +22,7 @@ export const Route = createFileRoute('/mails/')({
 
 function MailsPage() {
   const search = Route.useSearch();
+  const phone = useIsPhone();
   const navigate = useNavigate({ from: Route.fullPath });
   // Filters live in the URL, so Back from a mail returns to the same view.
   const change = (changes: Partial<MailsSearch>) =>
@@ -33,12 +38,19 @@ function MailsPage() {
     <div className="space-y-6">
       <PageHeader
         className="mb-0"
+        phoneCompact
         title="Mails"
         description="Every job mail, what it needs from you, and the application it belongs to."
-        actions={<SyncLine />}
+        actions={phone ? undefined : <SyncLine />}
       />
+      {phone && search.tab !== 'gmail' && (
+        <TopBarActions>
+          <TopBarSearch targetId={MAIL_SEARCH_ID} label="Search mails" />
+        </TopBarActions>
+      )}
       <AIAccessNotice />
       <MailsTabs tab={search.tab === 'gmail' ? 'gmail' : 'job'} />
+      {phone && <SyncLine compact />}
       {search.tab === 'gmail' ? <GmailInbox /> : <JobMails search={search} onChange={change} />}
     </div>
   );
