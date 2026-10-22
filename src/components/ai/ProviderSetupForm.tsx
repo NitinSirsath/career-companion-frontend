@@ -132,7 +132,7 @@ export function ProviderSetupForm({
     <form
       onSubmit={submit}
       aria-label={`Set up ${name}`}
-      className="space-y-6 bg-surface px-6 py-5"
+      className="space-y-6 border border-border-subtle bg-surface px-6 py-5"
     >
       <div className="space-y-2">
         <h3 className="text-xl leading-7">{sameProvider ? `Update ${name}` : `Set up ${name}`}</h3>
