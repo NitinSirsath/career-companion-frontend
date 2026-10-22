@@ -116,11 +116,11 @@ export function FilterChips({
   if (chips.length === 0) return null;
   return (
     <div className="flex flex-wrap items-center gap-2 border-b border-border-subtle bg-surface px-4 py-3">
-      {summary && <span className="text-xs tracking-[0.32px] text-text-secondary">{summary}</span>}
+      {summary && <span className="text-xs text-text-secondary">{summary}</span>}
       {chips.map((chip) => (
         <span
           key={chip.label}
-          className="inline-flex h-6 animate-open items-center bg-tag-gray-bg pl-2 text-xs tracking-[0.32px] text-tag-gray"
+          className="inline-flex h-6 animate-open items-center bg-tag-gray-bg pl-2 text-xs text-tag-gray"
         >
           {chip.label}
           <button
