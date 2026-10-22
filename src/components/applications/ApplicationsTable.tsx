@@ -158,6 +158,35 @@ interface ApplicationsTableProps {
 }
 
 /** One row per application: company and role, status, open to-dos, applied date, latest news. */
+/** An application on a phone: one tappable card with its company, status, role and latest news. */
+function PhoneApplicationCard({ app }: { app: ApplicationResponse }) {
+  const tag = applicationTag(app);
+  const activity = activityLine(app.recentEvent);
+  const role = [app.jobTitle, app.location].filter(Boolean).join(' · ');
+  return (
+    <Link
+      to="/applications/$id"
+      params={{ id: app.id }}
+      className="mb-2.5 flex flex-col gap-1 border border-border-subtle p-3.5 text-text-primary transition-colors duration-70 ease-standard active:bg-layer-hover"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <span className="min-w-0 text-base font-semibold break-words">{app.companyName}</span>
+        <Tag color={tag.color}>{tag.label}</Tag>
+      </div>
+      {role && <span className="text-xs break-words text-text-secondary">{role}</span>}
+      <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-text-secondary">
+        {app.pendingActionCount > 0 && <Tag color="yellow">{app.pendingActionCount} to do</Tag>}
+        {app.archivedAt && <Tag color={ARCHIVED_TAG.color}>{ARCHIVED_TAG.label}</Tag>}
+        {activity && (
+          <span>
+            {activity.what} · {activity.when}
+          </span>
+        )}
+      </div>
+    </Link>
+  );
+}
+
 export function ApplicationsTable({ applications, ...rest }: ApplicationsTableProps) {
   return (
     <DataTable
@@ -166,6 +195,7 @@ export function ApplicationsTable({ applications, ...rest }: ApplicationsTablePr
       columns={COLUMNS}
       getRowId={(app) => app.id}
       gridTemplate="minmax(220px,2fr) minmax(170px,1.3fr) 112px 128px minmax(200px,1.6fr) 32px"
+      phoneRow={(app) => <PhoneApplicationCard app={app} />}
       {...rest}
     />
   );
