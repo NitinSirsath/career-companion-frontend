@@ -24,7 +24,10 @@ export function ProviderPicker({
     <section aria-label="Choose an AI provider" className="space-y-4">
       <ul className="grid gap-4 md:grid-cols-2">
         {providers.map((provider) => (
-          <li key={provider.id} className="flex flex-col gap-3 bg-surface px-6 py-5">
+          <li
+            key={provider.id}
+            className="flex flex-col gap-3 border border-border-subtle bg-surface px-6 py-5"
+          >
             <div className="flex items-center justify-between gap-2">
               <h3 className="text-xl leading-7">{provider.displayName}</h3>
               <Tag color={provider.costModel === 'FREE_TIER_AVAILABLE' ? 'green' : 'gray'}>
