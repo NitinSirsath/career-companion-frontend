@@ -12,7 +12,7 @@ import { logOutAndLeave } from './AccountMenu';
 import { MAIN_NAV, rememberedSearch, SANDBOX_NAV, SETTINGS_NAV, type NavItem } from './navItems';
 
 const BAR_ITEM =
-  'flex h-full w-full cursor-pointer flex-col items-center justify-center gap-1 text-xs text-text-secondary transition-colors duration-70 ease-standard [&.active]:font-semibold [&.active]:text-text-primary [&.active]:shadow-[inset_0_2px_0_var(--border-interactive)] [&.active_svg]:text-link';
+  'flex h-full w-full cursor-pointer flex-col items-center justify-center gap-1 text-xs text-text-secondary transition-colors duration-70 ease-standard [&.active]:bg-tint [&.active]:text-tint-text [&.active_svg]:text-link';
 
 const SHEET_ROW =
   'flex min-h-12 w-full items-center gap-3 px-4 text-left text-sm text-text-primary transition-colors duration-70 ease-standard hover:bg-layer-hover';
