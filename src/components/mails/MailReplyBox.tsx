@@ -14,7 +14,7 @@ function ReplyNotice({ text, children }: { text: string; children: React.ReactNo
   return (
     <section
       aria-label="Reply"
-      className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 bg-surface p-4"
+      className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border border-border-subtle bg-surface p-4"
     >
       <div className="min-w-0 flex-1 basis-64 space-y-1">
         <p className="text-sm font-semibold">Reply</p>
@@ -111,7 +111,7 @@ export function MailReplyBox({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex h-12 w-full cursor-text items-center gap-3 border-b border-border-strong bg-surface px-4 text-left text-sm text-text-secondary transition-colors duration-70 ease-standard hover:bg-layer-hover"
+        className="flex h-12 w-full cursor-text items-center gap-3 border border-border-default bg-field px-4 text-left text-sm text-text-secondary transition-colors duration-70 ease-standard hover:bg-layer-hover"
       >
         <Reply size={16} aria-hidden="true" />
         <span className="flex-1">Reply to {parseSender(replyTo).name}…</span>
