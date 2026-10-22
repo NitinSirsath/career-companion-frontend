@@ -187,7 +187,9 @@
       transform: translateX(-100%);
     }
     to {
-      transform: translateX(260%)
+      transform: translateX(260%);
+    }
+  }
   @keyframes shimmer {
     from {
       background-position: -480px 0;
