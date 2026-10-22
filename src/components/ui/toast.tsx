@@ -24,7 +24,7 @@ function ToastList() {
     <Toast.Root
       key={toast.id}
       toast={toast}
-      className="flex min-h-12 w-full items-center gap-4 bg-inverse pl-4 text-sm text-inverse-text transition-[opacity,transform] duration-240 ease-entrance data-ending-style:translate-y-4 data-ending-style:opacity-0 data-ending-style:ease-exit data-starting-style:translate-y-4 data-starting-style:opacity-0"
+      className="flex min-h-12 w-full items-center gap-4 bg-inverse pl-4 text-sm text-inverse-text transition-[opacity,translate] duration-240 ease-entrance data-ending-style:translate-y-4 data-ending-style:opacity-0 data-ending-style:ease-exit data-starting-style:translate-y-4 data-starting-style:opacity-0"
     >
       <CheckmarkFilled size={16} aria-hidden="true" className="shrink-0 text-ok" />
       <Toast.Title className="flex-1 py-3" />
