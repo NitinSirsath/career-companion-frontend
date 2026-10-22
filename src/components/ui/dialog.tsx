@@ -47,10 +47,11 @@ export function DialogContent({
   return (
     <BaseDialog.Portal>
       <BaseDialog.Backdrop className="fixed inset-0 z-50 bg-overlay transition-opacity duration-240 ease-entrance data-ending-style:opacity-0 data-ending-style:ease-exit data-starting-style:opacity-0" />
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* On phones a dialog takes the whole screen, as phone apps do. */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 max-md:p-0">
         <BaseDialog.Popup
           className={cn(
-            'relative flex max-h-[90vh] w-full max-w-[560px] flex-col overflow-y-auto border border-border-subtle bg-surface text-text-primary shadow-popup outline-none transition-[opacity,translate] duration-240 ease-entrance data-ending-style:translate-y-6 data-ending-style:opacity-0 data-ending-style:ease-exit data-starting-style:translate-y-6 data-starting-style:opacity-0',
+            'relative flex max-h-[90vh] w-full max-w-[560px] flex-col overflow-y-auto border border-border-subtle bg-surface text-text-primary shadow-popup outline-none max-md:h-full max-md:max-h-none max-md:max-w-none max-md:border-0 max-md:shadow-none transition-[opacity,translate] duration-240 ease-entrance data-ending-style:translate-y-6 data-ending-style:opacity-0 data-ending-style:ease-exit data-starting-style:translate-y-6 data-starting-style:opacity-0',
             className,
           )}
           {...props}

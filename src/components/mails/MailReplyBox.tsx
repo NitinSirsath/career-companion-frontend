@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useLocation } from '@tanstack/react-router';
-import { Reply } from '@carbon/icons-react';
+import { Close, Reply } from '@carbon/icons-react';
 import { useSandboxMailbox } from '../../api/appMode';
 import { useCanSendMail } from '../../api/mailbox';
 import { allowSendingUrl, replyHint } from '../../lib/mailReply';
 import { parseSender } from '../../lib/mails';
+import { useIsPhone } from '../layout/useIsPhone';
 import { Button } from '../ui/button';
 import { GmailLink } from '../ui/GmailLink';
 import { MailReplyForm } from './MailReplyForm';
@@ -70,6 +71,37 @@ function useReplyOpen(replyAsks: number): [boolean, (open: boolean) => void] {
 }
 
 /**
+ * On phones the open reply covers the screen, like a mail app's reply. Closing it only hides it:
+ * the text stays until the user sends it or leaves the page, and Reply shows it again.
+ */
+function PhoneReplyScreen({ replyAsks, children }: { replyAsks: number; children: ReactNode }) {
+  const [shown, setShown] = useState(true);
+  const [askedFor, setAskedFor] = useState(replyAsks);
+  if (askedFor !== replyAsks) {
+    setAskedFor(replyAsks);
+    setShown(true);
+  }
+  return (
+    <div hidden={!shown} className="fixed inset-0 z-50 flex animate-open flex-col bg-background">
+      <div className="flex h-14 shrink-0 items-stretch border-b border-border-subtle">
+        <button
+          type="button"
+          aria-label="Close reply"
+          onClick={() => setShown(false)}
+          className="flex w-14 shrink-0 cursor-pointer items-center justify-center border-r border-border-subtle hover:bg-layer-hover"
+        >
+          <Close size={20} aria-hidden="true" />
+        </button>
+        <p className="flex items-center px-4 text-base font-semibold">Reply</p>
+      </div>
+      <div className="min-h-0 flex-1 overflow-y-auto p-4 [&>form]:border-0 [&>form]:p-0">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/**
  * Replying from the mail details page, docked under the conversation like a chat box: one line
  * until the user starts a reply. The same box in both modes: it sends from the user's Gmail in
  * prod and into the mail sandbox in dev mode. Who the reply goes to comes from the conversation:
@@ -98,6 +130,7 @@ export function MailReplyBox({
   const canSend = useCanSendMail();
   const mailPath = useLocation({ select: (location) => location.pathname });
   const [open, setOpen] = useReplyOpen(replyAsks);
+  const phone = useIsPhone();
   // The mailbox itself: Gmail in prod, the mail sandbox in dev mode.
   const elsewhere = sandbox ? (
     <Link to="/sandbox/$threadId" params={{ threadId }} className="text-sm text-link">
@@ -123,6 +156,8 @@ export function MailReplyBox({
         </Button>
       </ReplyNotice>
     );
+  // On phones the floating Reply button opens it: no closed bar under the conversation.
+  else if (!open && phone) box = null;
   else if (!open)
     box = (
       <button
@@ -135,7 +170,7 @@ export function MailReplyBox({
         <kbd className="border border-border-default px-1.5 font-mono text-xs">R</kbd>
       </button>
     );
-  else
+  else {
     box = (
       <MailReplyForm
         threadId={threadId}
@@ -148,5 +183,9 @@ export function MailReplyBox({
         {elsewhere}
       </MailReplyForm>
     );
-  return <div className="sticky bottom-16 z-10 bg-background py-2 md:bottom-0">{box}</div>;
+    if (phone) box = <PhoneReplyScreen replyAsks={replyAsks}>{box}</PhoneReplyScreen>;
+  }
+  // On phones nothing sticks to the bottom: the room there is the floating Reply button's.
+  if (phone) return <div className="pt-2 pb-16">{box}</div>;
+  return <div className="sticky bottom-0 z-10 bg-background py-2">{box}</div>;
 }

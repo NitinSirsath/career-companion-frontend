@@ -16,14 +16,15 @@ import { sectionOf } from './navItems';
 /** Lets the pages of the signed-in app put their breadcrumb into the top bar. */
 export function BreadcrumbProvider({ children }: { children: ReactNode }) {
   const [target, setTarget] = useState<HTMLElement | null>(null);
+  const [actionsTarget, setActionsTarget] = useState<HTMLElement | null>(null);
   const [claims, setClaims] = useState(0);
   const claim = useCallback(() => {
     setClaims((count) => count + 1);
     return () => setClaims((count) => count - 1);
   }, []);
   const value = useMemo(
-    () => ({ target, setTarget, claimed: claims > 0, claim }),
-    [target, claims, claim],
+    () => ({ target, setTarget, claimed: claims > 0, claim, actionsTarget, setActionsTarget }),
+    [target, claims, claim, actionsTarget],
   );
   return <BreadcrumbSlotContext.Provider value={value}>{children}</BreadcrumbSlotContext.Provider>;
 }
@@ -104,17 +105,29 @@ export function Breadcrumb({
   return slot.target ? createPortal(trail, slot.target) : null;
 }
 
-/** The top bar's breadcrumb when the page has none of its own: the section the page is in. */
+/** A page's own buttons in the phone top bar, as cells beside the account button. */
+export function TopBarActions({ children }: { children: ReactNode }) {
+  const slot = useBreadcrumbSlot();
+  return slot?.actionsTarget ? createPortal(children, slot.actionsTarget) : null;
+}
+
+/**
+ * The top bar's breadcrumb when the page has none of its own: the section the page is in. On
+ * phones it is the page's name, in bold.
+ */
 export function SectionCrumb({ path }: { path: string }) {
   const section = sectionOf(path);
   if (!section) return null;
   const Icon = section.icon;
   return (
-    <nav aria-label="Breadcrumb" className="hidden md:flex">
-      <ol>
-        <li aria-current="page" className={cn(LEVEL_CLASS, 'text-text-primary')}>
-          <Icon size={16} aria-hidden="true" className="text-text-secondary" />
-          {section.label}
+    <nav aria-label="Breadcrumb" className="flex min-w-0">
+      <ol className="min-w-0">
+        <li
+          aria-current="page"
+          className={cn(LEVEL_CLASS, 'text-text-primary max-md:text-base max-md:font-semibold')}
+        >
+          <Icon size={16} aria-hidden="true" className="hidden text-text-secondary md:block" />
+          <span className="truncate">{section.label}</span>
         </li>
       </ol>
     </nav>

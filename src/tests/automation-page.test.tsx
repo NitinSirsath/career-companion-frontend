@@ -101,18 +101,18 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe('navigation', () => {
-  it('links to the Automation page next to AI provider, on desktop and under More on phones', async () => {
+  it('links to the Automation page next to AI provider, on desktop and in the phone menu', async () => {
     renderPage();
     expect(await screen.findByRole('heading', { name: 'Automation' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Automation' })).toHaveAttribute('href', '/automation');
     expect(screen.getByRole('link', { name: 'AI provider' })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'More' }));
-    const more = await screen.findByRole('dialog', { name: 'More' });
-    expect(within(more).getByRole('link', { name: 'Automation' })).toHaveAttribute(
+    fireEvent.click(screen.getByRole('button', { name: 'Open menu' }));
+    const menu = await screen.findByRole('dialog', { name: 'Menu' });
+    expect(within(menu).getByRole('link', { name: 'Automation' })).toHaveAttribute(
       'href',
       '/automation',
     );
-    fireEvent.click(within(more).getByRole('button', { name: 'Close' }));
+    fireEvent.click(within(menu).getByRole('button', { name: 'Close menu' }));
     expect(await screen.findByText(`${window.location.origin}/mcp`)).toBeInTheDocument();
   });
 });

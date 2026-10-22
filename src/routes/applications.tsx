@@ -1,5 +1,8 @@
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
+import { TopBarActions } from '../components/layout/Breadcrumb';
 import { PageHeader } from '../components/layout/PageHeader';
+import { TopBarButton, TopBarSearch } from '../components/layout/TopBarButtons';
+import { useIsPhone } from '../components/layout/useIsPhone';
 import { Add, Renew } from '@carbon/icons-react';
 import {
   useCallback,
@@ -61,6 +64,9 @@ export const Route = createFileRoute('/applications')({
 
 type CreationRecovery = { refresh: 'pending' | 'failed' | 'done' } | null;
 
+/** The search box's id, for the phone top bar's search button. */
+const APPLICATION_SEARCH_ID = 'application-search';
+
 function ApplicationsDashboard({
   view,
   setView,
@@ -69,6 +75,7 @@ function ApplicationsDashboard({
   setView: Dispatch<SetStateAction<DiscoveryView>>;
 }) {
   const queryClient = useQueryClient();
+  const phone = useIsPhone();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const { offset, search, tab, archive, sort } = view;
   const setOffset = (offset: number) => setView((current) => ({ ...current, offset }));
@@ -167,9 +174,18 @@ function ApplicationsDashboard({
   });
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 max-md:space-y-4">
+      {phone && (
+        <TopBarActions>
+          <TopBarSearch targetId={APPLICATION_SEARCH_ID} label="Search applications" />
+          <TopBarButton label="Add application" onClick={() => setShowCreateForm(true)}>
+            <Add size={20} aria-hidden="true" />
+          </TopBarButton>
+        </TopBarActions>
+      )}
       <PageHeader
         className="mb-0"
+        phoneCompact
         title="Applications"
         description="Every job you applied for, where it stands, and what is next."
         actions={
@@ -197,6 +213,7 @@ function ApplicationsDashboard({
         value={tab}
         onValueChange={(next) => changeFilters({ tab: next })}
         items={STATUS_TABS}
+        phoneLook="chips"
       />
       {tab === 'SUBMITTED' && (
         <p className="text-sm text-text-secondary">
@@ -338,7 +355,8 @@ function ApplicationsDashboard({
         applications={error ? [] : applications}
         loading={isLoading}
         endRow={
-          !error && (
+          !error &&
+          !phone && (
             <button
               type="button"
               onClick={() => setShowCreateForm(true)}
@@ -355,6 +373,7 @@ function ApplicationsDashboard({
               filterCount={(archive !== 'active' ? 1 : 0) + (search.trim() ? 1 : 0)}
               search={
                 <ToolbarSearch
+                  id={APPLICATION_SEARCH_ID}
                   label="Search company or job title"
                   value={searchText}
                   onChange={setSearchText}

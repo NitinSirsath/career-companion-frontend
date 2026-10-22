@@ -4,10 +4,12 @@ import {
   getCoreRowModel,
   useReactTable,
   type ColumnDef,
+  type Row,
   type RowData,
 } from '@tanstack/react-table';
 import { ArrowDown } from '@carbon/icons-react';
 import { cn } from '../../lib/utils';
+import { useIsPhone } from '../layout/useIsPhone';
 import { Skeleton } from './skeleton';
 
 declare module '@tanstack/react-table' {
@@ -45,6 +47,11 @@ interface DataTableProps<T> {
   footer?: React.ReactNode;
   /** Shown above the header: the toolbar. */
   toolbar?: React.ReactNode;
+  /**
+   * On phones each row is drawn by this instead of its cells: one tappable row or card, as phone
+   * apps show lists. Without it the cells stack, each with its `phoneLabel`.
+   */
+  phoneRow?: (row: T) => React.ReactNode;
 }
 
 const ROW_CLASS =
@@ -77,7 +84,9 @@ export function DataTable<T>({
   endRow,
   footer,
   toolbar,
+  phoneRow,
 }: DataTableProps<T>) {
+  const phone = useIsPhone() && !!phoneRow;
   const table = useReactTable({
     data: data as T[],
     columns,
@@ -146,7 +155,10 @@ export function DataTable<T>({
           ))}
         </div>
         {/* On phones the header row is hidden, so the first row draws the line above itself. */}
-        <div role="rowgroup" className="border-t border-border-subtle md:border-t-0">
+        <div
+          role="rowgroup"
+          className={cn(!phone && 'border-t border-border-subtle md:border-t-0')}
+        >
           {loading && (
             <span role="status" className="sr-only">
               Loading {label.toLowerCase()}
@@ -164,36 +176,15 @@ export function DataTable<T>({
               </div>
             ))}
           {!loading &&
-            rows.map((row) => (
-              <div
-                key={row.id}
-                role="row"
-                className={cn(ROW_CLASS, 'animate-fade-in')}
-                style={style}
-              >
-                {row.getVisibleCells().map((cell) => {
-                  const meta = cell.column.columnDef.meta;
-                  return (
-                    <div
-                      key={cell.id}
-                      role="cell"
-                      className={cn(
-                        'min-w-0 text-sm',
-                        meta?.interactive && 'relative z-10',
-                        meta?.className,
-                      )}
-                    >
-                      {meta?.phoneLabel && (
-                        <div className="mb-0.5 text-xs text-text-secondary md:hidden">
-                          {meta.phoneLabel}
-                        </div>
-                      )}
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
+            rows.map((row) =>
+              phone ? (
+                <div key={row.id} role="row" className="animate-fade-in">
+                  <div role="cell">{phoneRow(row.original)}</div>
+                </div>
+              ) : (
+                <TableRow key={row.id} row={row} style={style} />
+              ),
+            )}
         </div>
       </div>
       {!loading && rows.length === 0 && empty && (
@@ -201,6 +192,29 @@ export function DataTable<T>({
       )}
       {!loading && endRow}
       {footer}
+    </div>
+  );
+}
+
+/** One row of cells. On phones the cells stack, each named by its `phoneLabel`. */
+function TableRow<T>({ row, style }: { row: Row<T>; style: React.CSSProperties }) {
+  return (
+    <div role="row" className={cn(ROW_CLASS, 'animate-fade-in')} style={style}>
+      {row.getVisibleCells().map((cell) => {
+        const meta = cell.column.columnDef.meta;
+        return (
+          <div
+            key={cell.id}
+            role="cell"
+            className={cn('min-w-0 text-sm', meta?.interactive && 'relative z-10', meta?.className)}
+          >
+            {meta?.phoneLabel && (
+              <div className="mb-0.5 text-xs text-text-secondary md:hidden">{meta.phoneLabel}</div>
+            )}
+            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+          </div>
+        );
+      })}
     </div>
   );
 }

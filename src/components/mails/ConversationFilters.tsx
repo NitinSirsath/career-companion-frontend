@@ -7,6 +7,7 @@ import {
   type MailsSearch,
 } from '../../lib/mails';
 import { cn } from '../../lib/utils';
+import { useIsPhone } from '../layout/useIsPhone';
 import { Select } from '../ui/select';
 import { FilterChips, Toolbar, ToolbarSearch, type FilterChip } from '../ui/toolbar';
 import { useSearchText } from '../useSearchText';
@@ -108,8 +109,50 @@ function NewOnly({
   );
 }
 
+/** The search box's id, for the phone top bar's search button. */
+export const MAIL_SEARCH_ID = 'mail-search';
+
+const QUICK_CHIP =
+  'flex h-9 shrink-0 cursor-pointer items-center border border-border-default px-3 text-sm whitespace-nowrap text-text-primary transition-colors duration-70 ease-standard aria-pressed:border-transparent aria-pressed:bg-tint aria-pressed:text-tint-text';
+
+/** On phones: the two filters used most, one tap each, under the search box. */
+function QuickFilters({ search, onChange }: ConversationFiltersProps) {
+  const needs = search.request === 'open';
+  const unseen = search.unseen === true;
+  return (
+    <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pt-3 [scrollbar-width:none]">
+      <button
+        type="button"
+        aria-pressed={needs}
+        className={QUICK_CHIP}
+        onClick={() => onChange({ request: needs ? undefined : 'open' })}
+      >
+        Needs action
+      </button>
+      <button
+        type="button"
+        aria-pressed={unseen}
+        className={QUICK_CHIP}
+        onClick={() => onChange({ unseen: unseen ? undefined : true })}
+      >
+        New only
+      </button>
+    </div>
+  );
+}
+
+/** Clears the search and every filter; the sort stays. */
+const NO_FILTERS: Partial<MailsSearch> = {
+  q: undefined,
+  request: undefined,
+  category: undefined,
+  application: undefined,
+  unseen: undefined,
+};
+
 /** The Job mails toolbar: search, the filters, "New only" and the sort; then the active filters. */
 export function ConversationFilters({ search, onChange }: ConversationFiltersProps) {
+  const phone = useIsPhone();
   const [text, setText] = useSearchText(search.q ?? '', (q) => onChange({ q: q || undefined }));
   const chips = activeChips(search, onChange);
   const filters = (layout: 'inline' | 'sheet') => (
@@ -151,6 +194,7 @@ export function ConversationFilters({ search, onChange }: ConversationFiltersPro
         filterCount={chips.length}
         search={
           <ToolbarSearch
+            id={MAIL_SEARCH_ID}
             label="Search"
             value={text}
             onChange={setText}
@@ -170,18 +214,11 @@ export function ConversationFilters({ search, onChange }: ConversationFiltersPro
           />
         )}
       />
-      <FilterChips
-        chips={chips}
-        onClearAll={() =>
-          onChange({
-            q: undefined,
-            request: undefined,
-            category: undefined,
-            application: undefined,
-            unseen: undefined,
-          })
-        }
-      />
+      {phone ? (
+        <QuickFilters search={search} onChange={onChange} />
+      ) : (
+        <FilterChips chips={chips} onClearAll={() => onChange(NO_FILTERS)} />
+      )}
     </div>
   );
 }

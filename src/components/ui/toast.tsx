@@ -45,7 +45,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <Toast.Provider toastManager={toastManager}>
       {children}
       <Toast.Portal>
-        <Toast.Viewport className="fixed right-4 bottom-4 z-[60] flex w-[calc(100vw-2rem)] flex-col gap-2 sm:right-6 sm:bottom-6 sm:w-[24rem]">
+        {/* On phones it sits above the bottom bar, so the bar stays in reach. */}
+        <Toast.Viewport className="fixed right-4 bottom-20 z-[60] flex w-[calc(100vw-2rem)] flex-col gap-2 sm:right-6 sm:w-[24rem] md:bottom-6">
           <ToastList />
         </Toast.Viewport>
       </Toast.Portal>

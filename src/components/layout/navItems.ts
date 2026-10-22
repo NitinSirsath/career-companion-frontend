@@ -26,6 +26,13 @@ export interface NavItem {
   icon: CarbonIconType;
 }
 
+/**
+ * A menu link: dark text with a grey icon; the chosen page has a light blue tint with blue text.
+ * Used by the side menu and the phone menu.
+ */
+export const NAV_LINK_CLASS =
+  'flex h-9 shrink-0 items-center gap-3 overflow-hidden px-3 text-sm whitespace-nowrap text-text-primary transition-colors duration-70 ease-standard hover:bg-layer-hover [&_svg]:text-text-secondary [&.active]:bg-tint [&.active]:text-tint-text [&.active_svg]:text-link';
+
 /** The pages used every day, in menu order. */
 export const MAIN_NAV: readonly NavItem[] = [
   { to: '/mails', label: 'Mails', icon: Email },
