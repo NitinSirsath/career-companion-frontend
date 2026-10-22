@@ -83,7 +83,7 @@ function LoggedInShell({ children }: LoggedInShellProps) {
               </div>
             </main>
 
-            <MobileNav user={user} />
+            <MobileNav />
           </div>
         </div>
       </div>
