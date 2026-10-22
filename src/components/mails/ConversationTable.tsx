@@ -1,52 +1,29 @@
 import type { ReactNode } from 'react';
 import { Link } from '@tanstack/react-router';
 import type { ColumnDef } from '@tanstack/react-table';
-import { useSetRequestState } from '../../api/conversations';
 import { useSandboxMailbox } from '../../api/appMode';
 import type { Conversation } from '../../contracts/conversation';
-import { conversationSummary, mailDate, requestControls, requestTitle } from '../../lib/mails';
+import { conversationSummary, mailDate } from '../../lib/mails';
 import { cn } from '../../lib/utils';
 import { getGmailConversationUrl } from '../../utils/gmail';
 import { DataTable, ROW_LINK_CLASS } from '../ui/data-table';
 import { OverflowMenu, type MenuAction } from '../ui/menu';
-import { showToast } from '../ui/toast';
 import { ConversationAction } from './ConversationAction';
 import { ConversationApplication } from './ConversationApplication';
 import { MailType } from './MailType';
+import { PhoneMailRow } from './PhoneMailRow';
 import { TodoState } from './TodoState';
+import { useRequestChange } from './useRequestChange';
 
 /** The row's "…" menu: change what the mail needs, and open it in Gmail. */
 function RowMenu({ conversation }: { conversation: Conversation }) {
-  const change = useSetRequestState(conversation.key);
+  const request = useRequestChange(conversation);
   const sandbox = useSandboxMailbox();
-  const asked = conversation.request;
-  const actions: MenuAction[] = [];
-  if (asked) {
-    const title = requestTitle(asked);
-    // The server can set a request back to open or done, not to replied: no Undo from replied.
-    const before = asked.state === 'REPLIED' ? null : asked.state;
-    for (const control of requestControls(asked.state, true)) {
-      actions.push({
-        label: control.label,
-        disabled: change.isPending,
-        onSelect: () =>
-          change.mutate(
-            { emailId: asked.emailId, state: control.state },
-            {
-              onSuccess: () =>
-                showToast(
-                  `${control.label === 'Mark done' ? 'Marked done' : 'Updated'}: ${title}`,
-                  {
-                    undo: before
-                      ? () => change.mutate({ emailId: asked.emailId, state: before })
-                      : undefined,
-                  },
-                ),
-            },
-          ),
-      });
-    }
-  }
+  const actions: MenuAction[] = request.controls.map((control) => ({
+    label: control.label,
+    disabled: request.pending,
+    onSelect: () => request.apply(control),
+  }));
   if (conversation.threadId && !sandbox) {
     const url = getGmailConversationUrl(conversation.threadId);
     actions.push({
@@ -178,6 +155,7 @@ export function ConversationTable({
           ? 'minmax(220px,1fr) 140px 112px'
           : '8px minmax(220px,2.2fr) 120px minmax(220px,2fr) minmax(170px,1.4fr) 112px 32px'
       }
+      phoneRow={compact ? undefined : (c) => <PhoneMailRow conversation={c} />}
       {...rest}
     />
   );
