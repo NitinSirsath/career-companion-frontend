@@ -45,7 +45,7 @@ export function RetryAnywayDialog({
           </div>
         )}
         <DialogFooter>
-          <Button variant="tertiary" onClick={onCancel} disabled={pending}>
+          <Button variant="secondary" onClick={onCancel} disabled={pending}>
             Cancel
           </Button>
           <Button onClick={onConfirm} disabled={pending}>
