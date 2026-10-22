@@ -43,7 +43,7 @@ export function ThemeProvider({ children, storageKey = 'vite-ui-theme' }: ThemeP
 
   useEffect(() => {
     const root = window.document.documentElement;
-    root.classList.remove('theme-light', 'theme-white', 'theme-dark', 'dark');
+    root.classList.remove('theme-light', 'theme-dark', 'dark');
     root.classList.add(`theme-${resolvedTheme}`);
     if (resolvedTheme === 'dark') root.classList.add('dark');
     root.style.colorScheme = resolvedTheme === 'dark' ? 'dark' : 'light';
