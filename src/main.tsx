@@ -1,16 +1,15 @@
-import { StrictMode, useEffect, useState } from 'react';
+import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 import { RouterProvider, createRouter } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { routeTree } from './routeTree.gen';
-import { getCurrentUser } from './api/auth';
 import { ThemeProvider } from './components/ThemeProvider';
 import { AppErrorBoundary } from './components/errors/AppErrorBoundary';
 import { RouteErrorPage } from './components/errors/RouteErrorPage';
 import { NotFoundPage } from './components/errors/NotFoundPage';
 import { ToastProvider } from './components/ui/toast';
-import { AppSkeleton } from './components/layout/AppSkeleton';
+import { SignInGate } from './components/startup/SignInGate';
 
 const queryClient = new QueryClient();
 
@@ -22,22 +21,9 @@ const router = createRouter({
   defaultNotFoundComponent: NotFoundPage,
 });
 
+/** The app opens only once it knows who is signed in; until then the start-up screen shows. */
 function App() {
-  const [loading, setLoading] = useState(true);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [user, setUser] = useState<any>(null);
-
-  useEffect(() => {
-    getCurrentUser().then((u) => {
-      setUser(u);
-      setLoading(false);
-    });
-  }, []);
-
-  if (loading) return <AppSkeleton />;
-
-  // Pass the dynamic context to the router provider
-  return <RouterProvider router={router} context={{ user }} />;
+  return <SignInGate>{(user) => <RouterProvider router={router} context={{ user }} />}</SignInGate>;
 }
 
 createRoot(document.getElementById('root')!).render(
