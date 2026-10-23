@@ -122,6 +122,7 @@ export function GmailConnection({
             </span>
           </p>
           <DisconnectButton onDisconnected={onDisconnected} />
+        </div>
       </div>
       <div className="min-w-0 border-border-subtle px-6 py-4 max-md:border-t md:border-l">
         <GmailLookback status={status} />
