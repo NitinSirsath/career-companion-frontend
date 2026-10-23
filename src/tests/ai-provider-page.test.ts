@@ -4,8 +4,8 @@ import type {
   AIFailure,
   AIModelPause,
   AISettingsResponse,
-  CheckAISettingsResponse,
-  SaveAISettingsResponse,
+  CheckAIProviderResponse,
+  SaveAIProviderResponse,
 } from '../contracts/ai';
 import { accessCopy, analyzedBy } from '../lib/aiLabels';
 import {
@@ -15,8 +15,9 @@ import {
   modelState,
   notAffected,
   notConfirmedNotice,
+  connectNote,
+  keyReplacedNote,
   sampleTestProblem,
-  saveNote,
   waitingText,
 } from '../lib/aiProviderPage';
 
@@ -98,6 +99,7 @@ const settings = (
   waitingEmails: 1,
   needsYourOk: { emails: 0, model: null, lastTriedAt: null, tries: 0 },
   consent: null,
+  connections: [],
   ...extra,
 });
 /** The AI access while one model's pause blocks, as the server shows it. */
@@ -297,10 +299,10 @@ describe('waiting mail', () => {
 
 describe('the key check says which model did not answer, and how long we waited', () => {
   const checked = (
-    verification: CheckAISettingsResponse['verification'],
+    verification: CheckAIProviderResponse['verification'],
     verificationFailure: AIFailure | null = null,
     shown: AISettingsResponse = settings(),
-  ): CheckAISettingsResponse => ({ ...shown, verification, verificationFailure });
+  ): CheckAIProviderResponse => ({ ...shown, verification, verificationFailure });
 
   it('says "confirmed" only while no model is paused', () => {
     expect(keyCheckNote(checked('VERIFIED'))).toBe('Google Gemini confirmed your key and models.');
@@ -327,21 +329,31 @@ describe('the key check says which model did not answer, and how long we waited'
 
   it('the check on save says it too', () => {
     const saved = (
-      verification: SaveAISettingsResponse['verification'],
+      verification: SaveAIProviderResponse['verification'],
       verificationFailure: AIFailure | null = null,
       shown: AISettingsResponse = settings(),
-    ): SaveAISettingsResponse => ({ ...shown, verification, verificationFailure });
-    expect(saveNote(saved('VERIFIED'))).toBe('Connected. Waiting emails are being processed.');
-    expect(saveNote(saved('VERIFIED', null, settings({}, { waitingEmails: 0 })))).toBe(
-      'Connected.',
+    ): SaveAIProviderResponse => ({ ...shown, verification, verificationFailure });
+    expect(connectNote(saved('VERIFIED'), 'gemini')).toBe(
+      'Google Gemini is connected and reads new mails now. Waiting emails are being processed.',
+    );
+    expect(connectNote(saved('VERIFIED', null, settings({}, { waitingEmails: 0 })), 'gemini')).toBe(
+      'Google Gemini is connected and reads new mails now.',
     );
     // A paused model the save keeps stays paused: its waiting mail is not processed yet.
-    expect(saveNote(saved('VERIFIED', null, paused()))).toBe('Connected.');
-    expect(saveNote(saved('INCONCLUSIVE', noAnswer({ timeoutMs: 10_000 })))).toBe(
-      'Saved. Google Gemini did not confirm right now: Gemini 3.8 Flash did not answer within 10 seconds. Career Companion will use it and show any problem here.',
+    expect(connectNote(saved('VERIFIED', null, paused()), 'gemini')).toBe(
     );
-    expect(saveNote(saved('INCONCLUSIVE'))).toBe(
-      'Saved. The provider did not confirm right now; Career Companion will use it and show any problem here.',
+    // Another provider stays active: the new one waits until the user makes it active.
+    expect(connectNote(saved('VERIFIED'), 'openai')).toBe(
+      'OpenAI is connected. Make it active when you want it to read new mails.',
+    );
+    expect(connectNote(saved('INCONCLUSIVE', noAnswer({ timeoutMs: 10_000 })), 'gemini')).toBe(
+      'Google Gemini is connected and reads new mails now. Google Gemini did not confirm right now: Gemini 3.8 Flash did not answer within 10 seconds. Career Companion will use it and show any problem here.',
+    );
+    expect(keyReplacedNote(saved('VERIFIED'), 'gemini')).toBe(
+      'New Google Gemini key saved and verified.',
+    );
+    expect(keyReplacedNote(saved('INCONCLUSIVE'), 'gemini')).toBe(
+      'New Google Gemini key saved. The provider did not confirm right now; Career Companion will use it and show any problem here.',
     );
   });
 });
@@ -350,7 +362,7 @@ describe('a key the provider has not confirmed yet', () => {
   const checked = (
     verificationFailure: AIFailure | null,
     shown: AISettingsResponse,
-  ): CheckAISettingsResponse => ({ ...shown, verification: 'INCONCLUSIVE', verificationFailure });
+  ): CheckAIProviderResponse => ({ ...shown, verification: 'INCONCLUSIVE', verificationFailure });
 
   it('shows one notice instead of "Ready", with why the last check did not finish', () => {
     const unconfirmed = settings({ verified: false });
