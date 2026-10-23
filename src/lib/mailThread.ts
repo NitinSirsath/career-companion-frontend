@@ -1,7 +1,7 @@
 import { differenceInCalendarDays, format, isThisYear, isToday, isYesterday } from 'date-fns';
 import type { ConversationDetail, ConversationMail } from '../contracts/conversation';
 import type { MailMessage } from '../contracts/mailbox';
-import { CATEGORY_LABEL, snippetText } from './mails';
+import { CATEGORY_LABEL, FAKE_OFFER, snippetText } from './mails';
 import { splitQuote } from './sandbox';
 
 /** A conversation folds its older mails to one line each once it has more than this many. */
@@ -43,14 +43,17 @@ export function askingMessageId(detail: ConversationDetail): string | null {
  */
 export function readingSummary(mail: ConversationMail): string {
   const interview = [mail.interviewDate, mail.interviewTime].filter(Boolean).join(' ');
+  // A fake offer asks for a payment: the line points to the warning instead of repeating it.
+  const fake = mail.fakeOfferWarning !== null;
+  const due = fake ? mail.assessmentDeadline : mail.actionDeadline || mail.assessmentDeadline;
   return [
     mail.category && CATEGORY_LABEL[mail.category],
     mail.interviewType || mail.interviewStage,
     interview,
     mail.offerInfo,
-    mail.requestedAction && `asks: ${mail.requestedAction}`,
-    (mail.actionDeadline || mail.assessmentDeadline) &&
-      `due ${mail.actionDeadline || mail.assessmentDeadline}`,
+    fake && `${FAKE_OFFER.tag}, see the warning above`,
+    !fake && mail.requestedAction && `asks: ${mail.requestedAction}`,
+    due && `due ${due}`,
   ]
     .filter(Boolean)
     .join(' · ');
