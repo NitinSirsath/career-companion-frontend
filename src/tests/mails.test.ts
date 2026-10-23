@@ -8,6 +8,7 @@ import {
   attachmentInfo,
   CATEGORY_LABEL,
   conversationSummary,
+  fakeOfferStep,
   fileSize,
   filtersFromSearch,
   linkProblem,
@@ -217,6 +218,25 @@ describe('mail parts', () => {
       { label: 'Asked for', value: 'Dates and times you are free next week' },
       { label: 'Deadline', value: 'Oct 13' },
     ]);
+  });
+
+  it("shows a fake offer's warning and never the payment it asks for", () => {
+    const rows = aiReading(
+      makeConversationMail({ fakeOfferWarning: 'Asks you to pay Rs 8,500 to join' }),
+    );
+    expect(rows).toContainEqual({ label: 'Warning', value: 'Asks you to pay Rs 8,500 to join' });
+    expect(rows.map((row) => row.label)).not.toContain('Asked for');
+    expect(rows.map((row) => row.label)).not.toContain('Deadline');
+  });
+});
+
+describe('a fake job offer', () => {
+  it('stands in for "Needs action" only while its step is open', () => {
+    const fake = makeConversation({ fakeOfferWarning: 'Asks you to pay a joining fee' });
+    expect(fakeOfferStep(fake)).toBe(true);
+    expect(fakeOfferStep({ ...fake, request: { ...fake.request!, state: 'DONE' } })).toBe(false);
+    expect(fakeOfferStep({ ...fake, request: null })).toBe(false);
+    expect(fakeOfferStep(makeConversation())).toBe(false);
   });
 });
 
