@@ -17,10 +17,11 @@ import { CorrectEmailMatchResponseSchema, type CorrectEmailMatchRequest } from '
 import { z } from 'zod';
 import {
   ActionWithContextResponseSchema,
+  ActivateAIProviderResponseSchema,
   AISampleTestResponseSchema,
   AISettingsResponseSchema,
   ApplicationResponseSchema,
-  CheckAISettingsResponseSchema,
+  CheckAIProviderResponseSchema,
   CreateIntegrationTokenResponseSchema,
   IntegrationTokenSchema,
   ListApplicationsResponseSchema,
@@ -32,8 +33,8 @@ import {
   ResolveSubmissionResponseSchema,
   ListApplicationEventsResponseSchema,
   ReadWaitingMailResponseSchema,
-  RemoveAISettingsResponseSchema,
-  SaveAISettingsResponseSchema,
+  RemoveAIProviderResponseSchema,
+  SaveAIProviderResponseSchema,
 } from '../contracts';
 import type {
   CreateApplicationRequest,
@@ -52,10 +53,10 @@ import type {
   PaginatedResponse,
   AISettingsResponse,
   AISampleTestResponse,
-  CheckAISettingsResponse,
+  CheckAIProviderResponse,
   ReadWaitingMailResponse,
-  SaveAISettingsRequest,
-  SaveAISettingsResponse,
+  SaveAIProviderRequest,
+  SaveAIProviderResponse,
   CreateIntegrationTokenRequest,
   CreateIntegrationTokenResponse,
   IntegrationToken,
@@ -395,23 +396,36 @@ export class ApiClient {
   }
 
   /**
-   * Saves (verifying first). The key is sent once in this request body and never comes back.
-   * Call it directly from an event handler, not through a cached mutation: TanStack's mutation
-   * cache keeps variables, and the key must not be kept anywhere in the browser.
+   * Connects a provider, replaces its key or changes its models (verifying first). The key is sent
+   * once in this request body and never comes back. Call it directly from an event handler, not
+   * through a cached mutation: TanStack's mutation cache keeps variables, and the key must not be
+   * kept anywhere in the browser.
    */
-  async saveAISettings(data: SaveAISettingsRequest): Promise<SaveAISettingsResponse> {
+  async saveAIProvider(
+    provider: string,
+    data: SaveAIProviderRequest,
+  ): Promise<SaveAIProviderResponse> {
     return this.request(
-      '/api/ai/settings',
+      `/api/ai/providers/${encodeURIComponent(provider)}`,
       { method: 'PUT', body: JSON.stringify(data) },
-      SaveAISettingsResponseSchema,
+      SaveAIProviderResponseSchema,
     );
   }
 
-  async checkAISettings(): Promise<CheckAISettingsResponse> {
+  /** Makes a connected provider the active one; the one it replaces stays connected. */
+  async activateAIProvider(provider: string): Promise<AISettingsResponse> {
     return this.request(
-      '/api/ai/settings/check',
+      `/api/ai/providers/${encodeURIComponent(provider)}/activate`,
       { method: 'POST', body: '{}' },
-      CheckAISettingsResponseSchema,
+      ActivateAIProviderResponseSchema,
+    );
+  }
+
+  async checkAIProvider(provider: string): Promise<CheckAIProviderResponse> {
+    return this.request(
+      `/api/ai/providers/${encodeURIComponent(provider)}/check`,
+      { method: 'POST', body: '{}' },
+      CheckAIProviderResponseSchema,
     );
   }
 
@@ -433,8 +447,17 @@ export class ApiClient {
     );
   }
 
-  async removeAISettings(): Promise<{ removed: true }> {
-    return this.request('/api/ai/settings', { method: 'DELETE' }, RemoveAISettingsResponseSchema);
+  /**
+   * Removes a provider's key. For the active one, `then` is the connected provider that becomes
+   * active, or `none` (new mails wait).
+   */
+  async removeAIProvider(provider: string, then?: string): Promise<AISettingsResponse> {
+    const query = then ? `?then=${encodeURIComponent(then)}` : '';
+    return this.request(
+      `/api/ai/providers/${encodeURIComponent(provider)}${query}`,
+      { method: 'DELETE' },
+      RemoveAIProviderResponseSchema,
+    );
   }
 
   // --- Automation submissions through MCP (ADR-0002) ---
