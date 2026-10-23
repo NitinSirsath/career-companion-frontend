@@ -92,7 +92,7 @@ describe('Gmail connection wording', () => {
   it('keeps the Gmail wording in prod mode', () => {
     expect(gmailConnectionCopy(false, null)).toEqual({
       connect: 'Connect Gmail',
-      notConnected: 'Gmail not connected',
+      notConnected: 'Gmail is not connected. Connect it so the app can read your job mails.',
       connectedNote: null,
     });
     expect(gmailConnectionCopy(false, 'REVOKED')).toEqual({
