@@ -1,11 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { CheckmarkFilled } from '@carbon/icons-react';
+import { CheckmarkFilled, Renew } from '@carbon/icons-react';
 import { format } from 'date-fns';
 import { api, isApiError } from '../../api/client';
 import { useSyncNow } from '../../api/gmail';
 import type { GmailStatusResponse } from '../../contracts/gmail';
-import { mailDateTime } from '../../lib/mails';
-import { FactList, SettingsSection } from '../layout/SettingsSection';
+import { gmailSyncLine } from '../../lib/gmailConnection';
 import { Button } from '../ui/button';
 import { InlineNotification } from '../ui/notification';
 import { Select } from '../ui/select';
@@ -25,35 +24,26 @@ function syncProblem(error: unknown): string {
   return 'The sync did not start. Try again in a moment.';
 }
 
-/** When the app last read new mail and reads it next; "Sync now" reads it at once. */
-export function GmailSync({
-  status,
-  onAccepted,
-}: {
-  status: GmailStatusResponse;
-  onAccepted: () => void;
-}) {
-  const sync = useSyncNow(onAccepted);
+type SyncNow = ReturnType<typeof useSyncNow>;
+
+/** The page header's actions: when the app last read new mail and reads it next, and "Sync now". */
+export function GmailSyncNow({ status, sync }: { status: GmailStatusResponse; sync: SyncNow }) {
   const running = sync.isPending || status.syncStatus === 'SYNCING';
   return (
-    <SettingsSection
-      title="Sync"
-      help="The app reads new mail on a schedule. You can also read it now."
-    >
-      <FactList
-        facts={[
-          {
-            label: 'Last sync',
-            value: status.lastSyncedAt ? mailDateTime(String(status.lastSyncedAt)) : 'Not yet',
-          },
-          {
-            label: 'Next sync',
-            value: status.nextScheduledSyncAt
-              ? mailDateTime(status.nextScheduledSyncAt)
-              : 'Automatic sync is off.',
-          },
-        ]}
-      />
+    <>
+      <span className="text-xs text-text-secondary">{gmailSyncLine(status)}</span>
+      <Button variant="secondary" loading={running} onClick={() => sync.mutate()}>
+        {!running && <Renew size={16} aria-hidden="true" />}
+        {running ? 'Syncing…' : 'Sync now'}
+      </Button>
+    </>
+  );
+}
+
+/** What went wrong with a sync, and mail dates no sync checked. */
+export function GmailSyncNotices({ status, sync }: { status: GmailStatusResponse; sync: SyncNow }) {
+  return (
+    <>
       {status.syncStatus === 'FAILED' && (
         <InlineNotification kind="error">
           The last sync could not finish. Try again, or connect again if Gmail access was removed.
@@ -69,16 +59,11 @@ export function GmailSync({
       {sync.isError && (
         <InlineNotification kind="error">{syncProblem(sync.error)}</InlineNotification>
       )}
-      <div>
-        <Button loading={running} onClick={() => sync.mutate()}>
-          {running ? 'Syncing…' : 'Sync now'}
-        </Button>
-      </div>
-    </SettingsSection>
+    </>
   );
 }
 
-/** How far back a sync looks. It says when the choice is saved. */
+/** How far back a sync looks, in the page's strip. It says when the choice is saved. */
 export function GmailLookback({ status }: { status: GmailStatusResponse }) {
   const queryClient = useQueryClient();
   const save = useMutation({
@@ -88,19 +73,18 @@ export function GmailLookback({ status }: { status: GmailStatusResponse }) {
   const value = String(save.isPending ? save.variables : (status.syncLookbackDays ?? 1));
   const chosen = LOOKBACK.find((option) => option.value === value);
   return (
-    <SettingsSection
-      title="How far back"
-      help="How far back the first sync looks, and how far a sync looks after you raise this. After that, each sync covers everything since the last successful sync, up to 30 days."
-    >
-      <div className="flex max-w-80 flex-col">
-        <Select<string>
-          label="Look back"
-          value={value}
-          disabled={save.isPending || status.syncStatus === 'SYNCING'}
-          options={LOOKBACK}
-          onValueChange={(next) => save.mutate(Number(next))}
-        />
-        <p role="status" className="min-h-6 pt-2 text-xs">
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap items-end gap-x-3 gap-y-1">
+        <div className="w-56">
+          <Select<string>
+            label="Look back"
+            value={value}
+            disabled={save.isPending || status.syncStatus === 'SYNCING'}
+            options={LOOKBACK}
+            onValueChange={(next) => save.mutate(Number(next))}
+          />
+        </div>
+        <p role="status" className="min-h-6 pb-2 text-xs">
           {save.isSuccess && (
             <span className="inline-flex animate-fade-in items-center gap-1.5 text-ok">
               <CheckmarkFilled size={16} aria-hidden="true" />
@@ -110,6 +94,10 @@ export function GmailLookback({ status }: { status: GmailStatusResponse }) {
           {save.isError && <span className="text-danger-text">Not saved. Try again.</span>}
         </p>
       </div>
-    </SettingsSection>
+      <p className="text-xs text-text-secondary">
+        How far the first sync reads. After that, each sync reads everything since the last one, up
+        to 30 days.
+      </p>
+    </div>
   );
 }

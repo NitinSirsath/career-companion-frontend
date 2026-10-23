@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { z } from 'zod';
 import { useSandboxMailbox } from '../api/appMode';
-import { useGmailStatus } from '../api/gmail';
+import { useGmailStatus, useSyncNow } from '../api/gmail';
 import { AIAccessNotice } from '../components/ai/AIAccessNotice';
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
 import { GmailConnection } from '../components/gmail/GmailConnection';
-import { GmailLookback, GmailSync } from '../components/gmail/GmailSyncSettings';
+import { GmailSyncNotices, GmailSyncNow } from '../components/gmail/GmailSyncSettings';
 import { ProcessedMails } from '../components/gmail/ProcessedMails';
 import { PageHeader } from '../components/layout/PageHeader';
 import { InlineNotification } from '../components/ui/notification';
@@ -44,21 +44,22 @@ function GmailPage() {
     if (search.gmailError) void navigate({ search: {}, replace: true });
   }, [search.gmailError, navigate]);
   const { data: status, isLoading, error } = useGmailStatus();
+  const sync = useSyncNow(() => setOffset(0));
   const connected = !!status?.connected;
 
   return (
     <TooltipProvider>
-      <div className="flex flex-col">
+      <div className="flex flex-col gap-4">
         <PageHeader
+          className="mb-2"
           title="Gmail sync"
-          description="Connect Gmail, and choose how far back the app reads your mail."
+          description="Which Gmail the app reads, how far back, and every mail it has read."
+          actions={status && connected && <GmailSyncNow status={status} sync={sync} />}
         />
-        <div className="flex flex-col gap-4 pb-8 empty:hidden">
-          <AIAccessNotice />
-          {(connectError || search.gmailError) && (
-            <ConnectProblem error={connectError ?? search.gmailError ?? ''} />
-          )}
-        </div>
+        <AIAccessNotice />
+        {(connectError || search.gmailError) && (
+          <ConnectProblem error={connectError ?? search.gmailError ?? ''} />
+        )}
         <GmailConnection
           status={status}
           loading={isLoading}
@@ -68,8 +69,7 @@ function GmailPage() {
         />
         {status && connected && (
           <>
-            <GmailSync status={status} onAccepted={() => setOffset(0)} />
-            <GmailLookback status={status} />
+            <GmailSyncNotices status={status} sync={sync} />
             <ProcessedMails devMode={sandbox} offset={offset} onOffset={setOffset} />
           </>
         )}

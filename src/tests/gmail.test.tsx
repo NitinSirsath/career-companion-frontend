@@ -69,7 +69,7 @@ describe('Gmail Route', () => {
         metadata: { limit: 20, offset: 0, nextOffset: null },
       });
       renderWithProviders();
-      await screen.findByRole('heading', { name: 'Sync' });
+      await screen.findByText('Account');
       if (unscannedGap) {
         const notice = screen.getByText(/Mail received between/);
         expect(notice).toHaveTextContent('Thu 1 Jan 2026');
@@ -77,7 +77,7 @@ describe('Gmail Route', () => {
         expect(notice).not.toHaveAttribute('role', 'alert');
       } else expect(screen.queryByText(/Mail received between/)).not.toBeInTheDocument();
       expect(
-        screen.getByText(/each sync covers everything since the last successful sync/),
+        screen.getByText(/each sync reads everything since the last one, up to 30 days/),
       ).toBeInTheDocument();
     },
   );
@@ -98,10 +98,9 @@ describe('Gmail Route', () => {
         metadata: { limit: 20, offset: 0, nextOffset: null },
       });
       renderWithProviders();
-      expect(await screen.findByText('Next sync')).toBeInTheDocument();
-      if (nextScheduledSyncAt)
-        expect(screen.queryByText('Automatic sync is off.')).not.toBeInTheDocument();
-      else expect(screen.getByText('Automatic sync is off.')).toBeInTheDocument();
+      const line = await screen.findByText(/^Not synced yet · /);
+      if (nextScheduledSyncAt) expect(line).toHaveTextContent(/· next sync /);
+      else expect(line).toHaveTextContent('Not synced yet · automatic sync is off');
     },
   );
 
@@ -116,10 +115,14 @@ describe('Gmail Route', () => {
 
     renderWithProviders();
 
-    expect(await screen.findByRole('heading', { name: 'Connection' })).toBeInTheDocument();
-    expect(await screen.findByText('Gmail not connected')).toBeInTheDocument();
+    expect(
+      await screen.findByText(
+        'Gmail is not connected. Connect it so the app can read your job mails.',
+      ),
+    ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Connect Gmail' })).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: 'Sync' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Sync now' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Look back')).not.toBeInTheDocument();
   });
 
   it('renders "connected" state correctly', async () => {
@@ -141,7 +144,11 @@ describe('Gmail Route', () => {
     expect(await screen.findByText('Connected as')).toBeInTheDocument();
     expect(screen.getByText('user@gmail.com')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Disconnect' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Sync' })).toBeInTheDocument();
+    expect(screen.getByText('Look back')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Sync now' })).toBeInTheDocument();
+    // The title of the mail list and its tabs, and no settings sections any more.
+    expect(screen.getByRole('heading', { name: 'Mails the app has read' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Sync' })).not.toBeInTheDocument();
   });
 
   it('asks before it disconnects Gmail', async () => {
