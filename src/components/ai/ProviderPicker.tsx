@@ -6,6 +6,14 @@ import {
 import { Tag } from '../ui/tag';
 import { Button } from '../ui/button';
 
+/** "Free tier available" or "Paid API billing", as each provider's card and row show it. */
+export function CostTag({ provider }: { provider: CatalogProvider }) {
+  const free = provider.costModel === 'FREE_TIER_AVAILABLE';
+  return (
+    <Tag color={free ? 'green' : 'gray'}>{free ? 'Free tier available' : 'Paid API billing'}</Tag>
+  );
+}
+
 /** Curated provider choice (ADR-0001 decision 2): only providers the server offers. */
 export function ProviderPicker({
   providerIds,
@@ -30,11 +38,7 @@ export function ProviderPicker({
           >
             <div className="flex items-center justify-between gap-2">
               <h3 className="text-xl leading-7">{provider.displayName}</h3>
-              <Tag color={provider.costModel === 'FREE_TIER_AVAILABLE' ? 'green' : 'gray'}>
-                {provider.costModel === 'FREE_TIER_AVAILABLE'
-                  ? 'Free tier available'
-                  : 'Requires paid API billing'}
-              </Tag>
+              <CostTag provider={provider} />
             </div>
             <p className="text-sm text-text-secondary">{provider.recommendedNote}</p>
             <p className="text-sm text-text-secondary">{provider.disclosure.summary}</p>
