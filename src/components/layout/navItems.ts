@@ -43,7 +43,7 @@ export const MAIN_NAV: readonly NavItem[] = [
 /** Set up once, visited rarely. */
 export const SETTINGS_NAV: readonly NavItem[] = [
   { to: '/gmail', label: 'Gmail sync', icon: Renew },
-  { to: '/ai', label: 'AI provider', icon: MachineLearningModel },
+  { to: '/ai', label: 'AI providers', icon: MachineLearningModel },
   { to: '/automation', label: 'Automation', icon: Flow },
 ];
 
