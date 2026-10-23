@@ -1,6 +1,12 @@
 import { useSetRequestState } from '../../api/conversations';
 import type { Conversation } from '../../contracts/conversation';
-import { requestControls, requestDetail, requestTitle, scheduleLine } from '../../lib/mails';
+import {
+  fakeOfferStep,
+  requestControls,
+  requestDetail,
+  requestTitle,
+  scheduleLine,
+} from '../../lib/mails';
 import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
 import { TodoState } from './TodoState';
@@ -43,7 +49,8 @@ export function ConversationAction({
         {title}
       </p>
       <div className="flex flex-wrap items-center gap-2 text-xs text-text-secondary">
-        <TodoState state={asked.state} />
+        {/* A fake offer's own tag sits beside its type, so the step shows no state tag. */}
+        {!fakeOfferStep(conversation) && <TodoState state={asked.state} />}
         {detail && <span>{detail}</span>}
       </div>
       {controls && (
