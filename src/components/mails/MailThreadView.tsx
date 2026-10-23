@@ -53,6 +53,9 @@ function Messages({
     const day = dayLabel(message.date);
     const newDay = index === 0 || dayLabel(messages[index - 1].date) !== day;
     const last = index === messages.length - 1;
+    const reading = job ? readingFor(message.id, job.mails) : null;
+    // A fake offer's step is the app's own advice, not something the mail asks.
+    const asks = !!job && job.askingMessageId === message.id && !reading?.fakeOfferWarning;
     return (
       <Fragment key={message.id}>
         {newDay && (
@@ -63,8 +66,8 @@ function Messages({
         <MailMessageCard
           message={message}
           mailbox={mailbox}
-          reading={job ? readingFor(message.id, job.mails) : null}
-          asks={!!job && job.askingMessageId === message.id}
+          reading={reading}
+          asks={asks}
           folded={folded.has(message.id)}
           onFold={last ? undefined : (value) => fold(message.id, value)}
         />
