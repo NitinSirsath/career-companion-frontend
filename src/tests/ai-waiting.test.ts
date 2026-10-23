@@ -79,6 +79,7 @@ const settings = (
   waitingEmails,
   needsYourOk: { emails: 0, model: null, lastTriedAt: null, tries: 0 },
   consent: null,
+  connections: [],
   ...extra,
 });
 /** The AI access while one model's pause blocks, as the server shows it. */
@@ -281,7 +282,7 @@ describe('banner wording, as on the mock', () => {
       'KEY_REJECTED',
       failure({ kind: 'KEY_REJECTED', httpStatus: 401, providerCode: 'API_KEY_INVALID' }),
       'Google Gemini rejected your API key',
-      'Google answered 401 API_KEY_INVALID at 11:36 AM. Create a new key and replace it in AI provider settings. 1 email is waiting.',
+      'Google answered 401 API_KEY_INVALID at 11:36 AM. Create a new key and replace it on the AI providers page. 1 email is waiting.',
     ],
     [
       'ACCOUNT_OR_BILLING',
@@ -293,7 +294,7 @@ describe('banner wording, as on the mock', () => {
       'MODEL_UNAVAILABLE',
       failure({ kind: 'MODEL_UNAVAILABLE', httpStatus: 404, providerCode: 'NOT_FOUND' }),
       'Your key cannot use Gemini 3.8 Flash',
-      'Google answered 404 NOT_FOUND at 11:36 AM. Choose another detailed model in AI provider settings. 1 email is waiting.',
+      'Google answered 404 NOT_FOUND at 11:36 AM. Choose another detailed model on the AI providers page. 1 email is waiting.',
     ],
   ] as const)('%s names the code and the fix', (reason, kept, title, detail) => {
     const notice = waitingNotice(
