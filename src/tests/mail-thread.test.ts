@@ -78,6 +78,21 @@ describe('what the AI read, in one line', () => {
     );
   });
 
+  it('points to the warning instead of the payment a fake offer asks for', () => {
+    const mail = makeConversationMail({
+      category: 'OFFER',
+      interviewType: null,
+      interviewStage: null,
+      offerInfo: 'Software Developer',
+      requestedAction: 'Pay Rs 8,500',
+      actionDeadline: '25 Oct',
+      fakeOfferWarning: 'Asks you to pay Rs 8,500 to join',
+    });
+    expect(readingSummary(mail)).toBe(
+      'Offer · Software Developer · Probably fake, see the warning above',
+    );
+  });
+
   it('lists the dates the mails name, newest mail first', () => {
     const older = makeConversationMail({
       actionDeadline: null,
