@@ -341,6 +341,7 @@ describe('the key check says which model did not answer, and how long we waited'
     );
     // A paused model the save keeps stays paused: its waiting mail is not processed yet.
     expect(connectNote(saved('VERIFIED', null, paused()), 'gemini')).toBe(
+      'Google Gemini is connected and reads new mails now.',
     );
     // Another provider stays active: the new one waits until the user makes it active.
     expect(connectNote(saved('VERIFIED'), 'openai')).toBe(
