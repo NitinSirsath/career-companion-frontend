@@ -71,6 +71,7 @@ const settings = (
   waitingEmails: 0,
   needsYourOk: { emails: 0, model: null, lastTriedAt: null, tries: 0 },
   consent: null,
+  connections: [],
   ...extra,
 });
 const notSetUp = settings(
