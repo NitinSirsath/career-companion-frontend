@@ -1,0 +1,40 @@
+name: Finish ai-providers-page once (temporary)
+# Renames and deletes files on feat/ai-providers-page and commits only that.
+# Lives only on the throwaway branch tmp/ai-providers-page-finish, which is deleted afterwards.
+on:
+  push:
+    branches: [tmp/ai-providers-page-finish]
+permissions:
+  contents: write
+concurrency:
+  group: finish-ai-providers-page-once
+  cancel-in-progress: false
+jobs:
+  finish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: feat/ai-providers-page
+      - name: Check the hand commits
+        run: |
+          if [ "$(git rev-parse 'HEAD^{tree}')" != "48ad173086420e7cfef6145c83f09f0e07df90cb" ]; then
+            echo "The hand commits do not match the reviewed files. Nothing was changed."
+            exit 1
+          fi
+      - name: Rename and delete
+        run: |
+          git rm -q src/components/ai/AIStatusPanel.tsx
+          git rm -q src/components/ai/ProviderSetupForm.tsx
+      - name: Commit only the reviewed result
+        run: |
+          if [ "$(git write-tree)" != "c5a4f808077b02de870d8ca638902d4572196546" ]; then
+            echo "The result does not match the reviewed tree. Nothing was pushed."
+            git status --short
+            exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(ai): delete the old AI provider panel and setup form'
+          git push origin HEAD:feat/ai-providers-page
