@@ -199,30 +199,29 @@ export function ProcessedMails({
   const nextOffset = messages.data?.metadata?.nextOffset ?? null;
 
   return (
-    <section
-      aria-labelledby="read-mails-heading"
-      className="flex flex-col gap-4 border-t border-border-subtle pt-8"
-    >
-      <div className="flex flex-col gap-2">
-        <h2 id="read-mails-heading" className="text-base leading-[22px] font-semibold">
-          Mails the app has read
-        </h2>
-        <p className="text-sm text-text-secondary">
-          Check here when a job mail seems missing from Mails.
-        </p>
+    <section aria-labelledby="read-mails-heading" className="flex flex-col gap-4 pt-6">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h2 id="read-mails-heading" className="text-base leading-[22px] font-semibold">
+            Mails the app has read
+          </h2>
+          <p className="text-sm text-text-secondary">
+            Check here when a job mail seems missing from Mails.
+          </p>
+        </div>
+        <Tabs<Tab>
+          label="Mails the app has read"
+          value={tab}
+          onValueChange={(next) => {
+            setTab(next);
+            setOffset(0);
+          }}
+          items={[
+            { value: 'job_related', label: 'Job mails' },
+            { value: 'irrelevant', label: 'Not job mails' },
+          ]}
+        />
       </div>
-      <Tabs<Tab>
-        label="Mails the app has read"
-        value={tab}
-        onValueChange={(next) => {
-          setTab(next);
-          setOffset(0);
-        }}
-        items={[
-          { value: 'job_related', label: 'Job mails' },
-          { value: 'irrelevant', label: 'Not job mails' },
-        ]}
-      />
       <RetryProblems retries={retries} onlyUs={onlyUs} />
       <DataTable
         label="Mails the app has read"
