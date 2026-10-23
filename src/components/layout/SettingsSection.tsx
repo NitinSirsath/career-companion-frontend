@@ -2,8 +2,8 @@ import { useId, type ReactNode } from 'react';
 import { cn } from '../../lib/utils';
 
 /**
- * One row of a settings page: the title and a short help on the left third, the controls on the
- * right in a card. On a phone the help sits above the card.
+ * One section of a settings page: the title and a short help above, the controls under them in a
+ * card across the full width. Sections are spaced apart, with no line between them.
  */
 export function SettingsSection({
   title,
@@ -20,19 +20,15 @@ export function SettingsSection({
   return (
     <section
       aria-labelledby={headingId}
-      className={cn(
-        // The page header's line is above the first one, so it draws no line of its own.
-        'flex flex-col gap-4 border-t border-border-subtle py-8 first-of-type:border-t-0 first-of-type:pt-2 lg:flex-row lg:gap-12',
-        className,
-      )}
+      className={cn('flex flex-col gap-3 pt-10 first-of-type:pt-2', className)}
     >
-      <div className="flex flex-col gap-2 lg:w-1/3 lg:max-w-100 lg:shrink-0">
+      <div className="flex flex-col gap-1">
         <h2 id={headingId} className="text-base leading-[22px] font-semibold">
           {title}
         </h2>
         {help && <div className="text-sm text-text-secondary">{help}</div>}
       </div>
-      <div className="flex min-w-0 flex-1 flex-col gap-4 border border-border-subtle bg-surface px-6 py-5">
+      <div className="flex min-w-0 flex-col gap-4 border border-border-subtle bg-surface px-6 py-5">
         {children}
       </div>
     </section>
