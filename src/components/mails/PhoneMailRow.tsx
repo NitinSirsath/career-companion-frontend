@@ -7,6 +7,7 @@ import { StatusBadge } from '../ApplicationStatus';
 import { Avatar } from '../ui/avatar';
 import { useSwipeRight } from '../ui/swipe';
 import { ConversationAction } from './ConversationAction';
+import { FakeOfferTag } from './FakeOffer';
 import { MailType } from './MailType';
 import { useRequestChange } from './useRequestChange';
 
@@ -64,6 +65,7 @@ export function PhoneMailRow({ conversation: c }: { conversation: Conversation }
               ) : (
                 c.category && <MailType category={c.category} />
               )}
+              {c.fakeOfferWarning && <FakeOfferTag />}
             </div>
           </div>
         </div>
