@@ -108,7 +108,7 @@ describe('home and navigation', () => {
       within(sidebar)
         .getAllByRole('link')
         .map((link) => link.textContent),
-    ).toEqual(['Mails', 'Applications', 'Dashboard', 'Gmail sync', 'AI provider', 'Automation']);
+    ).toEqual(['Mails', 'Applications', 'Dashboard', 'Gmail sync', 'AI providers', 'Automation']);
     expect(within(sidebar).getByText('Settings')).toBeInTheDocument();
     expect(
       within(phoneBar)
