@@ -3,6 +3,7 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { Building } from '@carbon/icons-react';
 import { useConversation, useMarkSeenOnOpen } from '../api/conversations';
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
+import { FakeOfferNotice } from '../components/mails/FakeOffer';
 import { JobMailPanel } from '../components/mails/JobMailPanel';
 import { MailFacts } from '../components/mails/MailFacts';
 import { MailThreadView } from '../components/mails/MailThreadView';
@@ -61,6 +62,9 @@ function JobMailPage() {
           >
             <MailFacts conversation={conversation} />
           </MailTitle>
+          {conversation.fakeOfferWarning && (
+            <FakeOfferNotice reason={conversation.fakeOfferWarning} />
+          )}
           <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
             <div className="min-w-0">
               {conversation.threadId ? (

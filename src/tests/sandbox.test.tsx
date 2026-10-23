@@ -51,6 +51,7 @@ const job: NonNullable<SandboxMailResult['job']> = {
   company: 'Northwind Robotics',
   role: 'Senior Platform Engineer',
   requestedAction: 'Reply with a time for a call',
+  fakeOfferWarning: null,
   conversationKey: THREAD,
   application: {
     id: '22222222-2222-4222-8222-222222222222',
@@ -394,6 +395,33 @@ describe('sandbox conversation', () => {
     expect(
       panel.getByRole('link', { name: 'Open this conversation on the Mails page' }),
     ).toHaveAttribute('href', `/mails/${THREAD}`);
+  });
+
+  it('tags a mail the AI thinks is a fake offer, with its reason and the safe step', async () => {
+    const safeStep = "Don't pay. Check this job on the company's own careers site.";
+    const fakeJob = {
+      ...job,
+      requestedAction: safeStep,
+      fakeOfferWarning: 'Asks you to pay Rs 8,500 to join',
+    };
+    thread = {
+      threadId: THREAD,
+      subject: 'Offer of employment',
+      party: PRIYA,
+      messages: [message({ result: result('JOB_MAIL', { job: fakeJob }) })],
+    };
+    show(`/sandbox/${THREAD}`);
+    const panel = within(await screen.findByRole('complementary', { name: 'What the app did' }));
+    expect(await panel.findByText('Probably fake')).toBeInTheDocument();
+    expect(panel.getByText('Asks you to pay Rs 8,500 to join')).toBeInTheDocument();
+    expect(panel.getByText(safeStep)).toBeInTheDocument();
+  });
+
+  it('shows no fake-offer tag for a mail the AI did not flag', async () => {
+    show(`/sandbox/${THREAD}`);
+    const panel = within(await screen.findByRole('complementary', { name: 'What the app did' }));
+    expect(await panel.findByText('Reply with a time for a call')).toBeInTheDocument();
+    expect(panel.queryByText('Probably fake')).not.toBeInTheDocument();
   });
 
   it("writes the other person's next mail in the one box of the conversation", async () => {

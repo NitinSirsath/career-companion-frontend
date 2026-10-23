@@ -3,13 +3,14 @@ import { Link } from '@tanstack/react-router';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useSandboxMailbox } from '../../api/appMode';
 import type { Conversation } from '../../contracts/conversation';
-import { conversationSummary, mailDate } from '../../lib/mails';
+import { conversationSummary, fakeOfferStep, mailDate } from '../../lib/mails';
 import { cn } from '../../lib/utils';
 import { getGmailConversationUrl } from '../../utils/gmail';
 import { DataTable, ROW_LINK_CLASS } from '../ui/data-table';
 import { OverflowMenu, type MenuAction } from '../ui/menu';
 import { ConversationAction } from './ConversationAction';
 import { ConversationApplication } from './ConversationApplication';
+import { FakeOfferTag } from './FakeOffer';
 import { MailType } from './MailType';
 import { PhoneMailRow } from './PhoneMailRow';
 import { TodoState } from './TodoState';
@@ -54,6 +55,16 @@ function MailCell({ conversation }: { conversation: Conversation }) {
   );
 }
 
+/** The mail's type, with "Probably fake" under it when the AI thinks it is a fake offer. */
+function TypeCell({ conversation }: { conversation: Conversation }) {
+  return (
+    <div className="flex flex-col items-start gap-1.5">
+      {conversation.category && <MailType category={conversation.category} />}
+      {conversation.fakeOfferWarning && <FakeOfferTag />}
+    </div>
+  );
+}
+
 function NewDot({ isNew }: { isNew: boolean }) {
   if (!isNew) return null;
   return (
@@ -80,7 +91,7 @@ const FULL_COLUMNS: ColumnDef<Conversation>[] = [
     className: 'hidden md:block',
   }),
   column('mail', 'Mail', (c) => <MailCell conversation={c} />, { count: true }),
-  column('type', 'Type', (c) => c.category && <MailType category={c.category} />),
+  column('type', 'Type', (c) => <TypeCell conversation={c} />),
   column('step', 'Next step', (c) => <ConversationAction conversation={c} controls={false} />, {
     sortKey: 'needs',
   }),
@@ -113,7 +124,7 @@ const COMPACT_COLUMNS: ColumnDef<Conversation>[] = [
     'To-do',
     (c) =>
       c.request ? (
-        <TodoState state={c.request.state} />
+        <TodoState state={c.request.state} fakeOffer={fakeOfferStep(c)} />
       ) : (
         <span className="text-xs text-text-secondary">None</span>
       ),

@@ -5,6 +5,7 @@ import type { Conversation } from '../../contracts/conversation';
 import { mailCounts } from '../../lib/mails';
 import { StatusBadge } from '../ApplicationStatus';
 import { Tag } from '../ui/tag';
+import { FakeOfferTag } from './FakeOffer';
 import { MailType } from './MailType';
 
 /** "3 mails · 1 from you", counted in the conversation as Gmail has it now. */
@@ -27,7 +28,7 @@ function Fact({ icon: Icon, children }: { icon: CarbonIconType; children: ReactN
 
 /**
  * The row of facts under a job mail's title: the company, the role, the application's status (or
- * the kind of mail when there is no application), how many mails, and New.
+ * the kind of mail when there is no application), Probably fake, how many mails, and New.
  */
 export function MailFacts({ conversation }: { conversation: Conversation }) {
   return (
@@ -39,6 +40,7 @@ export function MailFacts({ conversation }: { conversation: Conversation }) {
       ) : (
         conversation.category && <MailType category={conversation.category} />
       )}
+      {conversation.fakeOfferWarning && <FakeOfferTag />}
       {conversation.threadId ? (
         <LiveMailCount threadId={conversation.threadId} />
       ) : (

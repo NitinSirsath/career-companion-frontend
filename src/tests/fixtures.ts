@@ -111,6 +111,7 @@ export function makeConversation(overrides: Partial<Conversation> = {}): Convers
       deadlinePrecision: 'DATE',
       repliedAt: null,
     },
+    fakeOfferWarning: null,
     link: 'UNLINKED',
     application: null,
     analyzedBy: { provider: 'gemini', model: 'gemini-3.5-flash-lite' },
@@ -142,6 +143,7 @@ export function makeConversationMail(overrides: Partial<ConversationMail> = {}):
     requestedAction: 'Dates and times you are free next week',
     actionDeadline: 'Oct 13',
     followUpDate: null,
+    fakeOfferWarning: null,
     analyzedBy: { provider: 'gemini', model: 'gemini-3.5-flash-lite' },
     ...overrides,
   };

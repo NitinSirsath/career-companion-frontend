@@ -1,9 +1,11 @@
 import { useState, type ReactNode } from 'react';
 import { ArrowDown, Calendar, ChevronDown } from '@carbon/icons-react';
 import { useSetRequestState } from '../../api/conversations';
-import type { ConversationDetail } from '../../contracts/conversation';
+import type { ConversationDetail, ConversationMail } from '../../contracts/conversation';
 import { askingMessageId, dueIn, keyDates } from '../../lib/mailThread';
 import {
+  FAKE_OFFER,
+  fakeOfferStep,
   mailDateTime,
   parseSender,
   requestControls,
@@ -80,6 +82,21 @@ function showMail(gmailMessageId: string) {
   mail.classList.add('animate-flash');
 }
 
+/** "From Priya's mail, Oct 11, 10:42 AM": jumps to the mail that asks. */
+function AskingMailLink({ mail, messageId }: { mail: ConversationMail; messageId: string }) {
+  return (
+    <button
+      type="button"
+      onClick={() => showMail(messageId)}
+      className="flex cursor-pointer items-center gap-1.5 border-t border-border-subtle pt-3 text-left text-sm text-link"
+    >
+      <ArrowDown size={16} aria-hidden="true" />
+      From {mail.sender ? `${parseSender(mail.sender).name}'s` : 'this'} mail,{' '}
+      {mailDateTime(mail.receivedAt)}
+    </button>
+  );
+}
+
 /** What the conversation needs now: the request, its due date, its state and the buttons. */
 function NextStep({ detail }: { detail: ConversationDetail }) {
   const { conversation, mails } = detail;
@@ -97,10 +114,11 @@ function NextStep({ detail }: { detail: ConversationDetail }) {
   const detailLine = requestDetail(asked);
   const source = mails.find((mail) => mail.id === asked.emailId);
   const messageId = askingMessageId(detail);
+  const fake = fakeOfferStep(conversation);
   return (
     <PanelSection title="Next step">
       <p className="text-base break-words">{title}</p>
-      {asked.state === 'OPEN' && asked.deadline && (
+      {asked.state === 'OPEN' && asked.deadline && !fake && (
         <p className="flex items-center gap-2 text-sm">
           <Calendar size={16} aria-hidden="true" />
           {detailLine}
@@ -108,7 +126,7 @@ function NextStep({ detail }: { detail: ConversationDetail }) {
         </p>
       )}
       <div className="flex flex-wrap items-center gap-2">
-        <TodoState state={asked.state} />
+        <TodoState state={asked.state} fakeOffer={fake} />
         {asked.state === 'REPLIED' && detailLine && (
           <span className="text-xs text-text-secondary">{detailLine}</span>
         )}
@@ -136,6 +154,7 @@ function NextStep({ detail }: { detail: ConversationDetail }) {
           </Button>
         ))}
       </div>
+      {fake && <p className="text-xs text-text-secondary">{FAKE_OFFER.stepNote}</p>}
       {asked.state === 'REPLIED' && (
         <p className="text-xs text-text-secondary">
           We saw that you replied. We do not read what you wrote.
@@ -146,17 +165,7 @@ function NextStep({ detail }: { detail: ConversationDetail }) {
           Could not update: {change.error.message}
         </InlineNotification>
       )}
-      {source && messageId && (
-        <button
-          type="button"
-          onClick={() => showMail(messageId)}
-          className="flex cursor-pointer items-center gap-1.5 border-t border-border-subtle pt-3 text-left text-sm text-link"
-        >
-          <ArrowDown size={16} aria-hidden="true" />
-          From {source.sender ? `${parseSender(source.sender).name}'s` : 'this'} mail,{' '}
-          {mailDateTime(source.receivedAt)}
-        </button>
-      )}
+      {source && messageId && <AskingMailLink mail={source} messageId={messageId} />}
     </PanelSection>
   );
 }
@@ -168,6 +177,8 @@ function NextStep({ detail }: { detail: ConversationDetail }) {
 export function JobMailPanel({ detail }: { detail: ConversationDetail }) {
   const { conversation, mails } = detail;
   const canCreate = !conversation.application && conversation.link !== 'IGNORED';
+  // Later mails never join a probable fake offer's application by themselves.
+  const oneClick = canCreate && conversation.fakeOfferWarning === null;
   const dates = keyDates(mails);
   return (
     // On phones it sits above the conversation: the next step first, the rest folded.
@@ -192,7 +203,7 @@ export function JobMailPanel({ detail }: { detail: ConversationDetail }) {
       <PanelSection title="Application" fold>
         {canCreate && <p className="text-sm">This conversation has no application yet.</p>}
         <ConversationApplication conversation={conversation} />
-        {canCreate && (
+        {oneClick && (
           <p className="text-xs text-text-secondary">
             One click. The details come from this mail. Later mails from the same company join it by
             themselves.

@@ -49,6 +49,27 @@ export const REQUEST_STATE_LABEL: Record<RequestState, string> = {
   DONE: 'Done',
 };
 
+/**
+ * What the app says when the AI thinks a job mail is a fake offer that asks for money. It is a
+ * warning, not an error: the AI can be wrong, so the mail stays and the user decides.
+ */
+export const FAKE_OFFER = {
+  tag: 'Probably fake',
+  title: 'This looks like a fake job offer',
+  advice:
+    "Real employers don't ask you to pay to get a job. Don't pay, and don't send bank or ID details. Check the job on the company's own careers site.",
+  note: 'The AI noticed this in the mail. It can be wrong. The mail stays here so you can decide.',
+  stepNote: 'Written by Career Companion, not taken from the mail.',
+} as const;
+
+/**
+ * True while a fake-offer conversation's next step is open: the warning then stands in for
+ * "Needs action", because the step is the app's own advice, not what the mail asks.
+ */
+export const fakeOfferStep = (
+  conversation: Pick<Conversation, 'fakeOfferWarning' | 'request'>,
+): boolean => conversation.fakeOfferWarning !== null && conversation.request?.state === 'OPEN';
+
 export const ACTION_FILTERS = [
   { value: 'open', label: REQUEST_STATE_LABEL.OPEN },
   { value: 'replied', label: REQUEST_STATE_LABEL.REPLIED },
@@ -244,10 +265,12 @@ export const attachmentInfo = (attachment: MailAttachment): string =>
 
 /** What the AI read from one mail, as label and value. Fields it left empty are left out. */
 export function aiReading(mail: ConversationMail): { label: string; value: string }[] {
+  const fake = mail.fakeOfferWarning !== null;
   const rows: [string, (string | null)[]][] = [
     ['Type', [mail.category && CATEGORY_LABEL[mail.category]]],
     ['Company', [mail.company]],
     ['Role', [mail.role]],
+    ['Warning', [mail.fakeOfferWarning]],
     ['Recruiter', [mail.recruiterName, mail.recruiterEmail]],
     [
       'Interview',
@@ -256,8 +279,9 @@ export function aiReading(mail: ConversationMail): { label: string; value: strin
     ['Assessment', [mail.assessmentInfo, mail.assessmentDeadline]],
     ['Offer', [mail.offerInfo]],
     ['Rejection', [mail.rejectionInfo]],
-    ['Asked for', [mail.requestedAction]],
-    ['Deadline', [mail.actionDeadline]],
+    // A fake offer's request is a payment: never shown as something to do.
+    ['Asked for', [fake ? null : mail.requestedAction]],
+    ['Deadline', [fake ? null : mail.actionDeadline]],
     ['Follow up', [mail.followUpDate]],
   ];
   return rows.flatMap(([label, parts]) => {
