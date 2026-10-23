@@ -1,29 +1,34 @@
-import { RouteErrorPage } from '../components/errors/RouteErrorPage';
-import { PageHeader } from '../components/layout/PageHeader';
 import { useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
+import { Add } from '@carbon/icons-react';
 import { api } from '../api/client';
-import { getCatalogProvider } from '../contracts/aiCatalog';
-import { AIStatusPanel } from '../components/ai/AIStatusPanel';
-import { ProviderPicker } from '../components/ai/ProviderPicker';
-import { ProviderSetupForm } from '../components/ai/ProviderSetupForm';
-import { saveNote } from '../lib/aiProviderPage';
+import type { ProviderActions } from '../components/ai/ActiveProviderCard';
+import {
+  OpenProviderDialog,
+  ProvidersBody,
+  type OpenDialog,
+} from '../components/ai/ProvidersPageParts';
+import { RouteErrorPage } from '../components/errors/RouteErrorPage';
+import { PageHeader } from '../components/layout/PageHeader';
+import { Button } from '../components/ui/button';
 import { InlineNotification } from '../components/ui/notification';
 import { SectionError } from '../components/ui/section-error';
 import { SkeletonList } from '../components/ui/skeleton';
+import { canConnectMore } from '../lib/aiConnections';
 
 export const Route = createFileRoute('/ai')({
   errorComponent: RouteErrorPage,
-  component: AIProviderPage,
+  component: AIProvidersPage,
 });
 
-type View = { kind: 'status' } | { kind: 'choose' } | { kind: 'form'; providerId: string };
-
-/** AI provider settings: Career Companion's second account, next to the Gmail connection. */
-function AIProviderPage() {
-  const [view, setView] = useState<View>({ kind: 'status' });
-  const [savedNote, setSavedNote] = useState<string | null>(null);
+/**
+ * AI providers: Career Companion's second account, next to the Gmail connection. Several can be
+ * connected; the active one reads the mail.
+ */
+function AIProvidersPage() {
+  const [open, setOpen] = useState<OpenDialog>(null);
+  const [note, setNote] = useState<string | null>(null);
   const {
     data: settings,
     isLoading,
@@ -32,67 +37,54 @@ function AIProviderPage() {
     queryKey: ['aiSettings'],
     queryFn: ({ signal }) => api.getAISettings({ signal }),
   });
-
-  const otherProviders = settings?.offeredProviders.filter((id) => id !== settings.provider) ?? [];
-  const formProvider = view.kind === 'form' ? getCatalogProvider(view.providerId) : undefined;
-  const choose = (providerId: string) => {
-    setSavedNote(null);
-    setView({ kind: 'form', providerId });
+  const openDialog = (next: Exclude<OpenDialog, null>) => {
+    setNote(null);
+    setOpen(next);
   };
+  const actions: ProviderActions = {
+    onReplaceKey: (provider) => openDialog({ kind: 'replace', provider }),
+    onRemove: (provider) => openDialog({ kind: 'remove', provider }),
+    onActivate: (provider) => openDialog({ kind: 'activate', provider }),
+    onNote: setNote,
+  };
+  const connect = () => openDialog({ kind: 'connect', start: null });
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-10">
       <PageHeader
         className="mb-0"
-        title="AI provider"
-        description="Career Companion uses your own AI account to read job mails. Your key is stored encrypted and never shown again."
+        title="AI providers"
+        description="Career Companion reads your job mails with your own AI account. You can connect several providers. One is active and reads your mail. Keys are stored encrypted and never shown again."
+        actions={
+          settings &&
+          canConnectMore(settings) && (
+            <Button onClick={connect}>
+              <Add size={16} aria-hidden="true" />
+              Connect a provider
+            </Button>
+          )
+        }
       />
-
       {isLoading && <SkeletonList rows={3} label="Loading AI settings" />}
       {error && <SectionError title="Could not load your AI settings" />}
-
-      {savedNote && <InlineNotification kind="success">{savedNote}</InlineNotification>}
-
-      {settings && formProvider && (
-        <ProviderSetupForm
-          key={formProvider.id}
-          provider={formProvider}
+      {note && <InlineNotification kind="success">{note}</InlineNotification>}
+      {settings && (
+        <ProvidersBody
           settings={settings}
-          onDone={(saved) => {
-            setSavedNote(saveNote(saved));
-            setView({ kind: 'status' });
+          actions={actions}
+          onConnect={connect}
+          onConnectFirst={(provider) => openDialog({ kind: 'connect', start: provider })}
+        />
+      )}
+      {settings && open && (
+        <OpenProviderDialog
+          open={open}
+          settings={settings}
+          onClose={() => setOpen(null)}
+          onDone={(text) => {
+            setNote(text);
+            setOpen(null);
           }}
-          onCancel={() => setView({ kind: 'status' })}
-        />
-      )}
-
-      {settings && !settings.configured && view.kind !== 'form' && (
-        <ProviderPicker
-          providerIds={settings.offeredProviders}
-          actionLabel={(provider) => `Set up ${provider.displayName}`}
-          onChoose={choose}
-        />
-      )}
-
-      {settings?.configured && view.kind === 'choose' && (
-        <section aria-label="Switch provider" className="space-y-3">
-          <p className="text-sm text-text-secondary">
-            Your current setup keeps working until the new key is verified. Emails already processed
-            are not sent to the new provider.
-          </p>
-          <ProviderPicker
-            providerIds={otherProviders}
-            actionLabel={(provider) => `Switch to ${provider.displayName}`}
-            onChoose={choose}
-          />
-        </section>
-      )}
-
-      {settings?.configured && (
-        <AIStatusPanel
-          settings={settings}
-          onUpdate={() => settings.provider && choose(settings.provider)}
-          onSwitch={otherProviders.length ? () => setView({ kind: 'choose' }) : undefined}
         />
       )}
     </div>

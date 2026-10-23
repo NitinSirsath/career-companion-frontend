@@ -288,7 +288,7 @@ function userProblemCopy(settings: AISettingsResponse, reason: UserProblem): Acc
     case 'KEY_REJECTED':
       return {
         title: `${name} rejected your API key`,
-        detail: `${answered}Create a new key and replace it in AI provider settings.${waiting}`,
+        detail: `${answered}Create a new key and replace it on the AI providers page.${waiting}`,
         strong: code,
         fix: links
           ? { label: `Get a ${name} API key`, href: links.apiKeys }
@@ -304,7 +304,7 @@ function userProblemCopy(settings: AISettingsResponse, reason: UserProblem): Acc
     case 'MODEL_UNAVAILABLE':
       return {
         title: `Your key cannot use ${modelName(provider, access.modelId)}`,
-        detail: `${answered}Choose another ${roleOf(settings, access.modelId)}model in AI provider settings.${waiting}`,
+        detail: `${answered}Choose another ${roleOf(settings, access.modelId)}model on the AI providers page.${waiting}`,
         strong: code,
         fix: { label: 'Choose another model', to: '/ai' },
       };

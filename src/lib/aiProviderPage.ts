@@ -2,12 +2,14 @@ import { isApiError } from '../api/client';
 import {
   AIAccessUnavailableDetailsSchema,
   AISampleFailedDetailsSchema,
+  AISettingsResponseSchema,
   type AIFailure,
   type AIModelPause,
   type AISettingsResponse,
-  type CheckAISettingsResponse,
-  type SaveAISettingsResponse,
+  type CheckAIProviderResponse,
+  type SaveAIProviderResponse,
 } from '../contracts/ai';
+import type { CatalogProvider } from '../contracts/aiCatalog';
 import {
   clock,
   failureCode,
@@ -141,7 +143,7 @@ const notConfirmedBecause = (failure: AIFailure | null) =>
  */
 export function notConfirmedNotice(
   settings: AISettingsResponse,
-  lastCheck: CheckAISettingsResponse | null,
+  lastCheck: CheckAIProviderResponse | null,
 ): { title: string; detail: string } | null {
   if (settings.access.verified || settings.access.state !== 'READY') return null;
   const because =
@@ -159,7 +161,7 @@ export function notConfirmedNotice(
  * not-confirmed notice shows, since it already says how the last check went.
  */
 export function checkNoteShown(
-  lastCheck: CheckAISettingsResponse | null,
+  lastCheck: CheckAIProviderResponse | null,
   failed: boolean,
   notConfirmedShown: boolean,
 ): string | null {
@@ -172,7 +174,7 @@ export function checkNoteShown(
  * The note after "Check again"; null when the status says it all. While a model is paused, the
  * header's "Key verified" says the key works: "confirmed" would read as if AI works too.
  */
-export function keyCheckNote(response: CheckAISettingsResponse): string | null {
+export function keyCheckNote(response: CheckAIProviderResponse): string | null {
   const name = providerName(response.provider);
   if (response.verification === 'VERIFIED')
     return response.access.pauses.length ? null : `${name} confirmed your key and models.`;
@@ -181,15 +183,75 @@ export function keyCheckNote(response: CheckAISettingsResponse): string | null {
   return null;
 }
 
-/** The note after "Save and verify". Waiting emails are processed only while AI can be used. */
-export function saveNote(response: SaveAISettingsResponse): string {
-  if (response.verification === 'VERIFIED')
-    return response.access.state === 'READY' && response.waitingEmails > 0
-      ? 'Connected. Waiting emails are being processed.'
-      : 'Connected.';
+/** The settings in a save or check answer, without that check's own result: what the page caches. */
+export const settingsOf = (
+  response: SaveAIProviderResponse | CheckAIProviderResponse,
+): AISettingsResponse => AISettingsResponseSchema.parse(response);
+
+/** ": Google Gemini did not confirm right now: … did not answer within 10 seconds." */
+function unconfirmedTail(response: SaveAIProviderResponse, providerId: string): string {
   if (!response.verificationFailure)
-    return 'Saved. The provider did not confirm right now; Career Companion will use it and show any problem here.';
-  return `Saved. ${providerName(response.provider)} did not confirm right now${notConfirmedBecause(response.verificationFailure)}. Career Companion will use it and show any problem here.`;
+    return ' The provider did not confirm right now; Career Companion will use it and show any problem here.';
+  return ` ${providerName(providerId)} did not confirm right now${notConfirmedBecause(response.verificationFailure)}. Career Companion will use it and show any problem here.`;
+}
+
+/**
+ * The note after "Connect and verify": whether the provider now reads new mail. Waiting emails are
+ * processed only while AI can be used.
+ */
+export function connectNote(response: SaveAIProviderResponse, providerId: string): string {
+  const name = providerName(providerId);
+  const active = response.provider === providerId;
+  const note = active
+    ? `${name} is connected and reads new mails now.`
+    : `${name} is connected. Make it active when you want it to read new mails.`;
+  if (response.verification !== 'VERIFIED')
+    return `${note}${unconfirmedTail(response, providerId)}`;
+  const reading = active && response.access.state === 'READY' && response.waitingEmails > 0;
+  return reading ? `${note} Waiting emails are being processed.` : note;
+}
+
+/** The note after a key is replaced. */
+export function keyReplacedNote(response: SaveAIProviderResponse, providerId: string): string {
+  const note = `New ${providerName(providerId)} key saved.`;
+  if (response.verification !== 'VERIFIED')
+    return `${note}${unconfirmedTail(response, providerId)}`;
+  return `New ${providerName(providerId)} key saved and verified.`;
+}
+
+/** What went wrong when a key or model was saved; nothing was saved unless it says otherwise. */
+export interface SaveProblem {
+  text: string;
+  link?: { label: string; href: string };
+}
+
+export function saveProblem(err: unknown, provider: CatalogProvider): SaveProblem {
+  const name = provider.displayName;
+  if (!isApiError(err)) return { text: 'Saving failed. Try again.' };
+  if (err.outcomeUncertain)
+    return {
+      text: 'We could not confirm whether this was saved. The page shows what is saved now.',
+    };
+  if (err.code === 'AI_ACCESS_REJECTED') {
+    const details = err.details as { reason?: string; modelId?: string | null } | undefined;
+    if (details?.reason === 'KEY_REJECTED')
+      return {
+        text: `${name} rejected this key. Check that you copied the whole key, or create a new one. Nothing was saved.`,
+        link: { label: `Get a ${name} API key`, href: provider.links.apiKeys },
+      };
+    if (details?.reason === 'ACCOUNT_OR_BILLING')
+      return {
+        text: `${name} refused this key for your account: billing, credit or permissions. Nothing was saved.`,
+        link: { label: `Open ${name} billing`, href: provider.links.billing },
+      };
+    if (details?.reason === 'MODEL_UNAVAILABLE')
+      return {
+        text: `This key cannot use ${modelName(provider.id, details.modelId)}. Choose another model. Nothing was saved.`,
+      };
+  }
+  if (err.code === 'AI_VERIFY_RATE_LIMITED')
+    return { text: 'Too many key checks today. Try again tomorrow.' };
+  return { text: err.message };
 }
 
 /** A sample test refused because AI cannot be used now: the paused model, or the status above. */

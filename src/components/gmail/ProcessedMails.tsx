@@ -31,7 +31,7 @@ function retryMessage(err: unknown, onlyUs: string | null): string {
     return 'Retry could not be confirmed. The list will refresh to show where the mail is now.';
   switch (err.code) {
     case 'AI_ACCESS_UNAVAILABLE':
-      return 'Fix AI access on the AI provider page before retrying.';
+      return 'Fix AI access on the AI providers page before retrying.';
     case 'AI_OPERATION_REQUIRES_REVIEW':
       return (
         onlyUs ?? 'Only Career Companion can retry this email. This is our problem, not yours.'

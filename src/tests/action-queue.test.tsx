@@ -66,6 +66,7 @@ const ready: AISettingsResponse = {
   waitingEmails: 0,
   needsYourOk: { emails: 0, model: null, lastTriedAt: null, tries: 0 },
   consent: null,
+  connections: [],
 };
 let client: QueryClient;
 function show() {

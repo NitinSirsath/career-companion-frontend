@@ -73,6 +73,7 @@ const aiSettings = (access: Partial<AISettingsResponse['access']> = {}): AISetti
   waitingEmails: 1,
   needsYourOk: { emails: 0, model: null, lastTriedAt: null, tries: 0 },
   consent: null,
+  connections: [],
 });
 
 beforeEach(() => {

@@ -47,6 +47,7 @@ const settings = (
   waitingEmails: 0,
   needsYourOk: { emails: 0, model: null, lastTriedAt: null, tries: 0 },
   consent: null,
+  connections: [],
   ...extra,
 });
 
@@ -123,7 +124,7 @@ describe('the yellow banner', () => {
     expect(within(banner).getByText('503 UNAVAILABLE').tagName).toBe('STRONG');
     expect(within(banner).getByRole('button', { name: 'Read waiting mails now' })).toBeEnabled();
     expect(within(banner).getByText('Sends 1 mail first, as a test.')).toBeInTheDocument();
-    expect(within(banner).getByRole('link', { name: 'AI provider settings' })).toHaveAttribute(
+    expect(within(banner).getByRole('link', { name: 'AI providers page' })).toHaveAttribute(
       'href',
       '/ai',
     );
@@ -204,7 +205,7 @@ describe('the yellow banner', () => {
     expect(
       within(banner).getByRole('link', { name: 'Open Google AI Studio billing' }),
     ).toHaveAttribute('href', 'https://ai.google.dev/gemini-api/docs/billing');
-    expect(within(banner).getByRole('link', { name: 'AI provider settings' })).toBeInTheDocument();
+    expect(within(banner).getByRole('link', { name: 'AI providers page' })).toBeInTheDocument();
     expect(within(banner).queryByRole('button')).toBeNull();
   });
 

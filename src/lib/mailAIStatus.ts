@@ -299,7 +299,7 @@ const NEXT: Record<
     text: automaticTry(status, stopped),
   }),
   WAITS_FOR_TEST_MAIL: () => ({ label: 'Next:', text: 'waits for the test mail.' }),
-  FIX_AI_SETTINGS: () => ({ label: 'Next:', text: 'waits for you in AI provider settings.' }),
+  FIX_AI_SETTINGS: () => ({ label: 'Next:', text: 'waits for you on the AI providers page.' }),
   RETRY_WITH_YOUR_OK: () => ({ label: 'Next:', text: 'waits for you. Use Manual Retry.' }),
   MANUAL_RETRY: () => ({ label: 'Next:', text: 'waits for you. Use Manual Retry.' }),
   CAREER_COMPANION: () => ({ label: 'Next:', text: 'waits for Career Companion.' }),

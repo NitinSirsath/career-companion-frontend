@@ -118,7 +118,7 @@ describe('phone top bar and menu', () => {
       'Applications',
       'Dashboard',
       'Gmail sync',
-      'AI provider',
+      'AI providers',
       'Automation',
     ]);
     fireEvent.click(menu.getByRole('link', { name: 'Applications' }));

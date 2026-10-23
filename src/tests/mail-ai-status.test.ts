@@ -366,7 +366,7 @@ describe('row badge and (i), as on the mock', () => {
       badge: 'Waiting for AI',
       title,
       text,
-      next: 'Next: waits for you in AI provider settings.',
+      next: 'Next: waits for you on the AI providers page.',
     });
     // A mail that only waits behind the problem says what it waits for, without a code.
     expect(

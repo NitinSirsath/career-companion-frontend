@@ -61,7 +61,7 @@ export function mailStateDetail(
     case 'WAITING_FOR_AI':
       return 'Synced. The AI has not read it yet.';
     case 'AI_KEY_MISSING':
-      return 'Synced, but not read. Add your AI key on the AI provider page.';
+      return 'Synced, but not read. Add your AI key on the AI providers page.';
     case 'AI_FAILED': {
       // The same plain words as the (i) on the Gmail Sync row, never the stored category.
       const info = result.aiStatus && mailAIInfo(result.aiStatus, true);
