@@ -58,7 +58,7 @@ export function AIAccessNotice() {
             </a>
           )}
           <Link to="/ai" className="text-link">
-            {notice.fix?.to ? notice.fix.label : 'AI provider settings'}
+            {notice.fix?.to ? notice.fix.label : 'AI providers page'}
           </Link>
         </p>
       </div>
