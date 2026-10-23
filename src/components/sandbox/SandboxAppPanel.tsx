@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router';
 import type { SandboxMessage } from '../../contracts/sandbox';
 import { mailDateTime, parseSender } from '../../lib/mails';
 import { jobLine, mailStateDetail } from '../../lib/sandbox';
+import { FakeOfferTag } from '../mails/FakeOffer';
 import { SandboxMailState } from './SandboxMailState';
 
 function MailResult({ message }: { message: SandboxMessage }) {
@@ -20,6 +21,12 @@ function MailResult({ message }: { message: SandboxMessage }) {
       {result.job && (
         <>
           {jobLine(result.job) && <p>{jobLine(result.job)}</p>}
+          {result.job.fakeOfferWarning && (
+            <div className="space-y-1">
+              <FakeOfferTag />
+              <p className="break-words">{result.job.fakeOfferWarning}</p>
+            </div>
+          )}
           <p>
             <span className="text-text-secondary">Action: </span>
             {result.job.requestedAction ?? 'Nothing asked'}
