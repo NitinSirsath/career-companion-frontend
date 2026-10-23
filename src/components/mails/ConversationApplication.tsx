@@ -92,11 +92,13 @@ function CreateApplication({
       />
     );
   const cell = appearance === 'cell';
+  // A probable fake offer: linking stays possible, but it is not the suggested next move.
+  const quiet = cell || conversation.fakeOfferWarning !== null;
   return (
     <div className="flex flex-col items-start gap-1">
       {cell && <span className="text-text-secondary">Not linked</span>}
       <Button
-        variant={cell ? 'ghost' : 'primary'}
+        variant={cell ? 'ghost' : quiet ? 'secondary' : 'primary'}
         size={cell ? 'sm' : 'default'}
         className={cell ? '-ml-3' : undefined}
         loading={link.isPending}
