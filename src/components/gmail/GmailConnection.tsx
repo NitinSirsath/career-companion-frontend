@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../api/client';
 import type { GmailStatusResponse } from '../../contracts/gmail';
+import { markGmailConnectStarted } from '../../lib/afterGmailConnect';
 import { gmailConnectionCopy } from '../../lib/gmailConnection';
 import { Button } from '../ui/button';
 import {
@@ -100,6 +101,7 @@ export function GmailConnection({
         <p className="text-sm">{copy.notConnected}</p>
         <Button
           onClick={() => {
+            markGmailConnectStarted();
             window.location.href = '/api/gmail/connect';
           }}
         >
