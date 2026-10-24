@@ -14,31 +14,42 @@ import {
   DialogTitle,
 } from '../ui/dialog';
 import { InlineNotification } from '../ui/notification';
+import { WhoReads } from './ConnectProviderDialog';
 import { CheckRow } from './ProviderKeyFields';
 
 /**
  * "Use Career Companion free AI?": what is sent and through whose account, that it is shared, its
  * daily limit and its budget. Nothing is sent before the user ticks "I agree". It becomes the
- * provider that reads the mail; one connected before stays connected.
+ * provider that reads the mail; one connected before stays connected. As a backup next to
+ * `backupFor`, the provider that reads the mail now, it is only added unless the user ticks
+ * "Make … active now" (owner, 24 Oct 2026).
  */
 export function FreeAIDialog({
+  backupFor,
   onClose,
   onDone,
 }: {
+  backupFor: string | null;
   onClose: () => void;
   onDone: (note: string) => void;
 }) {
   const queryClient = useQueryClient();
   const [agreed, setAgreed] = useState(false);
+  const [makeActive, setMakeActive] = useState(false);
+  const switches = !backupFor || makeActive;
   const connect = useMutation({
     mutationFn: () =>
-      api.saveAIProvider(FREE_AI, { consentDisclosure: FREE_AI_CONSENT, makeActive: true }),
+      api.saveAIProvider(FREE_AI, { consentDisclosure: FREE_AI_CONSENT, makeActive: switches }),
     retry: false,
     onSuccess: (response) => {
       const next = settingsOf(response);
       queryClient.setQueryData(['aiSettings'], next);
       if (next.waitingEmails > 0) startProcessingRefresh();
-      onDone('Career Companion free AI reads your mail now.');
+      onDone(
+        switches
+          ? 'Career Companion free AI reads your mail now.'
+          : `Career Companion free AI is added. ${backupFor} still reads your mail.`,
+      );
     },
     onError: () => queryClient.invalidateQueries({ queryKey: ['aiSettings'] }),
   });
@@ -46,7 +57,9 @@ export function FreeAIDialog({
     <Dialog open onOpenChange={(open) => !open && !connect.isPending && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Use Career Companion free AI?</DialogTitle>
+          <DialogTitle>
+            {backupFor ? 'Add Career Companion free AI?' : 'Use Career Companion free AI?'}
+          </DialogTitle>
           <DialogDescription>Free for you. Career Companion pays for it.</DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-4 text-sm">
@@ -61,6 +74,14 @@ export function FreeAIDialog({
           <CheckRow id="free-ai-agree" checked={agreed} onCheckedChange={setAgreed}>
             I agree that my mails are sent to OpenRouter as described above.
           </CheckRow>
+          {backupFor && (
+            <WhoReads
+              name="Career Companion free AI"
+              activeName={backupFor}
+              makeActive={makeActive}
+              onMakeActiveChange={setMakeActive}
+            />
+          )}
         </div>
         {connect.isError && (
           <InlineNotification kind="error" className="mt-4">
@@ -74,7 +95,7 @@ export function FreeAIDialog({
             Cancel
           </Button>
           <Button onClick={() => connect.mutate()} disabled={!agreed} loading={connect.isPending}>
-            Use free AI
+            {switches ? 'Use free AI' : 'Add free AI'}
           </Button>
         </DialogFooter>
       </DialogContent>
