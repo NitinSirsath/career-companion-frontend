@@ -5,6 +5,8 @@
 
 export const PROCESSING_REFRESH_WINDOW_MS = 120_000;
 export const PROCESSING_REFRESH_INTERVAL_MS = 4_000;
+/** While the AI reading status says mails are read, the lists keep up at this pace. */
+export const READING_REFRESH_INTERVAL_MS = 15_000;
 export const DOMAIN_QUERY_KEYS = [
   'gmailStatus',
   'gmailMessages',
@@ -19,6 +21,7 @@ export const DOMAIN_QUERY_KEYS = [
   'unmatched-emails',
   'ambiguous-emails',
   'aiSettings', // waiting count and access state change as emails are processed
+  'aiReading', // the AI reading status
   'sandbox', // dev mode: what the app did with each sandbox mail
 ] as const;
 

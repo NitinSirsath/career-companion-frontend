@@ -18,6 +18,7 @@ import { z } from 'zod';
 import {
   ActionWithContextResponseSchema,
   ActivateAIProviderResponseSchema,
+  AIReadingStatusResponseSchema,
   AISampleTestResponseSchema,
   AISettingsResponseSchema,
   ApplicationResponseSchema,
@@ -52,6 +53,7 @@ import type {
   UpdateActionRequest,
   PaginatedResponse,
   AISettingsResponse,
+  AIReadingStatusResponse,
   AISampleTestResponse,
   CheckAIProviderResponse,
   ReadWaitingMailResponse,
@@ -392,6 +394,15 @@ export class ApiClient {
       '/api/ai/settings',
       { method: 'GET', cache: 'no-store', signal: options?.signal },
       AISettingsResponseSchema,
+    );
+  }
+
+  /** How far the AI is with the user's newest mails, and what it does now. */
+  async getAIReading(options?: RequestOptions): Promise<AIReadingStatusResponse> {
+    return this.request(
+      '/api/ai/reading',
+      { method: 'GET', cache: 'no-store', signal: options?.signal },
+      AIReadingStatusResponseSchema,
     );
   }
 

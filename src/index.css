@@ -135,6 +135,7 @@
   --animate-reveal: reveal 240ms cubic-bezier(0.2, 0, 0.38, 0.9);
   --animate-flash: flash 700ms cubic-bezier(0.2, 0, 0.38, 0.9);
   --animate-shimmer: shimmer 1.4s linear infinite;
+  --animate-ai-shimmer: ai-shimmer 1.8s linear infinite;
   --animate-startup-line: startup-line 1.4s cubic-bezier(0.2, 0, 0.38, 0.9) infinite;
 
   @keyframes page-in {
@@ -196,6 +197,14 @@
     }
     to {
       background-position: 480px 0;
+    }
+  }
+  @keyframes ai-shimmer {
+    from {
+      background-position: 100% 0;
+    }
+    to {
+      background-position: -50% 0;
     }
   }
 }
@@ -399,6 +408,21 @@
     );
     background-size: 960px 100%;
     animation: var(--animate-shimmer);
+  }
+  /* The AI's step that runs now: a brighter grey passes over grey words (owner, 24 Oct 2026). */
+  .ai-shimmer {
+    background: linear-gradient(
+      90deg,
+      var(--text-tertiary) 0%,
+      var(--text-tertiary) 38%,
+      var(--text-primary) 50%,
+      var(--text-tertiary) 62%,
+      var(--text-tertiary) 100%
+    );
+    background-size: 250% 100%;
+    background-clip: text;
+    color: transparent;
+    animation: var(--animate-ai-shimmer);
   }
 }
 
