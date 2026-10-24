@@ -1,6 +1,7 @@
 import { format, isToday, isTomorrow, isYesterday } from 'date-fns';
 import { AI_ROLES, getCatalogProvider } from '../contracts/aiCatalog';
 import type { AIAccessReason, AIFailure, AIModelPause, AISettingsResponse } from '../contracts/ai';
+import { freeAICopy } from './freeAI';
 
 export const providerName = (id: string | null | undefined) =>
   (id && getCatalogProvider(id)?.displayName) || id || 'Your AI provider';
@@ -20,6 +21,7 @@ const COMPANY: Partial<Record<string, string>> = {
   gemini: 'Google',
   openai: 'OpenAI',
   anthropic: 'Anthropic',
+  'career-companion': 'OpenRouter',
 };
 
 export const providerCompany = (id: string | null | undefined) =>
@@ -214,7 +216,9 @@ function dailyLimitCopy(
     // Only Google reports a free tier; billing on the key's project lifts it.
     hint: free ? 'To read sooner, turn on billing for your key in Google AI Studio.' : undefined,
     fix:
-      free && links ? { label: 'Open Google AI Studio billing', href: links.billing } : undefined,
+      free && links?.billing
+        ? { label: 'Open Google AI Studio billing', href: links.billing }
+        : undefined,
   };
 }
 
@@ -290,7 +294,7 @@ function userProblemCopy(settings: AISettingsResponse, reason: UserProblem): Acc
         title: `${name} rejected your API key`,
         detail: `${answered}Create a new key and replace it on the AI providers page.${waiting}`,
         strong: code,
-        fix: links
+        fix: links?.apiKeys
           ? { label: `Get a ${name} API key`, href: links.apiKeys }
           : { label: 'Replace key', to: '/ai' },
       };
@@ -299,7 +303,7 @@ function userProblemCopy(settings: AISettingsResponse, reason: UserProblem): Acc
         title: `${name} refused requests for your account`,
         detail: `${answered}Check billing, and that the ${productName(provider)} API is turned on for this key's project, then choose "Check again".${waiting}`,
         strong: code,
-        fix: links ? { label: `Open ${name} billing`, href: links.billing } : undefined,
+        fix: links?.billing ? { label: `Open ${name} billing`, href: links.billing } : undefined,
       };
     case 'MODEL_UNAVAILABLE':
       return {
@@ -318,6 +322,8 @@ function userProblemCopy(settings: AISettingsResponse, reason: UserProblem): Acc
 export function accessCopy(settings: AISettingsResponse, unaffected = ''): AccessCopy | null {
   const { access, provider } = settings;
   if (access.state === 'READY') return null;
+  const free = freeAICopy(settings);
+  if (free) return free;
   const pause = accessPause(settings);
   if (pause) return pauseCopy(settings, pause, unaffected);
   const name = providerName(provider);
