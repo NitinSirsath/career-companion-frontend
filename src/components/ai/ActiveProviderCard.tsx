@@ -25,6 +25,8 @@ export interface ProviderActions {
   onActivate: (providerId: string) => void;
   /** Opens the free AI's confirm dialog. */
   onUseFreeAI: () => void;
+  /** Opens the free AI's confirm dialog to add it as a backup, without switching. */
+  onAddFreeAI: () => void;
   onNote: (note: string) => void;
 }
 
