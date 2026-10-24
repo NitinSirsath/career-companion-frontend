@@ -217,6 +217,23 @@ const WORDS: Record<EmailAIReason, (facts: Facts) => Words> = {
     title: 'AI processing is paused',
     text: 'Career Companion has paused AI processing for now.',
   }),
+  // The free AI's pause is shared by everyone on it; nothing there is the user's to fix.
+  FREE_AI_BUSY: ({ notCounted }) => ({
+    title: 'The free AI is busy',
+    text: `OpenRouter asked Career Companion to slow down, so the free AI is paused for everyone. ${notCounted}`,
+  }),
+  FREE_AI_BUDGET: () => ({
+    title: "The free AI's budget is used up",
+    text: 'The free AI is paused for everyone. This mail is read when it is back, or connect your own key.',
+  }),
+  FREE_AI_PROBLEM: () => ({
+    title: 'The free AI is paused',
+    text: "A problem on Career Companion's side; we have been told. This mail is read when it is back, or connect your own key.",
+  }),
+  FREE_AI_OFF: () => ({
+    title: 'The free AI is switched off',
+    text: 'Career Companion turned the free AI off for now. Connect your own key to read this mail now.',
+  }),
   INVALID_OUTPUT: ({ status, name }) => ({
     title: 'Unusable answer',
     text: `${name} returned an answer Career Companion could not use${status.failure?.stopReason ? ` (stopped early: ${status.failure.stopReason})` : ''}.`,
