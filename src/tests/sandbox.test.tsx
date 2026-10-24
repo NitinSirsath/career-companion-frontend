@@ -228,7 +228,7 @@ describe('sandbox wording', () => {
       },
     });
     expect(mailStateDetail(refused)).toBe(
-      'Synced, but the AI could not read it. Request refused. Career Companion sent a request Google refused. This is our problem, not yours.',
+      'Synced, but the AI could not read it. Request refused. NorthList sent a request Google refused. This is our problem, not yours.',
     );
     expect(mailStateDetail(refused)).not.toContain('TerminalAIError');
   });

@@ -31,13 +31,13 @@ export const providerCompany = (id: string | null | undefined) =>
 export const failureCode = (failure: Pick<AIFailure, 'httpStatus' | 'providerCode'>) =>
   [failure.httpStatus, failure.providerCode].filter((part) => part !== null).join(' ');
 
-/** "3 seconds", from a time Career Companion measured. */
+/** "3 seconds", from a time NorthList measured. */
 export function seconds(ms: number): string {
   const count = Math.round(ms / 1000);
   return `${count} second${count === 1 ? '' : 's'}`;
 }
 
-/** "3 seconds" Career Companion waited for an answer; null under 1 second, too short to say. */
+/** "3 seconds" NorthList waited for an answer; null under 1 second, too short to say. */
 export const waitedTime = (ms: number) => (ms < 1000 ? null : seconds(ms));
 
 /** "11:36 AM", "12:30 PM tomorrow", or the date too when it is further away. */
@@ -101,7 +101,7 @@ export interface AccessCopy {
   strong?: string;
   /** A line under `detail`: how to read sooner. */
   hint?: string;
-  /** One fix: an external provider page or a place in Career Companion. */
+  /** One fix: an external provider page or a place in NorthList. */
   fix?: { label: string; href?: string; to?: '/ai' };
 }
 
@@ -116,7 +116,7 @@ interface Answer {
 }
 
 const atTime = (at: string | null) => (at ? ` at ${at}` : '');
-/** " at about 11:38 AM": when a pause ends, as Career Companion stored it. */
+/** " at about 11:38 AM": when a pause ends, as NorthList stored it. */
 const atAbout = (iso: string | null) => (iso ? ` at about ${clock(iso)}` : ' soon');
 
 type Titles = (name: string, company: string) => Pick<Answer, 'title' | 'again'>;
@@ -152,8 +152,8 @@ function noConnection(provider: string | null, failure: AIFailure): Answer {
   const name = providerName(provider);
   const code = failure.networkCode ? ` (${failure.networkCode})` : '';
   return {
-    title: `Career Companion could not reach ${name}`,
-    again: `Career Companion still could not reach ${name}`,
+    title: `NorthList could not reach ${name}`,
+    again: `NorthList still could not reach ${name}`,
     said:
       failure.cause === 'NETWORK_AFTER_SEND'
         ? (at) => `the line dropped${atTime(at)}${code} after sending`
@@ -236,7 +236,7 @@ export function pauseCopy(
   if (failure?.quotaScope === 'PER_DAY')
     return dailyLimitCopy(settings, pause, failure, unaffected);
   const answer = answerOf(settings.provider, pause);
-  const retry = `Career Companion tries again by itself${atAbout(pause.resumesAt)}${nextTryOf(failure)}.${unaffected}${waitingLine(settings.waitingEmails)}`;
+  const retry = `NorthList tries again by itself${atAbout(pause.resumesAt)}${nextTryOf(failure)}.${unaffected}${waitingLine(settings.waitingEmails)}`;
   if (test?.result && failure) {
     const said = answer.said ? `: ${answer.said(null)}` : '';
     return {
@@ -342,23 +342,23 @@ export function accessCopy(settings: AISettingsResponse, unaffected = ''): Acces
     case 'KEY_UNREADABLE':
       return {
         title: 'Enter your API key again',
-        detail: `Career Companion could not read your saved key.${waiting}`,
+        detail: `NorthList could not read your saved key.${waiting}`,
         fix: { label: 'Replace key', to: '/ai' },
       };
     case 'SAFETY_LIMIT':
       return {
-        title: "You reached Career Companion's daily AI limit",
-        detail: `Career Companion makes at most ${settings.safetyLimit.callsPerDay} AI calls a day for you. This is our limit, not ${providerCompany(provider)}'s. Reading continues by itself${atAbout(access.resumesAt ?? settings.safetyLimit.resetsAt)}.${waiting}`,
+        title: "You reached NorthList's daily AI limit",
+        detail: `NorthList makes at most ${settings.safetyLimit.callsPerDay} AI calls a day for you. This is our limit, not ${providerCompany(provider)}'s. Reading continues by itself${atAbout(access.resumesAt ?? settings.safetyLimit.resetsAt)}.${waiting}`,
       };
     case 'PAUSED':
       return {
         title: 'AI processing is paused',
-        detail: `Career Companion has paused AI processing for now.${waiting}`,
+        detail: `NorthList has paused AI processing for now.${waiting}`,
       };
     default:
       return {
         title: 'AI is not set up',
-        detail: `Choose an AI provider so Career Companion can read your job emails.${waiting}`,
+        detail: `Choose an AI provider so NorthList can read your job emails.${waiting}`,
         fix: { label: 'Set up AI', to: '/ai' },
       };
   }

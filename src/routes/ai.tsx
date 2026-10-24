@@ -24,7 +24,7 @@ export const Route = createFileRoute('/ai')({
 });
 
 /**
- * AI providers: Career Companion's second account, next to the Gmail connection. Several can be
+ * AI providers: NorthList's second account, next to the Gmail connection. Several can be
  * connected; the active one reads the mail.
  */
 function AIProvidersPage() {
@@ -58,7 +58,7 @@ function AIProvidersPage() {
       <PageHeader
         className="mb-0"
         title="AI providers"
-        description="Career Companion reads your job mails with AI: your own AI account, or the free AI. You can connect several providers. One is active and reads your mail."
+        description="NorthList reads your job mails with AI: your own AI account, or the free AI. You can connect several providers. One is active and reads your mail."
         actions={
           settings &&
           canConnectMore(settings) && (

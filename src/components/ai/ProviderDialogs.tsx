@@ -207,8 +207,8 @@ export function RemoveProviderDialog({
         <div className="flex flex-col gap-3 text-sm">
           <p>
             {free
-              ? 'Career Companion stops reading your mail with the free AI. Mails and applications already read stay.'
-              : `The key is deleted from Career Companion. You can also revoke it with ${name}. Mails and applications already read stay.`}
+              ? 'NorthList stops reading your mail with the free AI. Mails and applications already read stay.'
+              : `The key is deleted from NorthList. You can also revoke it with ${name}. Mails and applications already read stay.`}
           </p>
           {isActive && choices.length > 0 && (
             <fieldset className="flex flex-col gap-2">

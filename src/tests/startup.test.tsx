@@ -116,7 +116,7 @@ describe('the start-up screen', () => {
   it('shows only the logo and a moving line while it checks, never the app', async () => {
     answers = [() => new Promise<Response>(() => undefined)];
     showGate();
-    expect(screen.getByRole('status')).toHaveTextContent('Loading Career Companion');
+    expect(screen.getByRole('status')).toHaveTextContent('Loading NorthList');
     expect(screen.getByRole('main')).toHaveAttribute('aria-busy', 'true');
     expect(screen.queryByText(/^App for/)).not.toBeInTheDocument();
     expect(screen.queryByRole('navigation')).not.toBeInTheDocument();

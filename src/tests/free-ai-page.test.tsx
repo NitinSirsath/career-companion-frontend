@@ -155,7 +155,7 @@ describe('a new user chooses how mails are read', () => {
     ).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Choose how your mails are read' })).toBeVisible();
     expect(screen.getByRole('heading', { name: 'Use your own AI key' })).toBeVisible();
-    expect(screen.getByRole('heading', { name: 'Career Companion free AI' })).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'NorthList free AI' })).toBeVisible();
     expect(screen.getByText('Recommended')).toBeVisible();
     // The cards are the actions: no second "Connect a provider" in the header.
     expect(screen.getAllByRole('button', { name: 'Connect a provider' })).toHaveLength(1);
@@ -166,7 +166,7 @@ describe('a new user chooses how mails are read', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Connect a provider' }));
     const dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByText('OpenRouter')).toBeInTheDocument();
-    expect(within(dialog).queryByText('Career Companion free AI')).not.toBeInTheDocument();
+    expect(within(dialog).queryByText('NorthList free AI')).not.toBeInTheDocument();
   });
 
   it('connects the free AI only after the user agrees, with no key', async () => {
@@ -177,7 +177,7 @@ describe('a new user chooses how mails are read', () => {
     });
     renderPage(nothing);
     fireEvent.click(await screen.findByRole('button', { name: 'Connect' }));
-    const dialog = await screen.findByRole('dialog', { name: 'Use Career Companion free AI?' });
+    const dialog = await screen.findByRole('dialog', { name: 'Use NorthList free AI?' });
     for (const term of ['What is sent', 'Who reads it', 'Shared', 'Daily limit', 'Budget'])
       expect(within(dialog).getByText(term)).toBeInTheDocument();
     const use = within(dialog).getByRole('button', { name: 'Use free AI' });
@@ -194,9 +194,7 @@ describe('a new user chooses how mails are read', () => {
         makeActive: true,
       }),
     );
-    expect(
-      await screen.findByText('Career Companion free AI reads your mail now.'),
-    ).toBeInTheDocument();
+    expect(await screen.findByText('NorthList free AI reads your mail now.')).toBeInTheDocument();
   });
 });
 
@@ -221,7 +219,7 @@ describe('the free AI reads the mail', () => {
   it.each([
     ['FREE_AI_BUSY', 'The free AI is busy right now.'],
     ['FREE_AI_BUDGET', "The free AI is paused: this month's free budget is used up."],
-    ['FREE_AI_PROBLEM', "The free AI is paused: a problem on Career Companion's side."],
+    ['FREE_AI_PROBLEM', "The free AI is paused: a problem on NorthList's side."],
   ] as const)('%s: says it waits by itself and offers the own key', async (reason, title) => {
     renderPage(freePaused(reason));
     expect(await screen.findByText(title)).toBeInTheDocument();
@@ -237,7 +235,7 @@ describe('the free AI reads the mail', () => {
   it('removes it without speaking of a key', async () => {
     renderPage(freeActive);
     fireEvent.click(await screen.findByRole('button', { name: 'Remove' }));
-    const dialog = await screen.findByRole('dialog', { name: 'Remove Career Companion free AI?' });
+    const dialog = await screen.findByRole('dialog', { name: 'Remove NorthList free AI?' });
     expect(within(dialog).getByText(/stops reading your mail with the free AI/)).toBeVisible();
   });
 });
@@ -245,11 +243,9 @@ describe('the free AI reads the mail', () => {
 describe('a key of their own and the free AI', () => {
   it("offers the free AI when the user's own key fails", async () => {
     renderPage(ownKeyRefused);
-    fireEvent.click(
-      await screen.findByRole('button', { name: 'Use Career Companion free AI instead' }),
-    );
+    fireEvent.click(await screen.findByRole('button', { name: 'Use NorthList free AI instead' }));
     expect(
-      await screen.findByRole('dialog', { name: 'Use Career Companion free AI?' }),
+      await screen.findByRole('dialog', { name: 'Use NorthList free AI?' }),
     ).toBeInTheDocument();
     expect(api.activateAIProvider).not.toHaveBeenCalled();
   });
@@ -269,12 +265,12 @@ describe('a key of their own and the free AI', () => {
     ).toBeVisible();
     expect(screen.queryByText(/No other provider yet/)).not.toBeInTheDocument();
     fireEvent.click(within(list).getByRole('button', { name: 'Add as backup' }));
-    const dialog = await screen.findByRole('dialog', { name: 'Add Career Companion free AI?' });
+    const dialog = await screen.findByRole('dialog', { name: 'Add NorthList free AI?' });
     const add = within(dialog).getByRole('button', { name: 'Add free AI' });
     expect(add).toBeDisabled();
     expect(
       within(dialog).getByLabelText(
-        'Make Career Companion free AI active now. It then reads new mails instead of OpenRouter.',
+        'Make NorthList free AI active now. It then reads new mails instead of OpenRouter.',
       ),
     ).not.toBeChecked();
     fireEvent.click(
@@ -290,9 +286,7 @@ describe('a key of their own and the free AI', () => {
       }),
     );
     expect(
-      await screen.findByText(
-        'Career Companion free AI is added. OpenRouter still reads your mail.',
-      ),
+      await screen.findByText('NorthList free AI is added. OpenRouter still reads your mail.'),
     ).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Add as backup' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Make active' })).toBeInTheDocument();
@@ -307,13 +301,13 @@ describe('a key of their own and the free AI', () => {
     });
     renderPage(ownKeyWorks);
     fireEvent.click(await screen.findByRole('button', { name: 'Add as backup' }));
-    const dialog = await screen.findByRole('dialog', { name: 'Add Career Companion free AI?' });
+    const dialog = await screen.findByRole('dialog', { name: 'Add NorthList free AI?' });
     fireEvent.click(
       within(dialog).getByLabelText(
         'I agree that my mails are sent to OpenRouter as described above.',
       ),
     );
-    fireEvent.click(within(dialog).getByLabelText(/Make Career Companion free AI active now/));
+    fireEvent.click(within(dialog).getByLabelText(/Make NorthList free AI active now/));
     fireEvent.click(within(dialog).getByRole('button', { name: 'Use free AI' }));
     await waitFor(() =>
       expect(api.saveAIProvider).toHaveBeenCalledWith('career-companion', {
@@ -321,9 +315,7 @@ describe('a key of their own and the free AI', () => {
         makeActive: true,
       }),
     );
-    expect(
-      await screen.findByText('Career Companion free AI reads your mail now.'),
-    ).toBeInTheDocument();
+    expect(await screen.findByText('NorthList free AI reads your mail now.')).toBeInTheDocument();
   });
 
   it('offers no backup when the server does not offer the free AI', async () => {
@@ -345,9 +337,7 @@ describe('a key of their own and the free AI', () => {
     const list = await screen.findByRole('list', { name: 'Other connected providers' });
     expect(within(list).getByText('Free, shared by everyone. No key needed.')).toBeVisible();
     expect(within(list).getByText(/GPT-6 Luna for both steps/)).toBeVisible();
-    fireEvent.click(
-      within(list).getByRole('button', { name: 'More for Career Companion free AI' }),
-    );
+    fireEvent.click(within(list).getByRole('button', { name: 'More for NorthList free AI' }));
     expect(await screen.findByRole('menuitem', { name: 'Remove…' })).toBeInTheDocument();
     expect(screen.queryByRole('menuitem', { name: 'Check key' })).not.toBeInTheDocument();
     expect(screen.queryByRole('menuitem', { name: 'Replace key' })).not.toBeInTheDocument();

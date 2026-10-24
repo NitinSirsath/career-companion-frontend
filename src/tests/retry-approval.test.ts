@@ -59,7 +59,7 @@ describe('the retry dialog says what happened', () => {
       steps: [
         'Reading the details was sent to Google Gemini · Gemini 3.8 Flash 3 times, at 11:37, 11:40 and 11:44 AM. Each time there was no answer within 60 seconds, so Google may have charged for these tries.',
       ],
-      text: 'Career Companion already tried 3 times and will not try again on its own. Retrying makes one more AI call on your Google Gemini account, which may be charged.',
+      text: 'NorthList already tried 3 times and will not try again on its own. Retrying makes one more AI call on your Google Gemini account, which may be charged.',
       switched: null,
     });
   });
@@ -90,9 +90,9 @@ describe('the retry dialog says what happened', () => {
       }),
     );
     expect(copy.steps).toEqual([
-      'Sorting the mail was sent to Google Gemini · Gemini 3.5 Flash-Lite at 11:30 AM. It returned an answer Career Companion could not use (stopped early: MAX_TOKENS).',
+      'Sorting the mail was sent to Google Gemini · Gemini 3.5 Flash-Lite at 11:30 AM. It returned an answer NorthList could not use (stopped early: MAX_TOKENS).',
     ]);
-    expect(copy.text).toMatch(/^Career Companion already tried once and will not try again/);
+    expect(copy.text).toMatch(/^NorthList already tried once and will not try again/);
   });
 
   it('an older step, from before tries and failures were kept, in plain words', () => {
@@ -114,7 +114,7 @@ describe('the retry dialog says what happened', () => {
     expect(unknown.steps).toEqual([
       'Reading the details was sent. There was no answer in time, so the AI provider may have charged for this try.',
     ]);
-    expect(unknown.text).toMatch(/^Career Companion will not try again on its own\. /);
+    expect(unknown.text).toMatch(/^NorthList will not try again on its own\. /);
     for (const text of [...copy.steps, copy.text])
       expect(text).not.toMatch(/never retries|outcome is unknown|Outcome unknown/);
   });

@@ -129,7 +129,7 @@ describe('a mail the AI thinks is a fake job offer', () => {
     expect(panel.getByText('Probably fake')).toBeInTheDocument();
     expect(panel.queryByText('Needs action')).not.toBeInTheDocument();
     expect(panel.queryByText(/^Due /)).not.toBeInTheDocument();
-    expect(panel.getByText(/Written by Career Companion/)).toBeInTheDocument();
+    expect(panel.getByText(/Written by NorthList/)).toBeInTheDocument();
   });
 
   it("shows the AI's warning under the mail, and not the payment it asks for", async () => {

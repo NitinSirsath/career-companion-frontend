@@ -62,9 +62,7 @@ export function PhoneMenu() {
             <span className="flex w-12 shrink-0 items-center justify-center border-r border-border-subtle">
               <Logo />
             </span>
-            <span className="flex min-w-0 flex-1 items-center px-3 font-medium">
-              Career Companion
-            </span>
+            <span className="flex min-w-0 flex-1 items-center px-3 font-medium">NorthList</span>
             <Dialog.Close
               aria-label="Close menu"
               className={cn(CELL, 'border-l border-border-subtle')}

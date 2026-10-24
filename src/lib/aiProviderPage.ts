@@ -32,7 +32,7 @@ function quotaOf({ quotaScope, freeTier }: AIFailure): string {
 
 /**
  * One failed AI call in plain words: what the provider answered (the status and short code) or
- * that no answer came, when, and how long Career Companion waited. `named` also names the model.
+ * that no answer came, when, and how long NorthList waited. `named` also names the model.
  * Never the provider's message text.
  */
 export function failureSaid(failure: AIFailure, named: boolean): string {
@@ -44,7 +44,7 @@ export function failureSaid(failure: AIFailure, named: boolean): string {
   const code = failureCode(failure);
   const network = failure.networkCode ? ` (${failure.networkCode})` : '';
   if (failure.cause === 'NETWORK')
-    return `Career Companion could not reach ${providerName(failure.provider)} at ${at}${network}`;
+    return `NorthList could not reach ${providerName(failure.provider)} at ${at}${network}`;
   if (failure.cause === 'NETWORK_AFTER_SEND') {
     const dropped = `the line dropped at ${at}${network}${after}`;
     return named ? `${model} did not answer: ${dropped}` : dropped;
@@ -57,8 +57,8 @@ export function failureSaid(failure: AIFailure, named: boolean): string {
       : `no answer within ${limit} at ${at}${withCode}`;
   }
   if (failure.kind === 'INVALID_OUTPUT')
-    return `${model} returned an answer Career Companion could not use${failure.stopReason ? ` (stopped early: ${failure.stopReason})` : ''}`;
-  if (failure.kind === 'INTERNAL_ERROR') return 'Career Companion stopped on an error of its own';
+    return `${model} returned an answer NorthList could not use${failure.stopReason ? ` (stopped early: ${failure.stopReason})` : ''}`;
+  if (failure.kind === 'INTERNAL_ERROR') return 'NorthList stopped on an error of its own';
   const company = providerCompany(failure.provider);
   const said = code
     ? `${company} answered ${code}${quotaOf(failure)}`
@@ -191,8 +191,8 @@ export const settingsOf = (
 /** ": Google Gemini did not confirm right now: … did not answer within 10 seconds." */
 function unconfirmedTail(response: SaveAIProviderResponse, providerId: string): string {
   if (!response.verificationFailure)
-    return ' The provider did not confirm right now; Career Companion will use it and show any problem here.';
-  return ` ${providerName(providerId)} did not confirm right now${notConfirmedBecause(response.verificationFailure)}. Career Companion will use it and show any problem here.`;
+    return ' The provider did not confirm right now; NorthList will use it and show any problem here.';
+  return ` ${providerName(providerId)} did not confirm right now${notConfirmedBecause(response.verificationFailure)}. NorthList will use it and show any problem here.`;
 }
 
 /**
@@ -264,7 +264,7 @@ function sampleUnavailable(details: unknown, providerId: string): string {
 }
 
 /**
- * Why the sample test did not work: which model did not answer and how long Career Companion
+ * Why the sample test did not work: which model did not answer and how long NorthList
  * waited, or what the provider answered.
  */
 export function sampleTestProblem(err: unknown, providerId: string): string {

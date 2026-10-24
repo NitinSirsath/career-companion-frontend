@@ -8,8 +8,8 @@ import { Button } from '../ui/button';
 import { InlineNotification } from '../ui/notification';
 
 /**
- * Optional proof that the saved key and models return Career Companion's structured output. The
- * result is shown, kept only in this component, and discarded; Career Companion stores nothing.
+ * Optional proof that the saved key and models return NorthList's structured output. The
+ * result is shown, kept only in this component, and discarded; NorthList stores nothing.
  */
 export function SampleTestPanel({
   providerId,

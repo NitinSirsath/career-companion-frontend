@@ -82,7 +82,7 @@ describe('the free AI', () => {
     );
     expect(modelsLine(free)).toBe('GPT-6 Luna');
     expect(removedNote(settings({ connections: [] }), 'career-companion')).toBe(
-      'Career Companion free AI is removed.',
+      'NorthList free AI is removed.',
     );
   });
 

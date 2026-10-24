@@ -43,7 +43,7 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
 
     return (
       <ErrorState
-        title="Career Companion needs to restart"
+        title="NorthList needs to restart"
         message="An unexpected error stopped the application from rendering. Try again or reload the page."
         error={this.state.error}
         showRetry

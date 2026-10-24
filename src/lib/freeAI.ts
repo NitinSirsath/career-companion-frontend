@@ -3,7 +3,7 @@ import { getCatalogProvider } from '../contracts/aiCatalog';
 import { clock, type AccessCopy } from './aiLabels';
 
 /**
- * The free AI (owner, 24 Oct 2026): "Career Companion free AI" runs on Career Companion's own
+ * The free AI (owner, 24 Oct 2026): "NorthList free AI" runs on NorthList's own
  * OpenRouter key, with GPT-6 Luna for both steps. The user has no key and no model choice; one
  * pause is shared by everyone on it, and nothing there is the user's to fix.
  */
@@ -50,7 +50,7 @@ export const FREE_AI_FACTS: readonly { term: string; text: string }[] = [
   },
   {
     term: 'Who reads it',
-    text: "OpenRouter, on Career Companion's account. It passes each mail to GPT-6 Luna on Microsoft Azure servers in the US or Europe. Career Companion asks for servers that keep nothing, so they cannot train on your mail.",
+    text: "OpenRouter, on NorthList's account. It passes each mail to GPT-6 Luna on Microsoft Azure servers in the US or Europe. NorthList asks for servers that keep nothing, so they cannot train on your mail.",
   },
   {
     term: 'Shared',
@@ -79,7 +79,7 @@ const OWN_KEY = { label: 'Connect your own key', to: '/ai' } as const;
 
 /**
  * The free AI's own waits: its pause shared by everyone (busy, budget used up, a problem on
- * Career Companion's side) or the free AI switched off. Null for any other state.
+ * NorthList's side) or the free AI switched off. Null for any other state.
  */
 export function freeAICopy(settings: AISettingsResponse): AccessCopy | null {
   const { access, waitingEmails } = settings;
@@ -88,7 +88,7 @@ export function freeAICopy(settings: AISettingsResponse): AccessCopy | null {
     case 'FREE_AI_BUSY':
       return {
         title: 'The free AI is busy right now.',
-        detail: `OpenRouter asked Career Companion to slow down, so the free AI is paused for everyone${until}. ${waiting(waitingEmails)} in line and will be read by themselves. Nothing is lost.`,
+        detail: `OpenRouter asked NorthList to slow down, so the free AI is paused for everyone${until}. ${waiting(waitingEmails)} in line and will be read by themselves. Nothing is lost.`,
         fix: OWN_KEY,
       };
     case 'FREE_AI_BUDGET':
@@ -99,14 +99,14 @@ export function freeAICopy(settings: AISettingsResponse): AccessCopy | null {
       };
     case 'FREE_AI_PROBLEM':
       return {
-        title: "The free AI is paused: a problem on Career Companion's side.",
+        title: "The free AI is paused: a problem on NorthList's side.",
         detail: `We have been told and are fixing it. There is nothing for you to do. ${waiting(waitingEmails)} and none are lost. To keep going now, connect your own key.`,
         fix: OWN_KEY,
       };
     case 'FREE_AI_OFF':
       return {
         title: 'The free AI is switched off for now.',
-        detail: `Career Companion turned the free AI off. ${waiting(waitingEmails)} and none are lost. To keep going now, connect your own key.`,
+        detail: `NorthList turned the free AI off. ${waiting(waitingEmails)} and none are lost. To keep going now, connect your own key.`,
         fix: OWN_KEY,
       };
     default:

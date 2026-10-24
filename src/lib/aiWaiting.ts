@@ -79,7 +79,7 @@ function needsYourOkCopy(settings: AISettingsResponse): AccessCopy {
     : '';
   return {
     title: needOk(emails),
-    detail: `${model ? modelName(provider, model) : providerName(provider)} did not answer ${it}${times}${when}. Career Companion stopped trying ${it} by itself. ${retryThem(emails)}`,
+    detail: `${model ? modelName(provider, model) : providerName(provider)} did not answer ${it}${times}${when}. NorthList stopped trying ${it} by itself. ${retryThem(emails)}`,
   };
 }
 
@@ -108,7 +108,7 @@ const heldMail = ({ access, needsYourOk }: AISettingsResponse) =>
  * What the AI notice shows, and whether it offers "Read waiting mails now". A try shows until its
  * answer comes. Mail that waits for the user's OK is never said to continue by itself: unless other
  * mail waits for AI, the notice is about that mail. The button is only for a pause that a new try
- * can end: a key, billing or model problem, a daily limit and a pause set by Career Companion all
+ * can end: a key, billing or model problem, a daily limit and a pause set by NorthList all
  * need something else.
  */
 export function waitingNotice(

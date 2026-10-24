@@ -11,7 +11,7 @@ import type { ProviderActions } from './ActiveProviderCard';
 
 /**
  * Why the free AI does not read now: its pause shared by everyone, the free AI switched off, or
- * Career Companion's daily limit. Every one ends by itself; the user's own key reads at once.
+ * NorthList's daily limit. Every one ends by itself; the user's own key reads at once.
  */
 function FreeAIWait({
   settings,
@@ -38,7 +38,7 @@ function FreeAIWait({
 }
 
 /**
- * The free AI as the provider that reads the mail: free, on Career Companion's account, with GPT-6
+ * The free AI as the provider that reads the mail: free, on NorthList's account, with GPT-6
  * Luna for both steps. No key and no model to change, so only "Remove"; the banner says it is
  * shared, and its pauses say they end by themselves.
  */
@@ -64,13 +64,13 @@ export function FreeAICard({
         <div className="flex flex-wrap items-start justify-between gap-4 px-6 py-5">
           <div className="flex min-w-0 flex-col gap-1">
             <span className="flex flex-wrap items-center gap-2.5">
-              <span className="text-xl leading-7">Career Companion free AI</span>
+              <span className="text-xl leading-7">NorthList free AI</span>
               <Tag color="blue">Active</Tag>
               <Tag>Free</Tag>
               <Tag color={tag.color}>{tag.label}</Tag>
             </span>
             <span className="text-xs text-text-secondary">
-              Runs on OpenRouter, on Career Companion&apos;s account. No key needed.
+              Runs on OpenRouter, on NorthList&apos;s account. No key needed.
             </span>
           </div>
           <Button variant="danger-ghost" size="sm" onClick={() => actions.onRemove(FREE_AI)}>

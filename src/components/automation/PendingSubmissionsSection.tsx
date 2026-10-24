@@ -114,7 +114,7 @@ function SubmissionCard({
 }
 
 /**
- * Automation submissions that Career Companion could not match with certainty (ADR-0002 decision 7).
+ * Automation submissions that NorthList could not match with certainty (ADR-0002 decision 7).
  * Resolution is final. An uncertain outcome refreshes the list and is never resent automatically.
  */
 export function PendingSubmissionsSection({

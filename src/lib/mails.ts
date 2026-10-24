@@ -59,7 +59,7 @@ export const FAKE_OFFER = {
   advice:
     "Real employers don't ask you to pay to get a job. Don't pay, and don't send bank or ID details. Check the job on the company's own careers site.",
   note: 'The AI noticed this in the mail. It can be wrong. The mail stays here so you can decide.',
-  stepNote: 'Written by Career Companion, not taken from the mail.',
+  stepNote: 'Written by NorthList, not taken from the mail.',
 } as const;
 
 /**

@@ -332,7 +332,7 @@ describe('AI providers page: the active provider', () => {
     ],
     [
       { state: 'LIMITED', reason: 'SAFETY_LIMIT', resumesAt: '2026-10-03T00:00:00.000Z' },
-      "You reached Career Companion's daily AI limit",
+      "You reached NorthList's daily AI limit",
       null,
     ],
   ] as const)('explains %o with one fix', async (access, title, link) => {
@@ -666,7 +666,7 @@ describe("AI providers page: each model's state (mock screen 7)", () => {
     expect(await screen.findByText('Limited')).toBeInTheDocument();
     const problem = screen.getByText('Gemini 3.8 Flash is busy right now').parentElement!;
     expect(problem).toHaveTextContent(
-      'Google answered 503 UNAVAILABLE at 11:44 AM. Career Companion tries again by itself at about 11:52 AM. Gemini 3.5 Flash-Lite is not affected. 1 email is waiting.',
+      'Google answered 503 UNAVAILABLE at 11:44 AM. NorthList tries again by itself at about 11:52 AM. Gemini 3.5 Flash-Lite is not affected. 1 email is waiting.',
     );
     expect(within(problem).getByText('503 UNAVAILABLE').tagName).toBe('STRONG');
     expect(row('Fast screening')).toHaveTextContent(

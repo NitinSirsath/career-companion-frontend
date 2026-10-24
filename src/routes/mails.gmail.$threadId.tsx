@@ -44,8 +44,8 @@ function GmailMailPage() {
         >
           <h2 className="text-sm font-semibold">Not a job mail</h2>
           <p className="text-sm">
-            This mail is shown as Gmail has it. Career Companion did not analyze it and keeps
-            nothing from it.
+            This mail is shown as Gmail has it. NorthList did not analyze it and keeps nothing from
+            it.
           </p>
         </aside>
       </div>

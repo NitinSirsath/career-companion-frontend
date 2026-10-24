@@ -24,7 +24,7 @@ export function RouteErrorPage({ error, reset }: ErrorComponentProps) {
   return (
     <ErrorState
       title="Something went wrong"
-      message="Career Companion could not display this page. You can retry or return to Mails."
+      message="NorthList could not display this page. You can retry or return to Mails."
       error={error}
       showRetry
       showReload

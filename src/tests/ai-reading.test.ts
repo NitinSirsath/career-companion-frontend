@@ -92,7 +92,7 @@ describe('the words of the status', () => {
     });
   });
 
-  it('offers the own key when the free AI stops, and nothing when Career Companion paused AI', () => {
+  it('offers the own key when the free AI stops, and nothing when NorthList paused AI', () => {
     const stopped = (reason: AIReadingStatusResponse['reason']) =>
       statusWords(reading({ state: 'STOPPED', reason, secondsLeft: null }))!;
     expect(stopped('FREE_AI_BUDGET')).toEqual({

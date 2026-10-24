@@ -37,7 +37,7 @@ function AutomationPage() {
     <div className="flex flex-col">
       <PageHeader
         title="Automation"
-        description="Let your own job-application automation tell Career Companion about each application it sends. Career Companion never applies to jobs itself."
+        description="Let your own job-application automation tell NorthList about each application it sends. NorthList never applies to jobs itself."
       />
       <Tabs<PageTab> label="Automation" items={PAGE_TABS} value={tab} onValueChange={setTab}>
         <TabPanel value="submitted" className="flex flex-col gap-8 pt-6">

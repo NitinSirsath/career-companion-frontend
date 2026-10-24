@@ -224,7 +224,7 @@ describe('row badge and (i), as on the mock', () => {
     expect(shown(view)).toEqual({
       badge: 'Waiting for AI',
       title: 'Gemini 3.8 Flash is tried once more',
-      text: 'You said OK. Career Companion tries it again in a moment.',
+      text: 'You said OK. NorthList tries it again in a moment.',
       next: 'Next try: in a moment, by itself',
     });
     expect(view.tone).toBe('neutral');
@@ -393,7 +393,7 @@ describe('row badge and (i), as on the mock', () => {
     expect(shown(view)).toEqual({
       badge: 'AI could not read it',
       title: 'Unusable answer',
-      text: 'Gemini 3.8 Flash returned an answer Career Companion could not use (stopped early: MAX_TOKENS).',
+      text: 'Gemini 3.8 Flash returned an answer NorthList could not use (stopped early: MAX_TOKENS).',
       next: 'Next: waits for you. Use Manual Retry.',
     });
     expect(view.retry).toBe(true);
@@ -426,20 +426,20 @@ describe('row badge and (i), as on the mock', () => {
     ).toBe('The line dropped at 11:36 AM (ECONNRESET) after sending. That used try 1 of 3.');
   });
 
-  it("Career Companion's own daily limit", () => {
+  it("NorthList's own daily limit", () => {
     expect(
       shown(
         waiting(status({ reason: 'SAFETY_LIMIT', failure: null, nextTryAt: at(5, 30, 0, 15) })),
       ),
     ).toEqual({
       badge: 'Waiting for AI',
-      title: "Career Companion's daily limit",
+      title: "NorthList's daily limit",
       text: "This is our limit, not Google's. This does not use one of the 3 tries.",
       next: 'Next try: about 5:30 AM tomorrow, by itself',
     });
   });
 
-  it('request refused: our problem, and only Career Companion can retry it', () => {
+  it('request refused: our problem, and only NorthList can retry it', () => {
     const view = stopped(
       status({
         reason: 'INVALID_REQUEST',
@@ -455,8 +455,8 @@ describe('row badge and (i), as on the mock', () => {
     expect(shown(view)).toEqual({
       badge: 'AI could not read it',
       title: 'Request refused',
-      text: 'Career Companion sent a request Google refused (400 INVALID_ARGUMENT). This is our problem, not yours.',
-      next: 'Next: waits for Career Companion.',
+      text: 'NorthList sent a request Google refused (400 INVALID_ARGUMENT). This is our problem, not yours.',
+      next: 'Next: waits for NorthList.',
     });
     expect(view.retry).toBe(false);
   });
@@ -539,7 +539,7 @@ describe('row badge and (i), as on the mock', () => {
   });
 });
 
-describe('a Manual Retry only Career Companion may do', () => {
+describe('a Manual Retry only NorthList may do', () => {
   it("is refused in the row's own words", () => {
     const refused = status({
       reason: 'INVALID_REQUEST',
@@ -552,7 +552,7 @@ describe('a Manual Retry only Career Companion may do', () => {
       nextStep: 'CAREER_COMPANION',
     });
     expect(onlyCareerCompanionText({ processingState: 'FAILED', aiStatus: refused })).toBe(
-      'Request refused. Career Companion sent a request Google refused (400 INVALID_ARGUMENT). This is our problem, not yours.',
+      'Request refused. NorthList sent a request Google refused (400 INVALID_ARGUMENT). This is our problem, not yours.',
     );
   });
 

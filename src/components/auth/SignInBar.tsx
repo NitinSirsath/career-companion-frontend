@@ -8,7 +8,7 @@ export function SignInBar() {
       <span className="flex size-14 shrink-0 items-center justify-center border-r border-border-subtle">
         <Logo />
       </span>
-      <span className="flex min-w-0 flex-1 items-center px-4 font-medium">Career Companion</span>
+      <span className="flex min-w-0 flex-1 items-center px-4 font-medium">NorthList</span>
       <DevModeBanner />
     </header>
   );

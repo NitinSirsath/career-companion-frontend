@@ -149,7 +149,7 @@ export function MailReplyBox({
     );
   else if (canSend === false)
     box = (
-      <ReplyNotice text="Career Companion may read your Gmail, but not send from it yet. Allow sending to reply from here. Google asks you once.">
+      <ReplyNotice text="NorthList may read your Gmail, but not send from it yet. Allow sending to reply from here. Google asks you once.">
         {elsewhere}
         <Button type="button" onClick={() => window.location.assign(allowSendingUrl(mailPath))}>
           Allow sending

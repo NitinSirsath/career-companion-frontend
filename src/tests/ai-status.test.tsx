@@ -216,7 +216,7 @@ describe('the banner on Mails and Gmail Sync', () => {
       const banner = await screen.findByRole('status', { name: 'AI status' });
       expect(banner).toHaveTextContent('Gemini 3.8 Flash is busy right now');
       expect(banner).toHaveTextContent(
-        /Google answered 503 UNAVAILABLE at \d{1,2}:\d{2} [AP]M\. Career Companion tries again by itself at about \d{1,2}:\d{2} [AP]M\. 1 email is waiting\./,
+        /Google answered 503 UNAVAILABLE at \d{1,2}:\d{2} [AP]M\. NorthList tries again by itself at about \d{1,2}:\d{2} [AP]M\. 1 email is waiting\./,
       );
       expect(within(banner).getByRole('button', { name: 'Read waiting mails now' })).toBeEnabled();
       expect(banner).toHaveTextContent('Sends 1 mail first, as a test.');
@@ -363,7 +363,7 @@ describe('Gmail Sync row badges and the (i)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Why is this mail waiting?' }));
     expect(await screen.findByText('Gemini 3.8 Flash is tried once more')).toBeInTheDocument();
     expect(
-      screen.getByText('You said OK. Career Companion tries it again in a moment.'),
+      screen.getByText('You said OK. NorthList tries it again in a moment.'),
     ).toBeInTheDocument();
   });
 
@@ -459,7 +459,7 @@ describe('Gmail Sync row badges and the (i)', () => {
     expect(screen.queryByText(/reconciliation|Outcome unknown|Stage:/)).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Why could the AI not read this mail?' }));
     expect(await screen.findByText('Request refused')).toBeInTheDocument();
-    expect(screen.getByText('waits for Career Companion.')).toBeInTheDocument();
+    expect(screen.getByText('waits for NorthList.')).toBeInTheDocument();
   });
 });
 
@@ -536,7 +536,7 @@ describe('Retry anyway (user-approved retry)', () => {
     );
     expect(
       within(dialog).getByText(
-        'Career Companion already tried 3 times and will not try again on its own. Retrying makes one more AI call on your Google Gemini account, which may be charged.',
+        'NorthList already tried 3 times and will not try again on its own. Retrying makes one more AI call on your Google Gemini account, which may be charged.',
       ),
     ).toBeInTheDocument();
     expect(within(dialog).queryByText(/never retries/)).toBeNull();
@@ -603,7 +603,7 @@ describe('Retry anyway (user-approved retry)', () => {
     await clickManualRetry();
     expect(
       await screen.findByText(
-        'Only Career Companion can retry this email. This is our problem, not yours.',
+        'Only NorthList can retry this email. This is our problem, not yours.',
       ),
     ).toBeInTheDocument();
     expect(screen.queryByText(/could not be confirmed/)).not.toBeInTheDocument();
@@ -646,7 +646,7 @@ describe('Retry anyway (user-approved retry)', () => {
     await act(() => queryClient.invalidateQueries({ queryKey: ['gmailMessages'] }));
     expect(
       await screen.findByText(
-        'Request refused. Career Companion sent a request Google refused (400 INVALID_ARGUMENT). This is our problem, not yours.',
+        'Request refused. NorthList sent a request Google refused (400 INVALID_ARGUMENT). This is our problem, not yours.',
       ),
     ).toBeInTheDocument();
   });
