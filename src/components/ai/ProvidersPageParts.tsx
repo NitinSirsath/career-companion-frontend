@@ -1,5 +1,6 @@
 import type { AISettingsResponse } from '../../contracts/ai';
 import { activeConnection } from '../../lib/aiConnections';
+import { providerName } from '../../lib/aiLabels';
 import { freeAIOffered, isFreeAI } from '../../lib/freeAI';
 import { Button } from '../ui/button';
 import { InlineNotification } from '../ui/notification';
@@ -17,7 +18,7 @@ import { UsageAndTest } from './UsageAndTest';
 export type OpenDialog =
   | { kind: 'connect'; start: string | null }
   | { kind: 'replace' | 'activate' | 'remove'; provider: string }
-  | { kind: 'free' }
+  | { kind: 'free'; backup: boolean }
   | null;
 
 /** The dialog for `open`, rendered only while open, so a typed key goes away with it. */
@@ -32,7 +33,16 @@ export function OpenProviderDialog({
   onClose: () => void;
   onDone: (note: string) => void;
 }) {
-  if (open.kind === 'free') return <FreeAIDialog onClose={onClose} onDone={onDone} />;
+  if (open.kind === 'free') {
+    const active = open.backup ? activeConnection(settings) : null;
+    return (
+      <FreeAIDialog
+        backupFor={active && providerName(active.provider)}
+        onClose={onClose}
+        onDone={onDone}
+      />
+    );
+  }
   if (open.kind === 'connect')
     return (
       <ConnectProviderDialog
