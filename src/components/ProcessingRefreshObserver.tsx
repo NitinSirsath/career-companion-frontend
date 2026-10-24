@@ -1,5 +1,6 @@
 import { useEffect, useRef, useSyncExternalStore } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useAIReading } from '../api/aiReading';
 import { api } from '../api/client';
 import type { AISettingsResponse } from '../contracts/ai';
 import type { GmailStatusResponse } from '../contracts/gmail';
@@ -7,6 +8,7 @@ import { nothingCanChange, runningTest } from '../lib/aiWaiting';
 import {
   DOMAIN_QUERY_KEYS,
   PROCESSING_REFRESH_INTERVAL_MS,
+  READING_REFRESH_INTERVAL_MS,
   getProcessingRefreshUntil,
   startProcessingRefresh,
   subscribeProcessingRefresh,
@@ -17,7 +19,9 @@ import {
  * (new lastSyncedAt) or an accepted/uncertain sync or retry opens a bounded refresh window.
  * The window closes early once a reload made inside it shows that nothing can change: no sync is
  * running and AI cannot read mail right now. While the test mail of "Read waiting mails now" still
- * waits for its answer, a window that ends opens a new one; the pause's end bounds that.
+ * waits for its answer, a window that ends opens a new one; the pause's end bounds that. While the
+ * AI reading status says mails are read (a first sync can take about 10 minutes), the lists keep
+ * refreshing every 15 seconds, and once more when it ends.
  */
 export function ProcessingRefreshObserver() {
   const queryClient = useQueryClient();
@@ -35,6 +39,20 @@ export function ProcessingRefreshObserver() {
       return Number.isFinite(next) ? Math.max(60_000, next + 60_000 - Date.now()) : false;
     },
   });
+
+  const { data: reading } = useAIReading();
+  const readingNow = reading?.state === 'READING';
+  useEffect(() => {
+    if (!readingNow) return;
+    const refresh = () => {
+      for (const key of DOMAIN_QUERY_KEYS) void queryClient.invalidateQueries({ queryKey: [key] });
+    };
+    const timer = setInterval(refresh, READING_REFRESH_INTERVAL_MS);
+    return () => {
+      clearInterval(timer);
+      refresh();
+    };
+  }, [readingNow, queryClient]);
 
   const lastSyncedAt = status?.lastSyncedAt ? String(status.lastSyncedAt) : null;
   useEffect(() => {
