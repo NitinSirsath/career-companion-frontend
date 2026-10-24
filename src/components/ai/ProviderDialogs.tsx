@@ -11,6 +11,7 @@ import {
   removedNote,
 } from '../../lib/aiConnections';
 import { providerName } from '../../lib/aiLabels';
+import { isFreeAI } from '../../lib/freeAI';
 import { keyReplacedNote } from '../../lib/aiProviderPage';
 import { startProcessingRefresh } from '../../lib/processingRefresh';
 import { Button } from '../ui/button';
@@ -196,16 +197,18 @@ export function RemoveProviderDialog({
     onError: () => queryClient.invalidateQueries({ queryKey: ['aiSettings'] }),
   });
   const name = providerName(providerId);
+  const free = isFreeAI(providerId);
   return (
     <Dialog open onOpenChange={(open) => !open && !remove.isPending && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Remove your {name} key?</DialogTitle>
+          <DialogTitle>{free ? `Remove ${name}?` : `Remove your ${name} key?`}</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-3 text-sm">
           <p>
-            The key is deleted from Career Companion. You can also revoke it with {name}. Mails and
-            applications already read stay.
+            {free
+              ? 'Career Companion stops reading your mail with the free AI. Mails and applications already read stay.'
+              : `The key is deleted from Career Companion. You can also revoke it with ${name}. Mails and applications already read stay.`}
           </p>
           {isActive && choices.length > 0 && (
             <fieldset className="flex flex-col gap-2">

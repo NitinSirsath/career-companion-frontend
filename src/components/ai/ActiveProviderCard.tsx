@@ -11,6 +11,7 @@ import {
   settingsOf,
   waitingText,
 } from '../../lib/aiProviderPage';
+import { freeAIConnection, freeAIOffered } from '../../lib/freeAI';
 import { startProcessingRefresh } from '../../lib/processingRefresh';
 import { Button } from '../ui/button';
 import { InlineNotification } from '../ui/notification';
@@ -22,12 +23,15 @@ export interface ProviderActions {
   onReplaceKey: (providerId: string) => void;
   onRemove: (providerId: string) => void;
   onActivate: (providerId: string) => void;
+  /** Opens the free AI's confirm dialog. */
+  onUseFreeAI: () => void;
   onNote: (note: string) => void;
 }
 
 /**
  * What stops or limits AI now, with the one fix, in the provider's own words where it gave any.
- * A key problem also offers "Replace key", and another connected provider that could take over.
+ * A key problem also offers "Replace key", and another connected provider that could take over,
+ * or else the free AI when the server offers it (owner, 24 Oct 2026). Nothing switches by itself.
  */
 function AccessProblem({
   settings,
@@ -40,6 +44,8 @@ function AccessProblem({
   if (!copy) return null;
   const keyProblem = settings.access.state === 'NEEDS_ATTENTION' && settings.provider;
   const spare = keyProblem ? spareProvider(settings) : null;
+  const offerFreeAI =
+    keyProblem && !spare && freeAIOffered(settings) && !freeAIConnection(settings);
   return (
     <InlineNotification kind="warning" title={copy.title}>
       <span className="flex flex-col gap-1">
@@ -65,6 +71,11 @@ function AccessProblem({
           {spare && (
             <Button variant="ghost" size="sm" onClick={() => actions.onActivate(spare.provider)}>
               Use {providerName(spare.provider)} instead
+            </Button>
+          )}
+          {offerFreeAI && (
+            <Button variant="ghost" size="sm" onClick={actions.onUseFreeAI}>
+              Use Career Companion free AI instead
             </Button>
           )}
         </span>

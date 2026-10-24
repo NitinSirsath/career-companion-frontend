@@ -12,6 +12,7 @@ import {
   modelsLine,
 } from '../../lib/aiConnections';
 import { providerName } from '../../lib/aiLabels';
+import { isFreeAI } from '../../lib/freeAI';
 import { settingsOf } from '../../lib/aiProviderPage';
 import { Button } from '../ui/button';
 import { OverflowMenu } from '../ui/menu';
@@ -29,6 +30,8 @@ function OtherProviderRow({
   const queryClient = useQueryClient();
   const name = providerName(connection.provider);
   const tag = connectionTag(connection);
+  // The free AI has no key: nothing to check or replace.
+  const free = isFreeAI(connection.provider);
   const check = useMutation({
     mutationFn: () => api.checkAIProvider(connection.provider),
     retry: false,
@@ -46,10 +49,15 @@ function OtherProviderRow({
       <div className="flex min-w-0 flex-col gap-0.5">
         <span className="text-[15px] leading-[22px]">{name}</span>
         <span className="text-xs text-text-secondary">
-          {check.isPending ? 'Checking the key…' : keyLine(connection)}
+          {free && 'Free, shared by everyone. No key needed.'}
+          {!free && (check.isPending ? 'Checking the key…' : keyLine(connection))}
         </span>
       </div>
-      <span className="text-xs text-text-secondary">{modelsLine(connection)}</span>
+      <span className="text-xs text-text-secondary">
+        {free
+          ? `${modelsLine(connection)} for both steps · about 200 mails a day`
+          : modelsLine(connection)}
+      </span>
       <span>
         <Tag color={tag.color}>{tag.label}</Tag>
       </span>
@@ -65,8 +73,19 @@ function OtherProviderRow({
         <OverflowMenu
           label={`More for ${name}`}
           actions={[
-            { label: 'Check key', onSelect: () => check.mutate(), disabled: check.isPending },
-            { label: 'Replace key', onSelect: () => actions.onReplaceKey(connection.provider) },
+            ...(free
+              ? []
+              : [
+                  {
+                    label: 'Check key',
+                    onSelect: () => check.mutate(),
+                    disabled: check.isPending,
+                  },
+                  {
+                    label: 'Replace key',
+                    onSelect: () => actions.onReplaceKey(connection.provider),
+                  },
+                ]),
             {
               label: 'Remove…',
               danger: true,
@@ -118,8 +137,9 @@ export function OtherProviders({
         ) : (
           <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
             <p className="text-sm text-text-secondary">
-              No other provider yet. A second one lets you switch quickly when this one has a
-              problem.
+              {active && isFreeAI(active.provider)
+                ? 'No other provider yet. Your own key reads mails faster, because nobody else shares it.'
+                : 'No other provider yet. A second one lets you switch quickly when this one has a problem.'}
             </p>
             {canConnectMore(settings) && (
               <Button variant="ghost" size="sm" onClick={onConnect}>

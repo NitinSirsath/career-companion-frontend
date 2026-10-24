@@ -3,6 +3,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { Add } from '@carbon/icons-react';
 import { api } from '../api/client';
+import { useGmailStatus } from '../api/gmail';
 import type { ProviderActions } from '../components/ai/ActiveProviderCard';
 import {
   OpenProviderDialog,
@@ -41,10 +42,12 @@ function AIProvidersPage() {
     setNote(null);
     setOpen(next);
   };
+  const { data: gmail } = useGmailStatus();
   const actions: ProviderActions = {
     onReplaceKey: (provider) => openDialog({ kind: 'replace', provider }),
     onRemove: (provider) => openDialog({ kind: 'remove', provider }),
     onActivate: (provider) => openDialog({ kind: 'activate', provider }),
+    onUseFreeAI: () => openDialog({ kind: 'free' }),
     onNote: setNote,
   };
   const connect = () => openDialog({ kind: 'connect', start: null });
@@ -54,7 +57,7 @@ function AIProvidersPage() {
       <PageHeader
         className="mb-0"
         title="AI providers"
-        description="Career Companion reads your job mails with your own AI account. You can connect several providers. One is active and reads your mail. Keys are stored encrypted and never shown again."
+        description="Career Companion reads your job mails with AI: your own AI account, or the free AI. You can connect several providers. One is active and reads your mail."
         actions={
           settings &&
           canConnectMore(settings) && (
@@ -72,6 +75,7 @@ function AIProvidersPage() {
         <ProvidersBody
           settings={settings}
           actions={actions}
+          gmailConnected={!!gmail?.connected}
           onConnect={connect}
           onConnectFirst={(provider) => openDialog({ kind: 'connect', start: provider })}
         />
