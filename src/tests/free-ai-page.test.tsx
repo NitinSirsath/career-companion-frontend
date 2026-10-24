@@ -101,7 +101,7 @@ const ownKeyWorks: AISettingsResponse = {
   ...freeActive,
   provider: 'openrouter',
   consent: null,
-  connections: [ownKey,
+  connections: [ownKey],
 };
 /** The user's own OpenRouter key was refused. */
 const ownKeyRefused: AISettingsResponse = {
