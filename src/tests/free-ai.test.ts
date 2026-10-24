@@ -8,7 +8,7 @@ import {
   removedNote,
 } from '../lib/aiConnections';
 import { accessCopy } from '../lib/aiLabels';
-import { freeAICopy, freeAIOffered, ownKeyProviders } from '../lib/freeAI';
+import { freeAIBackupOffered, freeAICopy, freeAIOffered, ownKeyProviders } from '../lib/freeAI';
 
 const LUNA = { id: 'openai/gpt-6-luna', source: 'RECOMMENDED' as const };
 const free: AIConnection = {
@@ -57,6 +57,19 @@ describe('the free AI', () => {
     expect(ownKeyProviders(settings())).toEqual(['openrouter']);
     expect(providersToConnect(settings())).toEqual(['openrouter']);
     expect(canConnectMore(settings({ offeredProviders: ['career-companion'] }))).toBe(false);
+  });
+
+  it('is offered as a backup only next to another active provider, until it is added', () => {
+    const own = { ...free, provider: 'openrouter' };
+    expect(freeAIBackupOffered(settings({ connections: [own] }))).toBe(true);
+    expect(freeAIBackupOffered(settings({ connections: [own, { ...free, active: false }] }))).toBe(
+      false,
+    );
+    expect(freeAIBackupOffered(settings({ connections: [{ ...own, active: false }] }))).toBe(false);
+    expect(freeAIBackupOffered(settings({ connections: [] }))).toBe(false);
+    expect(
+      freeAIBackupOffered(settings({ offeredProviders: ['openrouter'], connections: [own] })),
+    ).toBe(false);
   });
 
   it('names its pause as a pause, and each model once', () => {
