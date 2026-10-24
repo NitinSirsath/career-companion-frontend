@@ -9,6 +9,7 @@ import {
 import { ROLE_LABELS, activeConnection } from '../../lib/aiConnections';
 import { providerName } from '../../lib/aiLabels';
 import { connectNote } from '../../lib/aiProviderPage';
+import { ownKeyProviders } from '../../lib/freeAI';
 import { Button } from '../ui/button';
 import {
   Dialog,
@@ -35,7 +36,7 @@ function ProviderList({
   return (
     <div className="flex flex-col">
       <ul className="flex flex-col">
-        {settings.offeredProviders.map((id) => {
+        {ownKeyProviders(settings).map((id) => {
           const provider = getCatalogProvider(id);
           if (!provider) return null;
           return (
@@ -77,22 +78,26 @@ function KeySteps({ provider }: { provider: CatalogProvider }) {
         ))}
       </ol>
       <p className="flex flex-wrap gap-4 text-sm">
-        <a
-          className="underline text-action-primary"
-          href={provider.links.apiKeys}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Get a {name} API key
-        </a>
-        <a
-          className="underline text-action-primary"
-          href={provider.links.billing}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {name} billing
-        </a>
+        {provider.links.apiKeys && (
+          <a
+            className="underline text-action-primary"
+            href={provider.links.apiKeys}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Get a {name} API key
+          </a>
+        )}
+        {provider.links.billing && (
+          <a
+            className="underline text-action-primary"
+            href={provider.links.billing}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {name} billing
+          </a>
+        )}
       </p>
     </section>
   );
