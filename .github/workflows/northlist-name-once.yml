@@ -1,0 +1,54 @@
+name: NorthList name once (temporary)
+# Applies the reviewed NorthList rename to feat/northlist-name and commits only that.
+# Lives only on the throwaway branch tmp/northlist-name-once, which is deleted afterwards.
+on:
+  push:
+    branches: [tmp/northlist-name-once]
+permissions:
+  contents: write
+concurrency:
+  group: northlist-name-once
+  cancel-in-progress: false
+jobs:
+  rename:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: feat/northlist-name
+      - name: Check the start
+        run: |
+          if [ "$(git rev-parse 'HEAD^{tree}')" != "f0da1068d32cebaa618b120191ec50cafa463afb" ]; then
+            echo "feat/northlist-name does not start from the reviewed main. Nothing was changed."
+            exit 1
+          fi
+      - uses: actions/checkout@v7
+        with:
+          repository: NitinSirsath/career-companion-backend
+          ref: feat/northlist-texts
+          path: backend-src
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Rename, format and copy the contracts
+        run: |
+          git fetch --depth=1 origin tmp/northlist-name-once
+          git show FETCH_HEAD:tmp/northlist-name.cjs > "$RUNNER_TEMP/northlist-name.cjs"
+          node "$RUNNER_TEMP/northlist-name.cjs"
+          npm run format
+          cp backend-src/src/contracts/*.ts src/contracts/
+      - name: Commit only the reviewed result
+        run: |
+          git add -u
+          if [ "$(git write-tree)" != "3088f9ceef1f5a4c408e577dceaf401cf631b9f3" ]; then
+            echo "The result does not match the reviewed tree. Nothing was pushed."
+            git status --short
+            exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat: show the name NorthList'
+          git push origin HEAD:feat/northlist-name
