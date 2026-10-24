@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { z } from 'zod';
 import { useSandboxMailbox } from '../api/appMode';
+import { api } from '../api/client';
 import { useGmailStatus, useSyncNow } from '../api/gmail';
 import { AIAccessNotice } from '../components/ai/AIAccessNotice';
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
@@ -11,6 +13,7 @@ import { ProcessedMails } from '../components/gmail/ProcessedMails';
 import { PageHeader } from '../components/layout/PageHeader';
 import { InlineNotification } from '../components/ui/notification';
 import { TooltipProvider } from '../components/ui/tooltip';
+import { takeGmailConnectStarted } from '../lib/afterGmailConnect';
 
 const gmailSearchSchema = z.object({
   gmailError: z.string().optional(),
@@ -33,6 +36,27 @@ function ConnectProblem({ error }: { error: string }) {
   );
 }
 
+/**
+ * Right after Gmail is connected, a user with no AI provider yet goes on to choose how mails are
+ * read (owner, 24 Oct 2026). Anyone else stays here.
+ */
+function useNextStepAfterConnect(connected: boolean) {
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!connected || !takeGmailConnectStarted()) return;
+    queryClient
+      .fetchQuery({
+        queryKey: ['aiSettings'],
+        queryFn: ({ signal }) => api.getAISettings({ signal }),
+      })
+      .then((ai) => {
+        if (!ai.connections.length) void navigate({ to: '/ai' });
+      })
+      .catch(() => undefined);
+  }, [connected, queryClient, navigate]);
+}
+
 function GmailPage() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: '/gmail' });
@@ -46,6 +70,7 @@ function GmailPage() {
   const { data: status, isLoading, error } = useGmailStatus();
   const sync = useSyncNow(() => setOffset(0));
   const connected = !!status?.connected;
+  useNextStepAfterConnect(connected);
 
   return (
     <TooltipProvider>
