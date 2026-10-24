@@ -24,7 +24,7 @@ const LIMIT = 20;
 
 /**
  * Definitive retry answers get their own message; only uncertain outcomes say "could not be
- * confirmed". `onlyUs` is the row's own words when only Career Companion may retry the mail.
+ * confirmed". `onlyUs` is the row's own words when only NorthList may retry the mail.
  */
 function retryMessage(err: unknown, onlyUs: string | null): string {
   if (!isApiError(err) || err.outcomeUncertain)
@@ -33,9 +33,7 @@ function retryMessage(err: unknown, onlyUs: string | null): string {
     case 'AI_ACCESS_UNAVAILABLE':
       return 'Fix AI access on the AI providers page before retrying.';
     case 'AI_OPERATION_REQUIRES_REVIEW':
-      return (
-        onlyUs ?? 'Only Career Companion can retry this email. This is our problem, not yours.'
-      );
+      return onlyUs ?? 'Only NorthList can retry this email. This is our problem, not yours.';
     case 'RETRY_RECENTLY_QUEUED':
       return 'A retry was queued recently. Give it a few minutes.';
     case 'AI_OPERATION_CHANGED':

@@ -34,10 +34,10 @@ function whatHappened(op: HeldStep, tries: number): string {
   const charged = `so ${providerCompany(f?.provider ?? op.provider)} may have charged for ${tries > 1 ? 'these tries' : 'this try'}.`;
   const kind = f?.kind ?? (op.reason === 'INVALID_OUTPUT' ? 'INVALID_OUTPUT' : 'NO_ANSWER_IN_TIME');
   if (kind === 'INVALID_OUTPUT')
-    return `It returned an answer Career Companion could not use${f?.stopReason ? ` (stopped early: ${f.stopReason})` : ''}.`;
+    return `It returned an answer NorthList could not use${f?.stopReason ? ` (stopped early: ${f.stopReason})` : ''}.`;
   if (kind === 'NO_ANSWER_IN_TIME')
     return `${tries > 1 ? 'Each time there' : 'There'} was no answer${f ? ` within ${seconds(f.timeoutMs)}` : ' in time'}, ${charged}`;
-  return `Career Companion does not know if it was read, ${charged}`;
+  return `NorthList does not know if it was read, ${charged}`;
 }
 
 /** "Reading the details was sent to Google Gemini · Gemini 3.8 Flash 3 times, at … Each time …". */
@@ -66,7 +66,7 @@ export function retryApprovalCopy(details: AIRetryApprovalDetails): RetryApprova
   );
   return {
     steps: details.operations.map(stepLine),
-    text: `Career Companion ${alreadyTried(tries)}will not try again on its own. Retrying makes one more AI call on your ${current} account, which may be charged.`,
+    text: `NorthList ${alreadyTried(tries)}will not try again on its own. Retrying makes one more AI call on your ${current} account, which may be charged.`,
     switched: switched
       ? `This retry uses ${current}, not the provider used before. The email will be sent to ${current}.`
       : null,

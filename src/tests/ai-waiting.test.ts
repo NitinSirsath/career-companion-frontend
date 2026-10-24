@@ -112,7 +112,7 @@ describe('banner wording, as on the mock', () => {
     expect(read(busy())).toEqual({
       title: 'Gemini 3.8 Flash is busy right now',
       detail:
-        'Google answered 503 UNAVAILABLE at 11:36 AM. Career Companion tries again by itself at about 11:38 AM. 1 email is waiting.',
+        'Google answered 503 UNAVAILABLE at 11:36 AM. NorthList tries again by itself at about 11:38 AM. 1 email is waiting.',
       strong: '503 UNAVAILABLE',
     });
   });
@@ -131,7 +131,7 @@ describe('banner wording, as on the mock', () => {
     expect(read(paused(pause({ failure: noAnswer, resumesAt: at(11, 39) })))).toEqual({
       title: 'Gemini 3.8 Flash did not answer in time',
       detail:
-        'No answer within 60 seconds at 11:37 AM. Career Companion tries again by itself at about 11:39 AM (try 2 of 3). 1 email is waiting.',
+        'No answer within 60 seconds at 11:37 AM. NorthList tries again by itself at about 11:39 AM (try 2 of 3). 1 email is waiting.',
       strong: '60 seconds',
     });
   });
@@ -146,7 +146,7 @@ describe('banner wording, as on the mock', () => {
       maxAttempts: 3,
     });
     expect(read(paused(pause({ failure: deadline })))?.detail).toBe(
-      'No answer within 60 seconds at 11:36 AM. Career Companion tries again by itself at about 11:38 AM (try 3 of 3). 1 email is waiting.',
+      'No answer within 60 seconds at 11:36 AM. NorthList tries again by itself at about 11:38 AM (try 3 of 3). 1 email is waiting.',
     );
   });
 
@@ -159,7 +159,7 @@ describe('banner wording, as on the mock', () => {
     expect(read(paused(tested, 2))).toEqual({
       title: 'Gemini 3.8 Flash is still busy',
       detail:
-        'Tried 1 test mail at 11:44 AM: Google answered 503 UNAVAILABLE. The pause did not get longer. Career Companion tries again by itself at about 11:46 AM. 2 emails are waiting.',
+        'Tried 1 test mail at 11:44 AM: Google answered 503 UNAVAILABLE. The pause did not get longer. NorthList tries again by itself at about 11:46 AM. 2 emails are waiting.',
       strong: '503 UNAVAILABLE',
     });
   });
@@ -180,7 +180,7 @@ describe('banner wording, as on the mock', () => {
     expect(read(paused(tested))).toEqual({
       title: 'Gemini 3.8 Flash still did not answer in time',
       detail:
-        'Tried 1 test mail at 11:44 AM: no answer within 60 seconds. The pause did not get longer. Career Companion tries again by itself at about 11:46 AM (try 2 of 3). 1 email is waiting.',
+        'Tried 1 test mail at 11:44 AM: no answer within 60 seconds. The pause did not get longer. NorthList tries again by itself at about 11:46 AM (try 2 of 3). 1 email is waiting.',
       strong: '60 seconds',
     });
   });
@@ -239,7 +239,7 @@ describe('banner wording, as on the mock', () => {
     expect(read(paused(pause({ reason: 'RATE_LIMITED', failure: perMinute })))).toEqual({
       title: 'Google is limiting requests from your key',
       detail:
-        'Google answered 429 RESOURCE_EXHAUSTED (per-minute limit) at 11:36 AM. Career Companion tries again by itself at about 11:38 AM. 1 email is waiting.',
+        'Google answered 429 RESOURCE_EXHAUSTED (per-minute limit) at 11:36 AM. NorthList tries again by itself at about 11:38 AM. 1 email is waiting.',
       strong: '429 RESOURCE_EXHAUSTED',
     });
   });
@@ -252,9 +252,9 @@ describe('banner wording, as on the mock', () => {
       networkCode: 'ENOTFOUND',
     });
     expect(read(paused(pause({ failure: offline })))).toEqual({
-      title: 'Career Companion could not reach Google Gemini',
+      title: 'NorthList could not reach Google Gemini',
       detail:
-        'No connection at 11:36 AM (ENOTFOUND). Career Companion tries again by itself at about 11:38 AM. 1 email is waiting.',
+        'No connection at 11:36 AM (ENOTFOUND). NorthList tries again by itself at about 11:38 AM. 1 email is waiting.',
       strong: undefined,
     });
   });
@@ -270,9 +270,9 @@ describe('banner wording, as on the mock', () => {
       maxAttempts: 3,
     });
     expect(read(paused(pause({ failure: dropped })))).toEqual({
-      title: 'Career Companion could not reach Google Gemini',
+      title: 'NorthList could not reach Google Gemini',
       detail:
-        'The line dropped at 11:36 AM (ECONNRESET) after sending. Career Companion tries again by itself at about 11:38 AM (try 2 of 3). 1 email is waiting.',
+        'The line dropped at 11:36 AM (ECONNRESET) after sending. NorthList tries again by itself at about 11:38 AM (try 2 of 3). 1 email is waiting.',
       strong: undefined,
     });
   });
@@ -317,16 +317,16 @@ describe('banner wording, as on the mock', () => {
         }),
       ),
     ).toEqual({
-      title: "You reached Career Companion's daily AI limit",
+      title: "You reached NorthList's daily AI limit",
       detail:
-        "Career Companion makes at most 300 AI calls a day for you. This is our limit, not Google's. Reading continues by itself at about 5:30 AM tomorrow. 2 emails are waiting.",
+        "NorthList makes at most 300 AI calls a day for you. This is our limit, not Google's. Reading continues by itself at about 5:30 AM tomorrow. 2 emails are waiting.",
       strong: undefined,
     });
   });
 
   it('keeps the plain words for a pause from before failures were kept', () => {
     expect(read(paused(pause({ failure: null })))?.detail).toBe(
-      'Career Companion tries again by itself at about 11:38 AM. 1 email is waiting.',
+      'NorthList tries again by itself at about 11:38 AM. 1 email is waiting.',
     );
     expect(read(paused(pause({ reason: 'PROVIDER_UNAVAILABLE', failure: null })))?.title).toBe(
       'Gemini 3.8 Flash did not respond',
@@ -374,7 +374,7 @@ describe('mail that needs your OK', () => {
       expect(notice).toEqual({
         title: '1 email needs your OK',
         detail:
-          'Gemini 3.8 Flash did not answer it 3 times, the last at 11:44 AM. Career Companion stopped trying it by itself. Retry it from the list below when you want.',
+          'Gemini 3.8 Flash did not answer it 3 times, the last at 11:44 AM. NorthList stopped trying it by itself. Retry it from the list below when you want.',
         button: 'none',
         notes: [],
       });
@@ -387,7 +387,7 @@ describe('mail that needs your OK', () => {
     expect(read(many)).toMatchObject({
       title: '2 emails need your OK',
       detail:
-        'Gemini 3.8 Flash did not answer them in time, the last at 11:44 AM. Career Companion stopped trying them by itself. Retry them from the list below when you want.',
+        'Gemini 3.8 Flash did not answer them in time, the last at 11:44 AM. NorthList stopped trying them by itself. Retry them from the list below when you want.',
     });
     const once = settings({}, 0, { needsYourOk: { ...needsOk, tries: 1 } });
     expect(read(once)?.detail).toMatch(
@@ -430,7 +430,7 @@ describe('the "Read waiting mails now" button', () => {
     ['a billing problem', { state: 'NEEDS_ATTENTION', reason: 'ACCOUNT_OR_BILLING' }],
     ['a refused model', { state: 'NEEDS_ATTENTION', reason: 'MODEL_UNAVAILABLE' }],
     ['the daily safety limit', { state: 'LIMITED', reason: 'SAFETY_LIMIT', resumesAt: LATER }],
-    ['a pause by Career Companion', { state: 'LIMITED', reason: 'PAUSED' }],
+    ['a pause by NorthList', { state: 'LIMITED', reason: 'PAUSED' }],
     ['no AI set up', { state: 'NOT_SET_UP', reason: 'NOT_SET_UP' }],
   ] as const)('is not offered for %s: a new try cannot help', (_label, access) => {
     const notice = waitingNotice(settings(access), null);

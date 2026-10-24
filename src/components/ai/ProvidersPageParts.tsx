@@ -89,7 +89,7 @@ function ChoiceCard({
 
 /**
  * Nothing connected yet, with the free AI offered (owner, 24 Oct 2026): the user's own key,
- * recommended, or Career Companion's free AI. Right after Gmail is connected, the page says so.
+ * recommended, or NorthList's free AI. Right after Gmail is connected, the page says so.
  */
 function ChooseHowToRead({
   gmailConnected,
@@ -130,7 +130,7 @@ function ChooseHowToRead({
           />
           <ChoiceCard
             tag={<Tag>Free</Tag>}
-            title="Career Companion free AI"
+            title="NorthList free AI"
             lead="Free for you, runs on OpenRouter. Shared by everyone, so it can be slow sometimes."
             points={[
               'Ready in one click. No account or key needed.',

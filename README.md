@@ -1,6 +1,6 @@
-# Career Companion Frontend
+# NorthList Frontend
 
-This is the frontend repository for Career Companion.
+This is the frontend repository for NorthList (formerly Career Companion).
 
 ## Foundation
 
@@ -56,7 +56,7 @@ The detail page's "Change status" editor freezes its draft and base revision; ba
 ### AI provider (ADR-0001)
 
 `/ai` (nav "AI Provider") is where the user sets up their own AI account. Components live in `src/components/ai/`; copy and fixes for each access state are in `src/lib/aiLabels.ts`.
-- **Page:** choose a curated provider, follow the guided key steps, paste the key, pick recommended or tested models, read what is sent and consent, then save and verify. The page also shows status with one fix, Career Companion's own counts and the safety limit, an optional sample test, switch and remove.
+- **Page:** choose a curated provider, follow the guided key steps, paste the key, pick recommended or tested models, read what is sent and consent, then save and verify. The page also shows status with one fix, NorthList's own counts and the safety limit, an optional sample test, switch and remove.
 - **The key is write-only in the browser.** It lives only in an uncontrolled password field and one local variable during the save request, and the field is cleared at once and on unmount. It is never put in TanStack's query or mutation caches (save calls `api.saveAISettings` directly), the URL or storage. Tests assert this.
 - **Elsewhere:**
   - an AI notice on the Mails page and Gmail page while access is not ready;

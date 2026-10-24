@@ -26,7 +26,7 @@ export function TopBar({ user, collapsed }: { user: User | null; collapsed: bool
       <PhoneMenu />
       <Link
         to="/mails"
-        aria-label="Career Companion"
+        aria-label="NorthList"
         className={cn(
           'hidden min-w-0 items-center overflow-hidden text-text-primary transition-[width] duration-240 ease-standard md:flex md:shrink-0',
           collapsed ? 'md:w-14' : 'md:w-72 md:border-r md:border-border-subtle',
@@ -36,7 +36,7 @@ export function TopBar({ user, collapsed }: { user: User | null; collapsed: bool
           <Logo />
         </span>
         <span className={cn('truncate px-4 font-medium whitespace-nowrap', collapsed && 'hidden')}>
-          Career Companion
+          NorthList
         </span>
       </Link>
       <div ref={slot?.setTarget} className="flex min-w-0 flex-1 items-center px-3 md:px-6">

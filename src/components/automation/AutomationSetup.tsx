@@ -44,7 +44,7 @@ export function AutomationSetup() {
           <Step number={1} title="Create a token">
             <CreateTokenForm />
           </Step>
-          <Step number={2} title="Add Career Companion as an MCP server in your AI client">
+          <Step number={2} title="Add NorthList as an MCP server in your AI client">
             {serverAddress && (
               <CodeSnippet code={`${serverAddress}/mcp`} label="the server address" />
             )}

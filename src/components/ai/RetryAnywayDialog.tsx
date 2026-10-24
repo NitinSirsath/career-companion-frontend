@@ -4,7 +4,7 @@ import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 
 /**
- * The user who pays approves exactly one more AI attempt for a step Career Companion will not try
+ * The user who pays approves exactly one more AI attempt for a step NorthList will not try
  * again on its own: no answer after its last automatic try, or an uncertain or unusable outcome
  * (ADR-0001 decision 10). Nothing is retried without this confirmation.
  */

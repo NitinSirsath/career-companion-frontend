@@ -122,7 +122,7 @@ describe('home and navigation', () => {
   it('names the page in the top bar, with the logo and the account button', async () => {
     show('/mails');
     expect(await screen.findByRole('heading', { name: 'Mails' })).toBeInTheDocument();
-    const logo = screen.getByRole('link', { name: 'Career Companion' });
+    const logo = screen.getByRole('link', { name: 'NorthList' });
     expect(logo).toHaveAttribute('href', '/mails');
     const bar = within(logo.closest('header')!);
     expect(

@@ -77,7 +77,7 @@ function AccessProblem({
           )}
           {offerFreeAI && (
             <Button variant="ghost" size="sm" onClick={actions.onUseFreeAI}>
-              Use Career Companion free AI instead
+              Use NorthList free AI instead
             </Button>
           )}
         </span>

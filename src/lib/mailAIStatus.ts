@@ -189,7 +189,7 @@ const WORDS: Record<EmailAIReason, (facts: Facts) => Words> = {
     text: notCounted,
   }),
   SAFETY_LIMIT: ({ company, notCounted }) => ({
-    title: "Career Companion's daily limit",
+    title: "NorthList's daily limit",
     text: `This is our limit, not ${company}'s. ${notCounted}`,
   }),
   KEY_REJECTED: (facts) => ({
@@ -207,7 +207,7 @@ const WORDS: Record<EmailAIReason, (facts: Facts) => Words> = {
   NOT_SET_UP: () => ({ title: 'AI is not set up', text: 'Waiting for an AI key.' }),
   KEY_UNREADABLE: () => ({
     title: 'Enter your API key again',
-    text: 'Career Companion could not read your saved key.',
+    text: 'NorthList could not read your saved key.',
   }),
   PROVIDER_UNSUPPORTED: ({ provider }) => ({
     title: `${provider} is not offered any more`,
@@ -215,12 +215,12 @@ const WORDS: Record<EmailAIReason, (facts: Facts) => Words> = {
   }),
   PAUSED: () => ({
     title: 'AI processing is paused',
-    text: 'Career Companion has paused AI processing for now.',
+    text: 'NorthList has paused AI processing for now.',
   }),
   // The free AI's pause is shared by everyone on it; nothing there is the user's to fix.
   FREE_AI_BUSY: ({ notCounted }) => ({
     title: 'The free AI is busy',
-    text: `OpenRouter asked Career Companion to slow down, so the free AI is paused for everyone. ${notCounted}`,
+    text: `OpenRouter asked NorthList to slow down, so the free AI is paused for everyone. ${notCounted}`,
   }),
   FREE_AI_BUDGET: () => ({
     title: "The free AI's budget is used up",
@@ -228,30 +228,30 @@ const WORDS: Record<EmailAIReason, (facts: Facts) => Words> = {
   }),
   FREE_AI_PROBLEM: () => ({
     title: 'The free AI is paused',
-    text: "A problem on Career Companion's side; we have been told. This mail is read when it is back, or connect your own key.",
+    text: "A problem on NorthList's side; we have been told. This mail is read when it is back, or connect your own key.",
   }),
   FREE_AI_OFF: () => ({
     title: 'The free AI is switched off',
-    text: 'Career Companion turned the free AI off for now. Connect your own key to read this mail now.',
+    text: 'NorthList turned the free AI off for now. Connect your own key to read this mail now.',
   }),
   INVALID_OUTPUT: ({ status, name }) => ({
     title: 'Unusable answer',
-    text: `${name} returned an answer Career Companion could not use${status.failure?.stopReason ? ` (stopped early: ${status.failure.stopReason})` : ''}.`,
+    text: `${name} returned an answer NorthList could not use${status.failure?.stopReason ? ` (stopped early: ${status.failure.stopReason})` : ''}.`,
   }),
   INVALID_REQUEST: ({ status, company }) => {
     const code = status.failure ? failureCode(status.failure) : '';
     return {
       title: 'Request refused',
-      text: `Career Companion sent a request ${company} refused${code ? ` (${code})` : ''}. This is our problem, not yours.`,
+      text: `NorthList sent a request ${company} refused${code ? ` (${code})` : ''}. This is our problem, not yours.`,
     };
   },
   GMAIL_FAILED: () => ({
     title: 'Gmail request failed',
-    text: 'Career Companion could not read this mail from Gmail.',
+    text: 'NorthList could not read this mail from Gmail.',
   }),
   INTERNAL_ERROR: () => ({
-    title: 'An error in Career Companion',
-    text: 'Career Companion stopped on an error of its own. This is our problem, not yours.',
+    title: 'An error in NorthList',
+    text: 'NorthList stopped on an error of its own. This is our problem, not yours.',
   }),
 };
 
@@ -266,13 +266,13 @@ function whatHappened(
   if (status.readNowTest === 'TEST_MAIL' && !status.nextTryAt)
     return {
       title: 'This is the test mail',
-      text: 'Career Companion is trying it now. The other waiting mails follow only if it works.',
+      text: 'NorthList is trying it now. The other waiting mails follow only if it works.',
     };
   // The user said OK to a stopped mail; the API keeps no time for the OK.
   if (stopped && status.nextStep === 'AUTOMATIC_RETRY')
     return {
       title: `${name} is tried once more`,
-      text: 'You said OK. Career Companion tries it again in a moment.',
+      text: 'You said OK. NorthList tries it again in a moment.',
     };
   const pause = status.failure
     ? undefined
@@ -319,7 +319,7 @@ const NEXT: Record<
   FIX_AI_SETTINGS: () => ({ label: 'Next:', text: 'waits for you on the AI providers page.' }),
   RETRY_WITH_YOUR_OK: () => ({ label: 'Next:', text: 'waits for you. Use Manual Retry.' }),
   MANUAL_RETRY: () => ({ label: 'Next:', text: 'waits for you. Use Manual Retry.' }),
-  CAREER_COMPANION: () => ({ label: 'Next:', text: 'waits for Career Companion.' }),
+  CAREER_COMPANION: () => ({ label: 'Next:', text: 'waits for NorthList.' }),
 };
 
 /**
@@ -415,8 +415,8 @@ export function mailAIView(message: RowMail, pauses: readonly AIModelPause[] = [
 }
 
 /**
- * A Manual Retry that only Career Companion may do, in the row's own words ("Request refused.
- * Career Companion sent a request Google refused …"); null when the row does not say so.
+ * A Manual Retry that only NorthList may do, in the row's own words ("Request refused.
+ * NorthList sent a request Google refused …"); null when the row does not say so.
  */
 export function onlyCareerCompanionText(message: RowMail | undefined): string | null {
   const info = message?.aiStatus?.nextStep === 'CAREER_COMPANION' ? mailAIView(message).info : null;

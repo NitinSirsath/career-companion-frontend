@@ -118,7 +118,7 @@ describe('the yellow banner', () => {
     expect(within(banner).getByText('Gemini 3.8 Flash is busy right now')).toBeInTheDocument();
     expect(banner).toHaveTextContent(
       new RegExp(
-        `Google answered 503 UNAVAILABLE at ${TIME}\\. Career Companion tries again by itself at about ${TIME}\\. 1 email is waiting\\.`,
+        `Google answered 503 UNAVAILABLE at ${TIME}\\. NorthList tries again by itself at about ${TIME}\\. 1 email is waiting\\.`,
       ),
     );
     expect(within(banner).getByText('503 UNAVAILABLE').tagName).toBe('STRONG');
@@ -147,7 +147,7 @@ describe('the yellow banner', () => {
     expect(within(banner).getByText('Gemini 3.8 Flash did not answer in time')).toBeInTheDocument();
     expect(banner).toHaveTextContent(
       new RegExp(
-        `No answer within 60 seconds at ${TIME}\\. Career Companion tries again by itself at about ${TIME} \\(try 2 of 3\\)\\. 1 email is waiting\\.`,
+        `No answer within 60 seconds at ${TIME}\\. NorthList tries again by itself at about ${TIME} \\(try 2 of 3\\)\\. 1 email is waiting\\.`,
       ),
     );
     expect(within(banner).getByText('60 seconds').tagName).toBe('STRONG');
@@ -171,7 +171,7 @@ describe('the yellow banner', () => {
     expect(within(banner).getByText('1 email needs your OK')).toBeInTheDocument();
     expect(banner).toHaveTextContent(
       new RegExp(
-        `Gemini 3.8 Flash did not answer it 3 times, the last at ${TIME}\\. Career Companion stopped trying it by itself\\. Retry it from the list below when you want\\.`,
+        `Gemini 3.8 Flash did not answer it 3 times, the last at ${TIME}\\. NorthList stopped trying it by itself\\. Retry it from the list below when you want\\.`,
       ),
     );
     expect(banner).not.toHaveTextContent(/continues by itself|tries again by itself/);
@@ -238,9 +238,9 @@ describe('the yellow banner', () => {
     );
     show();
     const banner = await notice();
-    expect(banner).toHaveTextContent("You reached Career Companion's daily AI limit");
+    expect(banner).toHaveTextContent("You reached NorthList's daily AI limit");
     expect(banner).toHaveTextContent(
-      "Career Companion makes at most 250 AI calls a day for you. This is our limit, not Google's.",
+      "NorthList makes at most 250 AI calls a day for you. This is our limit, not Google's.",
     );
   });
 });
@@ -312,7 +312,7 @@ describe('Read waiting mails now', () => {
     expect(await screen.findByText('Gemini 3.8 Flash is still busy')).toBeInTheDocument();
     expect(await notice()).toHaveTextContent(
       new RegExp(
-        `Tried 1 test mail at ${TIME}: Google answered 503 UNAVAILABLE\\. The pause did not get longer\\. Career Companion tries again by itself at about ${TIME}\\. 2 emails are waiting\\.`,
+        `Tried 1 test mail at ${TIME}: Google answered 503 UNAVAILABLE\\. The pause did not get longer\\. NorthList tries again by itself at about ${TIME}\\. 2 emails are waiting\\.`,
       ),
     );
     expect(await button()).toBeEnabled();

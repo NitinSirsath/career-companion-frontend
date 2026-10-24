@@ -44,7 +44,7 @@ export function ApiKeyField({
         placeholder={placeholder}
       />
       <p className="text-xs text-text-secondary">
-        Stored encrypted. Career Companion never shows it again.
+        Stored encrypted. NorthList never shows it again.
       </p>
     </div>
   );

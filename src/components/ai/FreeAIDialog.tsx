@@ -18,7 +18,7 @@ import { WhoReads } from './ConnectProviderDialog';
 import { CheckRow } from './ProviderKeyFields';
 
 /**
- * "Use Career Companion free AI?": what is sent and through whose account, that it is shared, its
+ * "Use NorthList free AI?": what is sent and through whose account, that it is shared, its
  * daily limit and its budget. Nothing is sent before the user ticks "I agree". It becomes the
  * provider that reads the mail; one connected before stays connected. As a backup next to
  * `backupFor`, the provider that reads the mail now, it is only added unless the user ticks
@@ -47,8 +47,8 @@ export function FreeAIDialog({
       if (next.waitingEmails > 0) startProcessingRefresh();
       onDone(
         switches
-          ? 'Career Companion free AI reads your mail now.'
-          : `Career Companion free AI is added. ${backupFor} still reads your mail.`,
+          ? 'NorthList free AI reads your mail now.'
+          : `NorthList free AI is added. ${backupFor} still reads your mail.`,
       );
     },
     onError: () => queryClient.invalidateQueries({ queryKey: ['aiSettings'] }),
@@ -58,9 +58,9 @@ export function FreeAIDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {backupFor ? 'Add Career Companion free AI?' : 'Use Career Companion free AI?'}
+            {backupFor ? 'Add NorthList free AI?' : 'Use NorthList free AI?'}
           </DialogTitle>
-          <DialogDescription>Free for you. Career Companion pays for it.</DialogDescription>
+          <DialogDescription>Free for you. NorthList pays for it.</DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-4 text-sm">
           <dl className="grid gap-x-4 gap-y-2.5 sm:grid-cols-[110px_1fr]">
@@ -76,7 +76,7 @@ export function FreeAIDialog({
           </CheckRow>
           {backupFor && (
             <WhoReads
-              name="Career Companion free AI"
+              name="NorthList free AI"
               activeName={backupFor}
               makeActive={makeActive}
               onMakeActiveChange={setMakeActive}

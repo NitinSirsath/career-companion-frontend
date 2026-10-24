@@ -59,7 +59,7 @@ export function StartupScreen({
       >
         <p className="flex items-center gap-3 text-lg leading-6 font-semibold">
           <Logo size={32} />
-          Career Companion
+          NorthList
         </p>
         {busy && (
           <span
@@ -69,7 +69,7 @@ export function StartupScreen({
             <span className="absolute inset-y-0 left-0 w-2/5 animate-startup-line bg-border-interactive motion-reduce:w-full motion-reduce:animate-none motion-reduce:opacity-50" />
           </span>
         )}
-        {stage === 'checking' && <span className="sr-only">Loading Career Companion</span>}
+        {stage === 'checking' && <span className="sr-only">Loading NorthList</span>}
         {stage === 'waking' && (
           <Message title="Waking up the server…">
             <p>

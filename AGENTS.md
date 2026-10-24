@@ -1,6 +1,6 @@
 # Frontend Repository Guidance
 
-This repository contains the Career Companion React/TypeScript frontend.
+This repository contains the NorthList React/TypeScript frontend (formerly Career Companion).
 
 Before changing API routes, API clients or API-facing behavior, read the canonical cross-cutting API contracts:
 https://github.com/NitinSirsath/career-companion-docs/blob/main/docs/architecture/api-contracts.md

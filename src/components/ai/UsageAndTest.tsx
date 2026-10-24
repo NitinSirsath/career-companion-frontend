@@ -7,7 +7,7 @@ const CARD = 'flex flex-col gap-3 border border-border-subtle bg-surface px-6 py
 const HEADING = 'text-base leading-[22px] font-semibold';
 
 /**
- * How much Career Companion used today against its own daily safeguard (for all providers
+ * How much NorthList used today against its own daily safeguard (for all providers
  * together), and the sample test on the active provider.
  */
 export function UsageAndTest({ settings }: { settings: AISettingsResponse }) {
@@ -43,8 +43,8 @@ export function UsageAndTest({ settings }: { settings: AISettingsResponse }) {
           ) : (
             <>
               {usage.inputTokens.toLocaleString()} input / {usage.outputTokens.toLocaleString()}{' '}
-              output tokens. Career Companion&apos;s own count and daily safety limit, for all
-              providers together. Not your {name} bill or quota.
+              output tokens. NorthList&apos;s own count and daily safety limit, for all providers
+              together. Not your {name} bill or quota.
             </>
           )}
         </p>

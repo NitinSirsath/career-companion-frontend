@@ -146,7 +146,7 @@ describe("each model's state (mock screen 7)", () => {
     ],
     [
       failure({ cause: 'NETWORK', httpStatus: null, providerCode: null, networkCode: 'ENOTFOUND' }),
-      'No connection: Career Companion could not reach Google Gemini at 11:44 AM (ENOTFOUND).',
+      'No connection: NorthList could not reach Google Gemini at 11:44 AM (ENOTFOUND).',
     ],
   ])('words a paused model by what really happened: %#', (shown, why) => {
     expect(modelState(paused(pause({ failure: shown })), FLASH)?.why).toBe(why);
@@ -223,7 +223,7 @@ describe("each model's state (mock screen 7)", () => {
     expect(modelState(keyRejected, LITE)).toBeNull();
     const safetyLimit = settings({ state: 'LIMITED', reason: 'SAFETY_LIMIT' });
     expect(modelState(safetyLimit, LITE)).toBeNull();
-    // A model's pause shows first while Career Companion's own daily limit holds every model.
+    // A model's pause shows first while NorthList's own daily limit holds every model.
     const usedUp = paused(pause(), [], {
       usageToday: { day: '2026-10-14', calls: 500, inputTokens: 0, outputTokens: 0 },
     });
@@ -239,7 +239,7 @@ describe('the problem box names the model and the one not affected', () => {
     expect(copy).toMatchObject({
       title: 'Gemini 3.8 Flash is busy right now',
       detail:
-        'Google answered 503 UNAVAILABLE at 11:44 AM. Career Companion tries again by itself at about 11:52 AM. Gemini 3.5 Flash-Lite is not affected. 1 email is waiting.',
+        'Google answered 503 UNAVAILABLE at 11:44 AM. NorthList tries again by itself at about 11:52 AM. Gemini 3.5 Flash-Lite is not affected. 1 email is waiting.',
       strong: '503 UNAVAILABLE',
     });
   });
@@ -348,13 +348,13 @@ describe('the key check says which model did not answer, and how long we waited'
       'OpenAI is connected. Make it active when you want it to read new mails.',
     );
     expect(connectNote(saved('INCONCLUSIVE', noAnswer({ timeoutMs: 10_000 })), 'gemini')).toBe(
-      'Google Gemini is connected and reads new mails now. Google Gemini did not confirm right now: Gemini 3.8 Flash did not answer within 10 seconds. Career Companion will use it and show any problem here.',
+      'Google Gemini is connected and reads new mails now. Google Gemini did not confirm right now: Gemini 3.8 Flash did not answer within 10 seconds. NorthList will use it and show any problem here.',
     );
     expect(keyReplacedNote(saved('VERIFIED'), 'gemini')).toBe(
       'New Google Gemini key saved and verified.',
     );
     expect(keyReplacedNote(saved('INCONCLUSIVE'), 'gemini')).toBe(
-      'New Google Gemini key saved. The provider did not confirm right now; Career Companion will use it and show any problem here.',
+      'New Google Gemini key saved. The provider did not confirm right now; NorthList will use it and show any problem here.',
     );
   });
 });
@@ -436,7 +436,7 @@ describe('the sample test says which model did not answer, and how long we waite
         providerCode: null,
         stopReason: 'MAX_TOKENS',
       }),
-      'The sample test did not finish: Gemini 3.8 Flash returned an answer Career Companion could not use (stopped early: MAX_TOKENS).',
+      'The sample test did not finish: Gemini 3.8 Flash returned an answer NorthList could not use (stopped early: MAX_TOKENS).',
     ],
     [
       failure({ kind: 'INVALID_REQUEST', httpStatus: 400, providerCode: 'INVALID_ARGUMENT' }),
@@ -449,7 +449,7 @@ describe('the sample test says which model did not answer, and how long we waite
         httpStatus: null,
         providerCode: null,
       }),
-      'The sample test did not finish: Career Companion stopped on an error of its own.',
+      'The sample test did not finish: NorthList stopped on an error of its own.',
     ],
   ])('each kind of failed sample: %#', (shown, text) => {
     expect(sampleTestProblem(sampleFailed(shown), 'gemini')).toBe(text);
