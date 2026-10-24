@@ -96,6 +96,13 @@ const ownKey: AIConnection = {
   ...freeConnection,
   provider: 'openrouter',
 };
+/** The user's own OpenRouter key reads the mail. */
+const ownKeyWorks: AISettingsResponse = {
+  ...freeActive,
+  provider: 'openrouter',
+  consent: null,
+  connections: [ownKey,
+};
 /** The user's own OpenRouter key was refused. */
 const ownKeyRefused: AISettingsResponse = {
   ...freeActive,
@@ -245,6 +252,88 @@ describe('a key of their own and the free AI', () => {
       await screen.findByRole('dialog', { name: 'Use Career Companion free AI?' }),
     ).toBeInTheDocument();
     expect(api.activateAIProvider).not.toHaveBeenCalled();
+  });
+
+  it('offers the free AI as a backup next to a working key, and adds it without switching', async () => {
+    vi.mocked(api.saveAIProvider).mockResolvedValue({
+      ...ownKeyWorks,
+      connections: [ownKey, { ...freeConnection, active: false }],
+      verification: 'VERIFIED',
+      verificationFailure: null,
+    });
+    renderPage(ownKeyWorks);
+    const list = await screen.findByRole('list', { name: 'Other connected providers' });
+    expect(within(list).getByText('Free, shared by everyone. No key needed.')).toBeVisible();
+    expect(
+      within(list).getByText('GPT-6 Luna for both steps · about 200 mails a day'),
+    ).toBeVisible();
+    expect(screen.queryByText(/No other provider yet/)).not.toBeInTheDocument();
+    fireEvent.click(within(list).getByRole('button', { name: 'Add as backup' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Add Career Companion free AI?' });
+    const add = within(dialog).getByRole('button', { name: 'Add free AI' });
+    expect(add).toBeDisabled();
+    expect(
+      within(dialog).getByLabelText(
+        'Make Career Companion free AI active now. It then reads new mails instead of OpenRouter.',
+      ),
+    ).not.toBeChecked();
+    fireEvent.click(
+      within(dialog).getByLabelText(
+        'I agree that my mails are sent to OpenRouter as described above.',
+      ),
+    );
+    fireEvent.click(add);
+    await waitFor(() =>
+      expect(api.saveAIProvider).toHaveBeenCalledWith('career-companion', {
+        consentDisclosure: FREE_AI_CONSENT,
+        makeActive: false,
+      }),
+    );
+    expect(
+      await screen.findByText(
+        'Career Companion free AI is added. OpenRouter still reads your mail.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Add as backup' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Make active' })).toBeInTheDocument();
+  });
+
+  it('switches to the free AI at once when the user ticks "Make … active now"', async () => {
+    vi.mocked(api.saveAIProvider).mockResolvedValue({
+      ...freeActive,
+      connections: [freeConnection, { ...ownKey, active: false }],
+      verification: 'VERIFIED',
+      verificationFailure: null,
+    });
+    renderPage(ownKeyWorks);
+    fireEvent.click(await screen.findByRole('button', { name: 'Add as backup' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Add Career Companion free AI?' });
+    fireEvent.click(
+      within(dialog).getByLabelText(
+        'I agree that my mails are sent to OpenRouter as described above.',
+      ),
+    );
+    fireEvent.click(within(dialog).getByLabelText(/Make Career Companion free AI active now/));
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Use free AI' }));
+    await waitFor(() =>
+      expect(api.saveAIProvider).toHaveBeenCalledWith('career-companion', {
+        consentDisclosure: FREE_AI_CONSENT,
+        makeActive: true,
+      }),
+    );
+    expect(
+      await screen.findByText('Career Companion free AI reads your mail now.'),
+    ).toBeInTheDocument();
+  });
+
+  it('offers no backup when the server does not offer the free AI', async () => {
+    renderPage({ ...ownKeyWorks, offeredProviders: ['openrouter'] });
+    expect(
+      await screen.findByText(
+        'No other provider yet. A second one lets you switch quickly when this one has a problem.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Add as backup' })).not.toBeInTheDocument();
   });
 
   it('lists a connected free AI like any provider, with nothing to check or replace', async () => {
