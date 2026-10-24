@@ -1,5 +1,6 @@
 import type { AISettingsResponse } from '../../contracts/ai';
 import { providerName } from '../../lib/aiLabels';
+import { FREE_AI_LIMIT_NOTE, isFreeAI } from '../../lib/freeAI';
 import { SampleTestPanel } from './SampleTestPanel';
 
 const CARD = 'flex flex-col gap-3 border border-border-subtle bg-surface px-6 py-5';
@@ -37,9 +38,15 @@ export function UsageAndTest({ settings }: { settings: AISettingsResponse }) {
           {usage.calls} of {limit} AI calls today
         </p>
         <p className="text-xs text-text-secondary">
-          {usage.inputTokens.toLocaleString()} input / {usage.outputTokens.toLocaleString()} output
-          tokens. Career Companion&apos;s own count and daily safety limit, for all providers
-          together. Not your {name} bill or quota.
+          {isFreeAI(settings.provider) ? (
+            FREE_AI_LIMIT_NOTE
+          ) : (
+            <>
+              {usage.inputTokens.toLocaleString()} input / {usage.outputTokens.toLocaleString()}{' '}
+              output tokens. Career Companion&apos;s own count and daily safety limit, for all
+              providers together. Not your {name} bill or quota.
+            </>
+          )}
         </p>
       </section>
       {settings.provider && (
