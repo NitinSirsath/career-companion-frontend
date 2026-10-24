@@ -2,6 +2,8 @@ import { Link } from '@tanstack/react-router';
 import { SidePanelClose, SidePanelOpen } from '@carbon/icons-react';
 import { useDevMode, useSandboxMailbox } from '../../api/appMode';
 import { cn } from '../../lib/utils';
+import { ReadingStatus } from './ReadingStatus';
+import { useIsPhone } from './useIsPhone';
 import {
   MAIN_NAV,
   NAV_LINK_CLASS,
@@ -39,7 +41,10 @@ function NavLink({
   );
 }
 
-/** The side menu on laptops, under the top bar: daily pages, then settings; it can shrink to icons. */
+/**
+ * The side menu on laptops, under the top bar: daily pages, then settings, and the AI reading
+ * status at the bottom; it can shrink to icons.
+ */
 export function Sidebar({
   collapsed,
   onCollapsedChange,
@@ -50,6 +55,8 @@ export function Sidebar({
   const devMode = useDevMode();
   const sandbox = useSandboxMailbox();
   const ToggleIcon = collapsed ? SidePanelOpen : SidePanelClose;
+  // Phones show the reading status in the top bar instead.
+  const phone = useIsPhone();
   return (
     <aside
       className={cn(
@@ -80,6 +87,7 @@ export function Sidebar({
         )}
       </nav>
 
+      {!phone && <ReadingStatus collapsed={collapsed} />}
       <button
         type="button"
         onClick={() => onCollapsedChange(!collapsed)}
