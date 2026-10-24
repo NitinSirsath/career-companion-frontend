@@ -47,7 +47,8 @@ function AIProvidersPage() {
     onReplaceKey: (provider) => openDialog({ kind: 'replace', provider }),
     onRemove: (provider) => openDialog({ kind: 'remove', provider }),
     onActivate: (provider) => openDialog({ kind: 'activate', provider }),
-    onUseFreeAI: () => openDialog({ kind: 'free' }),
+    onUseFreeAI: () => openDialog({ kind: 'free', backup: false }),
+    onAddFreeAI: () => openDialog({ kind: 'free', backup: true }),
     onNote: setNote,
   };
   const connect = () => openDialog({ kind: 'connect', start: null });

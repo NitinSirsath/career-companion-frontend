@@ -15,12 +15,28 @@ export const isFreeAI = (providerId: string | null | undefined) => providerId ==
 /** The consent version the confirm dialog's text records. */
 export const FREE_AI_CONSENT = getCatalogProvider(FREE_AI)?.disclosure.version ?? '';
 
+/** The one model the free AI reads with, for both steps. */
+export const FREE_AI_MODEL = getCatalogProvider(FREE_AI)?.models[0]?.displayName ?? '';
+
 /** The server offers the free AI only while it can run. */
 export const freeAIOffered = (settings: AISettingsResponse) =>
   settings.offeredProviders.includes(FREE_AI);
 
 export const freeAIConnection = (settings: AISettingsResponse): AIConnection | null =>
   settings.connections.find((connection) => isFreeAI(connection.provider)) ?? null;
+
+/**
+ * The free AI as a backup (owner, 24 Oct 2026): while another provider reads the mail, the free AI
+ * can be added next to it without switching, until it is added.
+ */
+export const freeAIBackupOffered = (settings: AISettingsResponse): boolean =>
+  freeAIOffered(settings) &&
+  !freeAIConnection(settings) &&
+  settings.connections.some((connection) => connection.active);
+
+/** The free AI in a list of providers: what it is, and the model it reads with. */
+export const FREE_AI_NOTE = 'Free, shared by everyone. No key needed.';
+export const freeAIModelLine = (model: string) => `${model} for both steps · about 200 mails a day`;
 
 /** Providers the user connects with a key of their own. */
 export const ownKeyProviders = (settings: AISettingsResponse): string[] =>

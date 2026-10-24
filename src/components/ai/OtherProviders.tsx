@@ -12,12 +12,23 @@ import {
   modelsLine,
 } from '../../lib/aiConnections';
 import { providerName } from '../../lib/aiLabels';
-import { isFreeAI } from '../../lib/freeAI';
+import {
+  FREE_AI,
+  FREE_AI_MODEL,
+  FREE_AI_NOTE,
+  freeAIBackupOffered,
+  freeAIModelLine,
+  isFreeAI,
+} from '../../lib/freeAI';
 import { settingsOf } from '../../lib/aiProviderPage';
 import { Button } from '../ui/button';
 import { OverflowMenu } from '../ui/menu';
 import { Tag } from '../ui/tag';
 import type { ProviderActions } from './ActiveProviderCard';
+
+/** A row of the list: name, models, state and buttons side by side from laptop width. */
+const ROW_CLASS =
+  'grid items-center gap-x-6 gap-y-2 border-t border-border-subtle px-6 py-4 first:border-t-0 md:grid-cols-[minmax(180px,1.2fr)_minmax(200px,1.6fr)_auto_auto]';
 
 /** One connected provider that does not read the mail: its state, and "Make active". */
 function OtherProviderRow({
@@ -45,18 +56,16 @@ function OtherProviderRow({
     },
   });
   return (
-    <li className="grid items-center gap-x-6 gap-y-2 border-t border-border-subtle px-6 py-4 first:border-t-0 md:grid-cols-[minmax(180px,1.2fr)_minmax(200px,1.6fr)_auto_auto]">
+    <li className={ROW_CLASS}>
       <div className="flex min-w-0 flex-col gap-0.5">
         <span className="text-[15px] leading-[22px]">{name}</span>
         <span className="text-xs text-text-secondary">
-          {free && 'Free, shared by everyone. No key needed.'}
+          {free && FREE_AI_NOTE}
           {!free && (check.isPending ? 'Checking the key…' : keyLine(connection))}
         </span>
       </div>
       <span className="text-xs text-text-secondary">
-        {free
-          ? `${modelsLine(connection)} for both steps · about 200 mails a day`
-          : modelsLine(connection)}
+        {free ? freeAIModelLine(modelsLine(connection)) : modelsLine(connection)}
       </span>
       <span>
         <Tag color={tag.color}>{tag.label}</Tag>
@@ -98,9 +107,28 @@ function OtherProviderRow({
   );
 }
 
+/** The free AI, not added yet, offered as a backup next to the provider that reads the mail. */
+function FreeAIBackupRow({ onAdd }: { onAdd: () => void }) {
+  return (
+    <li className={ROW_CLASS}>
+      <div className="flex min-w-0 flex-col gap-0.5">
+        <span className="text-[15px] leading-[22px]">{providerName(FREE_AI)}</span>
+        <span className="text-xs text-text-secondary">{FREE_AI_NOTE}</span>
+      </div>
+      <span className="text-xs text-text-secondary">{freeAIModelLine(FREE_AI_MODEL)}</span>
+      <span />
+      <div className="flex items-center gap-2 md:justify-end">
+        <Button variant="secondary" size="sm" onClick={onAdd}>
+          Add as backup
+        </Button>
+      </div>
+    </li>
+  );
+}
+
 /**
- * The connected providers that do not read the mail. Making one active switches at once; with
- * none, the page says what a second one is for.
+ * The connected providers that do not read the mail, and the free AI as a backup until it is
+ * added. Making one active switches at once; with none, the page says what a second one is for.
  */
 export function OtherProviders({
   settings,
@@ -113,6 +141,7 @@ export function OtherProviders({
 }) {
   const others = inactiveConnections(settings);
   const active = activeConnection(settings);
+  const backup = freeAIBackupOffered(settings);
   return (
     <section aria-labelledby="ai-others-heading" className="flex flex-col gap-3">
       <div className="flex flex-col gap-1">
@@ -124,7 +153,7 @@ export function OtherProviders({
         </p>
       </div>
       <div className="border border-border-subtle bg-surface">
-        {others.length > 0 ? (
+        {others.length > 0 || backup ? (
           <ul aria-label={active ? 'Other connected providers' : 'Connected providers'}>
             {others.map((connection) => (
               <OtherProviderRow
@@ -133,6 +162,7 @@ export function OtherProviders({
                 actions={actions}
               />
             ))}
+            {backup && <FreeAIBackupRow onAdd={actions.onAddFreeAI} />}
           </ul>
         ) : (
           <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4">

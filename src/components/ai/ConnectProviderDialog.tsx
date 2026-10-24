@@ -113,7 +113,7 @@ const recommendedLine = (provider: CatalogProvider) =>
  * Who reads new mail after connecting: with another provider active, a box to make this one
  * active now (unticked); with none, this one, by itself.
  */
-function WhoReads({
+export function WhoReads({
   name,
   activeName,
   makeActive,
