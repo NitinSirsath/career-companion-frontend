@@ -8,8 +8,9 @@ import { cn } from '../../lib/utils';
 export function Reveal({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
     <div className={cn('grid animate-reveal', className)}>
-      {/* Clips the growing content, but leaves room for focus rings at the edges. */}
-      <div className="min-h-0 overflow-clip [overflow-clip-margin:4px]">{children}</div>
+      {/* Clips the growing content, but leaves room for focus rings at the edges. `min-w-0`: a
+          long line that does not wrap is cut short instead of widening its container. */}
+      <div className="min-h-0 min-w-0 overflow-clip [overflow-clip-margin:4px]">{children}</div>
     </div>
   );
 }
