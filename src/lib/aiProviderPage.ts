@@ -234,15 +234,16 @@ export function saveProblem(err: unknown, provider: CatalogProvider): SaveProble
     };
   if (err.code === 'AI_ACCESS_REJECTED') {
     const details = err.details as { reason?: string; modelId?: string | null } | undefined;
+    const { apiKeys, billing } = provider.links;
     if (details?.reason === 'KEY_REJECTED')
       return {
         text: `${name} rejected this key. Check that you copied the whole key, or create a new one. Nothing was saved.`,
-        link: { label: `Get a ${name} API key`, href: provider.links.apiKeys },
+        link: apiKeys ? { label: `Get a ${name} API key`, href: apiKeys } : undefined,
       };
     if (details?.reason === 'ACCOUNT_OR_BILLING')
       return {
         text: `${name} refused this key for your account: billing, credit or permissions. Nothing was saved.`,
-        link: { label: `Open ${name} billing`, href: provider.links.billing },
+        link: billing ? { label: `Open ${name} billing`, href: billing } : undefined,
       };
     if (details?.reason === 'MODEL_UNAVAILABLE')
       return {
