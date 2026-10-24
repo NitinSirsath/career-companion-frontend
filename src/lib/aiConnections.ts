@@ -9,6 +9,7 @@ import {
 import type { TagColor } from './statusTags';
 import { failureSaid } from './aiProviderPage';
 import { modelName, providerName } from './aiLabels';
+import { isFreeAI, ownKeyProviders } from './freeAI';
 
 /**
  * The AI providers page: several providers can be connected, and one is active. The active one
@@ -31,15 +32,15 @@ export const activeConnection = (settings: AISettingsResponse): AIConnection | n
 export const inactiveConnections = (settings: AISettingsResponse): AIConnection[] =>
   settings.connections.filter((connection) => !connection.active);
 
-/** Offered providers the user has not connected yet. */
-export const freeProviders = (settings: AISettingsResponse): string[] =>
-  settings.offeredProviders.filter(
+/** Offered providers with a key of the user's own that the user has not connected yet. */
+export const providersToConnect = (settings: AISettingsResponse): string[] =>
+  ownKeyProviders(settings).filter(
     (id) => !settings.connections.some((connection) => connection.provider === id),
   );
 
-/** "Connect a provider" in the header: once one is connected, while another one is free. */
+/** "Connect a provider" in the header: once one is connected, while another one can be. */
 export const canConnectMore = (settings: AISettingsResponse): boolean =>
-  settings.connections.length > 0 && freeProviders(settings).length > 0;
+  settings.connections.length > 0 && providersToConnect(settings).length > 0;
 
 /** An inactive provider can become active unless its last check found a key problem. */
 export const canActivate = (connection: AIConnection): boolean =>
@@ -52,7 +53,9 @@ export const spareProvider = (settings: AISettingsResponse): AIConnection | null
 /** The tag next to a provider's name. */
 export function connectionTag(connection: AIConnection): { label: string; color: TagColor } {
   if (connection.state === 'NEEDS_ATTENTION') return { label: 'Needs attention', color: 'red' };
-  if (connection.state === 'LIMITED') return { label: 'Limited', color: 'yellow' };
+  // The free AI waits for its shared pause, never for a limit of the user's.
+  if (connection.state === 'LIMITED')
+    return { label: isFreeAI(connection.provider) ? 'Paused' : 'Limited', color: 'yellow' };
   if (!connection.verified) return { label: 'Not confirmed', color: 'yellow' };
   return { label: 'Ready', color: 'green' };
 }
@@ -65,11 +68,13 @@ export function keyLine(connection: Pick<AIConnection, 'verified' | 'lastChecked
   return `${connection.verified ? 'Key verified' : 'Key saved'}${checked}`;
 }
 
-/** "Gemini 3.5 Flash-Lite · Gemini 3.8 Flash": the two models a provider uses. */
+/** "Gemini 3.5 Flash-Lite · Gemini 3.8 Flash": the models a provider uses, each once. */
 export function modelsLine(connection: AIConnection, joiner = ' · '): string {
   if (!connection.models) return '';
   const { fast, detailed } = connection.models;
-  return [fast.id, detailed.id].map((id) => modelName(connection.provider, id)).join(joiner);
+  return [...new Set([fast.id, detailed.id])]
+    .map((id) => modelName(connection.provider, id))
+    .join(joiner);
 }
 
 /** The empty value stands for the recommended model, which follows the catalog. */
@@ -120,7 +125,9 @@ export function activatedNote(settings: AISettingsResponse, providerId: string):
 
 /** "Your OpenAI key is removed.", and that new mail waits when no provider is active now. */
 export function removedNote(settings: AISettingsResponse, providerId: string): string {
-  const note = `Your ${providerName(providerId)} key is removed.`;
+  const note = isFreeAI(providerId)
+    ? `${providerName(providerId)} is removed.`
+    : `Your ${providerName(providerId)} key is removed.`;
   if (activeConnection(settings) || !settings.connections.length) return note;
   return `${note} No provider reads your mail now.`;
 }
