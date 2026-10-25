@@ -65,7 +65,12 @@ beforeEach(() => {
   vi.resetAllMocks();
   desktopWidth = window.innerWidth;
   setWidth(PHONE_WIDTH);
-  detail = { conversation: makeConversation(), mails: [makeConversationMail()], sentAt: [] };
+  detail = {
+    conversation: makeConversation(),
+    mails: [makeConversationMail()],
+    sentAt: [],
+    replyChoices: [],
+  };
   vi.mocked(api.get).mockImplementation(async (path: string) => {
     if (path.startsWith('/api/conversations?')) return page([detail.conversation]);
     if (path.startsWith('/api/conversations/')) return detail;
@@ -200,13 +205,15 @@ describe('phone mail details', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Reply' }));
     const form = within(await screen.findByRole('form', { name: 'Reply' }));
-    fireEvent.change(form.getByRole('textbox'), { target: { value: 'Tuesday works for me.' } });
+    fireEvent.change(form.getByLabelText('Your reply'), {
+      target: { value: 'Tuesday works for me.' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Close reply' }));
     expect(screen.queryByRole('form', { name: 'Reply' })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Reply' }));
     expect(
-      within(await screen.findByRole('form', { name: 'Reply' })).getByRole('textbox'),
+      within(await screen.findByRole('form', { name: 'Reply' })).getByLabelText('Your reply'),
     ).toHaveValue('Tuesday works for me.');
   });
 });
