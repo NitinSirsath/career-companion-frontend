@@ -46,7 +46,7 @@ export const ownKeyProviders = (settings: AISettingsResponse): string[] =>
 export const FREE_AI_FACTS: readonly { term: string; text: string }[] = [
   {
     term: 'What is sent',
-    text: 'For each new mail: the sender, subject, Gmail labels and a short preview (up to 1,000 characters). For job mails, also the mail text (up to 8,000 characters). Nothing else from your mailbox.',
+    text: 'For each new mail: the sender, subject, Gmail labels and a short preview (up to 1,000 characters). For job mails, also the mail text (up to 8,000 characters). When a conversation still needs something from you, also the new text of your own replies in it. When you ask the AI to write a reply, the whole conversation. Nothing else from your mailbox.',
   },
   {
     term: 'Who reads it',
