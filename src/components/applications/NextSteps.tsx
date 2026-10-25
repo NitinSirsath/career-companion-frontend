@@ -5,8 +5,8 @@ import { Checkmark, ChevronRight } from '@carbon/icons-react';
 import { api } from '../../api/client';
 import type { ApplicationActionListItem } from '../../contracts/application';
 import { dateAndTime, stepSource, stepText } from '../../lib/applicationDetail';
-import { deadlineLabel } from '../../lib/deadline';
-import { repliedLine } from '../../lib/mails';
+import { deadlineLabel, deadlineOverdue } from '../../lib/deadline';
+import { CLOSED_REASON_LABEL, closesByHand, repliedLine } from '../../lib/mails';
 import { dueIn } from '../../lib/mailThread';
 import { cn } from '../../lib/utils';
 import { FollowUpEditor, SnoozeControl } from '../FollowThrough';
@@ -53,12 +53,15 @@ function StepMeta({
 }) {
   const parts: React.ReactNode[] = [];
   // Once the user replied, when they replied matters more than the due date.
-  if (action.deadline && !action.repliedAt)
+  if (action.deadline && !action.repliedAt) {
+    const late = deadlineOverdue(action, new Date());
     parts.push(
-      <span key="due">
-        Due {deadlineLabel(action)} · {dueIn(String(action.deadline), new Date())}
+      <span key="due" className={cn(late && 'text-danger-text')}>
+        {late ? 'Past due' : 'Due'} {deadlineLabel(action)} ·{' '}
+        {dueIn(String(action.deadline), new Date())}
       </span>,
     );
+  }
   if (action.snoozedUntil)
     parts.push(
       <span key="snooze">
@@ -93,7 +96,11 @@ function StepMeta({
   );
 }
 
-/** One open step: what to do, when, where it came from; Complete, and more in "…". */
+/**
+ * One open step: what to do, when, where it came from, and more in "…". Only the user's own
+ * steps have "Complete"; a step from a mail closes when a reply or a newer mail settles it, and
+ * one done outside mail has "I did this" in "…" (owner, 24 Oct 2026).
+ */
 function StepRow({
   action,
   archived,
@@ -118,7 +125,11 @@ function StepRow({
           }),
       },
     );
+  const own = action.origin === 'USER' || !action.emailId;
   const actions: MenuAction[] = [
+    ...(!own && closesByHand(action)
+      ? [{ label: 'I did this', onSelect: () => change('COMPLETED') }]
+      : []),
     {
       label: action.snoozedUntil ? 'Change snooze…' : 'Snooze…',
       onSelect: () => snooze.current?.open(),
@@ -135,15 +146,17 @@ function StepRow({
       </div>
       {!archived && (
         <div className="-ml-3 flex items-center gap-1 sm:ml-0">
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={update.isPending}
-            onClick={() => change('COMPLETED')}
-          >
-            <Checkmark size={16} aria-hidden="true" />
-            Complete
-          </Button>
+          {own && (
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={update.isPending}
+              onClick={() => change('COMPLETED')}
+            >
+              <Checkmark size={16} aria-hidden="true" />
+              Complete
+            </Button>
+          )}
           <OverflowMenu label={`More for ${text}`} actions={actions} triggerRef={more} />
           <SnoozeControl action={action} trigger={false} ref={snooze} returnFocus={more} />
           {action.origin === 'USER' && (
@@ -168,6 +181,11 @@ function StepRow({
 }
 
 const DONE_LABEL: Record<string, string> = { COMPLETED: 'Done', DISMISSED: 'Dismissed' };
+/** Why a finished step closed, when something closed it; else Done or Dismissed. */
+const doneLabel = (action: ApplicationActionListItem) =>
+  (action.closedReason && CLOSED_REASON_LABEL[action.closedReason]) ??
+  DONE_LABEL[action.status] ??
+  'Closed';
 
 /** Finished steps, folded under "Done (3)". */
 function DoneSteps({ actions }: { actions: ApplicationActionListItem[] }) {
@@ -199,7 +217,7 @@ function DoneSteps({ actions }: { actions: ApplicationActionListItem[] }) {
                 <Checkmark size={16} aria-hidden="true" className="shrink-0" />
                 <span className="break-words">{stepText(action)}</span>
               </span>
-              <span className="shrink-0 text-xs">{DONE_LABEL[action.status] ?? 'Closed'}</span>
+              <span className="shrink-0 text-xs">{doneLabel(action)}</span>
             </li>
           ))}
         </ul>
@@ -263,6 +281,12 @@ export function NextSteps({
             />
           ))}
         </ul>
+      )}
+      {open.some((action) => action.emailId) && (
+        <p className="border-t border-border-subtle py-3 text-xs text-text-secondary">
+          Steps from mails close by themselves when your reply or a newer mail settles them. Setting
+          the application to Rejected or Closed closes them too.
+        </p>
       )}
       <DoneSteps actions={done} />
       {(offset > 0 || nextOffset !== null) && (
