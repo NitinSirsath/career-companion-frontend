@@ -15,6 +15,7 @@ import { listSearch } from '../lib/listMemory';
 import { askingMessageId } from '../lib/mailThread';
 import { InlineNotification } from '../components/ui/notification';
 import type { MailsSearch } from '../lib/mails';
+import { modelName } from '../lib/aiLabels';
 
 export const Route = createFileRoute('/mails/$key')({
   errorComponent: RouteErrorPage,
@@ -70,7 +71,18 @@ function JobMailPage() {
               {conversation.threadId ? (
                 <MailThreadView
                   threadId={conversation.threadId}
-                  job={{ mails: data.mails, askingMessageId: askingMessageId(data) }}
+                  job={{
+                    mails: data.mails,
+                    askingMessageId: askingMessageId(data),
+                    ai: {
+                      conversationKey: conversation.key,
+                      // A mail that asks for money never gets reply choices.
+                      choices: conversation.fakeOfferWarning ? [] : data.replyChoices,
+                      model: conversation.analyzedBy
+                        ? modelName(conversation.analyzedBy.provider, conversation.analyzedBy.model)
+                        : null,
+                    },
+                  }}
                   replyAsks={replyAsks}
                 />
               ) : (
