@@ -164,7 +164,14 @@ describe('job mail details', () => {
 
     const panel = within(screen.getByRole('complementary', { name: 'About this job mail' }));
     expect(panel.getByText('Send your available dates')).toBeInTheDocument();
-    expect(panel.getByRole('button', { name: /^Mark done/ })).toBeInTheDocument();
+    // No Mark done: a reply-by-mail ask closes by itself (owner, 24 Oct 2026).
+    expect(panel.queryByRole('button', { name: /^Mark done/ })).not.toBeInTheDocument();
+    expect(panel.queryByRole('button', { name: /^More for/ })).not.toBeInTheDocument();
+    expect(
+      panel.getByText(
+        'Closes when your reply answers it, or when you set the application to Rejected or Closed.',
+      ),
+    ).toBeInTheDocument();
     expect(panel.getByRole('button', { name: 'Create application' })).toBeInTheDocument();
     // The AI's reading sits under the mail it read, not in the side panel.
     expect(panel.queryByText(/What the AI read/)).not.toBeInTheDocument();
@@ -179,7 +186,7 @@ describe('job mail details', () => {
     );
   });
 
-  it("shows the user's reply in its place, and lets a replied action be closed or asked again", async () => {
+  it("shows the user's reply in its place, and lets a replied action be asked again", async () => {
     const { conversation } = detail;
     detail = {
       ...detail,
@@ -213,8 +220,8 @@ describe('job mail details', () => {
 
     const panel = within(screen.getByRole('complementary', { name: 'About this job mail' }));
     expect(panel.getByText('Replied')).toBeInTheDocument();
-    expect(panel.getByText(/We do not read what you wrote/)).toBeInTheDocument();
-    expect(panel.getByRole('button', { name: /^Mark done/ })).toBeInTheDocument();
+    expect(panel.queryByText(/We do not read what you wrote/)).not.toBeInTheDocument();
+    expect(panel.queryByRole('button', { name: /^Mark done/ })).not.toBeInTheDocument();
     vi.mocked(api.patch).mockResolvedValue(detail.conversation);
     fireEvent.click(panel.getByRole('button', { name: /^Ask me again/ }));
     await waitFor(() =>
@@ -224,6 +231,117 @@ describe('job mail details', () => {
       }),
     );
     expect(api.post).not.toHaveBeenCalled();
+  });
+
+  it('closes an ask done outside mail with "I did this" in the panel\'s menu', async () => {
+    const { conversation } = detail;
+    detail = {
+      ...detail,
+      conversation: {
+        ...conversation,
+        request: { ...conversation.request!, askKind: 'OUTSIDE_MAIL', canReply: false },
+      },
+    };
+    show('/mails/thread-1');
+    const panel = within(await screen.findByRole('complementary', { name: 'About this job mail' }));
+    expect(
+      panel.getByText(
+        `This sender can't get a reply. When you've done it, choose "I did this" in "⋯".`,
+      ),
+    ).toBeInTheDocument();
+    vi.mocked(api.patch).mockResolvedValue(detail.conversation);
+    fireEvent.click(panel.getByRole('button', { name: 'More for Send your available dates' }));
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'I did this' }));
+    await waitFor(() =>
+      expect(api.patch).toHaveBeenCalledWith('/api/conversations/thread-1/request', {
+        emailId: '11111111-1111-4111-8111-111111111111',
+        state: 'DONE',
+      }),
+    );
+  });
+
+  it('shows what the AI made of the reply: reading it, and a reply that does not answer', async () => {
+    const { conversation } = detail;
+    const replied = { ...conversation.request!, repliedAt: '2026-10-11T08:45:00.000Z' };
+    detail = {
+      ...detail,
+      conversation: {
+        ...conversation,
+        request: { ...replied, state: 'REPLIED', replyRead: 'WAITING' },
+      },
+    };
+    show('/mails/thread-1');
+    const panel = within(await screen.findByRole('complementary', { name: 'About this job mail' }));
+    expect(panel.getByText('Reading your reply')).toHaveClass('ai-shimmer');
+    cleanup();
+
+    detail = {
+      ...detail,
+      conversation: { ...conversation, request: { ...replied, replyRead: 'NOT_ANSWERED' } },
+    };
+    show('/mails/thread-1');
+    const open = within(await screen.findByRole('complementary', { name: 'About this job mail' }));
+    expect(
+      open.getByText(/^You replied .*, but your reply does not answer this yet\.$/),
+    ).toBeInTheDocument();
+  });
+
+  it('asks again by itself while the AI reads the reply, until it is read', async () => {
+    const { conversation } = detail;
+    const replied = { ...conversation.request!, repliedAt: '2026-10-11T08:45:00.000Z' };
+    detail = {
+      ...detail,
+      conversation: {
+        ...conversation,
+        request: { ...replied, state: 'REPLIED', replyRead: 'WAITING' },
+      },
+    };
+    show('/mails/thread-1');
+    await screen.findByText('Reading your reply');
+    detail = {
+      ...detail,
+      conversation: {
+        ...conversation,
+        request: {
+          ...replied,
+          state: 'DONE',
+          closedReason: 'YOUR_REPLY',
+          closedAt: replied.repliedAt,
+        },
+      },
+    };
+    expect(
+      await screen.findByText(/^Your reply answered it/, {}, { timeout: 6000 }),
+    ).toBeInTheDocument();
+  }, 10_000);
+
+  it('says why a step closed, links the mail that closed it, and reopens it', async () => {
+    const { conversation } = detail;
+    detail = {
+      ...detail,
+      conversation: {
+        ...conversation,
+        request: {
+          ...conversation.request!,
+          state: 'DONE',
+          closedReason: 'YOUR_REPLY',
+          closedAt: '2026-10-11T08:45:00.000Z',
+          closedByMessageId: 'reply-1',
+        },
+      },
+    };
+    show('/mails/thread-1');
+    const panel = within(await screen.findByRole('complementary', { name: 'About this job mail' }));
+    expect(panel.getByText(/^Your reply answered it · /)).toBeInTheDocument();
+    expect(panel.getByRole('button', { name: 'Show your reply' })).toBeInTheDocument();
+    vi.mocked(api.patch).mockResolvedValue(detail.conversation);
+    fireEvent.click(panel.getByRole('button', { name: /^Reopen/ }));
+    await waitFor(() =>
+      expect(api.patch).toHaveBeenCalledWith('/api/conversations/thread-1/request', {
+        emailId: '11111111-1111-4111-8111-111111111111',
+        state: 'OPEN',
+      }),
+    );
   });
 
   it('names the company, role, status and mail count under the title, and the way to Gmail', async () => {
