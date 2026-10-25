@@ -46,6 +46,7 @@ function fakeDetail(): ConversationDetail {
       }),
     ],
     sentAt: [],
+    replyChoices: [],
   };
 }
 
@@ -153,7 +154,12 @@ describe('a mail the AI thinks is a fake job offer', () => {
   });
 
   it('shows no warning for a mail the AI did not flag', async () => {
-    detail = { conversation: makeConversation(), mails: [makeConversationMail()], sentAt: [] };
+    detail = {
+      conversation: makeConversation(),
+      mails: [makeConversationMail()],
+      sentAt: [],
+      replyChoices: [],
+    };
     show('/mails/thread-1');
     await screen.findByRole('article');
     expect(screen.queryByText('This looks like a fake job offer')).not.toBeInTheDocument();
