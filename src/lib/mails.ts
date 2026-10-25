@@ -11,6 +11,7 @@ import {
   type ConversationRequest,
   type ListConversationsResponse,
   type MailCategory,
+  type RequestClosedReason,
   type RequestState,
 } from '../contracts/conversation';
 import {
@@ -19,7 +20,7 @@ import {
   type MailAttachment,
   type MailMessage,
 } from '../contracts/mailbox';
-import { deadlineLabel } from './deadline';
+import { deadlineLabel, deadlineOverdue } from './deadline';
 
 /** What the user reads for each mail type. A confirmation or status mail is an "Update". */
 export const CATEGORY_LABEL: Record<MailCategory, string> = {
@@ -209,25 +210,48 @@ export function requestTitle(asked: ConversationRequest): string {
 /** "You replied Today, 1:04 AM", the same on a mail and on its application's action. */
 export const repliedLine = (repliedAt: string) => `You replied ${mailDate(repliedAt)}`;
 
-/** The line beside the state: when it is due, or when the user replied. */
+/** Why a step closed, in the user's words (owner, 24 Oct 2026). */
+export const CLOSED_REASON_LABEL: Record<RequestClosedReason, string> = {
+  REPLACED_BY_MAIL: 'Replaced by a newer mail',
+  CONFIRMED_BY_MAIL: 'A newer mail confirmed it',
+  YOUR_REPLY: 'Your reply answered it',
+  YOU_SAID_DONE: 'You said you did it',
+  APPLICATION_CLOSED: 'Closed with the application',
+};
+
+/** An open request whose deadline has passed: it stays open and says so. */
+export const requestPastDue = (asked: ConversationRequest, now = new Date()) =>
+  asked.state === 'OPEN' && deadlineOverdue(asked, now);
+
+/** The line beside the state: when it is due or was due, when the user replied, or why it closed. */
 export function requestDetail(asked: ConversationRequest): string | null {
   if (asked.state === 'REPLIED') return asked.repliedAt ? repliedLine(asked.repliedAt) : null;
-  if (asked.state === 'OPEN' && asked.deadline) return `Due ${deadlineLabel(asked)}`;
-  return null;
+  if (asked.state === 'DONE') return asked.closedReason && CLOSED_REASON_LABEL[asked.closedReason];
+  if (!asked.deadline) return null;
+  return `${requestPastDue(asked) ? 'Past due ·' : 'Due'} ${deadlineLabel(asked)}`;
 }
+
+/**
+ * Only a request done outside mail closes by hand: "I did this" (owner, 24 Oct 2026). One read
+ * before the AI said how it is done may be closed by hand too.
+ */
+export const closesByHand = (asked: Pick<ConversationRequest, 'askKind'>) =>
+  asked.askKind !== 'REPLY_BY_MAIL';
 
 export interface RequestControl {
   label: string;
   state: 'DONE' | 'OPEN';
 }
 
-/** The buttons for a request. The list shows one; the details page also lets a reply be closed. */
-export function requestControls(state: RequestState, detailed: boolean): RequestControl[] {
-  const done: RequestControl = { label: 'Mark done', state: 'DONE' };
-  if (state === 'OPEN') return [done];
-  if (state === 'DONE') return [{ label: 'Reopen', state: 'OPEN' }];
-  const again: RequestControl = { label: 'Ask me again', state: 'OPEN' };
-  return detailed ? [done, again] : [again];
+/**
+ * What the user can change on a request, in the "⋯" menus and the phone swipe. There is no "Mark
+ * done": a reply or a newer mail closes a request by itself (owner, 24 Oct 2026).
+ */
+export function requestControls(asked: ConversationRequest): RequestControl[] {
+  if (asked.state === 'OPEN')
+    return closesByHand(asked) ? [{ label: 'I did this', state: 'DONE' }] : [];
+  if (asked.state === 'DONE') return [{ label: 'Reopen', state: 'OPEN' }];
+  return [{ label: 'Ask me again', state: 'OPEN' }];
 }
 
 /**

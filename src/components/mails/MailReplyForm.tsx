@@ -19,6 +19,55 @@ import { showToast } from '../ui/toast';
 import { parseSender } from '../../lib/mails';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
+import { ReplyAiHelp, WritingDraft, type ReplyAi } from './ReplyAiHelp';
+import { useAiDraft } from './useAiDraft';
+
+/**
+ * The reply text with AI help above it, for a job mail. While the AI writes, the text is hidden
+ * behind "Writing…", and kept.
+ */
+function ReplyWriting({
+  ai,
+  draft,
+  children,
+}: {
+  ai: ReplyAi | undefined;
+  draft: ReturnType<typeof useAiDraft>;
+  children: React.ReactNode;
+}) {
+  return (
+    <>
+      {ai && (
+        <ReplyAiHelp
+          ai={ai}
+          writing={draft.writing}
+          onWriting={draft.setWriting}
+          onDraft={draft.onDraft}
+        />
+      )}
+      {draft.writing && <WritingDraft model={ai?.model ?? null} onStop={draft.stop} />}
+      <div hidden={draft.writing}>{children}</div>
+    </>
+  );
+}
+
+/** Under the reply text: what to know before sending it, beside the buttons. */
+function ReplyFooter({ note, children }: { note: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+      <p className="min-w-0 flex-1 basis-64 text-xs text-text-secondary">{note}</p>
+      <div className="flex flex-wrap items-center gap-3">{children}</div>
+    </div>
+  );
+}
+
+/** The line under the reply text: what to know before sending it. */
+function replyNote(unconfirmed: boolean, writtenBy: string | null, hint: string) {
+  if (unconfirmed) return 'Your text is kept here until you leave the page.';
+  return writtenBy
+    ? `Written by ${writtenBy} from the whole conversation. Check it before you send.`
+    : hint;
+}
 
 type ReplyText = z.infer<typeof ReplyTextSchema>;
 
@@ -180,6 +229,8 @@ interface MailReplyFormProps {
   children?: React.ReactNode;
   /** The text on its way while it sends, then null: the conversation shows it at once. */
   onSending?: (text: string | null) => void;
+  /** AI help for a job mail: reply choices and "Write with AI". */
+  ai?: ReplyAi;
 }
 
 /**
@@ -194,6 +245,7 @@ export function MailReplyForm({
   onCheck,
   children,
   onSending,
+  ai,
 }: MailReplyFormProps) {
   const [replyId, setReplyId] = useState(() => crypto.randomUUID());
   const [all, setAll] = useState(true);
@@ -206,6 +258,7 @@ export function MailReplyForm({
   // The form shows when the user opens the reply box, by click or "R": they want to type now.
   const { setFocus } = form;
   useEffect(() => setFocus('text'), [setFocus]);
+  const draft = useAiDraft(form);
   const problem = send.isError ? replyProblem(send.error) : null;
   const unconfirmed = problem?.kind === 'unconfirmed';
   // Names who the sent reply went to, whatever the user chooses for the next one.
@@ -213,6 +266,7 @@ export function MailReplyForm({
 
   const submit = (id: string) =>
     form.handleSubmit(({ text }) => {
+      if (draft.writing) return; // locked while the AI writes
       onSending?.(text);
       send.mutate(
         { replyId: id, text, ...(toAll ? { toAll } : {}) },
@@ -245,25 +299,22 @@ export function MailReplyForm({
         problem={problem}
       />
       <ReplyReceivers replyTo={replyTo} others={replyCc} toAll={toAll} onToAll={setAll} />
-      <ReplyTextField
-        input={form.register('text')}
-        error={form.formState.errors.text}
-        onSubmitKey={() => void submit(replyId)()}
-      />
-      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
-        <p className="min-w-0 flex-1 basis-64 text-xs text-text-secondary">
-          {unconfirmed ? 'Your text is kept here until you leave the page.' : hint}
-        </p>
-        <div className="flex flex-wrap items-center gap-3">
-          {children}
-          <ReplyButtons
-            unconfirmed={unconfirmed}
-            pending={send.isPending}
-            onCheck={onCheck}
-            onSendAgain={sendAgain}
-          />
-        </div>
-      </div>
+      <ReplyWriting ai={ai} draft={draft}>
+        <ReplyTextField
+          input={form.register('text')}
+          error={form.formState.errors.text}
+          onSubmitKey={() => void submit(replyId)()}
+        />
+      </ReplyWriting>
+      <ReplyFooter note={replyNote(unconfirmed, draft.writtenBy, hint)}>
+        {children}
+        <ReplyButtons
+          unconfirmed={unconfirmed}
+          pending={send.isPending}
+          onCheck={onCheck}
+          onSendAgain={sendAgain}
+        />
+      </ReplyFooter>
     </form>
   );
 }

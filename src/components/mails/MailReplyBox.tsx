@@ -9,6 +9,7 @@ import { useIsPhone } from '../layout/useIsPhone';
 import { Button } from '../ui/button';
 import { GmailLink } from '../ui/GmailLink';
 import { MailReplyForm } from './MailReplyForm';
+import type { ReplyAi } from './ReplyAiHelp';
 
 /** A reply box that cannot send yet: says why, and offers the way out. */
 function ReplyNotice({ text, children }: { text: string; children: React.ReactNode }) {
@@ -115,6 +116,7 @@ export function MailReplyBox({
   onCheck,
   onSending,
   replyAsks = 0,
+  ai,
 }: {
   threadId: string;
   subject: string | null;
@@ -125,6 +127,8 @@ export function MailReplyBox({
   onSending?: (text: string | null) => void;
   /** Goes up each time the page's Reply button is clicked: the box opens. */
   replyAsks?: number;
+  /** AI help in the box, for a job mail. */
+  ai?: ReplyAi;
 }) {
   const sandbox = useSandboxMailbox();
   const canSend = useCanSendMail();
@@ -179,6 +183,7 @@ export function MailReplyBox({
         hint={replyHint(sandbox)}
         onCheck={onCheck}
         onSending={onSending}
+        ai={ai}
       >
         {elsewhere}
       </MailReplyForm>

@@ -40,6 +40,9 @@ function useStatusSave() {
       void queryClient.invalidateQueries({ queryKey: ['workspace'] });
       void queryClient.invalidateQueries({ queryKey: applicationKey(vars.applicationId) });
       void queryClient.invalidateQueries({ queryKey: ['applications'] });
+      // Rejected or Closed also closes the open steps that came from mail (owner, 24 Oct 2026).
+      void queryClient.invalidateQueries({ queryKey: ['application-actions'] });
+      void queryClient.invalidateQueries({ queryKey: ['conversations'] });
     },
   });
 }

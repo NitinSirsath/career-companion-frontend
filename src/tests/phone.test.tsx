@@ -65,7 +65,12 @@ beforeEach(() => {
   vi.resetAllMocks();
   desktopWidth = window.innerWidth;
   setWidth(PHONE_WIDTH);
-  detail = { conversation: makeConversation(), mails: [makeConversationMail()], sentAt: [] };
+  detail = {
+    conversation: makeConversation(),
+    mails: [makeConversationMail()],
+    sentAt: [],
+    replyChoices: [],
+  };
   vi.mocked(api.get).mockImplementation(async (path: string) => {
     if (path.startsWith('/api/conversations?')) return page([detail.conversation]);
     if (path.startsWith('/api/conversations/')) return detail;
@@ -142,12 +147,26 @@ describe('phone top bar and menu', () => {
 });
 
 describe('phone lists', () => {
-  it('shows a job mail as one row, and a swipe to the right marks it done', async () => {
+  it('shows a job mail as one row, and no swipe closes an ask answered by mail', async () => {
     show('/mails');
     const row = await screen.findByRole('link', { name: ROW_NAME });
     // The row's columns are not drawn: one tappable row instead.
     expect(row.closest('[role="row"]')!.querySelectorAll('[role="cell"]')).toHaveLength(1);
+    swipeRight(row, 110);
+    expect(api.patch).not.toHaveBeenCalled();
+  });
 
+  it('swipes "I did this" on an ask done outside mail', async () => {
+    const conversation = makeConversation();
+    detail = {
+      ...detail,
+      conversation: {
+        ...conversation,
+        request: { ...conversation.request!, askKind: 'OUTSIDE_MAIL' },
+      },
+    };
+    show('/mails');
+    const row = await screen.findByRole('link', { name: ROW_NAME });
     swipeRight(row, 40);
     expect(api.patch).not.toHaveBeenCalled();
     swipeRight(row, 110);
@@ -186,13 +205,15 @@ describe('phone mail details', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Reply' }));
     const form = within(await screen.findByRole('form', { name: 'Reply' }));
-    fireEvent.change(form.getByRole('textbox'), { target: { value: 'Tuesday works for me.' } });
+    fireEvent.change(form.getByLabelText('Your reply'), {
+      target: { value: 'Tuesday works for me.' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Close reply' }));
     expect(screen.queryByRole('form', { name: 'Reply' })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Reply' }));
     expect(
-      within(await screen.findByRole('form', { name: 'Reply' })).getByRole('textbox'),
+      within(await screen.findByRole('form', { name: 'Reply' })).getByLabelText('Your reply'),
     ).toHaveValue('Tuesday works for me.');
   });
 });

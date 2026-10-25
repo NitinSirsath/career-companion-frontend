@@ -195,7 +195,8 @@ describe('Job mails tab', () => {
     expect(cells.getByText('Interview')).toBeInTheDocument();
     expect(cells.getByText('Send your available dates')).toBeInTheDocument();
     expect(cells.getByText('Needs action')).toBeInTheDocument();
-    expect(cells.getByText('Due Oct 13, 2026')).toBeInTheDocument();
+    // The fixture's deadline has passed: the request stays open and says so.
+    expect(cells.getByText('Past due · Oct 13, 2026')).toHaveClass('text-danger-text');
     expect(cells.getByText('Not linked')).toBeInTheDocument();
     expect(
       cells.getByRole('link', { name: 'Interview: first round availability' }),
@@ -241,11 +242,20 @@ describe('Job mails tab', () => {
     ]);
   });
 
-  it('marks an action done and reopens it, naming the mail that asked', async () => {
+  it('has no Mark done: a reply-by-mail ask closes by itself', async () => {
+    show();
+    expect(await openRowMenu(await row('Interview: first round availability'))).toEqual([
+      'Open in Gmail',
+    ]);
+  });
+
+  it('offers "I did this" on an ask done outside mail, and reopens a closed one with its reason', async () => {
+    const outside = makeConversation();
+    conversations = [{ ...outside, request: { ...outside.request!, askKind: 'OUTSIDE_MAIL' } }];
     vi.mocked(api.patch).mockResolvedValue(makeConversation());
     show();
     await openRowMenu(await row('Interview: first round availability'));
-    pressOption(screen.getByRole('menuitem', { name: 'Mark done' }));
+    pressOption(screen.getByRole('menuitem', { name: 'I did this' }));
     await waitFor(() =>
       expect(api.patch).toHaveBeenCalledWith('/api/conversations/thread-1/request', {
         emailId: '11111111-1111-4111-8111-111111111111',
@@ -255,10 +265,16 @@ describe('Job mails tab', () => {
     cleanup();
 
     const done = makeConversation();
-    conversations = [{ ...done, request: { ...done.request!, state: 'DONE' } }];
+    conversations = [
+      {
+        ...done,
+        request: { ...done.request!, state: 'DONE', closedReason: 'YOUR_REPLY', closedAt: null },
+      },
+    ];
     show();
     const cells = await row('Interview: first round availability');
     expect(cells.getByText('Done')).toBeInTheDocument();
+    expect(cells.getByText('Your reply answered it')).toBeInTheDocument();
     await openRowMenu(cells);
     pressOption(screen.getByRole('menuitem', { name: 'Reopen' }));
     await waitFor(() =>
@@ -281,7 +297,7 @@ describe('Job mails tab', () => {
     const cells = await row('Interview: first round availability');
     expect(cells.getByText('Replied')).toBeInTheDocument();
     expect(cells.getByText(/^You replied /)).toBeInTheDocument();
-    expect(await openRowMenu(cells)).toEqual(['Mark done', 'Ask me again', 'Open in Gmail']);
+    expect(await openRowMenu(cells)).toEqual(['Ask me again', 'Open in Gmail']);
   });
 
   it('asks for the company when the AI could not read one', async () => {

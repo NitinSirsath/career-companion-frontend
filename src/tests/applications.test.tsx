@@ -47,6 +47,8 @@ function makeAction(overrides: Partial<ApplicationActionListItem> = {}): Applica
     status: 'PENDING',
     createdAt: '2026-02-01T10:00:00Z',
     repliedAt: null,
+    askKind: null,
+    closedReason: null,
     ...overrides,
   };
 }
@@ -505,12 +507,14 @@ describe('Application Detail Page (/applications/$id)', () => {
     renderWithProviders(queryClient, '/applications/app-1');
 
     expect(await screen.findByText('Submit portfolio')).toBeInTheDocument();
-    expect(screen.getByText(/^Due Feb 15, 2026 · /)).toBeInTheDocument();
+    // The deadline has passed: the step stays open and says so.
+    expect(screen.getByText(/^Past due Feb 15, 2026 · /)).toBeInTheDocument();
     expect(screen.getByText('1 open')).toBeInTheDocument();
+    // A step of the user's own (no mail behind it) keeps Complete.
     expect(screen.getByRole('button', { name: 'Complete' })).toBeInTheDocument();
   });
 
-  it('shows an action whose mail the user replied to as replied, still to mark done', async () => {
+  it('shows an action whose mail the user replied to as replied, with no Complete', async () => {
     vi.mocked(api.listApplications).mockResolvedValue({
       items: [makeApp()],
       metadata: { limit: 20, offset: 0, nextOffset: null },
@@ -529,7 +533,8 @@ describe('Application Detail Page (/applications/$id)', () => {
     expect(await screen.findByText('Replied')).toBeInTheDocument();
     expect(screen.getByText(/^You replied Feb 3/)).toBeInTheDocument();
     expect(screen.queryByText(/^Due Feb 15, 2026/)).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Complete' })).toBeInTheDocument();
+    // A step from a mail closes when a reply or a newer mail settles it (owner, 24 Oct 2026).
+    expect(screen.queryByRole('button', { name: 'Complete' })).not.toBeInTheDocument();
   });
 
   it('displays provenance when available', async () => {

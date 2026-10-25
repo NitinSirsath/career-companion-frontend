@@ -13,7 +13,8 @@ import { useRequestChange } from './useRequestChange';
 
 /**
  * A job mail on a phone: who wrote, when, the subject, what it needs and its application, in one
- * tappable row. Swiping it to the right does its first action, such as "Mark done".
+ * tappable row. Swiping it to the right does its first action, such as "I did this" on a request
+ * done outside mail.
  */
 export function PhoneMailRow({ conversation: c }: { conversation: Conversation }) {
   const request = useRequestChange(c);

@@ -23,6 +23,7 @@ import {
   REQUEST_STATE_LABEL,
   requestControls,
   requestDetail,
+  requestPastDue,
   requestTitle,
   scheduleLine,
   snippetText,
@@ -166,13 +167,33 @@ describe('the action', () => {
     expect(requestDetail({ ...asked, state: 'DONE' })).toBeNull();
   });
 
-  it('offers the buttons that fit the state', () => {
-    const labels = (state: 'OPEN' | 'REPLIED' | 'DONE', detailed: boolean) =>
-      requestControls(state, detailed).map((control) => `${control.label}>${control.state}`);
-    expect(labels('OPEN', false)).toEqual(['Mark done>DONE']);
-    expect(labels('DONE', false)).toEqual(['Reopen>OPEN']);
-    expect(labels('REPLIED', false)).toEqual(['Ask me again>OPEN']);
-    expect(labels('REPLIED', true)).toEqual(['Mark done>DONE', 'Ask me again>OPEN']);
+  it('offers what fits the state: no Mark done, "I did this" only outside mail', () => {
+    const labels = (
+      state: 'OPEN' | 'REPLIED' | 'DONE',
+      askKind: 'REPLY_BY_MAIL' | 'OUTSIDE_MAIL' | null = 'REPLY_BY_MAIL',
+    ) =>
+      requestControls({ ...asked, state, askKind }).map(
+        (control) => `${control.label}>${control.state}`,
+      );
+    expect(labels('OPEN')).toEqual([]);
+    expect(labels('OPEN', 'OUTSIDE_MAIL')).toEqual(['I did this>DONE']);
+    // A mail read before the AI said how its ask is done may still be closed by hand.
+    expect(labels('OPEN', null)).toEqual(['I did this>DONE']);
+    expect(labels('DONE')).toEqual(['Reopen>OPEN']);
+    expect(labels('REPLIED')).toEqual(['Ask me again>OPEN']);
+  });
+
+  it('says when an open request is past due, and why a closed one closed', () => {
+    expect(requestDetail({ ...asked, deadline: '2026-10-10T00:00:00.000Z' })).toBe(
+      'Past due · Oct 10, 2026',
+    );
+    expect(requestPastDue({ ...asked, deadline: '2026-10-10T00:00:00.000Z' })).toBe(true);
+    expect(requestPastDue({ ...asked, deadline: '2026-10-10T00:00:00.000Z', state: 'DONE' })).toBe(
+      false,
+    );
+    expect(requestDetail({ ...asked, state: 'DONE', closedReason: 'CONFIRMED_BY_MAIL' })).toBe(
+      'A newer mail confirmed it',
+    );
   });
 
   it('shows an interview or assessment date when nothing is asked', () => {

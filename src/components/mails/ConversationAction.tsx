@@ -4,6 +4,7 @@ import {
   fakeOfferStep,
   requestControls,
   requestDetail,
+  requestPastDue,
   requestTitle,
   scheduleLine,
 } from '../../lib/mails';
@@ -51,11 +52,13 @@ export function ConversationAction({
       <div className="flex flex-wrap items-center gap-2 text-xs text-text-secondary">
         {/* A fake offer's own tag sits beside its type, so the step shows no state tag. */}
         {!fakeOfferStep(conversation) && <TodoState state={asked.state} />}
-        {detail && <span>{detail}</span>}
+        {detail && (
+          <span className={cn(requestPastDue(asked) && 'text-danger-text')}>{detail}</span>
+        )}
       </div>
       {controls && (
         <div className="flex flex-wrap gap-2">
-          {requestControls(asked.state, detailed).map((control) => (
+          {requestControls(asked).map((control) => (
             <Button
               key={control.label}
               variant="tertiary"
@@ -68,11 +71,6 @@ export function ConversationAction({
             </Button>
           ))}
         </div>
-      )}
-      {detailed && asked.state === 'REPLIED' && (
-        <p className="text-xs text-text-secondary">
-          We saw that you replied. We do not read what you wrote.
-        </p>
       )}
       {change.isError && (
         <p role="alert" className="text-xs text-status-error">

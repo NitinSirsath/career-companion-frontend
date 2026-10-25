@@ -1,15 +1,23 @@
 import { useState, type ReactNode } from 'react';
 import { ArrowDown, Calendar, ChevronDown } from '@carbon/icons-react';
 import { useSetRequestState } from '../../api/conversations';
-import type { ConversationDetail, ConversationMail } from '../../contracts/conversation';
+import type {
+  ConversationDetail,
+  ConversationMail,
+  ConversationRequest,
+} from '../../contracts/conversation';
+import { modelName } from '../../lib/aiLabels';
 import { askingMessageId, dueIn, keyDates } from '../../lib/mailThread';
 import {
   FAKE_OFFER,
   fakeOfferStep,
+  CLOSED_REASON_LABEL,
+  closesByHand,
   mailDateTime,
   parseSender,
-  requestControls,
+  repliedLine,
   requestDetail,
+  requestPastDue,
   requestTitle,
   scheduleLine,
 } from '../../lib/mails';
@@ -17,6 +25,7 @@ import { cn } from '../../lib/utils';
 import { useIsPhone } from '../layout/useIsPhone';
 import { Button } from '../ui/button';
 import { Collapse } from '../ui/collapse';
+import { OverflowMenu } from '../ui/menu';
 import { InlineNotification } from '../ui/notification';
 import { showToast } from '../ui/toast';
 import { ConversationApplication } from './ConversationApplication';
@@ -52,11 +61,14 @@ function FoldedSection({ title, children }: { title: string; children: ReactNode
 function PanelSection({
   title,
   fold = false,
+  menu,
   children,
 }: {
   title: string;
   /** Folded on phones, so the conversation stays near the top. */
   fold?: boolean;
+  /** A small "⋯" menu at the section's top right. */
+  menu?: ReactNode;
   children: ReactNode;
 }) {
   const phone = useIsPhone();
@@ -66,7 +78,10 @@ function PanelSection({
       aria-label={title}
       className="flex flex-col gap-3 border border-border-subtle bg-surface p-6 max-md:p-4"
     >
-      <h2 className="mb-1 text-sm font-semibold">{title}</h2>
+      <div className="mb-1 flex items-center justify-between gap-3">
+        <h2 className="text-sm font-semibold">{title}</h2>
+        {menu && <div className="-my-1.5 -mr-2">{menu}</div>}
+      </div>
       {children}
     </section>
   );
@@ -97,9 +112,100 @@ function AskingMailLink({ mail, messageId }: { mail: ConversationMail; messageId
   );
 }
 
-/** What the conversation needs now: the request, its due date, its state and the buttons. */
+/** Jumps to the mail or reply that closed a request, as the asking mail's link does. */
+function ClosedByLink({ asked }: { asked: ConversationRequest }) {
+  const messageId = asked.closedByMessageId;
+  if (!messageId) return null;
+  return (
+    <button
+      type="button"
+      onClick={() => showMail(messageId)}
+      className="flex cursor-pointer items-center gap-1.5 border-t border-border-subtle pt-3 text-left text-sm text-link"
+    >
+      <ArrowDown size={16} aria-hidden="true" />
+      {asked.closedReason === 'YOUR_REPLY' ? 'Show your reply' : 'Show that mail'}
+    </button>
+  );
+}
+
+/** What closes an open request, or what became of the user's reply (owner, 24 Oct 2026). */
+function stepNote(asked: ConversationRequest, pastDue: boolean): string | null {
+  if (asked.state === 'REPLIED')
+    return asked.replyRead === 'NOT_READ'
+      ? "The AI could not read your reply, so it can't tell if this is done."
+      : null;
+  if (asked.state !== 'OPEN') return null;
+  if (asked.replyRead === 'NOT_ANSWERED' && asked.repliedAt)
+    return `${repliedLine(asked.repliedAt)}, but your reply does not answer this yet.`;
+  if (asked.askKind === 'REPLY_BY_MAIL')
+    return pastDue
+      ? 'Closes when your reply answers it, or when you set the application to Rejected or Closed.'
+      : 'Closes by itself when your reply answers it.';
+  if (asked.askKind === 'OUTSIDE_MAIL' && asked.canReply)
+    return 'Closes by itself when you reply that you did it, or when they confirm it.';
+  return asked.canReply
+    ? 'When you have done it, choose "I did this" in "⋯".'
+    : 'This sender can\'t get a reply. When you\'ve done it, choose "I did this" in "⋯".';
+}
+
+/** When an open request is due, in red once it is past due. */
+function StepDue({ asked }: { asked: ConversationRequest }) {
+  if (asked.state !== 'OPEN' || !asked.deadline) return null;
+  const pastDue = requestPastDue(asked);
+  return (
+    <p className={cn('flex items-center gap-2 text-sm', pastDue && 'text-danger-text')}>
+      <Calendar size={16} aria-hidden="true" />
+      {requestDetail(asked)}
+      <span className={cn('text-xs', !pastDue && 'text-text-secondary')}>
+        {dueIn(asked.deadline, new Date())}
+      </span>
+    </p>
+  );
+}
+
+/** Where the request stands: its state, with when the user replied or why it closed. */
+function StepState({ asked, fake }: { asked: ConversationRequest; fake: boolean }) {
+  const replied = asked.state === 'REPLIED' && requestDetail(asked);
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <TodoState state={asked.state} fakeOffer={fake} />
+      {replied && <span className="text-xs text-text-secondary">{replied}</span>}
+      {asked.state === 'DONE' && asked.closedReason && (
+        <span className="text-xs text-text-secondary">
+          {CLOSED_REASON_LABEL[asked.closedReason]}
+          {asked.closedAt && ` · ${mailDateTime(asked.closedAt)}`}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/** "GPT-6 Luna · Reading your reply", in the app's grey AI look, while the AI reads the reply. */
+function ReadingReply({ detail }: { detail: ConversationDetail }) {
+  const { analyzedBy, request } = detail.conversation;
+  if (request?.state !== 'REPLIED' || request.replyRead !== 'WAITING') return null;
+  return (
+    <p className="flex items-center gap-1.5 text-xs">
+      <span className="text-text-secondary">
+        {analyzedBy ? modelName(analyzedBy.provider, analyzedBy.model) : 'AI'} ·
+      </span>
+      <span className="ai-shimmer">Reading your reply</span>
+    </p>
+  );
+}
+
+/** The mail a link under the step jumps to: the one that closed it, or the one that asks. */
+function StepSourceLink({ detail }: { detail: ConversationDetail }) {
+  const asked = detail.conversation.request!;
+  if (asked.state === 'DONE') return <ClosedByLink asked={asked} />;
+  const source = detail.mails.find((mail) => mail.id === asked.emailId);
+  const messageId = askingMessageId(detail);
+  return source && messageId ? <AskingMailLink mail={source} messageId={messageId} /> : null;
+}
+
+/** What the conversation needs now: the request, its due date, its state and what closes it. */
 function NextStep({ detail }: { detail: ConversationDetail }) {
-  const { conversation, mails } = detail;
+  const { conversation } = detail;
   const change = useSetRequestState(conversation.key);
   const asked = conversation.request;
   if (!asked) {
@@ -111,61 +217,54 @@ function NextStep({ detail }: { detail: ConversationDetail }) {
     );
   }
   const title = requestTitle(asked);
-  const detailLine = requestDetail(asked);
-  const source = mails.find((mail) => mail.id === asked.emailId);
-  const messageId = askingMessageId(detail);
   const fake = fakeOfferStep(conversation);
+  const note = fake ? null : stepNote(asked, requestPastDue(asked));
+  const setState = (state: 'DONE' | 'OPEN', toast: string) =>
+    change.mutate({ emailId: asked.emailId, state }, { onSuccess: () => showToast(toast) });
+  // "I did this" only on an open request done outside mail; never a big button.
+  const menu =
+    asked.state === 'OPEN' && closesByHand(asked) && !fake ? (
+      <OverflowMenu
+        label={`More for ${title}`}
+        actions={[
+          {
+            label: 'I did this',
+            disabled: change.isPending,
+            onSelect: () => setState('DONE', `Done: ${title}`),
+          },
+        ]}
+      />
+    ) : undefined;
+  const again = asked.state === 'DONE' ? 'Reopen' : 'Ask me again';
   return (
-    <PanelSection title="Next step">
-      <p className="text-base break-words">{title}</p>
-      {asked.state === 'OPEN' && asked.deadline && !fake && (
-        <p className="flex items-center gap-2 text-sm">
-          <Calendar size={16} aria-hidden="true" />
-          {detailLine}
-          <span className="text-xs text-text-secondary">{dueIn(asked.deadline, new Date())}</span>
-        </p>
-      )}
-      <div className="flex flex-wrap items-center gap-2">
-        <TodoState state={asked.state} fakeOffer={fake} />
-        {asked.state === 'REPLIED' && detailLine && (
-          <span className="text-xs text-text-secondary">{detailLine}</span>
-        )}
-      </div>
-      <div className="flex flex-wrap gap-2 pt-1">
-        {requestControls(asked.state, true).map((control, index) => (
+    <PanelSection title="Next step" menu={menu}>
+      <p className={cn('text-base break-words', asked.state === 'DONE' && 'text-text-secondary')}>
+        {title}
+      </p>
+      {!fake && <StepDue asked={asked} />}
+      <StepState asked={asked} fake={fake} />
+      <ReadingReply detail={detail} />
+      {note && <p className="text-xs text-text-secondary">{note}</p>}
+      {asked.state !== 'OPEN' && (
+        <div className="flex flex-wrap gap-2 pt-1">
           <Button
-            key={control.label}
             size="sm"
-            variant={index === 0 && control.state === 'DONE' ? 'secondary' : 'ghost'}
-            aria-label={`${control.label}: ${title}`}
-            loading={change.isPending && change.variables?.state === control.state}
-            disabled={change.isPending}
-            onClick={() =>
-              change.mutate(
-                { emailId: asked.emailId, state: control.state },
-                {
-                  onSuccess: () =>
-                    showToast(control.state === 'DONE' ? 'Marked done' : 'Asked again'),
-                },
-              )
-            }
+            variant="ghost"
+            aria-label={`${again}: ${title}`}
+            loading={change.isPending}
+            onClick={() => setState('OPEN', asked.state === 'DONE' ? 'Reopened' : 'Asked again')}
           >
-            {control.label}
+            {again}
           </Button>
-        ))}
-      </div>
-      {fake && <p className="text-xs text-text-secondary">{FAKE_OFFER.stepNote}</p>}
-      {asked.state === 'REPLIED' && (
-        <p className="text-xs text-text-secondary">
-          We saw that you replied. We do not read what you wrote.
-        </p>
+        </div>
       )}
+      {fake && <p className="text-xs text-text-secondary">{FAKE_OFFER.stepNote}</p>}
       {change.isError && (
         <InlineNotification kind="error">
           Could not update: {change.error.message}
         </InlineNotification>
       )}
-      {source && messageId && <AskingMailLink mail={source} messageId={messageId} />}
+      <StepSourceLink detail={detail} />
     </PanelSection>
   );
 }
