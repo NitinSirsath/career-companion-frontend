@@ -78,7 +78,12 @@ function show(path: string) {
 
 beforeEach(() => {
   vi.resetAllMocks();
-  detail = { conversation: makeConversation(), mails: [makeConversationMail()], sentAt: [] };
+  detail = {
+    conversation: makeConversation(),
+    mails: [makeConversationMail()],
+    sentAt: [],
+    replyChoices: [],
+  };
   thread = {
     threadId: 'thread-1',
     subject: detail.conversation.subject,
@@ -539,8 +544,13 @@ describe('replying from the mail details page', () => {
       expect(form.getByText('Reply to all · 3 people')).toBeInTheDocument();
       expect(form.getByText('To').nextElementSibling).toHaveTextContent('Priya Nair');
       expect(form.getByText('Cc').parentElement).toHaveTextContent('CcDaniel OkaforLena Fischer');
-      // The two choices are all there is: no address can be typed.
-      expect(form.getAllByRole('textbox')).toHaveLength(1);
+      // The two choices are all there is: no address can be typed. The other text field is the
+      // optional hint for "Write with AI".
+      expect(
+        form.getAllByRole('textbox').map((box) => box.getAttribute('aria-label') ?? box.id),
+      ).toHaveLength(2);
+      expect(form.getByLabelText('Your reply')).toBeInTheDocument();
+      expect(form.getByLabelText('What the AI should say (optional)')).toBeInTheDocument();
 
       write(form, 'Tuesday works.');
       fireEvent.click(form.getByRole('button', { name: 'Send reply' }));
