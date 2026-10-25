@@ -81,11 +81,18 @@ function refreshDomain(queryClient: QueryClient) {
   for (const key of DOMAIN_QUERY_KEYS) void queryClient.invalidateQueries({ queryKey: [key] });
 }
 
+/** While the AI reads the user's reply, a view asks again this often, until it is read. */
+const REPLY_READ_POLL_MS = 3000;
+const readingReply = (conversation: Conversation | undefined) =>
+  conversation?.request?.replyRead === 'WAITING';
+
 export function useConversations(filters: ConversationFilters, offset: number) {
   return useQuery({
     queryKey: conversationKeys.list(filters, offset),
     queryFn: ({ signal }) => listConversations(filters, offset, signal),
     placeholderData: keepPreviousData,
+    refetchInterval: (query) =>
+      query.state.data?.items.some(readingReply) ? REPLY_READ_POLL_MS : false,
   });
 }
 
@@ -93,6 +100,8 @@ export function useConversation(key: string) {
   return useQuery({
     queryKey: conversationKeys.detail(key),
     queryFn: ({ signal }) => getConversation(key, signal),
+    refetchInterval: (query) =>
+      readingReply(query.state.data?.conversation) ? REPLY_READ_POLL_MS : false,
   });
 }
 
