@@ -4,7 +4,7 @@ import { Link } from '@tanstack/react-router';
 import { Close, Menu } from '@carbon/icons-react';
 import { useDevMode, useSandboxMailbox } from '../../api/appMode';
 import { cn } from '../../lib/utils';
-import { Logo } from './Logo';
+import { Wordmark } from './Logo';
 import {
   MAIN_NAV,
   NAV_LINK_CLASS,
@@ -59,10 +59,9 @@ export function PhoneMenu() {
         <Dialog.Popup className="fixed top-0 bottom-0 left-0 z-50 flex w-[calc(100%-3.5rem)] max-w-80 flex-col border-r border-border-subtle bg-background text-text-primary outline-none transition-[translate] duration-240 ease-entrance data-ending-style:-translate-x-full data-ending-style:ease-exit data-starting-style:-translate-x-full md:hidden">
           <Dialog.Title className="sr-only">Menu</Dialog.Title>
           <div className="flex h-14 shrink-0 items-stretch border-b border-border-subtle">
-            <span className="flex w-12 shrink-0 items-center justify-center border-r border-border-subtle">
-              <Logo />
+            <span className="flex min-w-0 flex-1 items-center">
+              <Wordmark size={20} className="px-4" />
             </span>
-            <span className="flex min-w-0 flex-1 items-center px-3 font-medium">NorthList</span>
             <Dialog.Close
               aria-label="Close menu"
               className={cn(CELL, 'border-l border-border-subtle')}

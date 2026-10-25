@@ -5,16 +5,16 @@ import { DevModeBanner } from '../devMode/DevModeBanner';
 import { AccountMenu } from './AccountMenu';
 import { SectionCrumb } from './Breadcrumb';
 import { useBreadcrumbSlot } from './breadcrumbSlot';
-import { Logo } from './Logo';
+import { Logo, Wordmark } from './Logo';
 import { PhoneMenu } from './PhoneMenu';
 import { ReadingStatusCell } from './ReadingStatus';
 import { useIsPhone } from './useIsPhone';
 
 /**
- * The bar across the top of the signed-in app: the logo in a cell as wide as the side menu, the
- * breadcrumb, the dev mode chip and the account button. On phones it is a row of cells: the menu,
- * the page's name (or the way back), the page's own buttons, the chip, the AI reading status and the
- * account button.
+ * The bar across the top of the signed-in app: the name in a cell as wide as the side menu (the
+ * mark alone when the menu is collapsed), the breadcrumb, the dev mode chip and the account
+ * button. On phones it is a row of cells: the menu, the page's name (or the way back), the page's
+ * own buttons, the chip, the AI reading status and the account button.
  */
 export function TopBar({ user, collapsed }: { user: User | null; collapsed: boolean }) {
   const slot = useBreadcrumbSlot();
@@ -28,16 +28,17 @@ export function TopBar({ user, collapsed }: { user: User | null; collapsed: bool
         to="/mails"
         aria-label="NorthList"
         className={cn(
-          'hidden min-w-0 items-center overflow-hidden text-text-primary transition-[width] duration-240 ease-standard md:flex md:shrink-0',
-          collapsed ? 'md:w-14' : 'md:w-72 md:border-r md:border-border-subtle',
+          'hidden min-w-0 items-center overflow-hidden border-r border-border-subtle transition-[width] duration-240 ease-standard md:flex md:shrink-0',
+          collapsed ? 'md:w-14' : 'md:w-72',
         )}
       >
-        <span className="flex size-14 shrink-0 items-center justify-center border-r border-border-subtle">
-          <Logo />
-        </span>
-        <span className={cn('truncate px-4 font-medium whitespace-nowrap', collapsed && 'hidden')}>
-          NorthList
-        </span>
+        {collapsed ? (
+          <span className="flex size-14 shrink-0 items-center justify-center">
+            <Logo />
+          </span>
+        ) : (
+          <Wordmark className="px-5" />
+        )}
       </Link>
       <div ref={slot?.setTarget} className="flex min-w-0 flex-1 items-center px-3 md:px-6">
         {!claimed && <SectionCrumb path={path} />}
