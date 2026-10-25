@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
 import { WarningAlt, WifiOff, type CarbonIconType } from '@carbon/icons-react';
 import { waitedLabel, type StartupStage } from '../../lib/startup';
-import { Logo } from '../layout/Logo';
+import { Wordmark } from '../layout/Logo';
 import { Button } from '../ui/button';
 
-/** A short message under the logo; the problems have an icon and "Try again". */
+/** A short message under the name; the problems have an icon and "Try again". */
 function Message({
   icon: Icon,
   title,
@@ -33,7 +33,7 @@ function Message({
 }
 
 /**
- * What shows while the app finds out who is signed in: the logo and a thin moving line, never the
+ * What shows while the app finds out who is signed in: the name and a thin moving line, never the
  * app. After a few seconds it says the server is waking up; after two minutes, or with no
  * network, it says what happened and offers "Try again".
  */
@@ -57,10 +57,7 @@ export function StartupScreen({
         aria-live="polite"
         className="flex w-full max-w-110 flex-col items-center text-center"
       >
-        <p className="flex items-center gap-3 text-lg leading-6 font-semibold">
-          <Logo size={32} />
-          NorthList
-        </p>
+        <Wordmark size={28} />
         {busy && (
           <span
             aria-hidden="true"
