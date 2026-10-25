@@ -142,12 +142,26 @@ describe('phone top bar and menu', () => {
 });
 
 describe('phone lists', () => {
-  it('shows a job mail as one row, and a swipe to the right marks it done', async () => {
+  it('shows a job mail as one row, and no swipe closes an ask answered by mail', async () => {
     show('/mails');
     const row = await screen.findByRole('link', { name: ROW_NAME });
     // The row's columns are not drawn: one tappable row instead.
     expect(row.closest('[role="row"]')!.querySelectorAll('[role="cell"]')).toHaveLength(1);
+    swipeRight(row, 110);
+    expect(api.patch).not.toHaveBeenCalled();
+  });
 
+  it('swipes "I did this" on an ask done outside mail', async () => {
+    const conversation = makeConversation();
+    detail = {
+      ...detail,
+      conversation: {
+        ...conversation,
+        request: { ...conversation.request!, askKind: 'OUTSIDE_MAIL' },
+      },
+    };
+    show('/mails');
+    const row = await screen.findByRole('link', { name: ROW_NAME });
     swipeRight(row, 40);
     expect(api.patch).not.toHaveBeenCalled();
     swipeRight(row, 110);
