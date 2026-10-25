@@ -12,12 +12,15 @@ import {
   ConversationSchema,
   LinkConversationResponseSchema,
   ListConversationsResponseSchema,
+  ReplyDraftResponseSchema,
   type Conversation,
   type ConversationDetail,
   type ConversationFilters,
   type LinkConversation,
   type LinkConversationResponse,
   type ListConversationsResponse,
+  type ReplyDraftRequest,
+  type ReplyDraftResponse,
   type SetRequestState,
 } from '../contracts/conversation';
 import { DOMAIN_QUERY_KEYS } from '../lib/processingRefresh';
@@ -74,6 +77,32 @@ export async function linkConversation(
   return LinkConversationResponseSchema.parse(
     await api.post<unknown>(`${conversationPath(key)}/application`, body),
   );
+}
+
+/** The longest wait for a draft: the slowest model's time limit, and some room. */
+const REPLY_DRAFT_TIMEOUT_MS = 100_000;
+
+/** An AI draft of the user's reply (owner, 24 Oct 2026). Never stored; nothing is sent. */
+export async function writeReplyDraft(
+  key: string,
+  body: ReplyDraftRequest,
+): Promise<ReplyDraftResponse> {
+  return ReplyDraftResponseSchema.parse(
+    await api.post<unknown>(
+      `${conversationPath(key)}/reply-draft`,
+      body,
+      undefined,
+      REPLY_DRAFT_TIMEOUT_MS,
+    ),
+  );
+}
+
+/** Writing a draft is one AI call per click: never retried by itself. */
+export function useWriteReplyDraft(key: string) {
+  return useMutation({
+    retry: false,
+    mutationFn: (body: ReplyDraftRequest) => writeReplyDraft(key, body),
+  });
 }
 
 /** A conversation change can move applications, actions and timelines too. */
