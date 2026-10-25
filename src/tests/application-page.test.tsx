@@ -47,6 +47,8 @@ function step(overrides: Partial<ApplicationActionListItem> = {}): ApplicationAc
     status: 'PENDING',
     createdAt: '2026-10-01T10:00:00Z',
     repliedAt: null,
+    askKind: null,
+    closedReason: null,
     ...overrides,
   };
 }
@@ -107,10 +109,11 @@ describe('next steps', () => {
     expect(link).toHaveAttribute('href', '/mails/mail-1');
   });
 
-  it('completes a step and lets the user undo it from the toast', async () => {
-    vi.mocked(api.getApplicationActions).mockResolvedValue(page([step()]));
+  it('completes a step of the user own and lets the user undo it from the toast', async () => {
+    const own = { origin: 'USER' as const, emailId: null };
+    vi.mocked(api.getApplicationActions).mockResolvedValue(page([step(own)]));
     vi.mocked(api.updateAction).mockResolvedValue({
-      ...step({ status: 'COMPLETED', actionRevision: 5 }),
+      ...step({ ...own, status: 'COMPLETED', actionRevision: 5 }),
       application: { companyName: 'Quanta Labs', jobTitle: null },
       email: null,
     } as ActionWithContextResponse);
@@ -147,6 +150,62 @@ describe('next steps', () => {
     await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
     fireEvent.click(screen.getByRole('button', { name: 'More for Thank Arjun' }));
     expect(await screen.findByRole('menuitem', { name: 'Edit…' })).toBeInTheDocument();
+  });
+
+  it('has no Complete on a step from a mail; "I did this" only on one done outside mail', async () => {
+    vi.mocked(api.getApplicationActions).mockResolvedValue(
+      page([
+        step({ askKind: 'REPLY_BY_MAIL' }),
+        step({ id: 'step-2', description: 'Fill in the survey', askKind: 'OUTSIDE_MAIL' }),
+      ]),
+    );
+    vi.mocked(api.updateAction).mockResolvedValue({
+      ...step({ id: 'step-2', status: 'COMPLETED', actionRevision: 5 }),
+      application: { companyName: 'Quanta Labs', jobTitle: null },
+      email: null,
+    } as ActionWithContextResponse);
+    show();
+    const steps = await screen.findByRole('region', { name: 'Next steps' });
+    await within(steps).findByText('Fill in the survey');
+    expect(within(steps).queryByRole('button', { name: 'Complete' })).not.toBeInTheDocument();
+    expect(within(steps).getByText(/Steps from mails close by themselves/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'More for Confirm the interview time' }));
+    expect(await screen.findByRole('menuitem', { name: 'Snooze…' })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'I did this' })).not.toBeInTheDocument();
+    fireEvent.keyDown(screen.getByRole('menu'), { key: 'Escape' });
+    await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'More for Fill in the survey' }));
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'I did this' }));
+    await waitFor(() =>
+      expect(api.updateAction).toHaveBeenCalledWith('step-2', {
+        status: 'COMPLETED',
+        expectedActionRevision: 4,
+      }),
+    );
+  });
+
+  it('says why each finished step closed', async () => {
+    vi.mocked(api.getApplicationActions).mockResolvedValue(
+      page([
+        step({
+          id: 'old-1',
+          description: 'Send your CV',
+          status: 'COMPLETED',
+          closedReason: 'YOUR_REPLY',
+        }),
+        step({
+          id: 'old-2',
+          description: 'Book a slot',
+          status: 'COMPLETED',
+          closedReason: 'REPLACED_BY_MAIL',
+        }),
+      ]),
+    );
+    show();
+    const steps = await screen.findByRole('region', { name: 'Next steps' });
+    fireEvent.click(await within(steps).findByRole('button', { name: 'Done (2)' }));
+    expect(within(steps).getByText('Your reply answered it')).toBeInTheDocument();
+    expect(within(steps).getByText('Replaced by a newer mail')).toBeInTheDocument();
   });
 
   it('folds finished steps under "Done" and never shows the raw state', async () => {
