@@ -8,11 +8,14 @@ import { Spinner } from '../ui/spinner';
 import { MailboxProblem } from './MailboxProblem';
 import { MailMessageCard } from './MailMessageCard';
 import { MailReplyBox } from './MailReplyBox';
+import type { ReplyAi } from './ReplyAiHelp';
 
 /** What the job side adds to a conversation: what the AI read, and which mail asks for the to-do. */
 export interface ThreadJobContext {
   mails: readonly ConversationMail[];
   askingMessageId: string | null;
+  /** Reply choices and "Write with AI" in the reply box. */
+  ai?: ReplyAi;
 }
 
 /** The reply on its way: shown at once at the end of the conversation, then replaced by the sent mail. */
@@ -118,6 +121,7 @@ export function MailThreadView({
             onCheck={() => void refetch()}
             onSending={setSending}
             replyAsks={replyAsks}
+            ai={job?.ai}
           />
         </>
       )}
