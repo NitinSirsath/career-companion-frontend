@@ -52,6 +52,7 @@ describe('the conversation timeline', () => {
       },
       mails: [asking, newer],
       sentAt: [],
+      replyChoices: [],
     };
     expect(askingMessageId(detail)).toBe('g-1');
     expect(
