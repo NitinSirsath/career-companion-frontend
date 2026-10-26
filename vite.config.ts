@@ -1,15 +1,29 @@
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 import path from 'path'
 
+// One id per build, in the app and in `version.json`, so an open tab can tell a new version is live.
+const version = process.env.RENDER_GIT_COMMIT || new Date().toISOString()
+const versionFile: Plugin = {
+  name: 'version-file',
+  apply: 'build',
+  generateBundle() {
+    this.emitFile({ type: 'asset', fileName: 'version.json', source: JSON.stringify({ version }) })
+  },
+}
+
 export default defineConfig({
   plugins: [
     TanStackRouterVite(),
     react(),
-    tailwindcss()
+    tailwindcss(),
+    versionFile,
   ],
+  define: {
+    __APP_VERSION__: JSON.stringify(version),
+  },
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "./src"),
