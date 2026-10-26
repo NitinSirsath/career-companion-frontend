@@ -10,6 +10,7 @@ import { RouteErrorPage } from './components/errors/RouteErrorPage';
 import { NotFoundPage } from './components/errors/NotFoundPage';
 import { ToastProvider } from './components/ui/toast';
 import { SignInGate } from './components/startup/SignInGate';
+import { fetchLiveVersion, startQuietUpdates } from './lib/quietUpdate';
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,15 @@ const router = createRouter({
   defaultErrorComponent: RouteErrorPage,
   defaultNotFoundComponent: NotFoundPage,
 });
+
+// A new version is taken by itself at a safe moment (owner, 26 Oct 2026); not in local dev mode.
+if (import.meta.env.PROD)
+  startQuietUpdates({
+    current: __APP_VERSION__,
+    liveVersion: fetchLiveVersion,
+    onNavigate: (listener) => router.subscribe('onBeforeNavigate', listener),
+    load: (href) => (href ? window.location.assign(href) : window.location.reload()),
+  });
 
 /** The app opens only once it knows who is signed in; until then the start-up screen shows. */
 function App() {
