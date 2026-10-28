@@ -103,6 +103,15 @@
   --color-tag-yellow-bg: var(--tag-yellow-bg);
 
   /* Notices */
+  /* Charts: Carbon's categorical colours, then the status colours for steps. */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-grid: var(--chart-grid);
+  --color-chart-track: var(--chart-track);
+
   --color-notice-info: var(--notice-info);
   --color-notice-success: var(--notice-success);
   --color-notice-warning: var(--notice-warning);
@@ -289,6 +298,14 @@
     --tag-yellow-bg: #fcf4d6;
     --tag-yellow: #483700;
 
+    --chart-1: #0f62fe;
+    --chart-2: #009d9a;
+    --chart-3: #8a3ffc;
+    --chart-4: #8d8d8d;
+    --chart-5: #da1e28;
+    --chart-grid: #e0e0e0;
+    --chart-track: #f4f4f4;
+
     --notice-info: #edf5ff;
     --notice-success: #defbe6;
     --notice-warning: #fcf4d6;
@@ -373,6 +390,14 @@
     --tag-red: #ffb3b8;
     --tag-yellow-bg: #2e2600;
     --tag-yellow: #fddc69;
+
+    --chart-1: #4589ff;
+    --chart-2: #08bdba;
+    --chart-3: #a56eff;
+    --chart-4: #6f6f6f;
+    --chart-5: #fa4d56;
+    --chart-grid: #272727;
+    --chart-track: #1a1a1a;
 
     --notice-info: #0e1a30;
     --notice-success: #0a1f12;
