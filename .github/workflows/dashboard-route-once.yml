@@ -1,0 +1,145 @@
+name: Dashboard route file once (temporary)
+# Writes the reviewed src/routes/dashboard.tsx on feat/dashboard-page and commits only that.
+# Lives only on the throwaway branch tmp/dashboard-route, which is deleted afterwards.
+on:
+  push:
+    branches: [tmp/dashboard-route]
+permissions:
+  contents: write
+concurrency:
+  group: dashboard-route-once
+  cancel-in-progress: false
+jobs:
+  finish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: feat/dashboard-page
+      - name: Check the branch
+        run: |
+          if [ "$(git rev-parse 'HEAD^{tree}')" != "6c5ce30b0d3956d05a36ef9aa14fa8d03bb6d75d" ]; then
+            echo "feat/dashboard-page is not at the expected commit. Nothing was changed."
+            exit 1
+          fi
+      - name: Apply the reviewed change
+        run: |
+          cat > /tmp/route.diff <<'PATCH'
+          diff --git a/src/routes/dashboard.tsx b/src/routes/dashboard.tsx
+          --- a/src/routes/dashboard.tsx
+          +++ b/src/routes/dashboard.tsx
+          @@ -1,2 +1,4 @@
+          -import { createFileRoute } from '@tanstack/react-router';
+          -import { ComingSoon } from '../components/ComingSoon';
+          +import { createFileRoute, useNavigate } from '@tanstack/react-router';
+          +import { useAIReading } from '../api/aiReading';
+          +import { useDashboard } from '../api/dashboard';
+          +import { useGmailStatus } from '../api/gmail';
+          @@ -3,0 +6,15 @@ import { RouteErrorPage } from '../components/errors/RouteErrorPage';
+          +import { PageHeader } from '../components/layout/PageHeader';
+          +import { DataLine, RightNow, TotalsStrip } from '../components/dashboard/Overview';
+          +import { Funnel, RejectedAfter } from '../components/dashboard/Funnel';
+          +import { WeekByWeek } from '../components/dashboard/WeekByWeek';
+          +import { AnswerSpeed, GoneQuiet, KeepingUp, KeptSafe } from '../components/dashboard/Progress';
+          +import { WorksBest } from '../components/dashboard/WorksBest';
+          +import {
+          +  DashboardSkeleton,
+          +  NoGmailYet,
+          +  ReadingFirstMails,
+          +} from '../components/dashboard/StartStates';
+          +import { SectionError } from '../components/ui/section-error';
+          +import { Select } from '../components/ui/select';
+          +import type { DashboardPeriod, DashboardResponse } from '../contracts/dashboard';
+          +import { DEFAULT_PERIOD, PERIOD_OPTIONS, dashboardSearchSchema, longDate } from '../lib/dashboard';
+          @@ -6,0 +24 @@ export const Route = createFileRoute('/dashboard')({
+          +  validateSearch: dashboardSearchSchema,
+          @@ -10,0 +29,51 @@ function DashboardPage() {
+          +  const period = Route.useSearch().period ?? DEFAULT_PERIOD;
+          +  const navigate = useNavigate({ from: Route.fullPath });
+          +  const dashboard = useDashboard(period);
+          +  const gmail = useGmailStatus();
+          +  const reading = useAIReading();
+          +  const numbers = dashboard.data;
+          +  const hasData = !!numbers?.dataStartsAt;
+          +  const noGmail = gmail.data?.connected === false && !hasData;
+          +  const firstRead = reading.data?.state === 'READING' && !numbers?.data.jobMailsRead;
+          +
+          +  const picker = !noGmail && (
+          +    <Select<DashboardPeriod>
+          +      label="Period"
+          +      hideLabel
+          +      options={PERIOD_OPTIONS}
+          +      value={period}
+          +      onValueChange={(next) =>
+          +        void navigate({ search: next === DEFAULT_PERIOD ? {} : { period: next }, replace: true })
+          +      }
+          +      className="w-full md:w-60"
+          +    />
+          +  );
+          +
+          +  return (
+          +    <div className="space-y-6">
+          +      <PageHeader
+          +        title="Dashboard"
+          +        phoneCompact
+          +        description={
+          +          numbers?.dataStartsAt
+          +            ? `Your job search in numbers, from your mails since ${longDate(numbers.dataStartsAt)}.`
+          +            : 'Your job search in numbers, from your mails.'
+          +        }
+          +        actions={picker}
+          +      />
+          +      <div className="md:hidden">{picker}</div>
+          +      {noGmail && <NoGmailYet status={gmail.data?.status} />}
+          +      {!noGmail && firstRead && reading.data && <ReadingFirstMails reading={reading.data} />}
+          +      {!noGmail && !firstRead && dashboard.isPending && <DashboardSkeleton />}
+          +      {!noGmail && dashboard.isError && !numbers && (
+          +        <SectionError
+          +          title="Could not load your numbers"
+          +          onRetry={() => void dashboard.refetch()}
+          +        />
+          +      )}
+          +      {!noGmail && !firstRead && numbers && <DashboardBody numbers={numbers} />}
+          +    </div>
+          +  );
+          +}
+          +
+          +function DashboardBody({ numbers }: { numbers: DashboardResponse }) {
+          @@ -12,4 +81,19 @@ function DashboardPage() {
+          -    <ComingSoon title="Dashboard" heading="Your job search in numbers">
+          -      This page will show analytics about your applications. Until then, everything you need is on
+          -      the Mails page.
+          -    </ComingSoon>
+          +    <div className="flex flex-col gap-6 md:gap-8">
+          +      <DataLine data={numbers.data} />
+          +      <TotalsStrip numbers={numbers} />
+          +      <RightNow rightNow={numbers.rightNow} />
+          +      <div className="grid gap-4 lg:grid-cols-[3fr_2fr]">
+          +        <Funnel numbers={numbers} />
+          +        <RejectedAfter rejected={numbers.rejectedAfter} />
+          +      </div>
+          +      <WeekByWeek weeks={numbers.weeks} />
+          +      <div className="grid gap-4 lg:grid-cols-[3fr_2fr]">
+          +        <GoneQuiet quiet={numbers.goneQuiet} />
+          +        <AnswerSpeed speed={numbers.answerSpeed} />
+          +      </div>
+          +      <div className="grid gap-4 lg:grid-cols-2">
+          +        <KeepingUp keeping={numbers.keepingUp} />
+          +        <KeptSafe fakeOffers={numbers.data.fakeOffers} />
+          +      </div>
+          +      <WorksBest automation={numbers.automation} />
+          +    </div>
+          PATCH
+          git apply --unidiff-zero /tmp/route.diff
+          git add src/routes/dashboard.tsx
+          if [ "$(git rev-parse :src/routes/dashboard.tsx)" != "3988270b54e17eb8c9ac72fadd533a439f53981d" ]; then
+            echo "The file does not match the reviewed file. Nothing was pushed."
+            exit 1
+          fi
+      - name: Commit only the reviewed result
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat(dashboard): src/routes/dashboard.tsx'
+          git push origin HEAD:feat/dashboard-page
