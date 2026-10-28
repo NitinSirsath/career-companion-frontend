@@ -70,7 +70,7 @@ describe('the Dashboard', () => {
     renderPage();
     expect(await screen.findByText('Right now: 51 active jobs')).toBeInTheDocument();
     expect(screen.getByText('↑ 8 vs the 30 days before')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Interview\\s*2/ })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /Interview\s*2/ })).toHaveAttribute(
       'href',
       '/applications?status=INTERVIEW',
     );
