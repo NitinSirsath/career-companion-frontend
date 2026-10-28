@@ -1,13 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import { ApiError } from '../api/client';
 import {
-  ReplyTextSchema,
+  REPLY_TEXT_PROBLEM,
+  REPLY_TOO_LONG,
   allowSendingUrl,
   replyChoice,
   replyHint,
   replyProblem,
   replySentNote,
+  replyTextProblem,
 } from '../lib/mailReply';
+import type { DraftDoc } from '../contracts/conversation';
+
+const replyDoc = (text: string): DraftDoc => ({
+  type: 'doc',
+  content: [{ type: 'paragraph', content: [{ type: 'text', text }] }],
+});
 
 describe('what became of a reply', () => {
   it.each([
@@ -98,10 +106,12 @@ describe('reply wording', () => {
   });
 
   it('asks for text and refuses a reply over the limit', () => {
-    expect(ReplyTextSchema.safeParse({ text: '   ' }).success).toBe(false);
-    expect(ReplyTextSchema.safeParse({ text: 'x'.repeat(20_001) }).success).toBe(false);
-    expect(ReplyTextSchema.parse({ text: '  Thursday works.  ' })).toEqual({
-      text: 'Thursday works.',
-    });
+    expect(replyTextProblem(replyDoc('   '), '   ')).toBe(REPLY_TEXT_PROBLEM);
+    expect(replyTextProblem({ type: 'doc', content: [{ type: 'paragraph' }] }, '')).toBe(
+      REPLY_TEXT_PROBLEM,
+    );
+    const long = 'x'.repeat(20_001);
+    expect(replyTextProblem(replyDoc(long), long)).toBe(REPLY_TOO_LONG);
+    expect(replyTextProblem(replyDoc('Thursday works.'), 'Thursday works.')).toBeNull();
   });
 });
