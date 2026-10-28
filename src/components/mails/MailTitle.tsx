@@ -43,7 +43,6 @@ export function MailTitle({ title, threadId, breadcrumb, children, onReply }: Ma
   const phone = useIsPhone();
   return (
     <PageHeader
-      className="mb-0"
       breadcrumb={breadcrumb}
       title={title}
       meta={
