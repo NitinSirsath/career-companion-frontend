@@ -27,7 +27,7 @@ export function dashboardFixture(over: Partial<DashboardResponse> = {}): Dashboa
     },
     rejectedAfter: { noAnswer: 2, recruiterContact: 2, assessment: 2, interview: 1 },
     weeks: Array.from({ length: 12 }, (_, i) => ({
-      weekStart: \`2026-08-\${String(10 + i).padStart(2, '0')}\`,
+      weekStart: `2026-08-${String(10 + i).padStart(2, '0')}`,
       applicationsSent: i,
       answers: 1,
       interviews: 0,
