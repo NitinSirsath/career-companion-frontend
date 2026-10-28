@@ -7,6 +7,7 @@ import { FakeOfferNotice } from '../components/mails/FakeOffer';
 import { JobMailPanel } from '../components/mails/JobMailPanel';
 import { MailFacts } from '../components/mails/MailFacts';
 import { MailThreadView } from '../components/mails/MailThreadView';
+import { ConversationMenu } from '../components/mails/ConversationMenu';
 import { MailTitle } from '../components/mails/MailTitle';
 import { Breadcrumb } from '../components/layout/Breadcrumb';
 import { SectionError } from '../components/ui/section-error';
@@ -65,6 +66,7 @@ function JobMailPage() {
             threadId={conversation.threadId}
             breadcrumb={breadcrumb}
             onReply={() => setReplyAsks((asks) => asks + 1)}
+            more={<ConversationMenu conversation={conversation} />}
           >
             <MailFacts conversation={conversation} />
           </MailTitle>
