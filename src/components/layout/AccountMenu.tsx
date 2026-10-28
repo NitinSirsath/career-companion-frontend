@@ -11,6 +11,7 @@ import { ITEM_CLASS, POPUP_CLASS } from '../ui/select';
 
 export async function logOutAndLeave() {
   // Unsent replies kept in this browser go too: the next person here sees none.
+  dropAllKeptReplies();
   await logout();
   window.location.href = '/login';
 }
