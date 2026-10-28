@@ -8,6 +8,7 @@ import { Button } from '../ui/button';
 import { Collapse } from '../ui/collapse';
 import { Tag } from '../ui/tag';
 import { BigNumber, DashCard, TD_CLASS, TH_CLASS } from './DashCard';
+import { GONE_QUIET_ID } from './Tips';
 
 /** Show this many quiet jobs; the rest open in place. */
 const QUIET_SHOWN = 5;
@@ -56,6 +57,7 @@ export function GoneQuiet({ quiet }: { quiet: DashboardResponse['goneQuiet'] }) 
   const more = quiet.jobs.length - QUIET_SHOWN;
   return (
     <DashCard
+      id={GONE_QUIET_ID}
       flush
       title="Gone quiet"
       aside={`${quiet.count} ${quiet.count === 1 ? 'job' : 'jobs'}`}
