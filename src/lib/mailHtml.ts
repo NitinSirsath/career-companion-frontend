@@ -45,7 +45,7 @@ export function mailFrameDocument(
     '<!doctype html><html><head><meta charset="utf-8">',
     `<meta http-equiv="Content-Security-Policy" content="${policy}">`,
     '<meta name="referrer" content="no-referrer"><base target="_blank">',
-    `<style>body{margin:0;padding:4px;font:14px/1.6 system-ui,sans-serif;${page};`,
+    `<style>body{margin:0;padding:4px;font:15px/1.6 system-ui,sans-serif;${page};`,
     `overflow-wrap:anywhere}img{max-width:100%;height:auto}${hiddenImages}${links}${hideQuote ? HIDE_HTML_QUOTE_CSS : ''}</style>`,
     `</head><body>${html}</body></html>`,
   ].join('');
