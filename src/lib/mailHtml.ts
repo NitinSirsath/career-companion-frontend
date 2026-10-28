@@ -23,7 +23,8 @@ const WHITE_PAGE = 'color:#161616;background:#ffffff';
 /**
  * The document shown inside the mail frame. The frame's sandbox already stops scripts and forms;
  * this policy also stops every network request, so opening a mail tells the sender nothing.
- * Pictures load only after the user asks for them. Links open in a new tab.
+ * Pictures load only after the user asks for them; until then they keep their place but show
+ * nothing, instead of the browser's broken-picture icon and label. Links open in a new tab.
  *
  * With `colors`, a mail that sets none of its own takes the theme's; otherwise it is shown on the
  * white page a sender writes for. With `hideQuote`, the quoted earlier mail stays hidden.
@@ -39,12 +40,13 @@ export function mailFrameDocument(
   const page = colors ? `color:${colors.text};background:${colors.background}` : WHITE_PAGE;
   // Theme colours: links keep the text colour, underlined, so they stay readable.
   const links = colors ? 'a{color:inherit}' : '';
+  const hiddenImages = showImages ? '' : 'img:not([src^="data:"]){visibility:hidden}';
   return [
     '<!doctype html><html><head><meta charset="utf-8">',
     `<meta http-equiv="Content-Security-Policy" content="${policy}">`,
     '<meta name="referrer" content="no-referrer"><base target="_blank">',
     `<style>body{margin:0;padding:4px;font:14px/1.6 system-ui,sans-serif;${page};`,
-    `overflow-wrap:anywhere}img{max-width:100%;height:auto}${links}${hideQuote ? HIDE_HTML_QUOTE_CSS : ''}</style>`,
+    `overflow-wrap:anywhere}img{max-width:100%;height:auto}${hiddenImages}${links}${hideQuote ? HIDE_HTML_QUOTE_CSS : ''}</style>`,
     `</head><body>${html}</body></html>`,
   ].join('');
 }
