@@ -1,4 +1,4 @@
-import { FollowUpEditor, SnoozeControl } from './FollowThrough';
+import { SnoozeControl } from './FollowThrough';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -241,9 +241,6 @@ export function DailyWorkspace() {
                     Dismiss
                   </Button>
                   <SnoozeControl action={action} />
-                  {action.origin === 'USER' && (
-                    <FollowUpEditor applicationId={action.applicationId} action={action} />
-                  )}
                 </div>
               </article>
             ))}
