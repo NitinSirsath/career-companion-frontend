@@ -99,6 +99,7 @@ function useVisibleScreen(): { top: number; height: number } | null {
 /**
  * On phones the open reply covers the screen, like a mail app's reply, with Send in its top bar.
  * Closing it only hides it: the text stays (also on this device), and Reply shows it again.
+ */
 function PhoneReplyScreen({ replyAsks, children }: { replyAsks: number; children: ReactNode }) {
   const [shown, setShown] = useState(true);
   const [askedFor, setAskedFor] = useState(replyAsks);
