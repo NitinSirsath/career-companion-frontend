@@ -57,7 +57,7 @@ const TWO_PART_ENDINGS = new Set([
   'com.mx',
 ]);
 
-/** The address's domain, in lower case: "Priya" <priya@northwind.example> → careers.acme.com. */
+/** The address's domain, in lower case: `"Priya" <priya@careers.acme.com>` → careers.acme.com. */
 export function senderDomain(sender: string | null | undefined): string | null {
   const text = sender?.trim();
   if (!text) return null;
