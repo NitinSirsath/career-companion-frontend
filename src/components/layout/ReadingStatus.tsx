@@ -161,7 +161,10 @@ function TitleRow({
   return (
     <div className="flex items-start gap-2">
       {/* Its words change only with the state, so a screen reader hears no count. */}
-      <p aria-live="polite" className={cn('min-w-0 flex-1', phone ? 'text-[15px]' : 'text-sm')}>
+      <p
+        aria-live="polite"
+        className={cn('min-w-0 flex-1', phone ? 'text-[15px]' : 'text-[14px] leading-5')}
+      >
         {title}
       </p>
       {onFeedToggle && (

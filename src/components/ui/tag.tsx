@@ -22,7 +22,7 @@ export function Tag({ className, color = 'gray', ...props }: TagProps) {
   return (
     <span
       className={cn(
-        'inline-flex h-6 shrink-0 items-center gap-1 px-2 text-[12px] leading-4 whitespace-nowrap',
+        'inline-flex h-6 shrink-0 items-center gap-1 px-2 text-[12px] leading-4 font-medium whitespace-nowrap',
         COLORS[color],
         className,
       )}

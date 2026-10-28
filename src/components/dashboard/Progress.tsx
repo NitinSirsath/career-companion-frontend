@@ -22,7 +22,7 @@ function QuietRows({ jobs }: { jobs: QuietJob[] }) {
         <Link
           to="/applications/$id"
           params={{ id: job.applicationId }}
-          className="underline decoration-border-default underline-offset-3 hover:decoration-current"
+          className="font-medium underline decoration-border-default underline-offset-3 hover:decoration-current"
         >
           {job.companyName}
         </Link>

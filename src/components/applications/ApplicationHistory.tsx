@@ -170,7 +170,7 @@ export function ApplicationHistory({
       className="flex flex-col border border-border-subtle bg-surface px-6 py-5"
     >
       <div className="flex flex-col gap-1 pb-3">
-        <h2 id="history-heading" className="text-xl leading-7">
+        <h2 id="history-heading" className="text-xl leading-7 font-medium">
           History
         </h2>
         <p className="text-xs text-text-secondary">

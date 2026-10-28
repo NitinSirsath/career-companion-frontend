@@ -49,7 +49,7 @@ export function PageHeader({
             phoneCompact && 'max-md:sr-only',
           )}
         >
-          <h1 className="text-[22px] leading-7 font-normal tracking-[-0.01em] break-words md:text-[28px] md:leading-9">
+          <h1 className="text-[22px] leading-7 font-semibold tracking-[-0.02em] break-words md:text-[28px] md:leading-9">
             {title}
           </h1>
           {description && <p className="max-w-160 text-sm text-text-secondary">{description}</p>}

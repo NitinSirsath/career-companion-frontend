@@ -17,7 +17,10 @@ export function TestLoginPage({ next = null }: { next?: string | null }) {
           className="flex w-full max-w-sm flex-col gap-6 border border-border-subtle bg-surface p-8"
         >
           <div className="flex flex-col gap-2">
-            <h1 id="test-sign-in-title" className="text-[28px] leading-9 font-normal">
+            <h1
+              id="test-sign-in-title"
+              className="text-[28px] leading-9 font-semibold tracking-[-0.02em]"
+            >
               Test account sign-in
             </h1>
             <p className="text-sm text-text-secondary">

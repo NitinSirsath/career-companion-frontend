@@ -30,7 +30,7 @@ export function BreadcrumbProvider({ children }: { children: ReactNode }) {
 }
 
 const LEVEL_CLASS =
-  'flex min-w-0 items-center gap-2 whitespace-nowrap [&_a]:text-text-secondary [&_a]:transition-colors [&_a]:duration-70 [&_a]:ease-standard [&_a:hover]:text-text-primary';
+  'flex min-w-0 items-center gap-2 text-[14px] leading-5 whitespace-nowrap [&_a]:text-text-secondary [&_a]:transition-colors [&_a]:duration-70 [&_a]:ease-standard [&_a:hover]:text-text-primary';
 
 /** The section icon for a link to a section's page, such as Mails for a link to /mails. */
 function iconOf(link: ReactNode): CarbonIconType | undefined {

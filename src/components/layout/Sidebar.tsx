@@ -93,7 +93,7 @@ export function Sidebar({
         onClick={() => onCollapsedChange(!collapsed)}
         aria-label={collapsed ? 'Expand menu' : 'Collapse menu'}
         title={collapsed ? 'Expand menu' : undefined}
-        className="flex h-12 shrink-0 cursor-pointer items-center gap-3 overflow-hidden border-t border-border-subtle px-5 text-sm whitespace-nowrap text-text-primary transition-colors duration-70 ease-standard hover:bg-layer-hover"
+        className="flex h-12 shrink-0 cursor-pointer items-center gap-3 overflow-hidden border-t border-border-subtle px-5 text-[14px] leading-5 font-medium whitespace-nowrap text-text-primary transition-colors duration-70 ease-standard hover:bg-layer-hover"
       >
         <ToggleIcon size={16} aria-hidden="true" className="shrink-0 text-text-secondary" />
         <span className={cn(collapsed && 'sr-only')}>Collapse menu</span>
