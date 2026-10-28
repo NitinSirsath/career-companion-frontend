@@ -20,7 +20,6 @@ function SandboxFrame({ active, children }: { active: SandboxSection; children: 
   return (
     <div className="space-y-6">
       <PageHeader
-        className="mb-0"
         title="Mail sandbox"
         description={`${data ? `Mailbox of ${data.mailbox}. ` : ''}A mail waits here until you sync.`}
         actions={<SandboxSyncBar notSynced={data?.notSyncedTotal ?? 0} />}
