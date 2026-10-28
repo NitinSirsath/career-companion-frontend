@@ -1,7 +1,8 @@
-import { useRef, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import type { ApplicationResponse } from '../../contracts/application';
-import type { DialogHandle } from '../../lib/dialogs';
+import { focusLater, type DialogHandle } from '../../lib/dialogs';
 import { ArchiveControl } from '../ArchiveControl';
+import { DeleteApplicationDialog } from './DeleteApplicationDialog';
 import { PageHeader } from '../layout/PageHeader';
 import { Button } from '../ui/button';
 import { OverflowMenu } from '../ui/menu';
@@ -25,8 +26,8 @@ function ArchivedNotice({ canRestore, onRestore }: { canRestore: boolean; onRest
 }
 
 /**
- * Title, role, the status dropdown, and a "…" menu with Archive or Restore. Notices about the
- * status and the archive sit under it.
+ * Title, role, the status dropdown, and a "…" menu with Archive or Restore and Delete. Notices
+ * about the status and the archive sit under it.
  */
 export function ApplicationHeader({
   application,
@@ -40,6 +41,7 @@ export function ApplicationHeader({
   const status = useStatusControl(application, canEdit);
   const archive = useRef<DialogHandle>(null);
   const more = useRef<HTMLButtonElement>(null);
+  const [deleting, setDeleting] = useState(false);
   const archived = !!application.archivedAt;
   const role = [application.jobTitle, application.location].filter(Boolean).join(' · ');
   return (
@@ -72,6 +74,7 @@ export function ApplicationHeader({
                         danger: true,
                         onSelect: () => archive.current?.open(),
                       },
+                  { label: 'Delete application…', danger: true, onSelect: () => setDeleting(true) },
                 ]}
               />
             )}
@@ -80,6 +83,14 @@ export function ApplicationHeader({
               trigger={false}
               ref={archive}
               returnFocus={more}
+            />
+            <DeleteApplicationDialog
+              application={application}
+              open={deleting}
+              onClose={() => {
+                setDeleting(false);
+                focusLater(more);
+              }}
             />
           </>
         }
