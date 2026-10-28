@@ -124,7 +124,7 @@ export function DataTable<T>({
                     role="columnheader"
                     aria-sort={active ? 'descending' : undefined}
                     className={cn(
-                      'flex items-center gap-2 font-mono text-[12px] leading-4 tracking-[0.08em] text-text-primary uppercase',
+                      'flex items-center gap-2 text-[13px] leading-4 font-medium text-text-secondary',
                       meta?.className,
                     )}
                   >
@@ -132,7 +132,7 @@ export function DataTable<T>({
                       <button
                         type="button"
                         onClick={() => sort.onSort(sortKey)}
-                        className="group inline-flex h-12 cursor-pointer items-center gap-2 uppercase"
+                        className="group inline-flex h-12 cursor-pointer items-center gap-2"
                       >
                         {content}
                         <ArrowDown
@@ -224,4 +224,4 @@ function TableRow<T>({ row, style }: { row: Row<T>; style: React.CSSProperties }
  * row, so a click anywhere on the row opens it.
  */
 export const ROW_LINK_CLASS =
-  'text-[15px] leading-[22px] text-text-primary underline decoration-border-default underline-offset-[3px] transition-[text-decoration-color] duration-70 ease-standard after:absolute after:inset-0 after:content-[""] hover:text-text-primary hover:decoration-text-primary focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:-outline-offset-2 focus-visible:after:outline-border-focus';
+  'text-[15px] leading-[22px] font-medium text-text-primary underline decoration-border-default underline-offset-[3px] transition-[text-decoration-color] duration-70 ease-standard after:absolute after:inset-0 after:content-[""] hover:text-text-primary hover:decoration-text-primary focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:-outline-offset-2 focus-visible:after:outline-border-focus';
