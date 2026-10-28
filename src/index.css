@@ -121,6 +121,11 @@
   --font-sans: 'Geist', 'Helvetica Neue', Arial, sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, monospace;
 
+  /* Normal text is 15/22 (owner, 26 Oct 2026: larger and stronger on a laptop). Controls (buttons,
+     tabs, the menu, fields) stay 14 with arbitrary sizes, so they keep their heights. */
+  --text-sm: 15px;
+  --text-sm--line-height: 22px;
+
   /* Small text is 13/18, the size of every second line, date and help text. Tags stay 12/16. */
   --text-xs: 13px;
   --text-xs--line-height: 18px;
@@ -412,9 +417,8 @@
     background-color: var(--background);
     color: var(--text-primary);
     font-family: var(--font-sans);
-    font-size: 14px;
-    line-height: 20px;
-    -webkit-font-smoothing: antialiased;
+    font-size: 15px;
+    line-height: 22px;
   }
 
   :focus-visible {
