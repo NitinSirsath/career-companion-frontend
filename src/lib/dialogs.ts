@@ -1,6 +1,5 @@
-import type { ReactNode, RefObject } from 'react';
+import type { RefObject } from 'react';
 import type { QueryClient } from '@tanstack/react-query';
-import type { ButtonVariant } from '../components/ui/button';
 
 // Every list that shows to-dos or applications, read again after a follow-through change.
 const FOLLOW_THROUGH_KEYS = [
@@ -27,8 +26,6 @@ export const focusLater = (target: RefObject<HTMLElement | null> | undefined) =>
 export interface TriggerOptions {
   /** False when the dialog opens from elsewhere, through its handle. */
   trigger?: boolean;
-  triggerVariant?: ButtonVariant;
-  triggerIcon?: ReactNode;
   /** Gets focus back when there is no trigger button. */
   returnFocus?: RefObject<HTMLElement | null>;
 }
