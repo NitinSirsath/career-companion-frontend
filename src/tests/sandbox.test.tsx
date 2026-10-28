@@ -35,6 +35,7 @@ import {
 } from '../lib/sandbox';
 import { resetProcessingRefresh } from '../lib/processingRefresh';
 import { routeTree } from '../routeTree.gen';
+import { replyDoc, writeReply } from './reply-editor';
 
 const PRIYA = 'Priya Raman <priya.raman@northwind.example>';
 const THREAD = '13caf40a1e0fa8a8';
@@ -567,21 +568,21 @@ describe('mail details in dev mode', () => {
     fireEvent.click(await screen.findByRole('button', { name: /^Reply to .*…/ }));
     const form = within(await screen.findByRole('form', { name: 'Reply' }));
     expect(
-      form.getByText(/^The reply goes to the mail sandbox\. No real mail is sent\./),
+      screen.getByText(/^The reply goes to the mail sandbox\. No real mail is sent\./),
     ).toBeInTheDocument();
-    expect(form.getByRole('link', { name: 'Open in the mail sandbox' })).toHaveAttribute(
+    expect(await form.findByRole('link', { name: 'Open in the mail sandbox' })).toHaveAttribute(
       'href',
       `/sandbox/${THREAD}`,
     );
     expect(screen.queryByRole('link', { name: /in Gmail$/ })).not.toBeInTheDocument();
 
     // The same call as in prod: the backend sends it through the sandbox.
-    fireEvent.change(form.getByLabelText('Your reply'), { target: { value: 'Thursday works.' } });
+    await writeReply(form, 'Thursday works.');
     fireEvent.click(form.getByRole('button', { name: 'Send reply' }));
     await waitFor(() =>
       expect(post).toHaveBeenCalledWith(
         `/api/mailbox/threads/${THREAD}/replies`,
-        { replyId: expect.any(String), text: 'Thursday works.' },
+        { replyId: expect.any(String), doc: replyDoc('Thursday works.') },
         undefined,
         60_000,
       ),
