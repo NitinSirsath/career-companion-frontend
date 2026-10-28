@@ -256,7 +256,7 @@ export function NextSteps({
       className="flex flex-col border border-border-subtle bg-surface px-6 py-5"
     >
       <div className="flex items-baseline gap-3 pb-3">
-        <h2 id="steps-heading" className="text-xl leading-7">
+        <h2 id="steps-heading" className="text-xl leading-7 font-medium">
           Next steps
         </h2>
         {query.data && <span className="text-xs text-text-secondary">{open.length} open</span>}
