@@ -9,7 +9,7 @@ import { deadlineLabel, deadlineOverdue } from '../../lib/deadline';
 import { CLOSED_REASON_LABEL, closesByHand, repliedLine } from '../../lib/mails';
 import { dueIn } from '../../lib/mailThread';
 import { cn } from '../../lib/utils';
-import { FollowUpEditor, SnoozeControl } from '../FollowThrough';
+import { SnoozeControl } from '../FollowThrough';
 import type { DialogHandle } from '../../lib/dialogs';
 import { TodoState } from '../mails/TodoState';
 import { Button } from '../ui/button';
@@ -112,7 +112,6 @@ function StepRow({
 }) {
   const update = useStepUpdate(action);
   const snooze = useRef<DialogHandle>(null);
-  const edit = useRef<DialogHandle>(null);
   const more = useRef<HTMLButtonElement>(null);
   const text = stepText(action);
   const change = (status: 'COMPLETED' | 'DISMISSED') =>
@@ -134,7 +133,6 @@ function StepRow({
       label: action.snoozedUntil ? 'Change snooze…' : 'Snooze…',
       onSelect: () => snooze.current?.open(),
     },
-    ...(action.origin === 'USER' ? [{ label: 'Edit…', onSelect: () => edit.current?.open() }] : []),
     { label: 'Dismiss', onSelect: () => change('DISMISSED') },
   ];
 
@@ -159,15 +157,6 @@ function StepRow({
           )}
           <OverflowMenu label={`More for ${text}`} actions={actions} triggerRef={more} />
           <SnoozeControl action={action} trigger={false} ref={snooze} returnFocus={more} />
-          {action.origin === 'USER' && (
-            <FollowUpEditor
-              applicationId={action.applicationId}
-              action={action}
-              trigger={false}
-              ref={edit}
-              returnFocus={more}
-            />
-          )}
         </div>
       )}
       {update.isError && (
