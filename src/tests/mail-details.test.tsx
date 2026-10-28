@@ -32,6 +32,7 @@ vi.mock('../api/client', async (importOriginal) => ({
 
 import { routeTree } from '../routeTree.gen';
 import { chooseOption } from './choose';
+import { replyBox, replyDoc, replyWords, writeReply } from './reply-editor';
 
 const page = <T,>(items: T[]) => ({ items, metadata: { limit: 20, offset: 0, nextOffset: null } });
 const reply = makeMailMessage({
@@ -504,25 +505,24 @@ describe('replying from the mail details page', () => {
     fireEvent.click(await screen.findByRole('button', { name: /^Reply to .*…/ }));
     return within(await screen.findByRole('form', { name: 'Reply' }));
   };
-  const write = (form: Awaited<ReturnType<typeof box>>, text: string) =>
-    fireEvent.change(form.getByLabelText('Your reply'), { target: { value: text } });
+  const write = (form: Awaited<ReturnType<typeof box>>, text: string) => writeReply(form, text);
 
   it('puts the cursor in the reply when the box opens, by click or by "R"', async () => {
     show('/mails/thread-1');
     const form = await box();
-    expect(form.getByLabelText('Your reply')).toHaveFocus();
+    await waitFor(async () => expect(await replyBox(form)).toHaveFocus());
     cleanup();
     show('/mails/thread-1');
     await screen.findByRole('button', { name: /^Reply to .*…/ });
     fireEvent.keyDown(document.body, { key: 'r' });
-    expect(await screen.findByLabelText('Your reply')).toHaveFocus();
+    await waitFor(async () => expect(await replyBox()).toHaveFocus());
   });
 
   it('opens the reply box from the Reply button next to the title', async () => {
     show('/mails/thread-1');
     await screen.findByRole('button', { name: /^Reply to .*…/ });
     fireEvent.click(screen.getByRole('button', { name: 'Reply' }));
-    expect(await screen.findByLabelText('Your reply')).toHaveFocus();
+    await waitFor(async () => expect(await replyBox()).toHaveFocus());
   });
 
   it('says who the reply goes to and offers no way to change it', async () => {
@@ -530,7 +530,8 @@ describe('replying from the mail details page', () => {
     const form = await box();
     expect(form.getByText('To').nextElementSibling).toHaveTextContent('Priya Nair');
     expect(form.queryByRole('textbox', { name: /^to/i })).not.toBeInTheDocument();
-    expect(form.getByText(/^Sent from your Gmail, in this conversation\./)).toBeInTheDocument();
+    // Under the reply card: what to know before sending.
+    expect(screen.getByText(/^Sent from your Gmail, in this conversation\./)).toBeInTheDocument();
     // Gmail itself stays one click away.
     expect(form.getByRole('link', { name: /^Reply to email .* in Gmail$/ })).toBeInTheDocument();
   });
@@ -538,22 +539,23 @@ describe('replying from the mail details page', () => {
   it('sends the reply once with its own ID, then shows it sent and reads the conversation again', async () => {
     show('/mails/thread-1');
     const form = await box();
+    await replyBox(form);
     fireEvent.click(form.getByRole('button', { name: 'Send reply' }));
     expect(await form.findByText('Write your reply.')).toBeInTheDocument();
     expect(sent()).toHaveLength(0);
 
     const reads = threadReads();
-    write(form, 'I am free on Tuesday after 2 PM.');
+    await write(form, 'I am free on Tuesday after 2 PM.');
     fireEvent.click(form.getByRole('button', { name: 'Send reply' }));
     expect(await form.findByText('Reply sent to Priya Nair.')).toBeInTheDocument();
     expect(sent()).toHaveLength(1);
     expect(sent()[0]).toEqual([
       REPLY_PATH,
-      { replyId: expect.stringMatching(UUID), text: 'I am free on Tuesday after 2 PM.' },
+      { replyId: expect.stringMatching(UUID), doc: replyDoc('I am free on Tuesday after 2 PM.') },
       undefined,
       60_000,
     ]);
-    expect(form.getByLabelText('Your reply')).toHaveValue('');
+    expect(await replyWords(form)).toBe('');
     await waitFor(() => expect(threadReads()).toBeGreaterThan(reads));
   });
 
@@ -561,9 +563,9 @@ describe('replying from the mail details page', () => {
     show('/mails/thread-1');
     const form = await box();
     for (const text of ['First.', 'Second.']) {
-      write(form, text);
+      await write(form, text);
       fireEvent.click(form.getByRole('button', { name: 'Send reply' }));
-      await waitFor(() => expect(form.getByLabelText('Your reply')).toHaveValue(''));
+      await waitFor(async () => expect(await replyWords(form)).toBe(''));
     }
     const ids = sent().map(([, body]) => (body as { replyId: string }).replyId);
     expect(ids).toHaveLength(2);
@@ -592,20 +594,21 @@ describe('replying from the mail details page', () => {
       expect(form.getByText('Cc').parentElement).toHaveTextContent('CcDaniel OkaforLena Fischer');
       // The two choices are all there is: no address can be typed. The other text field is the
       // optional hint for "Write with AI".
+      await replyBox(form);
       expect(
         form.getAllByRole('textbox').map((box) => box.getAttribute('aria-label') ?? box.id),
       ).toHaveLength(2);
-      expect(form.getByLabelText('Your reply')).toBeInTheDocument();
+      expect(await replyBox(form)).toBeInTheDocument();
       expect(form.getByLabelText('What the AI should say (optional)')).toBeInTheDocument();
 
-      write(form, 'Tuesday works.');
+      await write(form, 'Tuesday works.');
       fireEvent.click(form.getByRole('button', { name: 'Send reply' }));
       expect(
         await form.findByText('Reply sent to Priya Nair, Daniel Okafor and Lena Fischer.'),
       ).toBeInTheDocument();
       expect(sent()[0][1]).toEqual({
         replyId: expect.stringMatching(UUID),
-        text: 'Tuesday works.',
+        doc: replyDoc('Tuesday works.'),
         toAll: true,
       });
     });
@@ -623,12 +626,12 @@ describe('replying from the mail details page', () => {
         form.getByText('Daniel Okafor and Lena Fischer will not get this reply.'),
       ).toBeInTheDocument();
 
-      write(form, 'A question first.');
+      await write(form, 'A question first.');
       fireEvent.click(form.getByRole('button', { name: 'Send reply' }));
       expect(await form.findByText('Reply sent to Priya Nair.')).toBeInTheDocument();
       expect(sent()[0][1]).toEqual({
         replyId: expect.stringMatching(UUID),
-        text: 'A question first.',
+        doc: replyDoc('A question first.'),
       });
 
       // Going back changes the next reply, not the note about the one that was sent.
@@ -658,7 +661,7 @@ describe('replying from the mail details page', () => {
     sendAnswer = failure;
     show('/mails/thread-1');
     const form = await box();
-    write(form, 'I am free on Tuesday.');
+    await write(form, 'I am free on Tuesday.');
     fireEvent.click(form.getByRole('button', { name: 'Send reply' }));
 
     expect(await form.findByRole('alert')).toHaveTextContent(
@@ -667,7 +670,7 @@ describe('replying from the mail details page', () => {
     expect(form.getByRole('alert')).toHaveTextContent(
       'Check the conversation before you send it again',
     );
-    expect(form.getByLabelText('Your reply')).toHaveValue('I am free on Tuesday.');
+    expect(await replyWords(form)).toBe('I am free on Tuesday.');
     expect(form.queryByRole('button', { name: 'Send reply' })).not.toBeInTheDocument();
     expect(sent()).toHaveLength(1);
 
@@ -680,8 +683,8 @@ describe('replying from the mail details page', () => {
     sendAnswer = { id: 'sent-2', threadId: 'thread-1', sentAt: '2026-10-11T08:50:00.000Z' };
     fireEvent.click(form.getByRole('button', { name: 'Send again' }));
     expect(await form.findByText('Reply sent to Priya Nair.')).toBeInTheDocument();
-    const [first, second] = sent().map(([, body]) => body as { replyId: string; text: string });
-    expect(second.text).toBe('I am free on Tuesday.');
+    const [first, second] = sent().map(([, body]) => body as { replyId: string; doc: unknown });
+    expect(second.doc).toEqual(replyDoc('I am free on Tuesday.'));
     expect(second.replyId).not.toBe(first.replyId);
   });
 
@@ -694,12 +697,12 @@ describe('replying from the mail details page', () => {
     );
     show('/mails/thread-1');
     const form = await box();
-    write(form, 'I am free on Tuesday.');
+    await write(form, 'I am free on Tuesday.');
     fireEvent.click(form.getByRole('button', { name: 'Send reply' }));
     expect(await form.findByRole('alert')).toHaveTextContent(
       'Gmail is busy. Nothing was sent. Try again.',
     );
-    expect(form.getByLabelText('Your reply')).toHaveValue('I am free on Tuesday.');
+    expect(await replyWords(form)).toBe('I am free on Tuesday.');
 
     sendAnswer = { id: 'sent-1', threadId: 'thread-1', sentAt: '2026-10-11T08:45:00.000Z' };
     fireEvent.click(form.getByRole('button', { name: 'Send reply' }));
@@ -739,7 +742,7 @@ describe('replying from the mail details page', () => {
     );
     show('/mails/thread-1');
     const form = await box();
-    write(form, 'I am free on Tuesday.');
+    await write(form, 'I am free on Tuesday.');
     vi.mocked(api.getGmailStatus).mockResolvedValue({
       connected: true,
       gmailEmail: 'you@gmail.com',

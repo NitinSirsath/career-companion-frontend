@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Link } from '@tanstack/react-router';
 import { Launch, Reply } from '@carbon/icons-react';
 import { useSandboxMailbox } from '../../api/appMode';
+import { useKeptReply } from '../../lib/keptReply';
 import { cn } from '../../lib/utils';
 import { TopBarActions } from '../layout/Breadcrumb';
 import { useIsPhone } from '../layout/useIsPhone';
@@ -51,6 +52,8 @@ export function MailTitle({
   more,
 }: MailTitleProps) {
   const phone = useIsPhone();
+  // Unsent reply text kept on this device: the phone's button opens it again.
+  const kept = useKeptReply(threadId ?? '');
   return (
     <PageHeader
       breadcrumb={breadcrumb}
@@ -73,7 +76,7 @@ export function MailTitle({
               className={cn(phone && 'fixed right-4 bottom-20 z-30 shadow-popup')}
             >
               <Reply size={phone ? 20 : 16} aria-hidden="true" />
-              Reply
+              {phone && kept ? 'Open draft' : 'Reply'}
             </Button>
           )}
           {!phone && more}

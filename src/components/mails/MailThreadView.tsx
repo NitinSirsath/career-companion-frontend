@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { useGmailAddress, useMailThread } from '../../api/mailbox';
-import type { ConversationMail } from '../../contracts/conversation';
+import type { ConversationMail, DraftDoc } from '../../contracts/conversation';
 import type { MailMessage } from '../../contracts/mailbox';
 import { dayLabel, initiallyFolded, readingFor } from '../../lib/mailThread';
 import { SkeletonList } from '../ui/skeleton';
@@ -8,6 +8,7 @@ import { Spinner } from '../ui/spinner';
 import { MailboxProblem } from './MailboxProblem';
 import { MailMessageCard } from './MailMessageCard';
 import { MailReplyBox } from './MailReplyBox';
+import { ReplyDocView } from './ReplyDocView';
 import type { ReplyAi } from './ReplyAiHelp';
 
 /** What the job side adds to a conversation: what the AI read, and which mail asks for the to-do. */
@@ -19,13 +20,13 @@ export interface ThreadJobContext {
 }
 
 /** The reply on its way: shown at once at the end of the conversation, then replaced by the sent mail. */
-function SendingCard({ text }: { text: string }) {
+function SendingCard({ doc }: { doc: DraftDoc }) {
   return (
     <article
       aria-label="Your reply, sending"
       className="animate-open border border-border-subtle bg-surface p-4"
     >
-      <p className="max-w-[75ch] text-sm leading-[22px] break-words whitespace-pre-wrap">{text}</p>
+      <ReplyDocView doc={doc} />
       <p role="status" className="mt-2 flex items-center gap-2 text-xs text-text-secondary">
         <Spinner />
         Sending…
@@ -96,7 +97,7 @@ export function MailThreadView({
 }) {
   const { data, error, isLoading, refetch } = useMailThread(threadId);
   const mailbox = useGmailAddress();
-  const [sending, setSending] = useState<string | null>(null);
+  const [sending, setSending] = useState<DraftDoc | null>(null);
   const end = useRef<HTMLDivElement>(null);
   const loaded = !!data;
   // A long conversation opens at its newest mail, beside the reply box.
@@ -111,7 +112,7 @@ export function MailThreadView({
       {data && (
         <>
           <Messages key={threadId} messages={data.messages} mailbox={mailbox} job={job} />
-          {sending && <SendingCard text={sending} />}
+          {sending && <SendingCard doc={sending} />}
           <div ref={end} />
           <MailReplyBox
             threadId={threadId}

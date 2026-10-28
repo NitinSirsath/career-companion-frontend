@@ -1,12 +1,17 @@
 import { isApiError } from '../api/client';
-import { SendMailReplyRequestSchema } from '../contracts/mailbox';
+import type { DraftDoc } from '../contracts/conversation';
+import { MAIL_REPLY_TEXT_LIMIT } from '../contracts/mailbox';
 import { parseSender } from './mails';
-
-/** The reply box asks for the text only; the reply's own ID is made by the page. */
-export const ReplyTextSchema = SendMailReplyRequestSchema.pick({ text: true });
+import { isEmptyDoc } from './replyDoc';
 
 export const REPLY_TEXT_PROBLEM = 'Write your reply.';
 export const REPLY_TOO_LONG = 'This reply is too long to send from here.';
+
+/** What is wrong with a reply before it is sent, or null. `words` is the editor's text. */
+export function replyTextProblem(doc: DraftDoc, words: string): string | null {
+  if (isEmptyDoc(doc)) return REPLY_TEXT_PROBLEM;
+  return words.length > MAIL_REPLY_TEXT_LIMIT ? REPLY_TOO_LONG : null;
+}
 
 /** Why a reply did not go out as asked, and what the user can do about it. */
 export type ReplyProblem =

@@ -26,6 +26,7 @@ vi.mock('../api/client', async (importOriginal) => ({
 }));
 
 import { routeTree } from '../routeTree.gen';
+import { replyWords, writeReply } from './reply-editor';
 
 const PHONE_WIDTH = 375;
 const ROW_NAME = 'Interview: first round availability, from Priya Nair';
@@ -204,15 +205,15 @@ describe('phone mail details', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Reply' }));
     const form = within(await screen.findByRole('form', { name: 'Reply' }));
-    fireEvent.change(form.getByLabelText('Your reply'), {
-      target: { value: 'Tuesday works for me.' },
-    });
+    // Send sits in the reply screen's top bar, as in phone mail apps.
+    expect(await screen.findByRole('button', { name: 'Send' })).toHaveAttribute('type', 'submit');
+    await writeReply(form, 'Tuesday works for me.');
     fireEvent.click(screen.getByRole('button', { name: 'Close reply' }));
     expect(screen.queryByRole('form', { name: 'Reply' })).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Reply' }));
-    expect(
-      within(await screen.findByRole('form', { name: 'Reply' })).getByLabelText('Your reply'),
-    ).toHaveValue('Tuesday works for me.');
+    // The text is kept, also on this device: the floating button says so.
+    fireEvent.click(screen.getByRole('button', { name: 'Open draft' }));
+    const again = within(await screen.findByRole('form', { name: 'Reply' }));
+    expect(await replyWords(again)).toBe('Tuesday works for me.');
   });
 });

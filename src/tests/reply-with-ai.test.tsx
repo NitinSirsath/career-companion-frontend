@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ApiError, api } from '../api/client';
@@ -9,6 +9,7 @@ import type { ConversationDetail } from '../contracts/conversation';
 import type { z } from 'zod';
 import type { MailThreadSchema } from '../contracts/mailbox';
 import { makeConversation, makeConversationMail, makeMailMessage } from './fixtures';
+import { replyBox, replyEditor, replyWords, writeReply } from './reply-editor';
 
 vi.mock('../api/client', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../api/client')>()),
@@ -21,7 +22,14 @@ vi.mock('../api/client', async (importOriginal) => ({
   },
 }));
 
+// Toasts show outside the page under test: the Undo of one is called from here.
+vi.mock('../components/ui/toast', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../components/ui/toast')>()),
+  showToast: vi.fn(),
+}));
+
 import { routeTree } from '../routeTree.gen';
+import { showToast } from '../components/ui/toast';
 
 const PRIYA = 'Priya Nair <priya.nair@northwind.example>';
 const REPLY_PATH = '/api/mailbox/threads/thread-1/replies';
@@ -88,9 +96,43 @@ describe('reply choices and "Write with AI" (owner, 24 Oct 2026)', () => {
   };
   const draftAnswer = {
     text: 'Hi Priya,\n\nI am free:\n\n- Tuesday after 3 PM\n\nBest,\nNitin',
-    doc: { type: 'doc', content: [] },
+    doc: {
+      type: 'doc',
+      content: [
+        { type: 'paragraph', content: [{ type: 'text', text: 'Hi Priya,' }] },
+        { type: 'paragraph', content: [{ type: 'text', text: 'I am free:' }] },
+        {
+          type: 'bulletList',
+          content: [
+            {
+              type: 'listItem',
+              content: [
+                {
+                  type: 'paragraph',
+                  content: [
+                    { type: 'text', text: 'Tuesday', marks: [{ type: 'bold' }] },
+                    { type: 'text', text: ' after 3 PM' },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          type: 'paragraph',
+          content: [
+            { type: 'text', text: 'Best,' },
+            { type: 'hardBreak' },
+            { type: 'text', text: 'Nitin' },
+          ],
+        },
+      ],
+    },
     model: 'GPT-6 Luna',
   };
+  /** The draft as the editor shows it: with its formatting (owner, 25 Oct 2026). */
+  const DRAFT_HTML =
+    '<p>Hi Priya,</p><p>I am free:</p><ul><li><p><strong>Tuesday</strong> after 3 PM</p></li></ul><p>Best,<br>Nitin</p>';
   const answerDrafts = (answer: () => Promise<unknown>) =>
     post.mockImplementation(async (path: string) =>
       path === DRAFT_PATH ? answer() : { seen: true },
@@ -103,7 +145,7 @@ describe('reply choices and "Write with AI" (owner, 24 Oct 2026)', () => {
     const form = await box();
     const help = within(form.getByRole('group', { name: 'Reply with AI' }));
     fireEvent.click(help.getByRole('button', { name: 'Send my free times' }));
-    await waitFor(() => expect(form.getByLabelText('Your reply')).toHaveValue(draftAnswer.text));
+    await waitFor(async () => expect((await replyBox(form)).innerHTML).toBe(DRAFT_HTML));
     expect(post).toHaveBeenCalledWith(
       DRAFT_PATH,
       { choice: 'Send my free times' },
@@ -111,7 +153,7 @@ describe('reply choices and "Write with AI" (owner, 24 Oct 2026)', () => {
       100_000,
     );
     expect(
-      form.getByText(
+      screen.getByText(
         'Written by GPT-6 Luna from the whole conversation. Check it before you send.',
       ),
     ).toBeInTheDocument();
@@ -141,7 +183,25 @@ describe('reply choices and "Write with AI" (owner, 24 Oct 2026)', () => {
       100_000,
     );
     finish(draftAnswer);
-    await waitFor(() => expect(form.getByLabelText('Your reply')).toHaveValue(draftAnswer.text));
+    await waitFor(async () => expect((await replyBox(form)).innerHTML).toBe(DRAFT_HTML));
+  });
+
+  it('can undo a draft that replaced what the user wrote', async () => {
+    detail = { ...detail, replyChoices: ['Send my free times'] };
+    answerDrafts(async () => draftAnswer);
+    show('/mails/thread-1');
+    const form = await box();
+    await writeReply(form, 'My own words.');
+    fireEvent.click(form.getByRole('button', { name: 'Send my free times' }));
+    await waitFor(async () => expect((await replyBox(form)).innerHTML).toBe(DRAFT_HTML));
+    await waitFor(() =>
+      expect(showToast).toHaveBeenCalledWith('Draft written', { undo: expect.any(Function) }),
+    );
+    const [, options] = vi
+      .mocked(showToast)
+      .mock.calls.find(([title]) => title === 'Draft written')!;
+    act(() => options!.undo!());
+    await waitFor(async () => expect(await replyWords(form)).toBe('My own words.'));
   });
 
   it('drops a draft that comes after Stop, so the user can type instead', async () => {
@@ -153,7 +213,7 @@ describe('reply choices and "Write with AI" (owner, 24 Oct 2026)', () => {
     fireEvent.click(await form.findByRole('button', { name: 'Stop' }));
     finish(draftAnswer);
     await waitFor(() => expect(form.getByRole('button', { name: 'Write with AI' })).toBeEnabled());
-    expect(form.getByLabelText('Your reply')).toHaveValue('');
+    expect((await replyEditor(form)).isEmpty).toBe(true);
   });
 
   it('says why the AI could not write, and never sends anything', async () => {
