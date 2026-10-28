@@ -164,14 +164,6 @@ describe('home and navigation', () => {
     expect(listSearch('/mails')).toEqual({ request: 'open', unseen: true });
   });
 
-  it('shows only "Coming soon" on the Dashboard, with the way to Mails', async () => {
-    show('/dashboard');
-    expect(await screen.findByText('Coming soon')).toBeInTheDocument();
-    expect(get).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole('button', { name: 'Open Mails' }));
-    expect(await screen.findByRole('heading', { name: 'Mails' })).toBeInTheDocument();
-  });
-
   it('shows only "Coming soon" on the Agenda, and none of the earlier Agenda page', async () => {
     show('/agenda');
     expect(await screen.findByRole('heading', { name: 'Agenda' })).toBeInTheDocument();

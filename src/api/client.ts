@@ -11,6 +11,7 @@ import {
   WorkspaceReviewResponseSchema,
   type WorkspaceBucket,
 } from '../contracts/workspace';
+import { DashboardResponseSchema, type DashboardPeriod } from '../contracts/dashboard';
 import { GmailStatusResponseSchema } from '../contracts/gmail';
 import type { ApplicationFilters } from '../contracts/application';
 import { CorrectEmailMatchResponseSchema, type CorrectEmailMatchRequest } from '../contracts/email';
@@ -689,6 +690,18 @@ export class ApiClient {
       `/api/workspace/actions?${query}`,
       { method: 'GET', signal: options?.signal },
       WorkspaceActionsResponseSchema,
+    );
+  }
+
+  /** The user's job search in numbers, for one period, with weeks in the given time zone. */
+  async getDashboard(
+    params: { period: DashboardPeriod; timeZone: string },
+    options?: RequestOptions,
+  ) {
+    return this.request(
+      `/api/dashboard?${new URLSearchParams(params)}`,
+      { method: 'GET', cache: 'no-store', signal: options?.signal },
+      DashboardResponseSchema,
     );
   }
 
