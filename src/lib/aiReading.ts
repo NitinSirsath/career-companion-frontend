@@ -176,7 +176,8 @@ export function stepView(step: AIReadingStep): StepView {
     action: actions[step.step],
     working,
     job: step.step === 'JOB',
-    subject: step.subject || '(no subject)',
+    // A mail that is not about a job keeps no subject.
+    subject: step.subject || (step.step === 'NOT_JOB' ? '(subject not kept)' : '(no subject)'),
   };
 }
 
