@@ -184,7 +184,6 @@ function ApplicationsDashboard({
         </TopBarActions>
       )}
       <PageHeader
-        className="mb-0"
         phoneCompact
         title="Applications"
         description="Every job you applied for, where it stands, and what is next."
