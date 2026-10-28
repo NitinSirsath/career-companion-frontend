@@ -17,7 +17,7 @@ export function ComingSoon({
   const navigate = useNavigate();
   return (
     <div className="space-y-6">
-      <PageHeader className="mb-0" title={title} />
+      <PageHeader title={title} />
       <section className="flex min-h-96 flex-col items-center justify-center gap-3 border border-border-default bg-surface-subtle px-6 py-12 text-center">
         <Tag color="gray">Coming soon</Tag>
         <h2 className="text-xl font-semibold">{heading}</h2>

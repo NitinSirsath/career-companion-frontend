@@ -231,6 +231,36 @@ describe('Gmail Route', () => {
     expect(screen.queryByText(/Synced 42/)).not.toBeInTheDocument();
   });
 
+  it('stays busy after a sync is accepted, while the fresh status is still on its way', async () => {
+    vi.mocked(api.getGmailStatus).mockResolvedValue({
+      connected: true,
+      gmailEmail: 'user@gmail.com',
+      status: 'CONNECTED',
+      syncStatus: 'IDLE',
+      lastSyncedAt: null,
+    });
+    vi.mocked(api.getMessages).mockResolvedValue({
+      items: [],
+      metadata: { limit: 20, offset: 0, nextOffset: null },
+    });
+    vi.mocked(api.triggerSync).mockResolvedValue({ accepted: true });
+
+    renderWithProviders();
+
+    const syncButton = await screen.findByRole('button', { name: 'Sync now' });
+    // The status fetched after the start never answers in this test: one slow round trip.
+    vi.mocked(api.getGmailStatus).mockReturnValue(new Promise(() => {}));
+    const fetchesBefore = vi.mocked(api.getGmailStatus).mock.calls.length;
+    fireEvent.click(syncButton);
+
+    await waitFor(() => expect(api.triggerSync).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
+      expect(vi.mocked(api.getGmailStatus).mock.calls.length).toBeGreaterThan(fetchesBefore),
+    );
+    expect(screen.getByRole('button', { name: /Syncing/ })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Sync now' })).not.toBeInTheDocument();
+  });
+
   it('re-enables sync button after triggerSync fails (e.g. timeout or 409) via onSettled invalidation', async () => {
     // 1. Initial state: connected, IDLE
     vi.mocked(api.getGmailStatus).mockResolvedValue({

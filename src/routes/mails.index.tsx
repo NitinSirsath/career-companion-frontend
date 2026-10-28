@@ -37,7 +37,6 @@ function MailsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        className="mb-0"
         phoneCompact
         title="Mails"
         description="Every job mail, what it needs from you, and the application it belongs to."

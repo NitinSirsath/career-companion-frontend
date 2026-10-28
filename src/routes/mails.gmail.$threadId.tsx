@@ -24,7 +24,7 @@ function GmailMailPage() {
         threadId={threadId}
         onReply={() => setReplyAsks((asks) => asks + 1)}
         breadcrumb={
-          <Breadcrumb>
+          <Breadcrumb current={data ? data.subject || '(No subject)' : undefined}>
             <Link to="/mails">Mails</Link>
             <Link to="/mails" search={{ tab: 'gmail' }}>
               Gmail

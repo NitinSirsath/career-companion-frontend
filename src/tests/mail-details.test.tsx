@@ -419,6 +419,48 @@ describe('job mail details', () => {
   });
 });
 
+describe('the breadcrumb of a job mail', () => {
+  it('names the subject when the mail has no application yet', async () => {
+    detail.conversation = makeConversation({
+      company: null,
+      application: null,
+      subject: 'Andy just messaged you',
+    });
+    thread = { ...thread, subject: 'Andy just messaged you' } as typeof thread;
+    show('/mails/11111111-1111-4111-8111-111111111111');
+
+    expect(
+      await screen.findByRole('heading', { name: 'Andy just messaged you' }),
+    ).toBeInTheDocument();
+    const breadcrumb = within(screen.getByRole('navigation', { name: 'Breadcrumb' }));
+    expect(breadcrumb.getByRole('link', { name: 'Mails' })).toBeInTheDocument();
+    expect(breadcrumb.getByText('Andy just messaged you').closest('li')).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+  });
+});
+
+describe('the breadcrumb of a linked mail', () => {
+  it("names the application's company when the mail itself named none", async () => {
+    detail.conversation = makeConversation({
+      company: null,
+      link: 'LINKED',
+      application: {
+        id: '22222222-2222-4222-8222-222222222222',
+        companyName: 'Infosys Limited',
+        jobTitle: null,
+        effectiveStatus: null,
+        archived: false,
+      },
+    });
+    show('/mails/11111111-1111-4111-8111-111111111111');
+
+    const company = await screen.findByText('Infosys Limited', { selector: 'nav li > span' });
+    expect(company.closest('li')).toHaveAttribute('aria-current', 'page');
+  });
+});
+
 describe('a mail that is not a job mail', () => {
   it('shows the conversation only', async () => {
     thread = {
@@ -437,6 +479,10 @@ describe('a mail that is not a job mail', () => {
     expect(within(breadcrumb).getByRole('link', { name: 'Gmail' })).toHaveAttribute(
       'href',
       '/mails?tab=gmail',
+    );
+    expect(within(breadcrumb).getByText('Sunday lunch?').closest('li')).toHaveAttribute(
+      'aria-current',
+      'page',
     );
     expect(screen.queryByRole('button', { name: 'Create application' })).not.toBeInTheDocument();
     expect(get).not.toHaveBeenCalledWith(
