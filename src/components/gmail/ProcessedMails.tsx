@@ -1,6 +1,8 @@
 import { useState, useSyncExternalStore } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link } from '@tanstack/react-router';
 import { api, isApiError } from '../../api/client';
+import { useBlockedSenders } from '../../api/removal';
 import type { AIRetryApprovalDetails } from '../../contracts/email';
 import { onlyCareerCompanionText } from '../../lib/mailAIStatus';
 import {
@@ -159,6 +161,20 @@ function RetryProblems({
   );
 }
 
+/** How many companies are blocked, with the way to the Restricted list. Nothing when none is. */
+function BlockedLine() {
+  const count = useBlockedSenders().data?.items.length ?? 0;
+  if (!count) return null;
+  return (
+    <p className="text-sm text-text-secondary">
+      {count === 1 ? '1 company blocked' : `${count} companies blocked`} ·{' '}
+      <Link to="/mails" search={{ tab: 'restricted' }} className="text-link">
+        See Restricted
+      </Link>
+    </p>
+  );
+}
+
 function ReadMailsEmpty({ failed }: { failed: boolean }) {
   if (failed)
     return <SectionError className="my-4" title="Could not load the mails the app has read" />;
@@ -205,6 +221,7 @@ export function ProcessedMails({
         <p className="text-sm text-text-secondary">
           Check here when a job mail seems missing from Mails. Other mails are not listed or kept.
         </p>
+        <BlockedLine />
       </div>
       <RetryProblems retries={retries} onlyUs={onlyUs} />
       <DataTable
