@@ -33,7 +33,7 @@ export function Toolbar({
       )}
       {filters && (
         <Dialog.Root open={open} onOpenChange={setOpen}>
-          <Dialog.Trigger className="flex h-10 shrink-0 cursor-pointer items-center gap-2 border border-border-default bg-field px-3 text-sm transition-colors duration-70 ease-standard hover:bg-layer-hover md:hidden">
+          <Dialog.Trigger className="flex h-10 shrink-0 cursor-pointer items-center gap-2 border border-border-default bg-field px-3 text-[14px] leading-5 transition-colors duration-70 ease-standard hover:bg-layer-hover md:hidden">
             <Filter size={16} aria-hidden="true" />
             Filters
             {filterCount > 0 && (
@@ -99,7 +99,7 @@ export function ToolbarSearch({
         value={value}
         placeholder={placeholder}
         onChange={(event) => onChange(event.target.value)}
-        className="h-full min-w-0 flex-1 bg-transparent text-sm text-text-primary outline-none placeholder:text-text-tertiary"
+        className="h-full min-w-0 flex-1 bg-transparent text-[14px] text-text-primary outline-none placeholder:text-text-tertiary"
       />
     </div>
   );
