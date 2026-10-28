@@ -738,15 +738,11 @@ export class ApiClient {
     });
   }
 
-  async getMessages(params?: {
-    limit?: number;
-    offset?: number;
-    relevance?: string;
-  }): Promise<MessagesListResponse> {
+  /** The job mails and unread mails a sync read. Other mails are never listed. */
+  async getMessages(params?: { limit?: number; offset?: number }): Promise<MessagesListResponse> {
     const urlParams = new URLSearchParams();
     if (params?.limit !== undefined) urlParams.append('limit', params.limit.toString());
     if (params?.offset !== undefined) urlParams.append('offset', params.offset.toString());
-    if (params?.relevance !== undefined) urlParams.append('relevance', params.relevance);
 
     const queryString = urlParams.toString();
     const endpoint = `/api/gmail/messages${queryString ? `?${queryString}` : ''}`;
