@@ -30,27 +30,3 @@ export function deadlineOverdue(action: Deadline, now: Date): boolean {
   const todayKey = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
   return dateKey < todayKey;
 }
-/** The date and time an instant shows on the clock in `timeZone`, in the form the date and time
- * inputs take, so an edit form shows the user's own local time. */
-export function localDateTime(
-  instant: string | Date,
-  timeZone: string,
-): { date: string; time: string } {
-  const parts = Object.fromEntries(
-    new Intl.DateTimeFormat('en-CA', {
-      timeZone,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      hourCycle: 'h23',
-    })
-      .formatToParts(new Date(instant))
-      .map((part) => [part.type, part.value]),
-  );
-  return {
-    date: `${parts.year}-${parts.month}-${parts.day}`,
-    time: `${parts.hour}:${parts.minute}`,
-  };
-}
