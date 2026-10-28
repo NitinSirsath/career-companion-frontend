@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from './client';
+import { gmailStatusKey, markSyncing } from './gmail';
 import {
   ListSandboxThreadsResponseSchema,
   ResetSandboxResponseSchema,
@@ -110,8 +111,9 @@ export function useSyncSandbox() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => api.triggerSync(),
+    onSuccess: () => markSyncing(queryClient),
     onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: ['gmailStatus'] });
+      void queryClient.invalidateQueries({ queryKey: gmailStatusKey });
       void queryClient.invalidateQueries({ queryKey: sandboxKeys.all });
       startProcessingRefresh();
     },
