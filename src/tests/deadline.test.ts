@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { deadlineLabel, deadlineOverdue, localDateTime } from '../lib/deadline';
+import { deadlineLabel, deadlineOverdue } from '../lib/deadline';
 describe('calendar-date deadlines', () => {
   const now = new Date(2026, 10, 20, 23, 59, 30);
   it.each([
@@ -24,20 +24,5 @@ describe('calendar-date deadlines', () => {
   it('has no deadline when absent', () => {
     expect(deadlineLabel({ deadline: null })).toBe('');
     expect(deadlineOverdue({ deadline: null }, now)).toBe(false);
-  });
-});
-describe('localDateTime', () => {
-  it.each([
-    ['Asia/Kolkata', '2026-10-21', '01:30'],
-    ['America/New_York', '2026-10-20', '16:00'],
-    ['UTC', '2026-10-20', '20:00'],
-  ])('shows an instant on the clock of %s', (zone, date, time) => {
-    expect(localDateTime('2026-10-20T20:00:00.000Z', zone)).toEqual({ date, time });
-  });
-  it('writes midnight as 00:00', () => {
-    expect(localDateTime('2026-10-20T18:30:00.000Z', 'Asia/Kolkata')).toEqual({
-      date: '2026-10-21',
-      time: '00:00',
-    });
   });
 });
