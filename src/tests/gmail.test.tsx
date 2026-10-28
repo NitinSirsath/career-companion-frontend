@@ -399,7 +399,6 @@ describe('Gmail Route', () => {
       ],
       metadata: { limit: 20, offset: 0, nextOffset: null },
     });
-    });
 
     renderWithProviders();
 
