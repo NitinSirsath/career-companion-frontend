@@ -71,5 +71,5 @@ export function ShareBar({
 
 /** The header row of a Dashboard table, as `DataTable` draws it. */
 export const TH_CLASS =
-  'border-b border-border-default px-4 py-3 text-left font-mono text-[12px] leading-4 font-normal tracking-[0.08em] whitespace-nowrap uppercase md:px-6';
+  'border-b border-border-default px-4 py-3 text-left text-[13px] leading-4 font-medium whitespace-nowrap text-text-secondary md:px-6';
 export const TD_CLASS = 'border-b border-border-subtle px-4 py-3 md:px-6';
