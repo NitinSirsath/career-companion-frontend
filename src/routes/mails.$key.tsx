@@ -31,8 +31,13 @@ function JobMailPage() {
   // Counts the header's Reply clicks; each one opens the reply box under the conversation.
   const [replyAsks, setReplyAsks] = useState(0);
 
+  // The company (read from the mail, or its application's), else the subject: the page always has a name.
+  const company = conversation?.company ?? conversation?.application?.companyName ?? undefined;
   const breadcrumb = (
-    <Breadcrumb current={conversation?.company ?? undefined} currentIcon={Building}>
+    <Breadcrumb
+      current={company ?? (conversation && (conversation.subject || '(No subject)'))}
+      currentIcon={company ? Building : undefined}
+    >
       <Link to="/mails" search={listSearch<MailsSearch>('/mails')}>
         Mails
       </Link>
