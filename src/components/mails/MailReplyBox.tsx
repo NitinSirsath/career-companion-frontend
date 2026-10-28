@@ -3,12 +3,16 @@ import { Link, useLocation } from '@tanstack/react-router';
 import { Close, Reply } from '@carbon/icons-react';
 import { useSandboxMailbox } from '../../api/appMode';
 import { useCanSendMail } from '../../api/mailbox';
+import type { DraftDoc } from '../../contracts/conversation';
+import { useKeptReply } from '../../lib/keptReply';
 import { allowSendingUrl, replyHint } from '../../lib/mailReply';
 import { parseSender } from '../../lib/mails';
+import { docWords } from '../../lib/replyDoc';
 import { useIsPhone } from '../layout/useIsPhone';
 import { Button } from '../ui/button';
 import { GmailLink } from '../ui/GmailLink';
 import { MailReplyForm } from './MailReplyForm';
+import { PhoneReplySlots } from './phoneReplySlots';
 import type { ReplyAi } from './ReplyAiHelp';
 
 /** A reply box that cannot send yet: says why, and offers the way out. */
@@ -72,18 +76,45 @@ function useReplyOpen(replyAsks: number): [boolean, (open: boolean) => void] {
 }
 
 /**
- * On phones the open reply covers the screen, like a mail app's reply. Closing it only hides it:
- * the text stays until the user sends it or leaves the page, and Reply shows it again.
+ * The part of the screen the phone's keyboard leaves free, so the format row sits just above the
+ * keyboard. Null where the browser does not tell (the whole screen is used).
  */
+function useVisibleScreen(): { top: number; height: number } | null {
+  const [area, setArea] = useState<{ top: number; height: number } | null>(null);
+  useEffect(() => {
+    const view = window.visualViewport;
+    if (!view) return;
+    const update = () => setArea({ top: view.offsetTop, height: view.height });
+    update();
+    view.addEventListener('resize', update);
+    view.addEventListener('scroll', update);
+    return () => {
+      view.removeEventListener('resize', update);
+      view.removeEventListener('scroll', update);
+    };
+  }, []);
+  return area;
+}
+
+/**
+ * On phones the open reply covers the screen, like a mail app's reply, with Send in its top bar.
+ * Closing it only hides it: the text stays (also on this device), and Reply shows it again.
 function PhoneReplyScreen({ replyAsks, children }: { replyAsks: number; children: ReactNode }) {
   const [shown, setShown] = useState(true);
   const [askedFor, setAskedFor] = useState(replyAsks);
+  const [send, setSend] = useState<HTMLElement | null>(null);
+  const [format, setFormat] = useState<HTMLElement | null>(null);
+  const area = useVisibleScreen();
   if (askedFor !== replyAsks) {
     setAskedFor(replyAsks);
     setShown(true);
   }
   return (
-    <div hidden={!shown} className="fixed inset-0 z-50 flex animate-open flex-col bg-background">
+    <div
+      hidden={!shown}
+      style={area ? { top: area.top, height: area.height, bottom: 'auto' } : undefined}
+      className="fixed inset-0 z-50 flex animate-open flex-col bg-background"
+    >
       <div className="flex h-14 shrink-0 items-stretch border-b border-border-subtle">
         <button
           type="button"
@@ -93,11 +124,16 @@ function PhoneReplyScreen({ replyAsks, children }: { replyAsks: number; children
         >
           <Close size={20} aria-hidden="true" />
         </button>
-        <p className="flex items-center px-4 text-base font-semibold">Reply</p>
+        <p className="flex flex-1 items-center px-4 text-base font-semibold">Reply</p>
+        <div ref={setSend} className="flex items-center px-3" />
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto p-4 [&>form]:border-0 [&>form]:p-0">
-        {children}
+      <div className="min-h-0 flex-1 overflow-y-auto p-4 [&>form]:border-0">
+        <PhoneReplySlots.Provider value={{ send, format }}>{children}</PhoneReplySlots.Provider>
       </div>
+      <div
+        ref={setFormat}
+        className="shrink-0 border-t border-border-subtle bg-background empty:hidden"
+      />
     </div>
   );
 }
@@ -124,12 +160,13 @@ export function MailReplyBox({
   /** The other people on the answered mail. */
   replyCc: string[];
   onCheck: () => void;
-  onSending?: (text: string | null) => void;
+  onSending?: (doc: DraftDoc | null) => void;
   /** Goes up each time the page's Reply button is clicked: the box opens. */
   replyAsks?: number;
   /** AI help in the box, for a job mail. */
   ai?: ReplyAi;
 }) {
+  const kept = useKeptReply(threadId);
   const sandbox = useSandboxMailbox();
   const canSend = useCanSendMail();
   const mailPath = useLocation({ select: (location) => location.pathname });
@@ -163,17 +200,7 @@ export function MailReplyBox({
   // On phones the floating Reply button opens it: no closed bar under the conversation.
   else if (!open && phone) box = null;
   else if (!open)
-    box = (
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="flex h-12 w-full cursor-text items-center gap-3 border border-border-default bg-field px-4 text-left text-sm text-text-secondary transition-colors duration-70 ease-standard hover:bg-layer-hover"
-      >
-        <Reply size={16} aria-hidden="true" />
-        <span className="flex-1">Reply to {parseSender(replyTo).name}…</span>
-        <kbd className="border border-border-default px-1.5 font-mono text-xs">R</kbd>
-      </button>
-    );
+    box = <ClosedReplyBar replyTo={replyTo} kept={kept} onOpen={() => setOpen(true)} />;
   else {
     box = (
       <MailReplyForm
