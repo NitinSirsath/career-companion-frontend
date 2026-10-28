@@ -110,18 +110,18 @@ describe('phone top bar and menu', () => {
     const [, phoneBar] = screen.getAllByRole('navigation', { name: 'Main' });
     const bar = within(phoneBar);
     expect(bar.getAllByRole('link').map((link) => link.textContent)).toEqual([
+      'Dashboard',
       'Mails',
       'Applications',
-      'Dashboard',
     ]);
 
     fireEvent.click(screen.getByRole('button', { name: 'Open menu' }));
     const menu = within(await screen.findByRole('dialog', { name: 'Menu' }));
     const links = menu.getByRole('navigation', { name: 'Menu' }).querySelectorAll('a');
     expect(Array.from(links, (link) => link.textContent)).toEqual([
+      'Dashboard',
       'Mails',
       'Applications',
-      'Dashboard',
       'Gmail sync',
       'AI providers',
       'Automation',
