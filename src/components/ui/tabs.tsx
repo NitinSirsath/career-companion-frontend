@@ -65,7 +65,7 @@ export function Tabs<V extends string>({
             key={item.value}
             value={item.value}
             className={cn(
-              'flex h-9 shrink-0 cursor-pointer items-center border-l border-border-subtle px-3.5 text-sm whitespace-nowrap text-text-secondary transition-colors duration-70 ease-standard outline-none first:border-l-0 not-data-active:hover:bg-layer-hover not-data-active:hover:text-text-primary focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-border-focus data-active:bg-tint data-active:text-tint-text',
+              'flex h-9 shrink-0 cursor-pointer items-center border-l border-border-subtle px-3.5 text-[14px] leading-5 font-medium whitespace-nowrap text-text-secondary transition-colors duration-70 ease-standard outline-none first:border-l-0 not-data-active:hover:bg-layer-hover not-data-active:hover:text-text-primary focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-border-focus data-active:bg-tint data-active:text-tint-text',
               PHONE_TAB[phoneLook],
             )}
           >
