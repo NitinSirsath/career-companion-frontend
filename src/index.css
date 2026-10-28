@@ -455,6 +455,48 @@
   }
 }
 
+/* A rich text reply, in the editor and on its way (owner, 25 Oct 2026): as it will look in the mail. */
+@layer components {
+  .reply-text {
+    line-height: 22px;
+    overflow-wrap: anywhere;
+  }
+  .reply-text p,
+  .reply-text ul,
+  .reply-text ol {
+    margin: 0 0 10px;
+  }
+  .reply-text > :last-child,
+  .reply-text li > p {
+    margin-bottom: 0;
+  }
+  .reply-text ul,
+  .reply-text ol {
+    padding-left: 24px;
+  }
+  .reply-text ul {
+    list-style: disc;
+  }
+  .reply-text ol {
+    list-style: decimal;
+  }
+  .reply-text li {
+    margin-bottom: 2px;
+  }
+  .reply-text a {
+    color: var(--link);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .reply-text .is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    color: var(--text-tertiary);
+    pointer-events: none;
+  }
+}
+
 /* "Reduce motion" on the computer: nothing moves. */
 @media (prefers-reduced-motion: reduce) {
   *,
