@@ -151,7 +151,7 @@ afterEach(() => vi.useRealTimers());
 describe('AI access notice', () => {
   it('tells a user without AI how many emails wait and where to set it up', async () => {
     vi.mocked(api.getAISettings).mockResolvedValue(notSetUp);
-    show('/');
+    show('/mails');
     const notice = await screen.findByRole('status', { name: 'AI status' });
     expect(notice).toHaveTextContent('AI is not set up');
     expect(notice).toHaveTextContent('4 emails are waiting');
@@ -159,7 +159,7 @@ describe('AI access notice', () => {
   });
 
   it('is hidden while AI is ready', async () => {
-    show('/');
+    show('/mails');
     await waitFor(() => expect(api.getAISettings).toHaveBeenCalled());
     expect(screen.queryByRole('status', { name: 'AI status' })).not.toBeInTheDocument();
   });

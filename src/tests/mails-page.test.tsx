@@ -96,10 +96,10 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe('home and navigation', () => {
-  it('lands on Mails, and lists Mails first with Agenda after Applications', async () => {
+  it('lands on the Dashboard, and lists it first in the menu', async () => {
     show('/');
-    expect(await screen.findByRole('heading', { name: 'Mails' })).toBeInTheDocument();
-    expect(router.state.location.pathname).toBe('/mails');
+    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/dashboard');
     // The desktop sidebar and the phone bar: both are in the page, one is shown. Agenda is not in
     // the menu until it works; settings sit in their own group after the daily pages. On phones
     // the bar holds the three daily pages only: the rest are in the top bar's menu.
@@ -108,13 +108,13 @@ describe('home and navigation', () => {
       within(sidebar)
         .getAllByRole('link')
         .map((link) => link.textContent),
-    ).toEqual(['Mails', 'Applications', 'Dashboard', 'Gmail sync', 'AI providers', 'Automation']);
+    ).toEqual(['Dashboard', 'Mails', 'Applications', 'Gmail sync', 'AI providers', 'Automation']);
     expect(within(sidebar).getByText('Settings')).toBeInTheDocument();
     expect(
       within(phoneBar)
         .getAllByRole('link')
         .map((link) => link.textContent),
-    ).toEqual(['Mails', 'Applications', 'Dashboard']);
+    ).toEqual(['Dashboard', 'Mails', 'Applications']);
     expect(within(phoneBar).queryByRole('button')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Open menu' })).toBeInTheDocument();
   });
@@ -123,7 +123,7 @@ describe('home and navigation', () => {
     show('/mails');
     expect(await screen.findByRole('heading', { name: 'Mails' })).toBeInTheDocument();
     const logo = screen.getByRole('link', { name: 'NorthList' });
-    expect(logo).toHaveAttribute('href', '/mails');
+    expect(logo).toHaveAttribute('href', '/dashboard');
     const bar = within(logo.closest('header')!);
     expect(
       within(bar.getByRole('navigation', { name: 'Breadcrumb' }))

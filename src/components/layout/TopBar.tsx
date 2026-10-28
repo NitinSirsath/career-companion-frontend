@@ -25,7 +25,7 @@ export function TopBar({ user, collapsed }: { user: User | null; collapsed: bool
     <header className="sticky top-0 z-40 flex h-14 shrink-0 items-stretch border-b border-border-subtle bg-background">
       <PhoneMenu />
       <Link
-        to="/mails"
+        to="/dashboard"
         aria-label="NorthList"
         className={cn(
           'hidden min-w-0 items-center overflow-hidden border-r border-border-subtle transition-[width] duration-240 ease-standard md:flex md:shrink-0',

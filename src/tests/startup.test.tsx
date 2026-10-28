@@ -217,8 +217,8 @@ describe('signing in returns to the page asked for', () => {
     cleanup();
 
     router = showApp('/login?next=%2F%2Fevil.example', ME);
-    expect(await screen.findByRole('heading', { name: 'Mails' })).toBeInTheDocument();
-    expect(router.state.location.pathname).toBe('/mails');
+    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/dashboard');
   });
 
   it('opens next after a password sign-in, and passes it on to Google', async () => {

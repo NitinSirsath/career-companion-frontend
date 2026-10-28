@@ -35,9 +35,9 @@ export const NAV_LINK_CLASS =
 
 /** The pages used every day, in menu order. */
 export const MAIN_NAV: readonly NavItem[] = [
+  { to: '/dashboard', label: 'Dashboard', icon: Dashboard },
   { to: '/mails', label: 'Mails', icon: Email },
   { to: '/applications', label: 'Applications', icon: Document },
-  { to: '/dashboard', label: 'Dashboard', icon: Dashboard },
 ];
 
 /** Set up once, visited rarely. */
