@@ -95,7 +95,7 @@ const { request, category, sort } = ConversationFiltersSchema.shape;
  * not know is dropped instead of breaking the page.
  */
 export const mailsSearchSchema = z.object({
-  tab: z.literal('gmail').optional().catch(undefined),
+  tab: z.enum(['gmail', 'restricted']).optional().catch(undefined),
   q: z.string().max(100).optional().catch(undefined),
   request: request.catch(undefined),
   category: category.catch(undefined),

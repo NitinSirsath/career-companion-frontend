@@ -22,7 +22,6 @@ function renderWithProviders(queryClient: QueryClient) {
 vi.mock('../api/client', () => ({
   api: {
     listApplications: vi.fn(),
-    createApplication: vi.fn(),
     getAmbiguousEmails: vi.fn(),
     resolveAmbiguousEmail: vi.fn(),
   },

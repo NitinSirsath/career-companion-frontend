@@ -10,6 +10,7 @@ import { MAIL_SEARCH_ID } from '../components/mails/ConversationFilters';
 import { GmailInbox } from '../components/mails/GmailInbox';
 import { JobMails } from '../components/mails/JobMails';
 import { MailsTabs } from '../components/mails/MailsTabs';
+import { RestrictedList } from '../components/mails/RestrictedList';
 import { SyncLine } from '../components/mails/SyncLine';
 import { rememberListSearch } from '../lib/listMemory';
 import { mailsSearchSchema, type MailsSearch } from '../lib/mails';
@@ -42,15 +43,17 @@ function MailsPage() {
         description="Every job mail, what it needs from you, and the application it belongs to."
         actions={phone ? undefined : <SyncLine />}
       />
-      {phone && search.tab !== 'gmail' && (
+      {phone && !search.tab && (
         <TopBarActions>
           <TopBarSearch targetId={MAIL_SEARCH_ID} label="Search mails" />
         </TopBarActions>
       )}
       <AIAccessNotice />
-      <MailsTabs tab={search.tab === 'gmail' ? 'gmail' : 'job'} />
+      <MailsTabs tab={search.tab ?? 'job'} />
       {phone && <SyncLine compact />}
-      {search.tab === 'gmail' ? <GmailInbox /> : <JobMails search={search} onChange={change} />}
+      {search.tab === 'gmail' && <GmailInbox />}
+      {search.tab === 'restricted' && <RestrictedList />}
+      {!search.tab && <JobMails search={search} onChange={change} />}
     </div>
   );
 }

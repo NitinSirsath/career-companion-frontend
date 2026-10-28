@@ -153,7 +153,6 @@ interface ApplicationsTableProps {
   loading?: boolean;
   empty?: ReactNode;
   toolbar?: ReactNode;
-  endRow?: ReactNode;
   footer?: ReactNode;
 }
 

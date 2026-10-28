@@ -3,6 +3,7 @@ import { Link } from '@tanstack/react-router';
 import { Launch, Reply } from '@carbon/icons-react';
 import { useSandboxMailbox } from '../../api/appMode';
 import { cn } from '../../lib/utils';
+import { TopBarActions } from '../layout/Breadcrumb';
 import { useIsPhone } from '../layout/useIsPhone';
 import { PageHeader } from '../layout/PageHeader';
 import { Button } from '../ui/button';
@@ -17,6 +18,8 @@ interface MailTitleProps {
   children: ReactNode;
   /** Opens the reply box under the conversation. */
   onReply?: () => void;
+  /** The "…" menu beside Reply. */
+  more?: ReactNode;
 }
 
 /** Where the conversation lives: Gmail in prod, the mail sandbox in dev mode. */
@@ -36,10 +39,17 @@ function MailboxLink({ threadId, subject }: { threadId: string; subject: string 
 }
 
 /**
- * The top of a mail's details page: its subject, a row of facts, the way to its mailbox, and the
- * Reply button.
+ * The top of a mail's details page: its subject, a row of facts, the way to its mailbox, the
+ * Reply button and the "…" menu.
  */
-export function MailTitle({ title, threadId, breadcrumb, children, onReply }: MailTitleProps) {
+export function MailTitle({
+  title,
+  threadId,
+  breadcrumb,
+  children,
+  onReply,
+  more,
+}: MailTitleProps) {
   const phone = useIsPhone();
   return (
     <PageHeader
@@ -54,18 +64,28 @@ export function MailTitle({ title, threadId, breadcrumb, children, onReply }: Ma
         </div>
       }
       actions={
-        threadId &&
-        onReply && (
-          // On phones the Reply button floats above the bottom bar, in reach of the thumb.
-          <Button
-            onClick={onReply}
-            size={phone ? 'lg' : 'default'}
-            className={cn(phone && 'fixed right-4 bottom-20 z-30 shadow-popup')}
-          >
-            <Reply size={phone ? 20 : 16} aria-hidden="true" />
-            Reply
-          </Button>
-        )
+        <>
+          {threadId && onReply && (
+            // On phones the Reply button floats above the bottom bar, in reach of the thumb.
+            <Button
+              onClick={onReply}
+              size={phone ? 'lg' : 'default'}
+              className={cn(phone && 'fixed right-4 bottom-20 z-30 shadow-popup')}
+            >
+              <Reply size={phone ? 20 : 16} aria-hidden="true" />
+              Reply
+            </Button>
+          )}
+          {!phone && more}
+          {phone && more && (
+            // On phones the menu sits in the top bar, beside the account button.
+            <TopBarActions>
+              <div className="flex w-12 shrink-0 items-center justify-center border-l border-border-subtle">
+                {more}
+              </div>
+            </TopBarActions>
+          )}
+        </>
       }
     />
   );

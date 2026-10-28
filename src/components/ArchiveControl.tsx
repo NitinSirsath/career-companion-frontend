@@ -85,7 +85,7 @@ export function ArchiveControl({
           <p className="text-sm">
             {restore
               ? 'It comes back to your active list with its open to-dos. Earlier reminders are not sent again.'
-              : 'It leaves your active list, to-dos and agenda. Its status, history and mails stay, and new mail for it is still read. Restore it before you add or change work.'}
+              : 'It leaves your active list, to-dos and agenda. Its status, history and mails stay, and new mail for it is still read. Restore it before you change its work.'}
           </p>
           {error && (
             <InlineNotification kind="error" className="mt-6">

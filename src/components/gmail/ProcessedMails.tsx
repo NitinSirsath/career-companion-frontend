@@ -1,6 +1,8 @@
 import { useState, useSyncExternalStore } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link } from '@tanstack/react-router';
 import { api, isApiError } from '../../api/client';
+import { useBlockedSenders } from '../../api/removal';
 import type { AIRetryApprovalDetails } from '../../contracts/email';
 import { onlyCareerCompanionText } from '../../lib/mailAIStatus';
 import {
@@ -16,10 +18,8 @@ import { EmptyState } from '../ui/empty-state';
 import { InlineNotification } from '../ui/notification';
 import { Pagination } from '../ui/pagination';
 import { SectionError } from '../ui/section-error';
-import { Tabs } from '../ui/tabs';
 import { processedColumns } from './processedColumns';
 
-type Tab = 'job_related' | 'irrelevant';
 const LIMIT = 20;
 
 /**
@@ -98,11 +98,11 @@ function useAiAccess() {
 }
 
 /** The page of read mails, read again while some are being read or wait for a retry. */
-function useReadMails(tab: Tab, offset: number, aiWaiting: boolean, sent: string | null) {
+function useReadMails(offset: number, aiWaiting: boolean, sent: string | null) {
   const refreshUntil = useSyncExternalStore(subscribeProcessingRefresh, getProcessingRefreshUntil);
   return useQuery({
-    queryKey: ['gmailMessages', { offset, limit: LIMIT, activeTab: tab }],
-    queryFn: () => api.getMessages({ offset, limit: LIMIT, relevance: tab }),
+    queryKey: ['gmailMessages', { offset, limit: LIMIT }],
+    queryFn: () => api.getMessages({ offset, limit: LIMIT }),
     refetchInterval: (query) => {
       const items = query.state.data?.items || [];
       if (
@@ -161,17 +161,34 @@ function RetryProblems({
   );
 }
 
-function ReadMailsEmpty({ failed, tab }: { failed: boolean; tab: Tab }) {
+/** How many companies are blocked, with the way to the Restricted list. Nothing when none is. */
+function BlockedLine() {
+  const count = useBlockedSenders().data?.items.length ?? 0;
+  if (!count) return null;
+  return (
+    <p className="text-sm text-text-secondary">
+      {count === 1 ? '1 company blocked' : `${count} companies blocked`} ·{' '}
+      <Link to="/mails" search={{ tab: 'restricted' }} className="text-link">
+        See Restricted
+      </Link>
+    </p>
+  );
+}
+
+function ReadMailsEmpty({ failed }: { failed: boolean }) {
   if (failed)
     return <SectionError className="my-4" title="Could not load the mails the app has read" />;
   return (
-    <EmptyState title={tab === 'job_related' ? 'No job mails read yet' : 'No other mails read yet'}>
-      Mails appear here after a sync reads them.
+    <EmptyState title="No job mails read yet">
+      Job mails appear here after a sync reads them.
     </EmptyState>
   );
 }
 
-/** Every mail a sync read, job mails or not, with what the app and the AI made of it. */
+/**
+ * Every job mail a sync read, with what the app and the AI made of it. Other mails are not
+ * listed: the app keeps only their ids.
+ */
 export function ProcessedMails({
   devMode,
   offset,
@@ -182,12 +199,11 @@ export function ProcessedMails({
   offset: number;
   onOffset: (offset: number) => void;
 }) {
-  const [tab, setTab] = useState<Tab>('job_related');
   const { aiWaiting, pauses } = useAiAccess();
   const retries = useRetries();
   const { retry, approve, sent, setSent } = retries;
 
-  const messages = useReadMails(tab, offset, aiWaiting, sent);
+  const messages = useReadMails(offset, aiWaiting, sent);
   const items = messages.data?.items ?? [];
   // The sent retry is on its row once the list shows the mail in another state.
   if (items.some((m) => m.id === sent && m.processingState !== 'FAILED')) setSent(null);
@@ -198,31 +214,18 @@ export function ProcessedMails({
 
   return (
     <section aria-labelledby="read-mails-heading" className="flex flex-col gap-4 pt-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <h2 id="read-mails-heading" className="text-base leading-[22px] font-semibold">
-            Mails the app has read
-          </h2>
-          <p className="text-sm text-text-secondary">
-            Check here when a job mail seems missing from Mails.
-          </p>
-        </div>
-        <Tabs<Tab>
-          label="Mails the app has read"
-          value={tab}
-          onValueChange={(next) => {
-            setTab(next);
-            setOffset(0);
-          }}
-          items={[
-            { value: 'job_related', label: 'Job mails' },
-            { value: 'irrelevant', label: 'Not job mails' },
-          ]}
-        />
+      <div className="flex flex-col gap-1">
+        <h2 id="read-mails-heading" className="text-base leading-[22px] font-semibold">
+          Job mails the app has read
+        </h2>
+        <p className="text-sm text-text-secondary">
+          Check here when a job mail seems missing from Mails. Other mails are not listed or kept.
+        </p>
+        <BlockedLine />
       </div>
       <RetryProblems retries={retries} onlyUs={onlyUs} />
       <DataTable
-        label="Mails the app has read"
+        label="Job mails the app has read"
         data={messages.error ? [] : items}
         columns={processedColumns({
           devMode,
@@ -237,9 +240,9 @@ export function ProcessedMails({
           ),
         })}
         getRowId={(msg) => msg.id}
-        gridTemplate="minmax(220px,2.2fr) minmax(160px,1.4fr) 128px minmax(170px,1.4fr) minmax(170px,1.4fr) 112px"
+        gridTemplate="minmax(220px,2.2fr) minmax(150px,1.2fr) 112px minmax(170px,1.4fr) minmax(150px,1.2fr) 112px"
         loading={messages.isLoading}
-        empty={<ReadMailsEmpty failed={!!messages.error} tab={tab} />}
+        empty={<ReadMailsEmpty failed={!!messages.error} />}
       />
       {(offset > 0 || nextOffset) && (
         <Pagination

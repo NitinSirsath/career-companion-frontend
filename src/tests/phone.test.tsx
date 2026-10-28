@@ -180,15 +180,14 @@ describe('phone lists', () => {
     expect(router.state.location.pathname).toBe('/mails');
   });
 
-  it('shows an application as a card, and adds one from the top bar', async () => {
+  it('shows an application as a card, with only search in the top bar', async () => {
     show('/applications');
     expect(await screen.findByRole('link', { name: /^Quanta Labs/ })).toHaveAttribute(
       'href',
       expect.stringMatching(/^\/applications\//),
     );
     const topBar = within(screen.getByRole('button', { name: 'Open menu' }).closest('header')!);
-    fireEvent.click(topBar.getByRole('button', { name: 'Add application' }));
-    expect(await screen.findByRole('dialog', { name: 'Add application' })).toBeInTheDocument();
+    expect(topBar.queryByRole('button', { name: 'Add application' })).not.toBeInTheDocument();
   });
 });
 

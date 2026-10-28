@@ -41,8 +41,6 @@ interface DataTableProps<T> {
   loading?: boolean;
   /** Shown instead of rows when there are none: an EmptyState or a SectionError. */
   empty?: React.ReactNode;
-  /** A last row after the data rows, such as "+ Add application". */
-  endRow?: React.ReactNode;
   /** Under the rows: the pager. */
   footer?: React.ReactNode;
   /** Shown above the header: the toolbar. */
@@ -81,7 +79,6 @@ export function DataTable<T>({
   sort,
   loading = false,
   empty,
-  endRow,
   footer,
   toolbar,
   phoneRow,
@@ -190,7 +187,6 @@ export function DataTable<T>({
       {!loading && rows.length === 0 && empty && (
         <div className="border-b border-border-subtle px-4">{empty}</div>
       )}
-      {!loading && endRow}
       {footer}
     </div>
   );

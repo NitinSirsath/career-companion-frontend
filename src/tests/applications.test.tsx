@@ -13,7 +13,6 @@ vi.mock('../api/client', () => ({
   api: {
     listApplications: vi.fn(),
     getApplication: vi.fn(),
-    createApplication: vi.fn(),
     getApplicationEvents: vi.fn(),
     getApplicationActions: vi.fn(),
     getGmailStatus: vi.fn(),
@@ -94,7 +93,7 @@ describe('Applications Dashboard (/applications)', () => {
 
   // ─── UX hierarchy ──────────────────────────────────────────────────────────
 
-  it('does NOT show the create form by default (form is hidden on load)', async () => {
+  it('has no way to add an application by hand', async () => {
     vi.mocked(api.listApplications).mockResolvedValue({
       items: [],
       metadata: { limit: 20, offset: 0, nextOffset: null },
@@ -102,67 +101,9 @@ describe('Applications Dashboard (/applications)', () => {
 
     renderWithProviders(queryClient, '/applications');
 
-    // Form heading should not be visible until toggled
-    // Use findByText first to ensure the page has loaded
-    await screen.findByText(/no applications yet/i);
-    expect(screen.queryByText(/track new application/i)).not.toBeInTheDocument();
-  });
-
-  it('shows the "Add Application" button by default', async () => {
-    vi.mocked(api.listApplications).mockResolvedValue({
-      items: [],
-      metadata: { limit: 20, offset: 0, nextOffset: null },
-    });
-
-    renderWithProviders(queryClient, '/applications');
-
-    await screen.findByRole('button', { name: /add application/i });
-  });
-
-  it('opens the create form from the header button and from the last row of the list', async () => {
-    vi.mocked(api.listApplications).mockResolvedValue({
-      items: [],
-      metadata: { limit: 20, offset: 0, nextOffset: null },
-    });
-
-    renderWithProviders(queryClient, '/applications');
-
-    // The header's button, and the row at the end of the list once it has loaded.
-    const adds = () => screen.getAllByRole('button', { name: /add application/i });
-    await waitFor(() => expect(adds()).toHaveLength(2));
-    const [header, lastRow] = adds();
-    fireEvent.click(header);
-
-    expect(await screen.findByRole('dialog', { name: 'Add application' })).toBeInTheDocument();
-    expect(screen.getByLabelText('Company')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
-
-    // The row at the end of the list opens the same form.
-    fireEvent.click(lastRow);
-    expect(await screen.findByRole('dialog', { name: 'Add application' })).toBeInTheDocument();
-  });
-
-  it('hides the create form again when "Cancel" is clicked', async () => {
-    vi.mocked(api.listApplications).mockResolvedValue({
-      items: [],
-      metadata: { limit: 20, offset: 0, nextOffset: null },
-    });
-
-    renderWithProviders(queryClient, '/applications');
-
-    // Open form
-    const [addBtn] = await screen.findAllByRole('button', { name: /add application/i });
-    fireEvent.click(addBtn);
-
-    // Verify open
-    expect(await screen.findByRole('dialog', { name: 'Add application' })).toBeInTheDocument();
-
-    // Close form
-    const cancelBtn = screen.getByRole('button', { name: /cancel/i });
-    fireEvent.click(cancelBtn);
-
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    // Applications come from mails and the automation only.
+    expect(await screen.findByText(/when the app finds one in your mails/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /add application/i })).not.toBeInTheDocument();
   });
 
   // ─── Existing dashboard tests ──────────────────────────────────────────────
@@ -829,7 +770,6 @@ describe('application discovery completion (AD-02)', () => {
     vi.mocked(api.listApplications).mockResolvedValue(page([recorded]));
     fireEvent.click(screen.getByRole('button', { name: 'Refresh applications' }));
     await screen.findByText('Automation target');
-    expect(api.createApplication).not.toHaveBeenCalled();
   });
 
   it('returns an empty later page to the first page while retaining discovery choices', async () => {

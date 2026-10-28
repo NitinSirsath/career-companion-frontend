@@ -135,7 +135,7 @@ describe('next steps', () => {
     );
   });
 
-  it('keeps Snooze and Dismiss in the step menu, and Edit only for the user own follow-ups', async () => {
+  it('keeps Snooze and Dismiss in the step menu, and no Edit, also for the user own follow-ups', async () => {
     vi.mocked(api.getApplicationActions).mockResolvedValue(
       page([step(), step({ id: 'step-2', origin: 'USER', description: 'Thank Arjun' })]),
     );
@@ -149,7 +149,8 @@ describe('next steps', () => {
     fireEvent.keyDown(screen.getByRole('menu'), { key: 'Escape' });
     await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
     fireEvent.click(screen.getByRole('button', { name: 'More for Thank Arjun' }));
-    expect(await screen.findByRole('menuitem', { name: 'Edit…' })).toBeInTheDocument();
+    expect(await screen.findByRole('menuitem', { name: 'Dismiss' })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'Edit…' })).not.toBeInTheDocument();
   });
 
   it('has no Complete on a step from a mail; "I did this" only on one done outside mail', async () => {
@@ -258,7 +259,6 @@ describe('page header', () => {
     show();
     expect(await screen.findByText(/^Archived\. Its mails and history stay/)).toBeInTheDocument();
     expect(screen.queryByRole('combobox', { name: /Change status/ })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Add follow-up' })).not.toBeInTheDocument();
     expect(await screen.findByText('Confirm the interview time')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Complete' })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Restore' }));

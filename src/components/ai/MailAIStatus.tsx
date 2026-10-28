@@ -8,11 +8,11 @@ import {
 } from '@carbon/icons-react';
 import type { AIModelPause } from '../../contracts/ai';
 import type { EmailMessage } from '../../contracts/gmail';
+import { analyzedBy } from '../../lib/aiLabels';
 import { mailAIView, type MailAIInfo, type MailAIView } from '../../lib/mailAIStatus';
 import { retryPause } from '../../lib/retryApproval';
 import { Button } from '../ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
-import { AnalyzedBy } from './AnalyzedBy';
 
 const TONE_ICON: Record<MailAIView['tone'], { Icon: CarbonIconType; className: string } | null> = {
   neutral: null,
@@ -62,6 +62,18 @@ function InfoTip({
   );
 }
 
+/** "Read", with which provider and model read the mail on hover, focus or a tap. */
+function AnalyzedTip({ label, badge }: { label: string; badge: string }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger className="cursor-help underline decoration-dotted underline-offset-4 outline-none focus-visible:outline-2 focus-visible:outline-border-focus">
+        {badge}
+      </TooltipTrigger>
+      <TooltipContent>{label}</TooltipContent>
+    </Tooltip>
+  );
+}
+
 /** Renders again when `until` passes, so Manual Retry comes back when a pause ends. */
 function useRenderAt(until: string | null) {
   const [renders, render] = useReducer((count: number) => count + 1, 0);
@@ -92,11 +104,15 @@ export function MailAIStatus({
   const paused = retryPause(message.aiStatus, pauses, refusedUntil);
   useRenderAt(paused?.until ?? null);
   const icon = TONE_ICON[view.tone];
+  const analyzed =
+    message.processingState === 'COMPLETED'
+      ? analyzedBy(message.aiProcessingResult?.provider, message.aiProcessingResult?.model)
+      : null;
   return (
     <>
       <div className="flex items-center gap-1.5 text-sm">
         {icon && <icon.Icon size={16} aria-hidden="true" className={icon.className} />}
-        <span>{view.badge}</span>
+        {analyzed ? <AnalyzedTip label={analyzed} badge={view.badge} /> : <span>{view.badge}</span>}
         {view.info && (
           <InfoTip info={view.info} question={view.question} error={view.tone === 'error'} />
         )}
@@ -121,12 +137,6 @@ export function MailAIStatus({
           <Renew size={16} aria-hidden="true" />
           {paused?.label ?? 'Manual Retry'}
         </Button>
-      )}
-      {message.processingState === 'COMPLETED' && (
-        <AnalyzedBy
-          provider={message.aiProcessingResult?.provider}
-          model={message.aiProcessingResult?.model}
-        />
       )}
     </>
   );

@@ -1,4 +1,4 @@
-import type { CreateFollowUp, EditFollowUp, SnoozeAction } from '../contracts/action';
+import type { SnoozeAction } from '../contracts/action';
 import type { ArchiveApplication } from '../contracts/application';
 import {
   AgendaResponseSchema,
@@ -39,7 +39,6 @@ import {
   SaveAIProviderResponseSchema,
 } from '../contracts';
 import type {
-  CreateApplicationRequest,
   ApplicationResponse,
   ListApplicationsResponse,
   ListApplicationEventsResponse,
@@ -236,12 +235,11 @@ export class ApiClient {
     return this.request<T>(endpoint, { ...options, method: 'PATCH', body: JSON.stringify(body) });
   }
 
-  async createApplication(data: CreateApplicationRequest): Promise<ApplicationResponse> {
-    return this.request(
-      '/api/applications',
-      { method: 'POST', body: JSON.stringify(data) },
-      ApplicationResponseSchema,
-    );
+  async delete<T>(endpoint: string, body?: unknown): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'DELETE',
+      body: body ? JSON.stringify(body) : undefined,
+    });
   }
 
   async listApplications(
@@ -600,34 +598,6 @@ export class ApiClient {
     return result;
   }
 
-  async createFollowUp(applicationId: string, data: CreateFollowUp) {
-    const row = await this.request(
-      `/api/applications/${applicationId}/actions`,
-      { method: 'POST', body: JSON.stringify(data) },
-      ActionWithContextResponseSchema,
-    );
-    if (row.applicationId !== applicationId || row.clientRequestId !== data.clientRequestId)
-      throw new ApiError('Unexpected receipt.', 'contract', 201);
-    return row;
-  }
-  async followUpByRequest(id: string) {
-    const row = await this.request(
-      `/api/actions/by-request/${id}`,
-      { method: 'GET' },
-      ActionWithContextResponseSchema,
-    );
-    if (row.clientRequestId !== id) throw new ApiError('Unexpected receipt.', 'contract', 200);
-    return row;
-  }
-  async editFollowUp(id: string, data: EditFollowUp) {
-    const row = await this.request(
-      `/api/actions/${id}/personal`,
-      { method: 'PATCH', body: JSON.stringify(data) },
-      ActionWithContextResponseSchema,
-    );
-    if (row.id !== id) throw new ApiError('Unexpected action.', 'contract', 200);
-    return row;
-  }
   async snoozeAction(id: string, data: SnoozeAction) {
     const row = await this.request(
       `/api/actions/${id}/snooze`,
@@ -738,15 +708,11 @@ export class ApiClient {
     });
   }
 
-  async getMessages(params?: {
-    limit?: number;
-    offset?: number;
-    relevance?: string;
-  }): Promise<MessagesListResponse> {
+  /** The job mails and unread mails a sync read. Other mails are never listed. */
+  async getMessages(params?: { limit?: number; offset?: number }): Promise<MessagesListResponse> {
     const urlParams = new URLSearchParams();
     if (params?.limit !== undefined) urlParams.append('limit', params.limit.toString());
     if (params?.offset !== undefined) urlParams.append('offset', params.offset.toString());
-    if (params?.relevance !== undefined) urlParams.append('relevance', params.relevance);
 
     const queryString = urlParams.toString();
     const endpoint = `/api/gmail/messages${queryString ? `?${queryString}` : ''}`;

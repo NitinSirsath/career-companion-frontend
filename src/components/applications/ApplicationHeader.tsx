@@ -1,9 +1,8 @@
-import { useRef, type ReactNode } from 'react';
-import { Add } from '@carbon/icons-react';
+import { useRef, useState, type ReactNode } from 'react';
 import type { ApplicationResponse } from '../../contracts/application';
-import type { DialogHandle } from '../../lib/dialogs';
+import { focusLater, type DialogHandle } from '../../lib/dialogs';
 import { ArchiveControl } from '../ArchiveControl';
-import { FollowUpEditor } from '../FollowThrough';
+import { DeleteApplicationDialog } from './DeleteApplicationDialog';
 import { PageHeader } from '../layout/PageHeader';
 import { Button } from '../ui/button';
 import { OverflowMenu } from '../ui/menu';
@@ -21,13 +20,13 @@ function ArchivedNotice({ canRestore, onRestore }: { canRestore: boolean; onRest
         )
       }
     >
-      Archived. Its mails and history stay. Restore it to add or change work.
+      Archived. Its mails and history stay. Restore it to change its work.
     </InlineNotification>
   );
 }
 
 /**
- * Title, role, the status dropdown; Add follow-up and a "…" menu with Archive or Restore. Notices
+ * Title, role, the status dropdown, and a "…" menu with Archive or Restore and Delete. Notices
  * about the status and the archive sit under it.
  */
 export function ApplicationHeader({
@@ -42,6 +41,7 @@ export function ApplicationHeader({
   const status = useStatusControl(application, canEdit);
   const archive = useRef<DialogHandle>(null);
   const more = useRef<HTMLButtonElement>(null);
+  const [deleting, setDeleting] = useState(false);
   const archived = !!application.archivedAt;
   const role = [application.jobTitle, application.location].filter(Boolean).join(' · ');
   return (
@@ -61,14 +61,6 @@ export function ApplicationHeader({
         }
         actions={
           <>
-            {!archived && (
-              <FollowUpEditor
-                applicationId={application.id}
-                disabled={!canEdit}
-                triggerVariant="secondary"
-                triggerIcon={<Add size={16} aria-hidden="true" />}
-              />
-            )}
             {canEdit && (
               <OverflowMenu
                 label="More actions"
@@ -82,6 +74,7 @@ export function ApplicationHeader({
                         danger: true,
                         onSelect: () => archive.current?.open(),
                       },
+                  { label: 'Delete application…', danger: true, onSelect: () => setDeleting(true) },
                 ]}
               />
             )}
@@ -90,6 +83,14 @@ export function ApplicationHeader({
               trigger={false}
               ref={archive}
               returnFocus={more}
+            />
+            <DeleteApplicationDialog
+              application={application}
+              open={deleting}
+              onClose={() => {
+                setDeleting(false);
+                focusLater(more);
+              }}
             />
           </>
         }
