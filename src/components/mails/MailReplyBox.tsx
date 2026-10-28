@@ -139,6 +139,37 @@ function PhoneReplyScreen({ replyAsks, children }: { replyAsks: number; children
   );
 }
 
+/** The reply box while closed: one line, and "Draft" with its first words when text is kept. */
+function ClosedReplyBar({
+  replyTo,
+  kept,
+  onOpen,
+}: {
+  replyTo: string;
+  kept: DraftDoc | null;
+  onOpen: () => void;
+}) {
+  const name = parseSender(replyTo).name;
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="flex h-12 w-full cursor-text items-center gap-3 border border-border-default bg-field px-4 text-left text-sm text-text-secondary transition-colors duration-70 ease-standard hover:bg-layer-hover"
+    >
+      <Reply size={16} aria-hidden="true" />
+      {kept ? (
+        // Unsent text kept on this device: the bar says so, with its first words.
+        <span className="min-w-0 flex-1 truncate">
+          <span className="font-semibold text-text-primary">Draft</span> to {name}: {docWords(kept)}
+        </span>
+      ) : (
+        <span className="flex-1">Reply to {name}…</span>
+      )}
+      <kbd className="border border-border-default px-1.5 font-mono text-xs">R</kbd>
+    </button>
+  );
+}
+
 /**
  * Replying from the mail details page, docked under the conversation like a chat box: one line
  * until the user starts a reply. The same box in both modes: it sends from the user's Gmail in
