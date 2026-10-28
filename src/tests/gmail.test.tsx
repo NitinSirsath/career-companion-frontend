@@ -146,8 +146,9 @@ describe('Gmail Route', () => {
     expect(screen.getByRole('button', { name: 'Disconnect' })).toBeInTheDocument();
     expect(screen.getByText('Look back')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Sync now' })).toBeInTheDocument();
-    // The title of the mail list and its tabs, and no settings sections any more.
-    expect(screen.getByRole('heading', { name: 'Mails the app has read' })).toBeInTheDocument();
+    // The title of the job mail list, with no tabs, and no settings sections any more.
+    expect(screen.getByRole('heading', { name: 'Job mails the app has read' })).toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: 'Not job mails' })).not.toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Sync' })).not.toBeInTheDocument();
   });
 
@@ -358,7 +359,7 @@ describe('Gmail Route', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('switches between the Job mails and Not job mails tabs and filters correctly', async () => {
+  it('lists job mails with their type, the sender name and a way to link them', async () => {
     vi.mocked(api.getGmailStatus).mockResolvedValue({
       connected: true,
       syncStatus: 'IDLE',
@@ -367,43 +368,55 @@ describe('Gmail Route', () => {
       gmailEmail: 'test@example.com',
       lastSyncedAt: null,
     });
-    vi.mocked(api.getMessages).mockImplementation(async (params) => {
-      if (params?.relevance === 'irrelevant') {
-        return { items: [], metadata: { limit: 20, offset: 0, nextOffset: null } };
-      }
-      return {
-        items: [
-          {
-            id: 'job-msg',
-            gmailMessageId: 'msg1',
-            threadId: null,
-            subject: 'Job Alert',
-            sender: 'jobs@linkedin.com',
-            receivedAt: new Date().toISOString(),
-            processingState: 'COMPLETED',
-            relevanceState: 'RELEVANT',
-            matchState: 'UNMATCHED',
-          },
-        ],
-        metadata: { limit: 20, offset: 0, nextOffset: null },
-      };
+    const mail = {
+      gmailMessageId: 'msg1',
+      receivedAt: new Date().toISOString(),
+      processingState: 'COMPLETED' as const,
+      relevanceState: 'RELEVANT' as const,
+      matchState: 'UNMATCHED' as const,
+    };
+    vi.mocked(api.getMessages).mockResolvedValue({
+      items: [
+        {
+          ...mail,
+          id: 'job-msg',
+          threadId: 'thread-1',
+          subject: 'Interview on Friday',
+          sender: 'Priya Nair <priya@acme.example>',
+          category: 'INTERVIEW',
+        },
+        {
+          ...mail,
+          id: 'new-msg',
+          gmailMessageId: 'msg2',
+          threadId: null,
+          subject: 'Thanks for applying',
+          sender: 'careers@acme.example',
+          processingState: 'PENDING',
+          relevanceState: 'UNPROCESSED',
+          category: null,
+        },
+      ],
+      metadata: { limit: 20, offset: 0, nextOffset: null },
+    });
     });
 
     renderWithProviders();
 
-    // Default tab should be job_related and show the job alert
-    expect(await screen.findByText('Job Alert')).toBeInTheDocument();
-    expect(api.getMessages).toHaveBeenCalledWith({
-      limit: 20,
-      offset: 0,
-      relevance: 'job_related',
-    });
-
-    // Switch to irrelevant tab
-    fireEvent.click(screen.getByRole('tab', { name: 'Not job mails' }));
-
-    // Empty state for the other tab
-    expect(await screen.findByText('No other mails read yet')).toBeInTheDocument();
-    expect(api.getMessages).toHaveBeenCalledWith({ limit: 20, offset: 0, relevance: 'irrelevant' });
+    expect(await screen.findByText('Interview on Friday')).toBeInTheDocument();
+    expect(api.getMessages).toHaveBeenCalledWith({ limit: 20, offset: 0 });
+    expect(screen.getByText('Interview')).toBeInTheDocument();
+    expect(screen.getByText('Not read yet')).toBeInTheDocument();
+    // The name only; the whole From line on hover.
+    expect(screen.getByText('Priya Nair')).toHaveAttribute(
+      'title',
+      'Priya Nair <priya@acme.example>',
+    );
+    // A job mail with no application opens its conversation, where it can be linked.
+    expect(screen.getByRole('link', { name: 'Open in Mails' })).toHaveAttribute(
+      'href',
+      '/mails/thread-1',
+    );
+    expect(screen.getAllByRole('link', { name: 'Open in Mails' })).toHaveLength(1);
   });
 });
