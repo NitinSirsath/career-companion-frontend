@@ -9,7 +9,9 @@ export function DashCard({
   children,
   className,
   flush = false,
+  id,
 }: {
+  id?: string;
   title: string;
   aside?: ReactNode;
   /** One line under the title. */
@@ -20,7 +22,10 @@ export function DashCard({
   flush?: boolean;
 }) {
   return (
-    <section className={cn('border border-border-subtle', !flush && 'p-4 md:p-6', className)}>
+    <section
+      id={id}
+      className={cn('scroll-mt-20 border border-border-subtle', !flush && 'p-4 md:p-6', className)}
+    >
       <div className={cn(flush && 'px-4 pt-4 pb-3 md:px-6 md:pt-6')}>
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
           <h2 className="text-sm leading-5 font-semibold">{title}</h2>
