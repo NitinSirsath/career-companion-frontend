@@ -9,6 +9,7 @@ import { Funnel, RejectedAfter } from '../components/dashboard/Funnel';
 import { WeekByWeek } from '../components/dashboard/WeekByWeek';
 import { AnswerSpeed, GoneQuiet, KeepingUp, KeptSafe } from '../components/dashboard/Progress';
 import { WorksBest } from '../components/dashboard/WorksBest';
+import { Tips } from '../components/dashboard/Tips';
 import {
   DashboardSkeleton,
   NoGmailYet,
@@ -80,6 +81,7 @@ function DashboardBody({ numbers }: { numbers: DashboardResponse }) {
   return (
     <div className="flex flex-col gap-6 md:gap-8">
       <DataLine data={numbers.data} />
+      <Tips tips={numbers.tips} aiTip={numbers.aiTip} />
       <TotalsStrip numbers={numbers} />
       <RightNow rightNow={numbers.rightNow} />
       <div className="grid gap-4 lg:grid-cols-[3fr_2fr]">
