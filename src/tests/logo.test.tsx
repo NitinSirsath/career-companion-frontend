@@ -140,7 +140,7 @@ describe('where the logo shows: the name, or the mark alone, never both', () => 
   it('shows the name in the top bar, and only the mark once the side menu is collapsed', async () => {
     showApp();
     const home = await screen.findByRole('link', { name: 'NorthList' });
-    expect(home).toHaveAttribute('href', '/mails');
+    expect(home).toHaveAttribute('href', '/dashboard');
     expect(within(home).getByRole('img', { name: 'NorthList' })).toBeInTheDocument();
     expect(home.querySelectorAll('svg')).toHaveLength(1);
 
@@ -148,7 +148,7 @@ describe('where the logo shows: the name, or the mark alone, never both', () => 
     expect(within(home).queryByRole('img', { name: 'NorthList' })).not.toBeInTheDocument();
     expect(home.querySelectorAll('svg')).toHaveLength(1);
     expect(shapes(home.querySelector('svg'))).toBe(3);
-    expect(home).toHaveAttribute('href', '/mails');
+    expect(home).toHaveAttribute('href', '/dashboard');
   });
 
   it('shows the name at the top of the phone menu', async () => {
