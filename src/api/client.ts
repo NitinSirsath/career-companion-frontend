@@ -1,4 +1,4 @@
-import type { CreateFollowUp, EditFollowUp, SnoozeAction } from '../contracts/action';
+import type { SnoozeAction } from '../contracts/action';
 import type { ArchiveApplication } from '../contracts/application';
 import {
   AgendaResponseSchema,
@@ -39,7 +39,6 @@ import {
   SaveAIProviderResponseSchema,
 } from '../contracts';
 import type {
-  CreateApplicationRequest,
   ApplicationResponse,
   ListApplicationsResponse,
   ListApplicationEventsResponse,
@@ -234,14 +233,6 @@ export class ApiClient {
 
   async patch<T>(endpoint: string, body: unknown, options?: RequestInit): Promise<T> {
     return this.request<T>(endpoint, { ...options, method: 'PATCH', body: JSON.stringify(body) });
-  }
-
-  async createApplication(data: CreateApplicationRequest): Promise<ApplicationResponse> {
-    return this.request(
-      '/api/applications',
-      { method: 'POST', body: JSON.stringify(data) },
-      ApplicationResponseSchema,
-    );
   }
 
   async listApplications(
@@ -600,34 +591,6 @@ export class ApiClient {
     return result;
   }
 
-  async createFollowUp(applicationId: string, data: CreateFollowUp) {
-    const row = await this.request(
-      `/api/applications/${applicationId}/actions`,
-      { method: 'POST', body: JSON.stringify(data) },
-      ActionWithContextResponseSchema,
-    );
-    if (row.applicationId !== applicationId || row.clientRequestId !== data.clientRequestId)
-      throw new ApiError('Unexpected receipt.', 'contract', 201);
-    return row;
-  }
-  async followUpByRequest(id: string) {
-    const row = await this.request(
-      `/api/actions/by-request/${id}`,
-      { method: 'GET' },
-      ActionWithContextResponseSchema,
-    );
-    if (row.clientRequestId !== id) throw new ApiError('Unexpected receipt.', 'contract', 200);
-    return row;
-  }
-  async editFollowUp(id: string, data: EditFollowUp) {
-    const row = await this.request(
-      `/api/actions/${id}/personal`,
-      { method: 'PATCH', body: JSON.stringify(data) },
-      ActionWithContextResponseSchema,
-    );
-    if (row.id !== id) throw new ApiError('Unexpected action.', 'contract', 200);
-    return row;
-  }
   async snoozeAction(id: string, data: SnoozeAction) {
     const row = await this.request(
       `/api/actions/${id}/snooze`,
