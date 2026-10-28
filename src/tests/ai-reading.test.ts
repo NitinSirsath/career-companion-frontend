@@ -153,6 +153,8 @@ describe('the live feed', () => {
       action: 'Not a job mail',
       working: false,
     });
+    // A mail that is not about a job keeps no subject.
+    expect(stepView(step({ step: 'NOT_JOB', subject: null })).subject).toBe('(subject not kept)');
     expect(
       stepView(
         step({
