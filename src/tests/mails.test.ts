@@ -325,6 +325,15 @@ describe('the mail frame', () => {
     expect(mailFrameDocument('<p>Hello</p>', true)).toContain('img-src https: data:"');
   });
 
+  it('keeps the place of hidden pictures but shows nothing there, not a broken picture', () => {
+    const hide = 'img:not([src^="data:"]){visibility:hidden}';
+    const html =
+      '<img src="https://media.example/icon.png" alt="Messaging icon"><img src="data:image/png;base64,AA==" alt="logo">';
+    // Pictures inside the mail (data:) are not hidden; they load in any case.
+    expect(mailFrameDocument(html, false)).toContain(hide);
+    expect(mailFrameDocument(html, true)).not.toContain(hide);
+  });
+
   it('shows a mail on the white page it was written for, or in the theme colours', () => {
     expect(mailFrameDocument('<p>Hello</p>', false)).toContain('color:#161616;background:#ffffff');
     const themed = mailFrameDocument('<p>Hello</p>', false, {
