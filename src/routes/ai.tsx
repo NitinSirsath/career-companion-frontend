@@ -54,7 +54,7 @@ function AIProvidersPage() {
   const connect = () => openDialog({ kind: 'connect', start: null });
 
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col gap-6">
       <PageHeader
         className="mb-0"
         title="AI providers"
