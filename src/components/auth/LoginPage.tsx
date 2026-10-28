@@ -54,7 +54,10 @@ export function LoginPage({ error, next = null }: { error?: string; next?: strin
             className="flex w-full max-w-sm flex-col gap-6 border border-border-subtle bg-surface p-8"
           >
             <div className="flex flex-col gap-2">
-              <h1 id="sign-in-title" className="text-[28px] leading-9 font-normal">
+              <h1
+                id="sign-in-title"
+                className="text-[28px] leading-9 font-semibold tracking-[-0.02em]"
+              >
                 Sign in
               </h1>
               <p className="text-sm text-text-secondary">
@@ -74,7 +77,7 @@ export function LoginPage({ error, next = null }: { error?: string; next?: strin
               aria-labelledby="test-user-title"
               className="flex w-full max-w-sm flex-col gap-6 border border-border-subtle bg-surface p-8"
             >
-              <h2 id="test-user-title" className="text-xl leading-7 font-normal">
+              <h2 id="test-user-title" className="text-xl leading-7 font-medium">
                 Create test user
               </h2>
               <CreateTestUserForm onSignedIn={() => openApp(next)} />
