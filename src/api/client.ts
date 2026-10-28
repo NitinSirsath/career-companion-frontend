@@ -235,6 +235,13 @@ export class ApiClient {
     return this.request<T>(endpoint, { ...options, method: 'PATCH', body: JSON.stringify(body) });
   }
 
+  async delete<T>(endpoint: string, body?: unknown): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'DELETE',
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  }
+
   async listApplications(
     params?: { limit?: number; offset?: number } & ApplicationFilters,
     options?: RequestOptions,
