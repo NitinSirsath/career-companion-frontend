@@ -4,15 +4,15 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { Launch } from '@carbon/icons-react';
 import { format } from 'date-fns';
 import type { EmailMessage } from '../../contracts/gmail';
+import { CATEGORY_LABEL, parseSender } from '../../lib/mails';
 import { getGmailConversationUrl } from '../../utils/gmail';
 import { MatchCorrectionDialog } from '../MatchCorrectionDialog';
 
-/** What the app made of a mail, in words instead of the stored state. */
-const RESULT: Record<EmailMessage['relevanceState'], string> = {
-  RELEVANT: 'Job mail',
-  IRRELEVANT: 'Not a job mail',
-  UNPROCESSED: 'Not read yet',
-};
+/** The kind of job mail, in the Mails page's words, or why there is none yet. */
+function mailType(msg: EmailMessage): string {
+  if (msg.relevanceState === 'UNPROCESSED') return 'Not read yet';
+  return msg.category ? CATEGORY_LABEL[msg.category] : 'Job mail';
+}
 
 function ApplicationCell({ msg }: { msg: EmailMessage }) {
   let link: ReactNode;
@@ -34,6 +34,12 @@ function ApplicationCell({ msg }: { msg: EmailMessage }) {
   return (
     <div className="flex flex-col items-start gap-1">
       {link}
+      {msg.relevanceState === 'RELEVANT' && msg.matchState === 'UNMATCHED' && (
+        // The conversation's own page links it to an application.
+        <Link to="/mails/$key" params={{ key: msg.threadId ?? msg.id }} className="text-link">
+          Open in Mails
+        </Link>
+      )}
       {(msg.matchState === 'MATCHED' || msg.matchState === 'IGNORED') && (
         <MatchCorrectionDialog
           emailId={msg.id}
@@ -45,7 +51,7 @@ function ApplicationCell({ msg }: { msg: EmailMessage }) {
   );
 }
 
-/** The columns of the Gmail sync list: the mail, what the app made of it, and the AI's state. */
+/** The columns of the Gmail sync list: the job mail, its type, its application and the AI's state. */
 export function processedColumns({
   devMode,
   renderAI,
@@ -81,16 +87,17 @@ export function processedColumns({
       header: () => 'From',
       meta: { phoneLabel: 'From' },
       cell: ({ row }) => (
+        // The name only; the whole From line shows on hover.
         <span className="block truncate text-text-secondary" title={row.original.sender || ''}>
-          {row.original.sender || 'Unknown'}
+          {parseSender(row.original.sender).name}
         </span>
       ),
     },
     {
-      id: 'result',
-      header: () => 'Result',
-      meta: { phoneLabel: 'Result' },
-      cell: ({ row }) => RESULT[row.original.relevanceState],
+      id: 'type',
+      header: () => 'Type',
+      meta: { phoneLabel: 'Type' },
+      cell: ({ row }) => mailType(row.original),
     },
     {
       id: 'application',
