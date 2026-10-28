@@ -83,7 +83,7 @@ export function Combobox<T>({
             id={inputId}
             aria-label={label}
             placeholder={placeholder}
-            className="h-full w-full min-w-0 bg-transparent pr-10 pl-3 text-sm text-text-primary outline-none placeholder:text-text-tertiary disabled:text-text-disabled"
+            className="h-full w-full min-w-0 bg-transparent pr-10 pl-3 text-[14px] text-text-primary outline-none placeholder:text-text-tertiary disabled:text-text-disabled"
           />
           <BaseCombobox.Trigger
             aria-label={`Open ${label}`}
@@ -108,7 +108,7 @@ export function Combobox<T>({
             <AutoHeight contentClassName="max-h-[min(var(--available-height),20rem)] overflow-y-auto overscroll-contain">
               <BaseCombobox.Status>
                 {loading && (
-                  <div className="flex min-h-10 items-center gap-2 px-4 text-sm text-text-secondary">
+                  <div className="flex min-h-10 items-center gap-2 px-4 text-[14px] text-text-secondary">
                     <Spinner />
                     Searching…
                   </div>
@@ -116,7 +116,7 @@ export function Combobox<T>({
               </BaseCombobox.Status>
               {!loading && (
                 <BaseCombobox.Empty>
-                  <div className="flex min-h-10 items-center px-4 text-sm text-text-secondary">
+                  <div className="flex min-h-10 items-center px-4 text-[14px] text-text-secondary">
                     {emptyText}
                   </div>
                 </BaseCombobox.Empty>
