@@ -17,6 +17,7 @@ export const DOMAIN_QUERY_KEYS = [
   'application-actions',
   'actions',
   'workspace',
+  'dashboard', // the Dashboard's numbers follow every mail the AI reads
   'agenda',
   'unmatched-emails',
   'ambiguous-emails',
