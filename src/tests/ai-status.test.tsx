@@ -257,10 +257,16 @@ describe('Gmail table while waiting for AI', () => {
       ]),
     );
     show('/gmail');
+    // "Read" alone; which model read it shows on hover, focus or a tap.
+    const [ai, rules] = await screen.findAllByRole('button', { name: 'Read' });
+    expect(screen.queryByText('Analyzed by Google Gemini · Gemini 2.5 Flash')).toBeNull();
+    fireEvent.click(ai);
     expect(
       await screen.findByText('Analyzed by Google Gemini · Gemini 2.5 Flash'),
     ).toBeInTheDocument();
-    expect(screen.getByText('Filtered by rules (no AI)')).toBeInTheDocument();
+    fireEvent.click(ai);
+    fireEvent.click(rules);
+    expect(await screen.findByText('Filtered by rules (no AI)')).toBeInTheDocument();
   });
 });
 
