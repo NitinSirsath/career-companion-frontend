@@ -1,9 +1,7 @@
 import { useRef, type ReactNode } from 'react';
-import { Add } from '@carbon/icons-react';
 import type { ApplicationResponse } from '../../contracts/application';
 import type { DialogHandle } from '../../lib/dialogs';
 import { ArchiveControl } from '../ArchiveControl';
-import { FollowUpEditor } from '../FollowThrough';
 import { PageHeader } from '../layout/PageHeader';
 import { Button } from '../ui/button';
 import { OverflowMenu } from '../ui/menu';
@@ -21,14 +19,14 @@ function ArchivedNotice({ canRestore, onRestore }: { canRestore: boolean; onRest
         )
       }
     >
-      Archived. Its mails and history stay. Restore it to add or change work.
+      Archived. Its mails and history stay. Restore it to change its work.
     </InlineNotification>
   );
 }
 
 /**
- * Title, role, the status dropdown; Add follow-up and a "…" menu with Archive or Restore. Notices
- * about the status and the archive sit under it.
+ * Title, role, the status dropdown, and a "…" menu with Archive or Restore. Notices about the
+ * status and the archive sit under it.
  */
 export function ApplicationHeader({
   application,
@@ -61,14 +59,6 @@ export function ApplicationHeader({
         }
         actions={
           <>
-            {!archived && (
-              <FollowUpEditor
-                applicationId={application.id}
-                disabled={!canEdit}
-                triggerVariant="secondary"
-                triggerIcon={<Add size={16} aria-hidden="true" />}
-              />
-            )}
             {canEdit && (
               <OverflowMenu
                 label="More actions"
