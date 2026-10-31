@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { isApiError } from '../api/client';
 import { PASSWORD_MIN_LENGTH, SetPasswordRequestSchema } from '../contracts/auth';
+import { CONTACT_EMAIL } from './productPage';
 
 /** Server answers that are already written for the user to read. */
 const SAY_AS_IS = [
@@ -22,8 +23,18 @@ export function signInProblem(error: unknown): string {
   return 'Something went wrong. Try again.';
 }
 
+/**
+ * Google sign-in refused a new account: the beta has all its places (owner, 31 Oct 2026). The
+ * sign-in page shows it as a warning with the contact address, not as an error.
+ */
+export const BETA_FULL = 'beta_full';
+export const BETA_FULL_TITLE = 'The NorthList beta is full.';
+export const BETA_FULL_TEXT =
+  'The beta is limited to 100 users and every place is taken. To ask for a place, write to';
+
 /** The message for the `error` the backend adds to the login address after Google sign-in. */
 export function googleSignInProblem(code: string): string {
+  if (code === BETA_FULL) return `${BETA_FULL_TITLE} ${BETA_FULL_TEXT} ${CONTACT_EMAIL}.`;
   if (code === 'denied') return 'You denied the sign-in request. Please try again.';
   if (code === 'csrf') return 'Your session expired or was invalid. Please try signing in again.';
   if (code === 'expired') return 'Your session has expired. Please sign in again.';

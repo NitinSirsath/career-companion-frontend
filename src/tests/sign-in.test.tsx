@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 
@@ -109,6 +109,20 @@ describe('login page', () => {
     expect(screen.queryByRole('form', { name: 'Create test user' })).not.toBeInTheDocument();
     expect(screen.getByRole('alert')).toHaveTextContent(/denied the sign-in request/);
     expect(screen.getByText(/Forgot your password\?/)).toBeInTheDocument();
+  });
+
+  it('says the beta is full as a warning with the address to ask for a place', async () => {
+    renderWithQuery(<LoginPage error="beta_full" />);
+    await waitFor(() => expect(modeFetch).toHaveBeenCalled());
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    const notice = screen.getByRole('status');
+    expect(notice).toHaveTextContent(
+      'The NorthList beta is full. The beta is limited to 100 users and every place is taken. To ask for a place, write to nitinsirsath8855@gmail.com.',
+    );
+    expect(
+      within(notice).getByRole('link', { name: 'nitinsirsath8855@gmail.com' }),
+    ).toHaveAttribute('href', 'mailto:nitinsirsath8855@gmail.com');
+    expect(googleSignInProblem('beta_full')).toBe(notice.textContent);
   });
 
   it('offers a test user and no Google sign-in in dev mode', async () => {
