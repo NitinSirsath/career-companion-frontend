@@ -17,6 +17,7 @@ import { ApplicationPicker } from '../ApplicationPicker';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
+import { isOfflineError } from '../../lib/offline';
 
 /**
  * The conversation's application, or the one-click way to give it one. In a table row ("cell")
@@ -69,7 +70,10 @@ function CreateApplication({
   const link = useLinkConversation(conversation.key);
   const [problem, setProblem] = useState<LinkProblem | null>(null);
   const send = (body: LinkConversation) =>
-    link.mutate(body, { onError: (error) => setProblem(linkProblem(error)) });
+    // Offline the toast says that nothing changed.
+    link.mutate(body, {
+      onError: (error) => setProblem(isOfflineError(error) ? null : linkProblem(error)),
+    });
   // Stays off after success until the refreshed list shows the application.
   const busy = link.isPending || link.isSuccess;
   const filled = companyAndRole(conversation);
