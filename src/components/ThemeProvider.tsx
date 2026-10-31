@@ -1,5 +1,11 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { parseStoredTheme, resolveTheme, type ResolvedTheme, type ThemeChoice } from '../lib/theme';
+import {
+  parseStoredTheme,
+  resolveTheme,
+  setWindowBarColor,
+  type ResolvedTheme,
+  type ThemeChoice,
+} from '../lib/theme';
 
 interface ThemeProviderProps {
   children: React.ReactNode;
@@ -47,6 +53,7 @@ export function ThemeProvider({ children, storageKey = 'vite-ui-theme' }: ThemeP
     root.classList.add(`theme-${resolvedTheme}`);
     if (resolvedTheme === 'dark') root.classList.add('dark');
     root.style.colorScheme = resolvedTheme === 'dark' ? 'dark' : 'light';
+    setWindowBarColor(resolvedTheme);
   }, [resolvedTheme]);
 
   const value = {
