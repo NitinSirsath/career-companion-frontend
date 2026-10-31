@@ -35,7 +35,7 @@ function memoryStore(saved: unknown = undefined) {
   } satisfies CopyStore & { current: () => SavedCopy | undefined };
 }
 
-/** A copy of one conversation list, saved by \`user\` for app version v1. */
+/** A copy of one conversation list, saved by `user` for app version v1. */
 function savedCopy(user = ME, savedAt = NOW, dataUpdatedAt = NOW): SavedCopy {
   const client = new QueryClient();
   client.setQueryData(LIST_KEY, { items: ['Acme'] }, { updatedAt: dataUpdatedAt });
