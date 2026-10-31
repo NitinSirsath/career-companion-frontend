@@ -1,5 +1,13 @@
 import { useDevMode } from '../../api/appMode';
-import { googleSignInProblem, googleSignInUrl, openApp } from '../../lib/signIn';
+import { CONTACT_EMAIL } from '../../lib/productPage';
+import {
+  BETA_FULL,
+  BETA_FULL_TEXT,
+  BETA_FULL_TITLE,
+  googleSignInProblem,
+  googleSignInUrl,
+  openApp,
+} from '../../lib/signIn';
 import { Button } from '../ui/button';
 import { InlineNotification } from '../ui/notification';
 import { CreateTestUserForm } from './CreateTestUserForm';
@@ -39,6 +47,24 @@ function GoogleSignIn({ next }: { next: string | null }) {
 }
 
 /**
+ * Why the last Google sign-in did not work. A full beta is not the user's mistake: a warning
+ * with the address to ask for a place, instead of an error.
+ */
+function GoogleSignInProblem({ error }: { error: string }) {
+  if (error !== BETA_FULL)
+    return <InlineNotification kind="error">{googleSignInProblem(error)}</InlineNotification>;
+  return (
+    <InlineNotification kind="warning" title={BETA_FULL_TITLE}>
+      {BETA_FULL_TEXT}{' '}
+      <a href={`mailto:${CONTACT_EMAIL}`} className="text-link underline hover:text-link-hover">
+        {CONTACT_EMAIL}
+      </a>
+      .
+    </InlineNotification>
+  );
+}
+
+/**
  * Sign-in: one card under the top bar. Prod mode: email and password, or Google. Dev mode has no
  * Google account, so it offers email and password and a form to create a test user.
  */
@@ -66,9 +92,7 @@ export function LoginPage({ error, next = null }: { error?: string; next?: strin
                   : 'Sign in to start tracking your job applications.'}
               </p>
             </div>
-            {error && (
-              <InlineNotification kind="error">{googleSignInProblem(error)}</InlineNotification>
-            )}
+            {error && <GoogleSignInProblem error={error} />}
             <PasswordSignInForm onSignedIn={() => openApp(next)} />
             {!devMode && <GoogleSignIn next={next} />}
           </section>
