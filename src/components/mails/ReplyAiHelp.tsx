@@ -9,6 +9,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { InlineNotification } from '../ui/notification';
+import { isOfflineError } from '../../lib/offline';
 
 /** What the reply box needs to offer AI help: the conversation and its newest mail's choices. */
 export interface ReplyAi {
@@ -129,7 +130,9 @@ export function ReplyAiHelp({
       onSettled: () => onWriting(false),
     });
   };
-  const problem = write.isError && !writing ? draftProblem(write.error) : null;
+  // Offline the toast says that nothing was written.
+  const problem =
+    write.isError && !writing && !isOfflineError(write.error) ? draftProblem(write.error) : null;
   const withHint = (body: { choice?: string }) => ({
     ...body,
     ...(hint.trim() ? { hint: hint.trim() } : {}),
