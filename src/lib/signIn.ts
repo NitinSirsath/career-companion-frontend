@@ -34,7 +34,7 @@ export const BETA_FULL_TEXT =
 
 /** The message for the `error` the backend adds to the login address after Google sign-in. */
 export function googleSignInProblem(code: string): string {
-  if (code === BETA_FULL) return `${BETA_FULL_TITLE} ${BETA_FULL_TEXT} ${CONTACT_EMAIL}.`
+  if (code === BETA_FULL) return `${BETA_FULL_TITLE} ${BETA_FULL_TEXT} ${CONTACT_EMAIL}.`;
   if (code === 'denied') return 'You denied the sign-in request. Please try again.';
   if (code === 'csrf') return 'Your session expired or was invalid. Please try signing in again.';
   if (code === 'expired') return 'Your session has expired. Please sign in again.';
