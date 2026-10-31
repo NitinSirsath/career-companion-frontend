@@ -1,6 +1,7 @@
 import { isApiError } from '../api/client';
 import type { ApplicationStatus } from '../contracts/application';
 import { STATUS_LABEL } from './statusLabels';
+import { isOfflineError } from './offline';
 
 /** The choice that clears the user's status, so the AI's status shows again. */
 export const USE_AI = '__ai__';
@@ -24,12 +25,13 @@ export const statusWords = (status: ApplicationStatus | null) =>
 
 /**
  * What a failed save means for the user. A save that may have happened is never sent again: the
- * page reads the status first ("reconcile").
+ * page reads the status first ("reconcile"). Offline nothing was sent and the toast says so.
  */
 export function phaseAfterError(
   error: unknown,
   wanted: ApplicationStatus | null,
 ): Phase | 'reconcile' {
+  if (isOfflineError(error)) return { kind: 'idle' };
   if (isApiError(error) && error.status === 409) return { kind: 'conflict', wanted };
   if (isApiError(error) && error.status === 404) return { kind: 'unavailable' };
   if (isApiError(error) && !error.outcomeUncertain) return { kind: 'failed' };

@@ -10,6 +10,7 @@ import { isApiError } from '../../api/client';
 import { blockableDomain } from '../../contracts/blockedSender';
 import type { Conversation } from '../../contracts/conversation';
 import { focusLater } from '../../lib/dialogs';
+import { isOfflineError } from '../../lib/offline';
 import { Button } from '../ui/button';
 import {
   Dialog,
@@ -104,7 +105,7 @@ function DeleteConversationDialog({
             </Label>
           </div>
         )}
-        {remove.isError && (
+        {remove.isError && !isOfflineError(remove.error) && (
           <InlineNotification kind="error" className="mt-6">
             {failure}
           </InlineNotification>
@@ -134,7 +135,10 @@ export function ConversationMenu({ conversation }: { conversation: Conversation 
   const [deleting, setDeleting] = useState(false);
   const more = useRef<HTMLButtonElement>(null);
   const existing = domain ? blocked.data?.items.find((row) => row.domain === domain) : undefined;
-  const failed = () => showToast('That did not go through. Try again.');
+  // Offline, the offline toast already said that nothing changed.
+  const failed = (error: unknown) => {
+    if (!isOfflineError(error)) showToast('That did not go through. Try again.');
+  };
   const blockAction: MenuAction[] = [];
   if (domain && existing)
     blockAction.push({

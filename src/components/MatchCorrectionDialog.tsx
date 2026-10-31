@@ -13,6 +13,7 @@ import {
   DialogTrigger,
 } from './ui/dialog';
 import { Pagination } from './ui/pagination';
+import { isOfflineError } from '../lib/offline';
 
 export function MatchCorrectionDialog({
   emailId,
@@ -74,6 +75,8 @@ export function MatchCorrectionDialog({
       setOpen(false);
     },
     onError: async (error) => {
+      // Offline the toast says that nothing changed.
+      if (isOfflineError(error)) return;
       setProblem(
         isApiError(error) && error.code === 'MATCH_CONFLICT'
           ? "This email's link changed. The list is refreshing to show where it is now. Close this dialog and check the link."

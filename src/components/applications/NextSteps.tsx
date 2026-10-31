@@ -20,6 +20,7 @@ import { Pagination } from '../ui/pagination';
 import { SectionError } from '../ui/section-error';
 import { SkeletonList } from '../ui/skeleton';
 import { showToast } from '../ui/toast';
+import { isOfflineError } from '../../lib/offline';
 
 const PAGE = 20;
 
@@ -159,7 +160,8 @@ function StepRow({
           <SnoozeControl action={action} trigger={false} ref={snooze} returnFocus={more} />
         </div>
       )}
-      {update.isError && (
+      {/* Offline the toast says that nothing changed. */}
+      {update.isError && !isOfflineError(update.error) && (
         <InlineNotification kind="error" className="col-span-2">
           We could not confirm this change. The list was read again: check the step before you try
           once more.

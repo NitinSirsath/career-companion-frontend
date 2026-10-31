@@ -11,6 +11,7 @@ import {
 import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
 import { TodoState } from './TodoState';
+import { isOfflineError } from '../../lib/offline';
 
 interface ConversationActionProps {
   conversation: Conversation;
@@ -72,7 +73,7 @@ export function ConversationAction({
           ))}
         </div>
       )}
-      {change.isError && (
+      {change.isError && !isOfflineError(change.error) && (
         <p role="alert" className="text-xs text-status-error">
           Could not update: {change.error.message}
         </p>

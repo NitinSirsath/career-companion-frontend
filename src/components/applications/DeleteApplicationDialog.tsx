@@ -12,6 +12,7 @@ import {
 } from '../ui/dialog';
 import { InlineNotification } from '../ui/notification';
 import { showToast } from '../ui/toast';
+import { isOfflineError } from '../../lib/offline';
 
 /**
  * Deletes an application from NorthList, after the user confirms. Its mails stay in Mails, no
@@ -52,7 +53,7 @@ export function DeleteApplicationDialog({
         <p className="text-sm text-text-secondary">
           Its mails stay in Mails, no longer linked. To finish a job search instead, use Archive.
         </p>
-        {remove.isError && (
+        {remove.isError && !isOfflineError(remove.error) && (
           <InlineNotification kind="error" className="mt-6">
             We could not confirm the delete. Close this and look at the application again.
           </InlineNotification>

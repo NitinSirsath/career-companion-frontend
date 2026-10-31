@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, isApiError } from './client';
 import { conversationKeys } from './conversations';
+import { OFFLINE_REPLY } from '../lib/offline';
 import {
   ListMailboxThreadsResponseSchema,
   MailThreadSchema,
@@ -109,6 +110,8 @@ export function useSendMailReply(threadId: string) {
   return useMutation({
     mutationFn: (input: SendMailReplyRequest) => sendMailReply(threadId, input),
     retry: false,
+    // Offline the reply is not sent and stays in the box; the toast says so.
+    meta: { offlineMessage: OFFLINE_REPLY },
     onError: (error) => {
       // The backend learned that this connection may not send: show "Allow sending".
       if (isApiError(error) && error.code === 'GMAIL_SEND_NOT_ALLOWED')

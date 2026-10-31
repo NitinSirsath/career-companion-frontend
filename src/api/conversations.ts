@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import {
   keepPreviousData,
+  onlineManager,
   useMutation,
   useQuery,
   useQueryClient,
@@ -146,7 +147,8 @@ export function useMarkSeenOnOpen(conversation: Conversation | undefined) {
   });
   const key = conversation?.isNew ? conversation.key : null;
   useEffect(() => {
-    if (key) mutate(key);
+    // Offline, reading a mail changes nothing: it stays new until it is opened online.
+    if (key && onlineManager.isOnline()) mutate(key);
   }, [key, mutate]);
 }
 

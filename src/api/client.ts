@@ -15,7 +15,9 @@ import { DashboardResponseSchema, type DashboardPeriod } from '../contracts/dash
 import { GmailStatusResponseSchema } from '../contracts/gmail';
 import type { ApplicationFilters } from '../contracts/application';
 import { CorrectEmailMatchResponseSchema, type CorrectEmailMatchRequest } from '../contracts/email';
+import { onlineManager } from '@tanstack/react-query';
 import { z } from 'zod';
+import { OFFLINE_CHANGE } from '../lib/offline';
 import {
   ActionWithContextResponseSchema,
   ActivateAIProviderResponseSchema,
@@ -77,7 +79,8 @@ const SIGN_IN_PATHS = ['/login', '/test-login'];
 /** Shared client deadline (Sprint 5). Mutations reuse it; do not add competing timeouts. */
 export const REQUEST_TIMEOUT_MS = 15_000;
 
-export type ApiErrorKind = 'http' | 'timeout' | 'network' | 'contract';
+/** `offline`: a change refused before sending because the device is offline; nothing was sent. */
+export type ApiErrorKind = 'http' | 'timeout' | 'network' | 'contract' | 'offline';
 
 /**
  * Keeps HTTP status, the server's machine-readable code and its structured details; messages are
@@ -97,11 +100,17 @@ export class ApiError extends Error {
 
   /** A write may have been applied: timeout, network failure, 5xx or a malformed success body. */
   get outcomeUncertain(): boolean {
+    if (this.kind === 'offline') return false;
     return this.kind !== 'http' || (this.status ?? 0) >= 500;
   }
 }
 
 export const isApiError = (err: unknown): err is ApiError => err instanceof ApiError;
+
+/** Offline, a change is refused before anything is sent: it is never held to send later. */
+function refuseChangeOffline(method = 'GET') {
+  if (method !== 'GET' && !onlineManager.isOnline()) throw new ApiError(OFFLINE_CHANGE, 'offline');
+}
 
 type RequestOptions = { signal?: AbortSignal };
 
@@ -127,6 +136,7 @@ export class ApiClient {
     schema?: z.ZodType<T>,
     timeoutMs = REQUEST_TIMEOUT_MS,
   ): Promise<T> {
+    refuseChangeOffline(options.method);
     // Every request is bounded. A caller/query AbortSignal is forwarded to fetch as well.
     const controller = new AbortController();
     const external = options.signal;

@@ -12,6 +12,7 @@ import {
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
 import { InlineNotification } from './ui/notification';
+import { OFFLINE_CHANGE, isOfflineError } from '../lib/offline';
 
 /** Archives or restores an application, after the user confirms. */
 export function ArchiveControl({
@@ -53,8 +54,12 @@ export function ArchiveControl({
       applyAcknowledgedApplication(client, saved);
       setSnapshot(null);
       giveFocusBack();
-    } catch {
-      setError('We could not confirm the change. Close this and look at the application again.');
+    } catch (problem) {
+      setError(
+        isOfflineError(problem)
+          ? OFFLINE_CHANGE
+          : 'We could not confirm the change. Close this and look at the application again.',
+      );
     } finally {
       setPending(false);
       await refreshFollowThrough(client);

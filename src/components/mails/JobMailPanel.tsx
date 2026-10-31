@@ -30,6 +30,7 @@ import { InlineNotification } from '../ui/notification';
 import { showToast } from '../ui/toast';
 import { ConversationApplication } from './ConversationApplication';
 import { TodoState } from './TodoState';
+import { isOfflineError } from '../../lib/offline';
 
 /** On phones a card that folds: its title is a button, the rest opens under it. */
 function FoldedSection({ title, children }: { title: string; children: ReactNode }) {
@@ -259,7 +260,7 @@ function NextStep({ detail }: { detail: ConversationDetail }) {
         </div>
       )}
       {fake && <p className="text-xs text-text-secondary">{FAKE_OFFER.stepNote}</p>}
-      {change.isError && (
+      {change.isError && !isOfflineError(change.error) && (
         <InlineNotification kind="error">
           Could not update: {change.error.message}
         </InlineNotification>

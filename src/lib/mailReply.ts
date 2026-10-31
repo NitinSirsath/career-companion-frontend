@@ -1,4 +1,5 @@
 import { isApiError } from '../api/client';
+import { isOfflineError } from './offline';
 import type { DraftDoc } from '../contracts/conversation';
 import { MAIL_REPLY_TEXT_LIMIT } from '../contracts/mailbox';
 import { parseSender } from './mails';
@@ -24,9 +25,11 @@ export type ReplyProblem =
 
 /**
  * A reply that got no clear answer may have been sent: a timeout, a lost connection, or a server
- * error. Only "Gmail is busy" is a server answer that says nothing was sent.
+ * error. Only "Gmail is busy" is a server answer that says nothing was sent. Offline nothing was
+ * sent and the toast says so, so the box shows nothing more: null.
  */
-export function replyProblem(error: unknown): ReplyProblem {
+export function replyProblem(error: unknown): ReplyProblem | null {
+  if (isOfflineError(error)) return null;
   if (!isApiError(error)) return { kind: 'unconfirmed' };
   if (error.code === 'GMAIL_SEND_NOT_ALLOWED') return { kind: 'allow-sending' };
   if (error.code === 'MAIL_REPLY_UNCONFIRMED') return { kind: 'unconfirmed' };
