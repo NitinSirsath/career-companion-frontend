@@ -6,7 +6,7 @@ import { showToast } from './ui/toast';
 /**
  * The app's data client. Offline (owner, 30 Oct 2026): a change runs at once and fails with
  * "You're offline. Nothing was changed." instead of being held and sent later, which is what the
- * data library does by default. A change can name its own words in \`meta.offlineMessage\`.
+ * data library does by default. A change can name its own words in `meta.offlineMessage`.
  */
 export function createQueryClient() {
   return new QueryClient({
