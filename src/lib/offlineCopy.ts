@@ -31,6 +31,7 @@ const KEPT_KEYS: readonly string[] = [
   'appMode',
   'aiSettings',
   'auth',
+  'alerts',
 ];
 
 export const KEEP_FOR_MS = 7 * 24 * 60 * 60 * 1000;
