@@ -124,7 +124,6 @@ describe('login page', () => {
     ).toHaveAttribute('href', 'mailto:nitinsirsath8855@gmail.com');
     expect(googleSignInProblem('beta_full')).toBe(notice.textContent);
   });
-  });
 
   it('offers a test user and no Google sign-in in dev mode', async () => {
     mode('dev');
