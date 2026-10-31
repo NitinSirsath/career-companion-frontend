@@ -1,17 +1,27 @@
 import { Menu } from '@base-ui/react/menu';
 import { Checkmark } from '@carbon/icons-react';
+import { onlineManager } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { logout, type User } from '../../api/auth';
 import { dropAllKeptReplies } from '../../lib/keptReply';
+import { OFFLINE_CHANGE } from '../../lib/offline';
+import { forgetOfflineCopies } from '../../lib/offlineCopy';
 import { THEME_CHOICES } from '../../lib/theme';
 import { cn } from '../../lib/utils';
 import { useTheme } from '../ThemeProvider';
 import { Avatar } from '../ui/avatar';
 import { ITEM_CLASS, POPUP_CLASS } from '../ui/select';
+import { showToast } from '../ui/toast';
 
 export async function logOutAndLeave() {
-  // Unsent replies kept in this browser go too: the next person here sees none.
+  // Signing out needs the server: offline, the user stays signed in and is told so.
+  if (!onlineManager.isOnline()) {
+    showToast(OFFLINE_CHANGE, { offline: true });
+    return;
+  }
+  // Unsent replies and the copies for offline pages go too: the next person here sees none.
   dropAllKeptReplies();
+  await forgetOfflineCopies();
   await logout();
   window.location.href = '/login';
 }
