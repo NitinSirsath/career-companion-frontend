@@ -1,10 +1,9 @@
-import { useEffect } from 'react';
-import { APP_TITLE, CONTACT_EMAIL, PRODUCT_TITLE } from '../../lib/productPage';
+import { CONTACT_EMAIL, SIGN_IN_URL } from '../../lib/productPage';
 import { Wordmark } from '../layout/Logo';
 import { GooglePermissions } from './GooglePermissions';
 import { HowItWorks } from './HowItWorks';
 import { ProductHero } from './ProductHero';
-import { PrivacyLink, SIGN_IN_URL } from './ProductParts';
+import { PrivacyLink } from './ProductParts';
 import { WhatYouCanDo } from './WhatYouCanDo';
 
 /** The top bar: the name, and "Sign in" at the right, as on the sign-in page. */
@@ -45,17 +44,11 @@ function ProductFooter() {
 }
 
 /**
- * The public page at `/` for visitors who are not signed in (owner, 31 Oct 2026): what NorthList
- * does, why it asks for Gmail, and the privacy policy. Google's OAuth branding names it as the
- * app's home page, so it must never need sign-in.
+ * The product site's one page on northlist.site (owner, 31 Oct 2026): what NorthList does, why it
+ * asks for Gmail, and the privacy policy. Google's OAuth branding names it as the app's home page,
+ * so it must never need sign-in. Its tab title is in `site/index.html`.
  */
 export function ProductPage() {
-  useEffect(() => {
-    document.title = PRODUCT_TITLE;
-    return () => {
-      document.title = APP_TITLE;
-    };
-  }, []);
   return (
     <div className="min-h-screen bg-background font-sans text-text-primary">
       <ProductBar />
