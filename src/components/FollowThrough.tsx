@@ -21,6 +21,7 @@ import {
   DialogTitle,
 } from './ui/dialog';
 import { InlineNotification } from './ui/notification';
+import { OFFLINE_CHANGE, isOfflineError } from '../lib/offline';
 
 const CLOCK_CHANGE =
   'If the clocks change at that time in this time zone, choose another time or the UTC zone.';
@@ -89,7 +90,9 @@ export function SnoozeControl({
       });
       setSnapshot(null);
       giveFocusBack();
-    } catch {
+    } catch (problem) {
+      // Offline nothing was sent, so the user may try again once back online.
+      if (isOfflineError(problem)) return void setError(OFFLINE_CHANGE);
       setFailed(true);
       setError('We could not confirm the snooze. Close this and look at the to-do again.');
     } finally {
