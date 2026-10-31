@@ -7,7 +7,6 @@
  * over, deletes the caches it can see and unregisters itself. Pages already open keep working;
  * the next visit loads straight from the network.
  */
-
 self.addEventListener('install', () => self.skipWaiting());
 
 self.addEventListener('activate', (event) => {
