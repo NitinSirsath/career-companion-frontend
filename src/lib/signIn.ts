@@ -46,48 +46,6 @@ export function googleSignInProblem(code: string): string {
 export const SIGN_IN_PAGES = ['/login', '/test-login'];
 
 /**
- * The product page (owner, 31 Oct 2026): public, so Google's OAuth branding can name it as the
- * home page. Not a sign-in page: a signed-in user there goes on to the app's home page, while a
- * sign-in page sends them to `/`, which would loop.
- */
-export const PRODUCT_PAGE = '/';
-
-/** A page a visitor who is not signed in may open. */
-export const isPublicPage = (pathname: string) =>
-  pathname === PRODUCT_PAGE || SIGN_IN_PAGES.includes(pathname);
-
-/**
- * "Someone has signed in on this browser before": only a yes, kept in this browser. A browser
- * that keeps nothing (private mode, blocked storage) counts as new.
- */
-const SIGNED_IN_BEFORE = 'northlist.signedInBefore';
-
-export function wasSignedInBefore(): boolean {
-  try {
-    return window.localStorage.getItem(SIGNED_IN_BEFORE) === 'yes';
-  } catch {
-    return false;
-  }
-}
-
-export function rememberSignedIn() {
-  try {
-    window.localStorage.setItem(SIGNED_IN_BEFORE, 'yes');
-  } catch {
-    // Nothing is kept: this browser shows the product page at once next time too.
-  }
-}
-
-/**
- * The product page shows at once, before the server says who is signed in, only at `/` in a
- * browser where nobody has signed in (owner, 31 Oct 2026). A sleeping server can take a minute to
- * answer, and a new visitor, or Google's reviewer, should not wait for it. Anyone else waits as
- * before, so a signed-in user never sees the product page first.
- */
-export const productPageAtOnce = (pathname: string, signedInBefore: boolean) =>
-  pathname === PRODUCT_PAGE && !signedInBefore;
-
-/**
  * The page to open after sign-in, from the `next` in the sign-in page's address. Only a path
  * inside the app counts: one leading "/", then printable characters with no backslash, and not
  * a sign-in page itself. Anything else gives null, and the app opens its home page.
