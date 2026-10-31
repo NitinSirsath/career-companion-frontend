@@ -3,6 +3,7 @@ import { Checkmark } from '@carbon/icons-react';
 import { onlineManager } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { logout, type User } from '../../api/auth';
+import { turnOffHere } from '../../lib/alerts';
 import { dropAllKeptReplies } from '../../lib/keptReply';
 import { OFFLINE_CHANGE } from '../../lib/offline';
 import { forgetOfflineCopies } from '../../lib/offlineCopy';
@@ -19,6 +20,8 @@ export async function logOutAndLeave() {
     showToast(OFFLINE_CHANGE, { offline: true });
     return;
   }
+  // Alerts for this user stop on this device, while the server still knows who is signed in.
+  await turnOffHere().catch(() => undefined);
   // Unsent replies and the copies for offline pages go too: the next person here sees none.
   dropAllKeptReplies();
   await forgetOfflineCopies();
