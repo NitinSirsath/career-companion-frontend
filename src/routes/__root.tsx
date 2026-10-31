@@ -10,6 +10,7 @@ import { safeNextPath, SIGN_IN_PAGES } from '../lib/signIn';
 import { BreadcrumbProvider } from '../components/layout/Breadcrumb';
 import { Sidebar } from '../components/layout/Sidebar';
 import { MobileNav } from '../components/layout/MobileNav';
+import { OfflineLine, OfflinePage } from '../components/layout/OfflinePage';
 import { TopBar } from '../components/layout/TopBar';
 import { useMenuCollapsed } from '../components/layout/useMenuCollapsed';
 import { ProcessingRefreshObserver } from '../components/ProcessingRefreshObserver';
@@ -76,10 +77,11 @@ function LoggedInShell({ children }: LoggedInShellProps) {
         <div className="flex min-w-0 flex-1">
           <Sidebar collapsed={collapsed} onCollapsedChange={setCollapsed} />
           <div className="flex min-w-0 flex-1 flex-col pb-16 md:pb-0">
+            <OfflineLine />
             <main className="flex-1 px-4 py-6 md:px-12 md:py-8">
               {/* One width for every page: the full width up to 1584px, centred beyond. */}
               <div key={section} className="mx-auto w-full max-w-[1584px] animate-page-in">
-                {children}
+                <OfflinePage>{children}</OfflinePage>
               </div>
             </main>
 
