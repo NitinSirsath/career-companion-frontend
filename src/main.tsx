@@ -12,6 +12,7 @@ import { ToastProvider } from './components/ui/toast';
 import { SignInGate } from './components/startup/SignInGate';
 import { fetchLiveVersion, startQuietUpdates } from './lib/quietUpdate';
 import { createQueryClient } from './components/queryClient';
+import { ProductPage } from './components/product/ProductPage';
 import { startFromBrowserOnlineState } from './lib/offline';
 import { startServiceWorker } from './lib/serviceWorker';
 
@@ -38,9 +39,16 @@ if (import.meta.env.PROD)
 // Keeps the app's files for offline pages and shows push alerts (owner, 30 Oct 2026).
 if (import.meta.env.PROD) startServiceWorker();
 
-/** The app opens only once it knows who is signed in; until then the start-up screen shows. */
+/**
+ * The app opens only once it knows who is signed in; until then the start-up screen shows, or at
+ * `/` for a new visitor the product page.
+ */
 function App() {
-  return <SignInGate>{(user) => <RouterProvider router={router} context={{ user }} />}</SignInGate>;
+  return (
+    <SignInGate productPage={<ProductPage />}>
+      {(user) => <RouterProvider router={router} context={{ user }} />}
+    </SignInGate>
+  );
 }
 
 createRoot(document.getElementById('root')!).render(
