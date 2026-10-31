@@ -25,7 +25,7 @@ function filesNamedIn(html) {
   return [...new Set(html.match(/\/assets\/[^"'\s)]+/g) || [])];
 }
 
-/** The parts a script loads later, such as `./RichReplyField-a1b2c3.js`. */
+/** The parts a script loads later, such as the reply box: `./RichReplyField-a1b2c3.js`. */
 function partsNamedIn(script) {
   return (script.match(/\.\/[\w-]+\.js/g) || []).map((part) => `/assets/${part.slice(2)}`);
 }
