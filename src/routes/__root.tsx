@@ -6,7 +6,7 @@ import {
   type ErrorComponentProps,
 } from '@tanstack/react-router';
 import type { User } from '../api/auth';
-import { safeNextPath, SIGN_IN_PAGES } from '../lib/signIn';
+import { isPublicPage, safeNextPath, SIGN_IN_PAGES } from '../lib/signIn';
 import { BreadcrumbProvider } from '../components/layout/Breadcrumb';
 import { Sidebar } from '../components/layout/Sidebar';
 import { MobileNav } from '../components/layout/MobileNav';
@@ -28,15 +28,11 @@ interface LoggedInShellProps {
 
 export const Route = createRootRouteWithContext<RouterContext>()({
   beforeLoad: async ({ location, context }) => {
-    const signInPage = SIGN_IN_PAGES.includes(location.pathname);
-    if (!context.user && !signInPage) {
+    if (!context.user && !isPublicPage(location.pathname)) {
       // After sign-in the user comes back to the page asked for.
-      throw redirect({
-        to: '/login',
-        search: location.href === '/' ? {} : { next: location.href },
-      });
+      throw redirect({ to: '/login', search: { next: location.href } });
     }
-    if (context.user && signInPage) {
+    if (context.user && SIGN_IN_PAGES.includes(location.pathname)) {
       const next = safeNextPath((location.search as { next?: unknown }).next);
       // `href` keeps the page's own search, as the address had it.
       throw redirect({ to: '/', href: next ?? undefined });
