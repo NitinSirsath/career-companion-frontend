@@ -203,10 +203,12 @@ describe('signing in returns to the page asked for', () => {
     expect(router.state.location.search).toEqual({ next: '/applications?status=OFFER' });
   });
 
-  it('asks for no next on the home page', async () => {
+  it('keeps a signed-out visitor on the product page at the home page', async () => {
     const router = showApp('/', null);
-    expect(await screen.findByRole('heading', { name: 'Sign in' })).toBeInTheDocument();
-    expect(router.state.location.search).toEqual({});
+    expect(
+      await screen.findByRole('heading', { name: 'Your job search, sorted from your Gmail.' }),
+    ).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/');
   });
 
   it('opens next at once for a signed-in user, and only when it is a page of the app', async () => {
