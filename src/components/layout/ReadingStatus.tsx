@@ -22,7 +22,7 @@ const doneShare = (status: AIReadingStatusResponse) =>
   status.total ? status.done / status.total : 0;
 
 /** A ring that fills with the share of mails done: the status where a bar does not fit. */
-function ProgressRing({ share, size }: { share: number; size: number }) {
+export function ProgressRing({ share, size }: { share: number; size: number }) {
   const centre = size / 2;
   const radius = centre - 1.75;
   const length = 2 * Math.PI * radius;
