@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Page not found · NorthList</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=Geist+Mono:wght@400..500&display=swap" rel="stylesheet">
+<!--
+  The product site's "page not found" (owner, 31 Oct 2026, idea C of the mock): Render serves it
+  for any address northlist.site does not have. A plain file like privacy.html, so it opens even
+  while the server sleeps. "404" is drawn from small mail tiles in the app's tag colours.
+-->
+<style>
+  :root {
+    color-scheme: light dark;
+    --background: #ffffff;
+    --text-primary: #161616;
+    --text-secondary: #525252;
+    --text-tertiary: #6f6f6f;
+    --border-subtle: #e0e0e0;
+    --layer-hover: #f4f4f4;
+    --link: #0f62fe;
+    --link-hover: #0043ce;
+    --mark: #0f62fe;
+    --button: #0f62fe;
+    --button-hover: #0050e6;
+    --blue-bg: #d0e2ff; --blue: #002d9c;
+    --cyan-bg: #bae6ff; --cyan: #003a6d;
+    --teal-bg: #9ef0f0; --teal: #004144;
+    --green-bg: #a7f0ba; --green: #044317;
+    --yellow-bg: #fcf4d6; --yellow: #483700;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background: #0d0d0d;
+      --text-primary: #f0f0f0;
+      --text-secondary: #b3b3b3;
+      --text-tertiary: #8f8f8f;
+      --border-subtle: #272727;
+      --layer-hover: #141414;
+      --link: #78a9ff;
+      --link-hover: #a6c8ff;
+      --mark: #4589ff;
+      --blue-bg: #0f2350; --blue: #a6c8ff;
+      --cyan-bg: #0a2a40; --cyan: #82cfff;
+      --teal-bg: #082d2e; --teal: #3ddbd9;
+      --green-bg: #0b2a17; --green: #6fdc8c;
+      --yellow-bg: #2e2600; --yellow: #fddc69;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--background);
+    color: var(--text-primary);
+    font: 14px/20px 'Geist', 'Helvetica Neue', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--link); text-decoration: none; }
+  a:hover { color: var(--link-hover); text-decoration: underline; }
+  :focus-visible { outline: 2px solid var(--link); outline-offset: -2px; }
+  .wordmark { display: inline-block; font-weight: 700; letter-spacing: -0.045em; line-height: 1; white-space: nowrap; color: var(--text-primary); }
+  .wordmark svg { display: inline-block; width: 0.57em; height: 0.57em; margin: 0 -0.031em 0 0.011em; vertical-align: -0.017em; fill: var(--mark); }
+
+  header { display: flex; align-items: stretch; height: 56px; border-bottom: 1px solid var(--border-subtle); }
+  header .home { flex: 1; display: flex; align-items: center; padding: 0 20px; }
+  header .home:hover { text-decoration: none; }
+  header .signin { display: flex; align-items: center; padding: 0 20px; border-left: 1px solid var(--border-subtle); color: var(--text-primary); }
+  header .signin:hover { background: var(--layer-hover); color: var(--text-primary); text-decoration: none; }
+
+  main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 72px 48px; }
+
+  /* "404" on a 19 × 7 grid: 5 columns per digit, 2 empty columns between. */
+  .tiles { display: grid; grid-template-columns: repeat(19, minmax(0, 1fr)); gap: 4px; width: 100%; max-width: 880px; margin-bottom: 44px; }
+  .tiles i, .tiles b { aspect-ratio: 1; }
+  .tiles i { border: 1px solid var(--border-subtle); opacity: 0.6; }
+  /* A lit tile is a tiny mail: three lines, each shorter than the one above. */
+  .tiles b {
+    background-color: var(--bg);
+    background-image:
+      linear-gradient(var(--fg), var(--fg)),
+      linear-gradient(color-mix(in srgb, var(--fg) 70%, transparent), color-mix(in srgb, var(--fg) 70%, transparent)),
+      linear-gradient(color-mix(in srgb, var(--fg) 50%, transparent), color-mix(in srgb, var(--fg) 50%, transparent));
+    background-size: 76% 10%, 58% 10%, 40% 10%;
+    background-position: 12% 28%, 12% 50%, 12% 72%;
+    background-repeat: no-repeat;
+    opacity: 0;
+    animation: sort-in 420ms cubic-bezier(0, 0, 0.38, 0.9) forwards;
+    animation-delay: calc(120ms + var(--n) * 40ms);
+  }
+  .b { --bg: var(--blue-bg); --fg: var(--blue); }
+  .c { --bg: var(--cyan-bg); --fg: var(--cyan); }
+  .t { --bg: var(--teal-bg); --fg: var(--teal); }
+  .g { --bg: var(--green-bg); --fg: var(--green); }
+  .y { --bg: var(--yellow-bg); --fg: var(--yellow); }
+  .m { --bg: var(--mark); --fg: #ffffff; }
+  /* Sorted in one by one, like mails the AI has read. */
+  @keyframes sort-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .tiles b { animation: none; opacity: 1; } }
+
+  .code { margin: 0; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; line-height: 16px; letter-spacing: 0.02em; color: var(--text-tertiary); }
+  h1 { margin: 8px 0 0; font-size: 48px; line-height: 56px; font-weight: 400; letter-spacing: -0.02em; }
+  .lead { margin: 16px auto 0; max-width: 560px; font-size: 18px; line-height: 28px; color: var(--text-secondary); }
+  .button {
+    display: inline-flex; align-items: center; justify-content: space-between; gap: 48px; margin-top: 32px;
+    height: 48px; padding: 0 16px; background: var(--button); color: #ffffff; font-size: 14px;
+  }
+  .button:hover { background: var(--button-hover); color: #ffffff; text-decoration: none; }
+  .button svg { width: 16px; height: 16px; fill: currentColor; }
+  .moved { margin: 16px 0 0; font-size: 13px; line-height: 18px; color: var(--text-secondary); }
+  .moved b { color: var(--text-primary); font-weight: 600; }
+
+  footer { border-top: 1px solid var(--border-subtle); }
+  footer div { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; max-width: 1184px; margin: 0 auto; padding: 24px 48px 32px; }
+  footer .copy { font-size: 12px; color: var(--text-secondary); }
+  footer .links { display: flex; flex-wrap: wrap; gap: 8px 24px; margin-left: auto; font-size: 12px; }
+
+  @media (max-width: 640px) {
+    main { padding: 40px 16px 48px; }
+    .tiles { gap: 2px; margin-bottom: 28px; }
+    h1 { font-size: 32px; line-height: 40px; }
+    .lead { font-size: 16px; line-height: 24px; }
+    .button { align-self: stretch; }
+    footer div { padding: 24px 16px 32px; }
+    footer .links { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <a class="home" href="/" aria-label="NorthList home">
+    <span class="wordmark" style="font-size: 22px" aria-hidden="true">n<svg viewBox="2 2 28 28"><path d="M2 16A14 14 0 0 1 30 16ZM2.144 18H22A2 2 0 0 1 22 22H3.351A14 14 0 0 1 2.144 18ZM4.511 24H15.5A2 2 0 0 1 15.5 28H8.789A14 14 0 0 1 4.511 24Z"/></svg>rthlist</span>
+  </a>
+  <a class="signin" href="https://app.northlist.site/login">Sign in</a>
+</header>
+<main>
+  <div class="tiles" aria-hidden="true">
+    <i></i><i></i><i></i><b class="g" style="--n:0"></b><i></i><i></i><i></i><i></i><b class="y" style="--n:7"></b><b class="g" style="--n:14"></b><b class="t" style="--n:21"></b><i></i><i></i><i></i><i></i><i></i><i></i><b class="c" style="--n:28"></b><i></i>
+    <i></i><i></i><b class="c" style="--n:35"></b><b class="b" style="--n:42"></b><i></i><i></i><i></i><b class="t" style="--n:5"></b><i></i><i></i><i></i><b class="y" style="--n:12"></b><i></i><i></i><i></i><i></i><b class="m" style="--n:19"></b><b class="y" style="--n:26"></b><i></i>
+    <i></i><b class="m" style="--n:33"></b><i></i><b class="g" style="--n:40"></b><i></i><i></i><i></i><b class="m" style="--n:3"></b><i></i><i></i><i></i><b class="c" style="--n:10"></b><i></i><i></i><i></i><b class="g" style="--n:17"></b><i></i><b class="c" style="--n:24"></b><i></i>
+    <b class="g" style="--n:31"></b><i></i><i></i><b class="b" style="--n:38"></b><i></i><i></i><i></i><b class="t" style="--n:1"></b><i></i><i></i><i></i><b class="y" style="--n:8"></b><i></i><i></i><b class="c" style="--n:15"></b><i></i><i></i><b class="y" style="--n:22"></b><i></i>
+    <b class="b" style="--n:29"></b><b class="m" style="--n:36"></b><b class="y" style="--n:43"></b><b class="g" style="--n:6"></b><b class="t" style="--n:13"></b><i></i><i></i><b class="m" style="--n:20"></b><i></i><i></i><i></i><b class="c" style="--n:27"></b><i></i><i></i><b class="y" style="--n:34"></b><b class="g" style="--n:41"></b><b class="t" style="--n:4"></b><b class="c" style="--n:11"></b><b class="b" style="--n:18"></b>
+    <i></i><i></i><i></i><b class="b" style="--n:25"></b><i></i><i></i><i></i><b class="t" style="--n:32"></b><i></i><i></i><i></i><b class="y" style="--n:39"></b><i></i><i></i><i></i><i></i><i></i><b class="y" style="--n:2"></b><i></i>
+    <i></i><i></i><i></i><b class="g" style="--n:9"></b><i></i><i></i><i></i><i></i><b class="y" style="--n:16"></b><b class="g" style="--n:23"></b><b class="t" style="--n:30"></b><i></i><i></i><i></i><i></i><i></i><i></i><b class="c" style="--n:37"></b><i></i>
+  </div>
+  <p class="code">ERROR 404</p>
+  <h1>Nothing here to sort.</h1>
+  <p class="lead">This page does not exist. The address may be mistyped, or the page has moved.</p>
+  <a class="button" href="/">Go to the home page <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M18 6l-1.43 1.393L24.15 15H4v2h20.15l-7.58 7.573L18 26l10-10L18 6z"/></svg></a>
+  <p class="moved"><b>Looking for the app?</b> It moved to <a href="https://app.northlist.site/">app.northlist.site</a>.</p>
+</main>
+<footer>
+  <div>
+    <span class="wordmark" style="font-size: 16px" aria-hidden="true">n<svg viewBox="2 2 28 28"><path d="M2 16A14 14 0 0 1 30 16ZM2.144 18H22A2 2 0 0 1 22 22H3.351A14 14 0 0 1 2.144 18ZM4.511 24H15.5A2 2 0 0 1 15.5 28H8.789A14 14 0 0 1 4.511 24Z"/></svg>rthlist</span>
+    <span class="copy">© 2026 NorthList</span>
+    <span class="links"><a href="/privacy.html">Privacy policy</a><a href="mailto:nitinsirsath8855@gmail.com">nitinsirsath8855@gmail.com</a></span>
+  </div>
+</footer>
+</body>
+</html>
