@@ -4,14 +4,18 @@ import { PageHeader } from '../layout/PageHeader';
 import { FactList, SettingsSection } from '../layout/SettingsSection';
 import { SectionError } from '../ui/section-error';
 import { SkeletonList } from '../ui/skeleton';
+import { AlertsSection } from './AlertsSection';
 import { SetPasswordForm } from './SetPasswordForm';
 
-/** The signed-in user's account: the ways they sign in, their password, and the theme. */
+/** The signed-in user's account: the ways they sign in, their password, the theme and alerts. */
 export function AccountPage() {
   const { data: profile, isLoading, isError } = useProfile();
   return (
     <div className="flex flex-col">
-      <PageHeader title="Account" description="How you sign in, and how the app looks." />
+      <PageHeader
+        title="Account"
+        description="How you sign in, how the app looks, and alerts on this device."
+      />
       {isLoading && <SkeletonList rows={3} label="Loading your account" />}
       {isError && <SectionError title="Your account could not be loaded" />}
       {profile && (
@@ -57,6 +61,7 @@ export function AccountPage() {
           >
             <ThemeSelector className="max-w-80" />
           </SettingsSection>
+          <AlertsSection />
         </>
       )}
     </div>
