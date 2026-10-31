@@ -6,6 +6,7 @@ import { Button } from '../ui/button';
 import { DataTable } from '../ui/data-table';
 import { EmptyState } from '../ui/empty-state';
 import { SectionError } from '../ui/section-error';
+import { isOfflineError } from '../../lib/offline';
 import { showToast } from '../ui/toast';
 
 const HOW: Record<BlockedSender['source'], string> = {
@@ -23,7 +24,10 @@ function UnblockButton({ row }: { row: BlockedSender }) {
       onClick={() =>
         unblock.mutate(row.id, {
           onSuccess: () => showToast(`New mails from ${row.domain} come in again.`),
-          onError: () => showToast('That did not go through. Try again.'),
+          // Offline, the offline toast already said that nothing changed.
+          onError: (error) => {
+            if (!isOfflineError(error)) showToast('That did not go through. Try again.');
+          },
         })
       }
     >
