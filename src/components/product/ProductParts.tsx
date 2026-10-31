@@ -3,12 +3,6 @@ import { ArrowRight, type CarbonIconType } from '@carbon/icons-react';
 import { PRIVACY_POLICY_URL } from '../../lib/productPage';
 import { cn } from '../../lib/utils';
 
-/**
- * The product page's links are plain links, not router links: the page also shows before the
- * router starts (see `SignInGate`).
- */
-export const SIGN_IN_URL = '/login';
-
 /** One band of the page, split from the next by a thin line, with the page's width and gutters. */
 export function Band({
   labelledBy,

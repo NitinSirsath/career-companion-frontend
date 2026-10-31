@@ -9,7 +9,6 @@ import {
   type CopyStore,
   type SavedCopy,
 } from '../../lib/offlineCopy';
-import { productPageAtOnce, rememberSignedIn, wasSignedInBefore } from '../../lib/signIn';
 import { StartupScreen } from './StartupScreen';
 import { useSignInCheck, type SignInCheck } from './useSignInCheck';
 
@@ -45,17 +44,14 @@ function openFor(check: SignInCheck, copy: SavedCopy | null | undefined): User |
  * Shows the start-up screen until the app knows who is signed in, then the app for that user.
  * Offline, with a copy saved on this device, the app opens at once for the copy's user, read-only
  * (owner, 30 Oct 2026), and checks again when back online. A copy is used only for its own user;
- * with someone else or nobody signed in, it is dropped. At `/`, in a browser where nobody has
- * signed in, `productPage` shows at once instead of the start-up screen (owner, 31 Oct 2026).
+ * with someone else or nobody signed in, it is dropped.
  */
 export function SignInGate({
   children,
-  productPage,
   store = browserCopyStore,
   version = __APP_VERSION__,
 }: {
   children: (user: User | null) => ReactNode;
-  productPage?: ReactNode;
   store?: CopyStore;
   version?: string;
 }) {
@@ -72,10 +68,6 @@ export function SignInGate({
       void store.clear().catch(() => undefined);
   }, [user, copy, store]);
 
-  useEffect(() => {
-    if (user) rememberSignedIn();
-  }, [user]);
-
   // New data is saved for this user while the app is open.
   useEffect(
     () => (user ? keepCopies(queryClient, user, store, version) : undefined),
@@ -83,8 +75,6 @@ export function SignInGate({
   );
 
   if (user !== undefined) return children(user);
-  if (productPage && productPageAtOnce(window.location.pathname, wasSignedInBefore()))
-    return productPage;
   if (check.known) return <StartupScreen stage="checking" waitedMs={0} onRetry={() => undefined} />;
   return <StartupScreen stage={check.stage} waitedMs={check.waitedMs} onRetry={check.retry} />;
 }

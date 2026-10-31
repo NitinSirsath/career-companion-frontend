@@ -1,6 +1,7 @@
 import { ArrowRight } from '@carbon/icons-react';
+import { SIGN_IN_URL } from '../../lib/productPage';
 import { MailsPreview } from './MailsPreview';
-import { Band, PrivacyLink, SIGN_IN_URL } from './ProductParts';
+import { Band, PrivacyLink } from './ProductParts';
 
 /** What NorthList is, in one line; the one blue button; and the drawn Mails list. */
 export function ProductHero() {
