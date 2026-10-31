@@ -1,0 +1,40 @@
+name: Finish two-sites-frontend once (temporary)
+# Renames and deletes files on feat/two-sites and commits only that.
+# Lives only on the throwaway branch tmp/two-sites-frontend-finish, which is deleted afterwards.
+on:
+  push:
+    branches: [tmp/two-sites-frontend-finish]
+permissions:
+  contents: write
+concurrency:
+  group: finish-two-sites-frontend-once
+  cancel-in-progress: false
+jobs:
+  finish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: feat/two-sites
+      - name: Check the hand commits
+        run: |
+          if [ "$(git rev-parse 'HEAD^{tree}')" != "27be017916f98b877ef771f5f60c17364c5be636" ]; then
+            echo "The hand commits do not match the reviewed files. Nothing was changed."
+            exit 1
+          fi
+      - name: Rename and delete
+        run: |
+          git mv public/google7cf91af86a5d9174.html site/public/google7cf91af86a5d9174.html
+          git rm -q public/privacy.html
+      - name: Commit only the reviewed result
+        run: |
+          if [ "$(git write-tree)" != "1f9f79a5dd1e47135f53a37c19c64603060d2eee" ]; then
+            echo "The result does not match the reviewed tree. Nothing was pushed."
+            git status --short
+            exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(site): move the privacy policy and the Google file to the product site'
+          git push origin HEAD:feat/two-sites
