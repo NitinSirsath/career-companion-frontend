@@ -1,0 +1,56 @@
+name: Finish offline-pages once (temporary)
+# Adds the reviewed image files on feat/offline-pages, and commits only that.
+# Lives only on the throwaway branch tmp/offline-pages-finish, which is deleted afterwards.
+on:
+  push:
+    branches: [tmp/offline-pages-finish]
+permissions:
+  contents: write
+concurrency:
+  group: finish-offline-pages-once
+  cancel-in-progress: false
+jobs:
+  finish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: feat/offline-pages
+      - name: Check the hand commits
+        run: |
+          if [ "$(git rev-parse 'HEAD^{tree}')" != "718f52343335d59caed68a53f42b896bb1b11082" ]; then
+            echo "The hand commits do not match the reviewed files. Nothing was changed."
+            exit 1
+          fi
+      - name: Add the image files
+        run: |
+          base64 -d > public/alert-badge.png <<'B64'
+          iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAADAUlEQVR4nOydAW7DIAxFnWn3GjtZ
+          mpONnixLVCp11QgEbGzCf1IXde2mzT/+NhDSDwKqfBBQBQIoAwGUgQDKQABlPsk467q67bA/vl6+
+          7SJv9+F4fz6fpsmTYSYyRgj4HJ464mPZv2yC3MgQJgR4CbqjNpgRQ00AhaDHWDSFaC6AocC/s2dF
+          85rRVIAt+D9kL/DvNM2IJm3oFvjb9ljJfvB35vXBjRogmgGG7SYX8WwQEyAE/4eugZgQIhYU0vcq
+          wd+ZpSyJPQPCHzrTNWHPBFYBOulyatlb1W9igk2AQYL/hE0EFgEGC/4TFhGqi3DwfEfj4TgKc1UG
+          XLzg5lJVmIsFQPD/8F06h1QjwErglSIRimpAq3mSzihyg9MCwHqiFBXl0xYE6zlms6FTMT2VAbCe
+          NGFMlE22Wheb3ZQmuyCfyQBHIJfsGnkmA+D958jKgqwMgPcXkZUFWRmAs7+MnI4omQE4+8sJjcsh
+          uDhXlqQNJVME9lNHyoYOMwD2U0/KhmBB8hzaUGp/ACbdhDn0J/g/D0d1IGpBOS0UyOMolkc1wBHg
+          wsVeML9H7CJ8xV74LPkhwAfaUGWi1RkdEC+xTggZoAwEUMbcRu3RQAYoAwGUgQDKQABlIIAy0amI
+          Qa+E89vj3vJWBZiM+4ujx1XOzW5lgwWZOKzbUWOkaoCncXEtFqVQhI8RXxNPWZCjwS9JP7vh4vTv
+          T71h9GlpaQFyLMjTuHgSJkeAhcblTsIkBQibDDyNR5N7x2Eg9j++1UAstw0dxYY8PbYWiQ/AnmBF
+          TBkMxJSBAMpAAGUggDIQQJmicYChSTpPjVewuKm5Y5YjWzOlS49CFFtQmKKwNECbe9zVUz0QM3bP
+          UN9yFMtBdREO/7AnG7jesoClCzImQlewtaGGRHDUEazjgCCCdmH21BEis6Gat7aUXsPlRmQkHPpx
+          jUzobt1C/GxpmA1dDsSapKugCD4cl8n4h3bGwIqYMpgNVQYCKAMBlIEAykAAZSCAMhBAGQigDARQ
+          BgIoAwGU+QUAAP///PlRDgAAAAZJREFUAwBxOwwWFb5cuwAAAABJRU5ErkJggg==
+          B64
+          git add public/alert-badge.png
+      - name: Commit only the reviewed result
+        run: |
+          if [ "$(git write-tree)" != "93a9517c51954cc69725ee778887e2ca6912443f" ]; then
+            echo "The result does not match the reviewed tree. Nothing was pushed."
+            git status --short
+            exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(offline): add the alert badge image'
+          git push origin HEAD:feat/offline-pages
