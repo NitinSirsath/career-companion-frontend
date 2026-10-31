@@ -87,7 +87,7 @@ async function run(type: string, event: object = {}) {
 
 beforeEach(() => {
   network = vi.fn(async (path: string) =>
-    path === '/' || !path.includes('.') ? html() : new Response(`file \${path}`),
+    path === '/' || !path.includes('.') ? html() : new Response(`file ${path}`),
   );
   caches = fakeCaches((path) => network(path));
   showNotification = vi.fn(async () => undefined);
@@ -125,7 +125,7 @@ describe('the app files for offline pages', () => {
     await run('install');
     network.mockImplementation(async (path) =>
       path.includes('.')
-        ? new Response(`file \${path}`)
+        ? new Response(`file ${path}`)
         : html('<script src="/assets/index-v2.js">'),
     );
     await request('/dashboard', 'navigate');
@@ -136,7 +136,7 @@ describe('the app files for offline pages', () => {
     network.mockImplementation(async (path) => {
       if (path === '/assets/index-new.js')
         return new Response('lazy(() => import("./RichReplyField-r1.js"))');
-      if (path.includes('.')) return new Response(`file \${path}`);
+      if (path.includes('.')) return new Response(`file ${path}`);
       return html();
     });
     await run('install');
@@ -226,27 +226,27 @@ describe('push alerts', () => {
   });
 
   it('a tap shows the page in an open NorthList window', async () => {
-    const open = { url: `\${ORIGIN}/mails`, focus: vi.fn(), navigate: vi.fn() };
+    const open = { url: `${ORIGIN}/mails`, focus: vi.fn(), navigate: vi.fn() };
     windows = [open];
     const close = vi.fn();
     await run('notificationclick', { notification: { close, data: { url: '/applications/7' } } });
     expect(close).toHaveBeenCalled();
     expect(open.focus).toHaveBeenCalled();
-    expect(open.navigate).toHaveBeenCalledWith(`\${ORIGIN}/applications/7`);
+    expect(open.navigate).toHaveBeenCalledWith(`${ORIGIN}/applications/7`);
     expect(openWindow).not.toHaveBeenCalled();
   });
 
   it('a tap opens a new window when none is open, or when the open one cannot move', async () => {
     await run('notificationclick', { notification: { close: vi.fn(), data: { url: '/account' } } });
-    expect(openWindow).toHaveBeenCalledWith(`\${ORIGIN}/account`);
+    expect(openWindow).toHaveBeenCalledWith(`${ORIGIN}/account`);
     windows = [
       {
-        url: `\${ORIGIN}/mails`,
+        url: `${ORIGIN}/mails`,
         focus: vi.fn(),
         navigate: vi.fn().mockRejectedValue(new TypeError()),
       },
     ];
     await run('notificationclick', { notification: { close: vi.fn(), data: { url: '/mails' } } });
-    expect(openWindow).toHaveBeenLastCalledWith(`\${ORIGIN}/mails`);
+    expect(openWindow).toHaveBeenLastCalledWith(`${ORIGIN}/mails`);
   });
 });
