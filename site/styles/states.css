@@ -1,0 +1,67 @@
+/* Product site: Tags, AI shimmer, toast, fading panels, motion. Loaded in order by site.css. */
+
+/* ---------- Tags and states (as in the app) ---------- */
+.tag { display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 6px; font-size: 12px; line-height: 16px; font-weight: 500; white-space: nowrap; letter-spacing: 0; }
+.tag svg { width: 12px; height: 12px; }
+.tag-gray { background: var(--tag-gray-bg); color: var(--tag-gray); }
+.tag-blue { background: var(--tag-blue-bg); color: var(--tag-blue); }
+.tag-cyan { background: var(--tag-cyan-bg); color: var(--tag-cyan); }
+.tag-teal { background: var(--tag-teal-bg); color: var(--tag-teal); }
+.tag-green { background: var(--tag-green-bg); color: var(--tag-green); }
+.tag-red { background: var(--tag-red-bg); color: var(--tag-red); }
+.tag-yellow { background: var(--tag-yellow-bg); color: var(--tag-yellow); }
+.tag-outline { border: 1px solid var(--line-2); color: var(--text-2); }
+.tag-tint { background: var(--tint); color: var(--tint-text); }
+.state { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; line-height: 16px; color: var(--text-2); }
+
+/* AI work: a flat grey shimmer, nothing else */
+.shimmer {
+  background: linear-gradient(90deg, var(--text-3) 0%, var(--text-3) 38%, var(--text) 50%, var(--text-3) 62%, var(--text-3) 100%);
+  background-size: 220% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: shimmer 1.8s linear infinite;
+}
+@keyframes shimmer { from { background-position: 110% 0; } to { background-position: -110% 0; } }
+
+/* Toast inside the sample app */
+.toast { position: absolute; left: 50%; bottom: 20px; transform: translate(-50%, 12px); opacity: 0; pointer-events: none; z-index: 20; display: inline-flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--text); color: var(--bg); font-size: 13px; line-height: 18px; transition: opacity 180ms var(--ease), transform 180ms var(--ease); white-space: nowrap; }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.toast svg { color: var(--ok); }
+:root[data-theme='dark'] .toast svg { color: #198038; }
+
+/* ---------- Panels that melt into the page (owner, 1 Nov, after render.com/workflows) ----------
+   Cards and product pictures sit on a fill a shade off the page (a lighter black in dark). The fill and
+   its outline fade out toward the right and bottom edges; the words stay sharp. Phones stay real phones. */
+.life-step .card, .appcard, .rbox, .plan-main, .node, .stats-strip .sa-stats { position: relative; isolation: isolate; }
+.life-step .card::before, .appcard::before, .rbox::before, .plan-main::before, .node::before, .stats-strip .sa-stats::before {
+  content: ''; position: absolute; inset: -1px; z-index: -1; pointer-events: none;
+  background: var(--surface); border: 1px solid var(--line-2); transition: border-color 240ms var(--ease);
+  -webkit-mask-image: linear-gradient(to right, #000 var(--fx-x, 55%), transparent), linear-gradient(to bottom, #000 var(--fx-y, 50%), transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, #000 var(--fx-x, 55%), transparent), linear-gradient(to bottom, #000 var(--fx-y, 50%), transparent);
+  mask-composite: intersect;
+}
+/* Phones: the application card and reply box run edge to edge, so their fill does too, with no side lines */
+@media (max-width: 599px) { .appcard::before, .rbox::before { left: 0; right: 0; border-left: 0; border-right: 0; } }
+/* Hero picture (tablets and laptops): the app fades out at the bottom, and at the screen edge on tablets.
+   Once the visitor clicks into it, it is a whole app again. */
+@media (min-width: 600px) {
+  .hero-shot .sa { background: var(--surface); border-color: var(--line-2); --bg-2: var(--surface-2); }
+  .hero-shot .sa-fit { -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent); mask-image: linear-gradient(to bottom, #000 62%, transparent); }
+  .hero-shot .sa-fit:has(.sa.used) { -webkit-mask-image: none; mask-image: none; }
+}
+@media (min-width: 600px) and (max-width: 1023px) {
+  .hero-shot .sa-fit {
+    -webkit-mask-image: linear-gradient(to right, #000 88%, transparent), linear-gradient(to bottom, #000 62%, transparent); -webkit-mask-composite: source-in;
+    mask-image: linear-gradient(to right, #000 88%, transparent), linear-gradient(to bottom, #000 62%, transparent); mask-composite: intersect;
+  }
+}
+
+/* ---------- Motion: once, small, and off when asked ---------- */
+.rv { opacity: 0; transform: translateY(8px); transition: opacity 240ms var(--ease-in), transform 240ms var(--ease-in); }
+.rv.in { opacity: 1; transform: none; }
+html.no-motion .rv { opacity: 1; transform: none; }
+html.no-motion *, html.no-motion *::before, html.no-motion *::after { animation: none !important; transition: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .rv { opacity: 1; transform: none; }
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
