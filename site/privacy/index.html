@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your data · NorthList</title>
+<meta name="description" content="What NorthList reads, keeps, sends and never keeps from your Gmail, in plain words.">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=Geist+Mono:wght@400..500&display=swap" rel="stylesheet">
+<script>try{if(localStorage.getItem('northlist-site-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<link rel="stylesheet" href="/styles/site.css">
+</head>
+<body data-page="privacy">
+<div data-site-header></div>
+
+<main class="wrap">
+
+  <section class="band head page-head" aria-labelledby="pv-title">
+    <h1 id="pv-title" class="display rv">Your mail stays yours.</h1>
+    <p class="lead rv">What NorthList reads, keeps, sends and never keeps, in plain words.</p>
+    <p class="note rv">A summary of the <a class="link" href="/privacy.html">privacy policy</a> of 31 October 2026. If anything here differs, the policy counts.</p>
+  </section>
+
+  <section class="band" aria-label="Your data in detail">
+    <div class="doc">
+      <nav class="toc-m" aria-label="On this page, short list">
+        <a href="#glance" class="on">At a glance</a>
+        <a href="#moves">How mail moves</a>
+        <a href="#reads">Reads</a>
+        <a href="#keeps">Keeps</a>
+        <a href="#never">Never keeps</a>
+        <a href="#ai">AI</a>
+        <a href="#protect">Protection</a>
+        <a href="#others">Who else</a>
+        <a href="#choices">Choices</a>
+        <a href="#policy">Full policy</a>
+      </nav>
+      <nav class="toc" aria-label="On this page">
+        <span class="tl">On this page</span>
+        <a href="#glance" class="on">At a glance</a>
+        <a href="#moves">How your mail moves</a>
+        <a href="#reads">What NorthList reads</a>
+        <a href="#keeps">What it keeps</a>
+        <a href="#never">What it never keeps</a>
+        <a href="#ai">AI and your mail</a>
+        <a href="#protect">How it is protected</a>
+        <a href="#others">Who else takes part</a>
+        <a href="#choices">Your choices</a>
+        <a href="#policy">The full policy</a>
+      </nav>
+
+      <div class="doc-body">
+
+        <section class="doc-sec" id="glance" aria-labelledby="h-glance">
+          <h2 id="h-glance">At a glance</h2>
+          <p data-lead></p>
+          <div class="promises" data-promises style="margin-top:32px"></div>
+        </section>
+
+        <section class="doc-sec" id="moves" aria-labelledby="h-moves">
+          <h2 id="h-moves">How your mail moves</h2>
+          <p>New mail goes from your Gmail to NorthList, and only what the AI needs goes on to the AI service. What comes back becomes your list.</p>
+          <div class="flow-box" data-flow></div>
+        </section>
+
+        <section class="doc-sec" id="reads" aria-labelledby="h-reads">
+          <h2 id="h-reads">What NorthList reads</h2>
+          <p>When you sign in with Google, NorthList gets your name and email address. It uses them to sign you in and to show who is signed in, and your first name to sign AI reply drafts. When you connect Gmail, you give two permissions:</p>
+          <div class="cols2">
+            <div><b class="h4">Read your mail</b><code>gmail.readonly</code><p>NorthList looks at the mail in your inbox from the last 1 to 30 days (you choose), then at new mail about once an hour.</p></div>
+            <div><b class="h4">Send mail</b><code>gmail.send</code><p>Only when you write a reply in NorthList and press Send. It never sends anything by itself.</p></div>
+          </div>
+          <p class="note">On Google's screen these appear as "View your email messages and settings" and "Send email on your behalf". NorthList uses them only as described here.</p>
+          <p>NorthList also keeps the address of the Gmail account you connect, to show which account it reads and to tell your own mails from other people's. It keeps the address after you disconnect too, so that only the same account can connect again.</p>
+        </section>
+
+        <section class="doc-sec" id="keeps" aria-labelledby="h-keeps">
+          <h2 id="h-keeps">What NorthList keeps</h2>
+          <p>From your job mails, NorthList builds your applications, their history and your to-do list. It keeps:</p>
+          <ul class="list">
+            <li><i data-icon="check"></i><span><b>For a job mail:</b> the subject, the sender, the date, and Gmail's id for the mail and its conversation.</span></li>
+            <li><i data-icon="check"></i><span><b>What the AI found in it:</b> the company, the job title, the recruiter's name and email, interview, test, offer or rejection details, what the mail asks you to do and by when, and a warning if an offer looks like a scam.</span></li>
+            <li><i data-icon="check"></i><span><b>A short quote,</b> up to 280 characters, may be kept to show interview times correctly.</span></li>
+            <li><i data-icon="check"></i><span><b>Your replies to job mails:</b> only that you replied, when, and whether the AI read the reply. Not the text.</span></li>
+            <li><i data-icon="check"></i><span><b>Mail that is not about a job:</b> only Gmail's id, its date and that it is not a job mail, so it is not read twice. No subject, no sender. Deleted after 35 days.</span></li>
+            <li><i data-icon="check"></i><span><b>The latest Dashboard tip,</b> until the next one.</span></li>
+            <li><i data-icon="check"></i><span><b>If you turn on alerts:</b> that device's push address and keys, until you turn alerts off or sign out there.</span></li>
+            <li><i data-icon="check"></i><span><b>If you use the automation link:</b> what your automation reports for each job: company, job title, platform, links, location, work mode, the confirmation text (up to 300 characters), the name of your CV file (never the file) and your answers to the application questions.</span></li>
+          </ul>
+          <p class="note">Everything else stays until you ask for it to be deleted.</p>
+        </section>
+
+        <section class="doc-sec" id="never" aria-labelledby="h-never">
+          <h2 id="h-never">What it never keeps</h2>
+          <ul class="list">
+            <li><i data-icon="x"></i><span><b>The text of your mails,</b> their attachments or Gmail's preview.</span></li>
+            <li><i data-icon="x"></i><span><b>A mail you open.</b> It is read live from Gmail and shown to you. NorthList's servers don't save it. Your browser keeps a copy for offline pages, on your device only, for up to 7 days, and removes it when you sign out.</span></li>
+            <li><i data-icon="x"></i><span><b>The text of your replies,</b> and anything about your replies to other mail.</span></li>
+            <li><i data-icon="x"></i><span><b>AI drafts.</b> A draft is shown to you and never kept.</span></li>
+            <li><i data-icon="x"></i><span><b>A reply you haven't sent.</b> It stays in your browser only, until you send it, discard it or sign out.</span></li>
+          </ul>
+        </section>
+
+        <section class="doc-sec" id="ai" aria-labelledby="h-ai">
+          <h2 id="h-ai">AI and your mail</h2>
+          <p>NorthList uses AI to tell job mails from other mail, and to read what a job mail asks of you. This is what it sends, and when.</p>
+          <table class="dtable">
+            <thead><tr><th>When</th><th>What is sent</th><th>Limit</th></tr></thead>
+            <tbody>
+              <tr><td>Each new mail</td><td>The sender, the subject, Gmail's labels and Gmail's short preview</td><td>1,000 characters</td></tr>
+              <tr><td>Job mails only</td><td>The text of the mail and the date it arrived, with what is still open in that conversation</td><td>8,000 characters</td></tr>
+              <tr><td>A conversation still waits on you</td><td>The new text of your own reply in it, without the earlier mail it quotes, so the AI can tell which requests it answers</td><td>4,000 characters</td></tr>
+              <tr><td>You ask the AI to write a reply</td><td>The whole conversation, both sides, any hint you type or reply choice you click, and your first name. The draft is shown to you and never kept</td><td>Whole conversation</td></tr>
+              <tr><td>The Dashboard tip, at most once a day</td><td>Only counts and rates, such as how many applications got a reply, and the names of the job sites your automation used. No mail, company, name or address</td><td>No mail</td></tr>
+              <tr><td>Promotions, Social, Spam</td><td>Nothing. LinkedIn mail under Social is the exception</td><td>Not sent</td></tr>
+            </tbody>
+          </table>
+          <h3 class="sub">Which AI service</h3>
+          <div class="cols2">
+            <div><b class="h4">NorthList free AI</b><p>Your mail goes to OpenRouter on NorthList's account. OpenRouter passes it to the GPT-6 Luna model on Microsoft Azure servers in the US or Europe.</p></div>
+            <div><b class="h4">Your own key</b><p>Your mail goes to your own account with that AI service (today: OpenRouter), under that service's own terms.</p></div>
+          </div>
+          <p><b style="color:var(--text);font-weight:560">No training, no keeping.</b> For every request to OpenRouter, NorthList asks for servers that keep nothing ("zero data retention"), so they cannot store your mail or train on it. NorthList itself never uses your mail to train any AI.</p>
+        </section>
+
+        <section class="doc-sec" id="protect" aria-labelledby="h-protect">
+          <h2 id="h-protect">How it is protected</h2>
+          <ul class="list">
+            <li><i data-icon="lock"></i><span>Your Gmail access is stored encrypted (AES-256-GCM).</span></li>
+            <li><i data-icon="key"></i><span>AI keys you add are encrypted with a separate key, and are never shown again, not even to you.</span></li>
+            <li><i data-icon="flow"></i><span>Automation tokens are stored only as a fingerprint (a hash), never in readable form.</span></li>
+            <li><i data-icon="eyeOff"></i><span>NorthList's logs leave out mail subjects, senders, mail text, keys and passwords.</span></li>
+            <li><i data-icon="server"></i><span>Everything runs on Render (servers and database) in Singapore.</span></li>
+          </ul>
+        </section>
+
+        <section class="doc-sec" id="others" aria-labelledby="h-others">
+          <h2 id="h-others">Who else takes part</h2>
+          <p>NorthList does not sell your data, does not show ads, and does not use analytics or tracking tools. Only these services take part:</p>
+          <ul class="list">
+            <li><i data-icon="globe"></i><span><b>Google,</b> for sign-in and Gmail, because you connect them.</span></li>
+            <li><i data-icon="model"></i><span><b>The AI service you choose,</b> as described above.</span></li>
+            <li><i data-icon="server"></i><span><b>Render,</b> which hosts the app and its database.</span></li>
+            <li><i data-icon="globe"></i><span><b>Google Fonts,</b> which serves the font. Your browser asks Google for the font file, as on most websites.</span></li>
+            <li><i data-icon="bell"></i><span><b>Your browser's push service,</b> only if you turn on alerts. It carries each alert, such as "Acme: Reply with your availability". The alert is encrypted, so the push service cannot read it.</span></li>
+          </ul>
+        </section>
+
+        <section class="doc-sec" id="choices" aria-labelledby="h-choices">
+          <h2 id="h-choices">Your choices</h2>
+          <ul class="list">
+            <li><i data-icon="mailOff"></i><span><b>Disconnect Gmail</b> on the Gmail sync page. NorthList stops reading your mail and asks Google to cancel its access. You can also remove access in your <a class="link" href="https://myaccount.google.com/permissions">Google account</a>.</span></li>
+            <li><i data-icon="trash"></i><span><b>Delete a conversation</b> from its "…" menu. Its subjects, senders, AI results and to-dos go at once. Gmail's ids and dates stay for 35 days, so those mails are not read again. Your Gmail is not changed.</span></li>
+            <li><i data-icon="block"></i><span><b>Block a company</b> from a mail's "…" menu, or when you delete a conversation. NorthList then does not read or keep new mail from its domain. LinkedIn and mail providers anyone can use can't be blocked. Unblock it in Mails › Restricted.</span></li>
+            <li><i data-icon="doc"></i><span><b>Delete an application</b> from its "…" menu. Its to-dos and history go at once; its mails stay in Mails.</span></li>
+            <li><i data-icon="key"></i><span><b>Remove an AI key</b> on the AI providers page. It is deleted at once.</span></li>
+            <li><i data-icon="bell"></i><span><b>Turn off alerts</b> on the Account page, on each phone or computer. Signing out there turns them off too.</span></li>
+            <li><i data-icon="flow"></i><span><b>Remove an automation token</b> on the Automation page. It stops working at once.</span></li>
+            <li><i data-icon="x"></i><span><b>Delete everything:</b> write to <a class="link" href="mailto:nitinsirsath8855@gmail.com">nitinsirsath8855@gmail.com</a> from the email you sign in with. Your account and all its data are deleted within 7 days.</span></li>
+          </ul>
+        </section>
+
+        <section class="doc-sec" id="policy" aria-labelledby="h-policy">
+          <h2 id="h-policy">The full policy</h2>
+          <p>NorthList's use and transfer to any other app of information received from Google APIs will adhere to the <a class="link" href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>, including the Limited Use requirements.</p>
+          <p class="policy-line"><span>The privacy policy has the complete text, cookies included.</span><a class="arrow-link" href="/privacy.html">Read the privacy policy <i data-icon="arrowRight" data-size="14"></i></a></p>
+        </section>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="band last" aria-labelledby="end-title">
+    <div class="closing">
+      <div><h2 id="end-title" class="h2 rv">Start free today.</h2><p class="lead rv">Questions about your data? Write to <a class="link" href="mailto:nitinsirsath8855@gmail.com">nitinsirsath8855@gmail.com</a>.</p></div>
+      <div class="act rv"><a class="btn btn-primary btn-lg btn-carbon" href="https://app.northlist.site/login">Start free <i data-icon="arrowRight"></i></a></div>
+    </div>
+  </section>
+
+</main>
+
+<div data-site-footer></div>
+<script type="module" src="/main.ts"></script>
+</body>
+</html>

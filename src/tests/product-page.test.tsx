@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router';
 
@@ -11,7 +11,6 @@ vi.mock('../api/client', async (importOriginal) => ({
 }));
 
 import { ApiError, api } from '../api/client';
-import { ProductPage } from '../components/product/ProductPage';
 import { routeTree } from '../routeTree.gen';
 
 const ME = { id: 'u', email: 'u@test.local', name: 'U' };
@@ -32,12 +31,11 @@ function showApp(path: string, user: typeof ME | null) {
   return router;
 }
 
-/** Every server call the page makes. */
-let fetchSpy: ReturnType<typeof vi.fn<typeof fetch>>;
-
 beforeEach(() => {
-  fetchSpy = vi.fn<typeof fetch>(async () => new Response(JSON.stringify({ mode: 'prod' })));
-  vi.stubGlobal('fetch', fetchSpy);
+  vi.stubGlobal(
+    'fetch',
+    vi.fn<typeof fetch>(async () => new Response(JSON.stringify({ mode: 'prod' }))),
+  );
   vi.mocked(api.get).mockRejectedValue(new ApiError('Not found', 'http', 404));
   vi.mocked(api.getGmailStatus).mockRejectedValue(new ApiError('n/a', 'http', 404));
   vi.mocked(api.getAISettings).mockRejectedValue(new ApiError('n/a', 'http', 404));
@@ -46,39 +44,6 @@ afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
   vi.clearAllMocks();
-});
-
-describe('the product site on northlist.site', () => {
-  it('shows what NorthList does, with sign-in on the app site and the privacy policy', () => {
-    render(<ProductPage />);
-    expect(screen.getByRole('heading', { name: TITLE })).toBeInTheDocument();
-
-    const signIn = screen.getAllByRole('link', { name: /^Sign in/ });
-    expect(signIn.length).toBe(2);
-    for (const link of signIn)
-      expect(link).toHaveAttribute('href', 'https://app.northlist.site/login');
-    const privacy = screen.getAllByRole('link', { name: /privacy policy/i });
-    expect(privacy.length).toBe(3);
-    for (const link of privacy) expect(link).toHaveAttribute('href', '/privacy.html');
-    expect(screen.getByRole('link', { name: 'nitinsirsath8855@gmail.com' })).toHaveAttribute(
-      'href',
-      'mailto:nitinsirsath8855@gmail.com',
-    );
-  });
-
-  it('says why it asks for each Gmail permission', () => {
-    render(<ProductPage />);
-    const part = screen.getByRole('region', { name: 'What NorthList asks Google for' });
-    expect(within(part).getByText('gmail.readonly')).toBeInTheDocument();
-    expect(within(part).getByText('gmail.send')).toBeInTheDocument();
-    expect(within(part).getByText(/It never sends anything by itself/)).toBeInTheDocument();
-  });
-
-  it('asks the server for nothing', () => {
-    render(<ProductPage />);
-    expect(fetchSpy).not.toHaveBeenCalled();
-    expect(api.get).not.toHaveBeenCalled();
-  });
 });
 
 describe('the app on app.northlist.site has no product page', () => {
