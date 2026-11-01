@@ -1,0 +1,47 @@
+/* Product site: Replay buttons, data promises, page endings and page heads. Loaded in order by site.css. */
+
+/* Replay button for self-playing pictures */
+.replay { width: 32px; height: 32px; display: inline-grid; place-items: center; flex: none; border: 1px solid var(--line); background: var(--bg); color: var(--text-3); cursor: pointer; transition: color 70ms var(--ease), border-color 70ms var(--ease), background-color 70ms var(--ease); }
+.replay:hover { color: var(--text); border-color: var(--line-3); background: var(--bg-2); }
+.replay svg { transition: transform 300ms var(--ease); }
+.replay:active svg { transform: rotate(-120deg); }
+.replay-row { display: flex; justify-content: flex-end; margin-top: 12px; }
+.cap-r { display: inline-flex; align-items: center; gap: 12px; margin-left: auto; }
+html.no-motion .replay { display: none; }
+
+/* ---------- Your data: four promises, no boxes ---------- */
+.promises { margin-top: 48px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px 48px; }
+.promise { display: grid; grid-template-columns: 20px minmax(0, 1fr); column-gap: 14px; row-gap: 4px; align-content: start; }
+.promise svg { grid-row: 1 / span 2; margin-top: 2px; color: var(--text-2); }
+.promise b { font-size: 16px; line-height: 24px; font-weight: 560; }
+.promise p { font-size: 15px; line-height: 24px; color: var(--text-2); }
+@media (max-width: 1023px) { .promises { margin-top: 40px; } }
+@media (max-width: 767px) { .promises { grid-template-columns: minmax(0, 1fr); gap: 24px; margin-top: 32px; } }
+
+/* ---------- Home ending: setup steps and one button ---------- */
+.start .lead { margin-top: 16px; }
+.setup { margin-top: 48px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 48px; max-width: 960px; }
+.setup .n { display: block; font-size: 13px; line-height: 18px; color: var(--text-3); }
+.setup h3 { margin-top: 6px; }
+.setup p { margin-top: 6px; color: var(--text-2); font-size: 15px; line-height: 24px; }
+.start .go { margin-top: 48px; }
+@media (max-width: 599px) {
+  .setup { grid-template-columns: minmax(0, 1fr); gap: 24px; margin-top: 32px; }
+  .start .go { margin-top: 32px; }
+  .start .go .btn { width: 100%; }
+}
+
+/* ---------- Ending of the inner pages ---------- */
+.closing { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 32px 64px; align-items: end; }
+.closing .lead { margin-top: 16px; }
+.closing .act { display: flex; flex-direction: column; align-items: flex-end; gap: 14px; }
+@media (max-width: 767px) {
+  .closing { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .closing .act { align-items: stretch; }
+  .closing .act .btn { width: 100%; }
+}
+
+/* ---------- Inner page heads ---------- */
+.page-head .lead { margin-top: 24px; max-width: 640px; }
+.page-head .note { margin-top: 16px; font-size: 14px; line-height: 20px; color: var(--text-3); max-width: 640px; }
+@media (max-width: 599px) { .page-head .lead { margin-top: 18px; } }
