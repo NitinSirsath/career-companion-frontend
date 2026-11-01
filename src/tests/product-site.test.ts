@@ -48,7 +48,7 @@ describe('the product site pages', () => {
       for (const href of [
         '/',
         '/#features',
-        '/privacy',
+        '/privacy/',
         '/pricing',
         '/changelog',
         '/about',
@@ -56,6 +56,8 @@ describe('the product site pages', () => {
       ])
         expect(hrefs).toContain(href);
       expect(hrefs.filter((h) => h.endsWith('.html') && h !== '/privacy.html')).toEqual([]);
+      // Render serves privacy.html at /privacy, so the Privacy page is always linked with the slash.
+      expect(hrefs.filter((h) => /^\/privacy(#|$)/.test(h))).toEqual([]);
       const start = [...d.querySelectorAll('a')].filter((a) =>
         /^(Sign in|Start free)/.test(a.textContent ?? ''),
       );
