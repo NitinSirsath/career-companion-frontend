@@ -15,8 +15,8 @@ import { showToast } from '../ui/toast';
 import { isOfflineError } from '../../lib/offline';
 
 /**
- * Deletes an application from NorthList, after the user confirms. Its mails stay in Mails, no
- * longer linked; Archive is for a job that is finished.
+ * Deletes an application from NorthList, after the user confirms, with what the automation
+ * reported for it. Its mails stay in Mails, no longer linked; Archive is for a job that is finished.
  */
 export function DeleteApplicationDialog({
   application,
@@ -47,7 +47,9 @@ export function DeleteApplicationDialog({
         <DialogHeader>
           <DialogTitle>Delete {application.companyName}?</DialogTitle>
           <DialogDescription>
-            This removes the application, its next steps and its history.
+            {application.submittedVia === 'AUTOMATION'
+              ? 'This removes the application, its next steps, its history and what your automation reported for it.'
+              : 'This removes the application, its next steps and its history.'}
           </DialogDescription>
         </DialogHeader>
         <p className="text-sm text-text-secondary">
