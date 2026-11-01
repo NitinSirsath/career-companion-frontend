@@ -1,0 +1,49 @@
+name: Finish site-pages once (temporary)
+# Renames and deletes files on feat/site-pages and commits only that.
+# Lives only on the throwaway branch tmp/site-pages-finish, which is deleted afterwards.
+on:
+  push:
+    branches: [tmp/site-pages-finish]
+permissions:
+  contents: write
+concurrency:
+  group: finish-site-pages-once
+  cancel-in-progress: false
+jobs:
+  finish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: feat/site-pages
+      - name: Check the hand commits
+        run: |
+          if [ "$(git rev-parse 'HEAD^{tree}')" != "5d6b42a86582f5dd170703e79e995e68f804390f" ]; then
+            echo "The hand commits do not match the reviewed files. Nothing was changed."
+            exit 1
+          fi
+      - name: Rename and delete
+        run: |
+          git rm -q site/main.tsx
+          git rm -q site/site.css
+          git rm -q src/components/product/GooglePermissions.tsx
+          git rm -q src/components/product/HowItWorks.tsx
+          git rm -q src/components/product/MailsPreview.tsx
+          git rm -q src/components/product/ProductHero.tsx
+          git rm -q src/components/product/ProductPage.tsx
+          git rm -q src/components/product/ProductParts.tsx
+          git rm -q src/components/product/ReadingPreview.tsx
+          git rm -q src/components/product/WhatYouCanDo.tsx
+          git rm -q src/components/product/previewMails.ts
+      - name: Commit only the reviewed result
+        run: |
+          if [ "$(git write-tree)" != "7fbba7f317dc5f316717005c7d9a9085a1ce881c" ]; then
+            echo "The result does not match the reviewed tree. Nothing was pushed."
+            git status --short
+            exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(site): delete the old one-page product site'
+          git push origin HEAD:feat/site-pages
