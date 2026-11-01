@@ -148,6 +148,12 @@ describe('Gmail Route', () => {
     expect(screen.getByRole('button', { name: 'Sync now' })).toBeInTheDocument();
     // The title of the job mail list, with no tabs, and no settings sections any more.
     expect(screen.getByRole('heading', { name: 'Job mails the app has read' })).toBeInTheDocument();
+    // What is kept of other mails, as the privacy policy says.
+    expect(
+      screen.getByText(
+        /Other mails are not listed\\. For them, the app keeps only Gmail's id, the date and that they are not job mails, for 35 days\\./,
+      ),
+    ).toBeInTheDocument();
     expect(screen.queryByRole('tab', { name: 'Not job mails' })).not.toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Sync' })).not.toBeInTheDocument();
   });
