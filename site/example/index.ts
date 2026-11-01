@@ -1,6 +1,8 @@
 import { onReplay } from '../runtime/motion.ts';
-import type { View } from './data.ts';
+import { startAlert } from './alert.ts';
 import { SampleApp } from './app.ts';
+import type { View } from './data.ts';
+import { buildFrames } from './frames.ts';
 
 /** Every example on the page, by its element (`[data-sample]`). */
 export const examples = new Map<Element, SampleApp>();
@@ -39,7 +41,8 @@ function fit(box: HTMLElement): void {
 }
 
 export function startExamples(): void {
-  // Size the hero picture first, so the example starts in the right layout.
+  // Draw the phones and size the hero picture first, so each example starts in the right layout.
+  buildFrames();
   document.querySelectorAll<HTMLElement>('.sa-fit').forEach(fit);
   document.querySelectorAll<HTMLElement>('[data-sample]').forEach((el) => {
     const app = new SampleApp(el, {
@@ -48,6 +51,11 @@ export function startExamples(): void {
       autoplay: el.dataset.autoplay ?? null,
     });
     examples.set(el, app);
+  });
+  document.querySelectorAll<HTMLElement>('[data-alert]').forEach((alert) => {
+    const phoneEl = alert.parentElement?.querySelector<HTMLElement>('[data-sample]');
+    const app = phoneEl && examples.get(phoneEl);
+    if (phoneEl && app) startAlert(alert, phoneEl, app);
   });
   // The hero's replay button: back to the start, then the new mail arrives again.
   const hero = document.querySelector('.sa-fit [data-sample]');
