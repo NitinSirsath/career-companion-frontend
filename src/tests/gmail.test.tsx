@@ -151,7 +151,7 @@ describe('Gmail Route', () => {
     // What is kept of other mails, as the privacy policy says.
     expect(
       screen.getByText(
-        /Other mails are not listed\\. For them, the app keeps only Gmail's id, the date and that they are not job mails, for 35 days\\./,
+        /Other mails are not listed\. For them, the app keeps only Gmail's id, the date and that they are not job mails, for 35 days\./,
       ),
     ).toBeInTheDocument();
     expect(screen.queryByRole('tab', { name: 'Not job mails' })).not.toBeInTheDocument();
