@@ -71,7 +71,7 @@
 </header>
 <main>
 <h1>Privacy policy</h1>
-<p>Last updated: 1 November 2026</p>
+<p>Last updated: 2 November 2026</p>
 <p>NorthList helps you keep track of your job applications. It reads the job mails in your Gmail, finds what each one asks of you, and keeps your applications in one place. This page explains, in plain words, what NorthList reads, what it keeps, who else sees it, and how to remove it.</p>
 <p>NorthList is a small app run by one person, Nitin Sirsath. The app is at <a href="https://app.northlist.site/">app.northlist.site</a>. Questions: <a href="mailto:nitinsirsath8855@gmail.com">nitinsirsath8855@gmail.com</a>.</p>
 <h2>What NorthList reads from your Google account</h2>
@@ -95,7 +95,11 @@
 <p>When you <strong>open a mail or a conversation</strong> in NorthList, it is read live from Gmail and shown to you. NorthList's servers do not save it; your browser keeps a copy for offline pages (see "Cookies and your browser").</p>
 <p>When you <strong>reply to a job mail</strong>, from NorthList or from Gmail, NorthList keeps only the fact that you replied and when, and whether its AI read it, not the text. It keeps nothing about your replies to other mail.</p>
 <p>If you turn on <strong>alerts</strong> on a phone or computer, NorthList keeps that device's push address and its keys, made by your browser's push service, until you turn alerts off there or sign out there.</p>
-<p>If you use the optional <strong>automation link</strong> (Automation page), NorthList keeps what your own automation reports for each job: the company, job title, platform, links, location, work mode, the confirmation text (up to 300 characters), the name of your CV file (never the file) and your answers to the application questions.</p>
+<p>If you use the optional <strong>automation link</strong> (Automation page), NorthList keeps what your own automation reports:</p>
+<ul>
+  <li>For each job it applied to: the company, job title, job site, the job's link and its ID on that site, where the job was found, the link and address of the page where it applied, location, work mode, when it applied, the confirmation text (up to 300 characters), the name of your CV file (never the file) and your answers to the application questions.</li>
+  <li>For each job it did not apply to: the company, job title, job site, the job's link, whether it skipped the job or left it for you, why (up to 1,000 characters) and when.</li>
+</ul>
 <h2>AI and your mail</h2>
 <p>NorthList uses AI to tell job mails from other mail, and to read what a job mail asks of you.</p>
 <p><strong>What is sent to the AI:</strong></p>
@@ -117,7 +121,7 @@
 <ul>
   <li>Your Gmail access is stored encrypted (AES-256-GCM).</li>
   <li>AI keys you add are stored encrypted with a separate key, and are never shown again, not even to you.</li>
-  <li>Automation tokens are stored only as a fingerprint (a hash), never in readable form.</li>
+  <li>Automation tokens are stored as a fingerprint (a hash) and their first 12 characters, so you can tell them apart. The full token is never stored.</li>
   <li>Passwords (test accounts only) are stored as a salted hash, never in readable form.</li>
   <li>NorthList's logs leave out mail subjects, senders, mail text, keys and passwords.</li>
   <li>Everything runs on Render (servers and database) in Singapore.</li>
@@ -145,11 +149,12 @@
   <li><strong>Disconnect Gmail</strong> on the Gmail sync page. NorthList stops reading your mail and asks Google to cancel its access. You can also remove NorthList's access at any time in your Google account: <a href="https://myaccount.google.com/permissions">https://myaccount.google.com/permissions</a></li>
   <li><strong>Delete a conversation</strong> from its "…" menu on the Mails page. NorthList removes its subjects, senders, what its AI found and the to-dos from it at once, and keeps only Gmail's ids and dates so it does not read those mails again; these go after 35 days. Your Gmail is not changed.</li>
   <li><strong>Block a company</strong> from a mail's "…" menu, or when you delete a conversation. NorthList then does not read or keep new mail from that company's domain. LinkedIn and mail providers anyone can use cannot be blocked. Unblock it in Mails › Restricted.</li>
-  <li><strong>Delete an application</strong> from its "…" menu. Its to-dos and history are deleted at once; its mails stay in Mails.</li>
+  <li><strong>Delete an application</strong> from its "…" menu. Its to-dos, its history and what your automation reported for it are deleted at once; its mails stay in Mails.</li>
   <li><strong>Remove an AI key</strong> on the AI providers page. The key is deleted at once.</li>
   <li><strong>Turn off alerts</strong> on the Account page, on each phone or computer. Signing out there turns them off too.</li>
-  <li><strong>Remove an automation token</strong> on the Automation page. It stops working at once.</li>
-  <li><strong>Delete everything:</strong> write to <a href="mailto:nitinsirsath8855@gmail.com">nitinsirsath8855@gmail.com</a> from the email you sign in with. NorthList deletes your account and all its data, including mails, applications and AI results, within 7 days.</li>
+  <li><strong>Revoke an automation token</strong> on the Automation page. It stops working at once. It stays listed there with its name and dates.</li>
+  <li><strong>Jobs your automation did not apply to</strong>, and jobs you ignore in Automation › Waiting for a match, can't be deleted one by one. They stay until you delete everything.</li>
+  <li><strong>Delete everything:</strong> write to <a href="mailto:nitinsirsath8855@gmail.com">nitinsirsath8855@gmail.com</a> from the email you sign in with. NorthList deletes your account and all its data, including mails, applications, AI results and what your automation reported, within 7 days.</li>
 </ul>
 <p>Mails that are not about a job are deleted after 35 days. Everything else NorthList has stored stays until you ask for it to be deleted.</p>
 <h2>Google API Services User Data Policy</h2>
