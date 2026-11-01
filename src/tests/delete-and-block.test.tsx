@@ -216,8 +216,30 @@ describe('deleting an application', () => {
     fireEvent.click(await screen.findByRole('menuitem', { name: 'Delete application…' }));
     const dialog = await screen.findByRole('dialog', { name: 'Delete Quanta Labs?' });
     expect(within(dialog).getByText(/Its mails stay in Mails/)).toBeVisible();
+    expect(within(dialog).queryByText(/automation/)).not.toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole('button', { name: 'Delete application' }));
     await waitFor(() => expect(router.state.location.pathname).toBe('/applications'));
     expect(del).toHaveBeenCalledWith('/api/applications/33333333-3333-4333-8333-333333333333');
+  });
+
+  it("says that what the automation reported goes too, for the automation's applications", async () => {
+    vi.mocked(api.getApplication).mockResolvedValue(
+      makeApplication({
+        id: '44444444-4444-4444-8444-444444444444',
+        companyName: 'Brightwave',
+        submittedVia: 'AUTOMATION',
+      }),
+    );
+    vi.mocked(api.getApplicationEvents).mockResolvedValue(page([]));
+    vi.mocked(api.getApplicationActions).mockResolvedValue(page([]));
+    show('/applications/44444444-4444-4444-8444-444444444444');
+    fireEvent.click(await screen.findByRole('button', { name: 'More actions' }));
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Delete application…' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Delete Brightwave?' });
+    expect(
+      within(dialog).getByText(
+        'This removes the application, its next steps, its history and what your automation reported for it.',
+      ),
+    ).toBeVisible();
   });
 });
