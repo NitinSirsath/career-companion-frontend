@@ -89,7 +89,8 @@
             <li><i data-icon="check"></i><span><b>Mail that is not about a job:</b> only Gmail's id, its date and that it is not a job mail, so it is not read twice. No subject, no sender. Deleted after 35 days.</span></li>
             <li><i data-icon="check"></i><span><b>The latest Dashboard tip,</b> until the next one.</span></li>
             <li><i data-icon="check"></i><span><b>If you turn on alerts:</b> that device's push address and keys, until you turn alerts off or sign out there.</span></li>
-            <li><i data-icon="check"></i><span><b>If you use the automation link:</b> what your automation reports for each job: company, job title, platform, links, location, work mode, the confirmation text (up to 300 characters), the name of your CV file (never the file) and your answers to the application questions.</span></li>
+            <li><i data-icon="check"></i><span><b>If you use the automation link,</b> for each job it applied to: company, job title, job site, the job's link and ID, where the job was found, the link and address of the page where it applied, location, work mode, when it applied, the confirmation text (up to 300 characters), the name of your CV file (never the file) and your answers to the application questions.</span></li>
+            <li><i data-icon="check"></i><span><b>For each job it did not apply to:</b> company, job title, job site, the job's link, whether it skipped the job or left it for you, why (up to 1,000 characters) and when.</span></li>
           </ul>
           <p class="note">Everything else stays until you ask for it to be deleted.</p>
         </section>
@@ -132,7 +133,7 @@
           <ul class="list">
             <li><i data-icon="lock"></i><span>Your Gmail access is stored encrypted (AES-256-GCM).</span></li>
             <li><i data-icon="key"></i><span>AI keys you add are encrypted with a separate key, and are never shown again, not even to you.</span></li>
-            <li><i data-icon="flow"></i><span>Automation tokens are stored only as a fingerprint (a hash), never in readable form.</span></li>
+            <li><i data-icon="flow"></i><span>Automation tokens are stored as a fingerprint (a hash) and their first 12 characters, so you can tell them apart. The full token is never stored.</span></li>
             <li><i data-icon="eyeOff"></i><span>NorthList's logs leave out mail subjects, senders, mail text, keys and passwords.</span></li>
             <li><i data-icon="server"></i><span>Everything runs on Render (servers and database) in Singapore.</span></li>
           </ul>
@@ -156,10 +157,11 @@
             <li><i data-icon="mailOff"></i><span><b>Disconnect Gmail</b> on the Gmail sync page. NorthList stops reading your mail and asks Google to cancel its access. You can also remove access in your <a class="link" href="https://myaccount.google.com/permissions">Google account</a>.</span></li>
             <li><i data-icon="trash"></i><span><b>Delete a conversation</b> from its "…" menu. Its subjects, senders, AI results and to-dos go at once. Gmail's ids and dates stay for 35 days, so those mails are not read again. Your Gmail is not changed.</span></li>
             <li><i data-icon="block"></i><span><b>Block a company</b> from a mail's "…" menu, or when you delete a conversation. NorthList then does not read or keep new mail from its domain. LinkedIn and mail providers anyone can use can't be blocked. Unblock it in Mails › Restricted.</span></li>
-            <li><i data-icon="doc"></i><span><b>Delete an application</b> from its "…" menu. Its to-dos and history go at once; its mails stay in Mails.</span></li>
+            <li><i data-icon="doc"></i><span><b>Delete an application</b> from its "…" menu. Its to-dos, history and what your automation reported for it go at once; its mails stay in Mails.</span></li>
             <li><i data-icon="key"></i><span><b>Remove an AI key</b> on the AI providers page. It is deleted at once.</span></li>
             <li><i data-icon="bell"></i><span><b>Turn off alerts</b> on the Account page, on each phone or computer. Signing out there turns them off too.</span></li>
-            <li><i data-icon="flow"></i><span><b>Remove an automation token</b> on the Automation page. It stops working at once.</span></li>
+            <li><i data-icon="flow"></i><span><b>Revoke an automation token</b> on the Automation page. It stops working at once and stays listed with its name and dates.</span></li>
+            <li><i data-icon="flow"></i><span><b>Jobs your automation did not apply to,</b> and jobs you ignore in Waiting for a match, can't be deleted one by one. They stay until you delete everything.</span></li>
             <li><i data-icon="x"></i><span><b>Delete everything:</b> write to <a class="link" href="mailto:nitinsirsath8855@gmail.com">nitinsirsath8855@gmail.com</a> from the email you sign in with. Your account and all its data are deleted within 7 days.</span></li>
           </ul>
         </section>
