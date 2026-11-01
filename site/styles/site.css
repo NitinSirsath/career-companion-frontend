@@ -1,0 +1,14 @@
+/*
+ * The product site's styles (owner, 31 Oct and 1 Nov 2026). No lines or boxes around content, no
+ * textures: space separates sections. Cards and product pictures sit on a fill a shade off the page
+ * that fades out toward their right and bottom edges. Blue only for actions, links, the logo and live
+ * state inside pictures. Light by default, Dark on request. The parts load in this order.
+ */
+@import './base.css';
+@import './chrome.css';
+@import './home.css';
+@import './frames.css';
+@import './sections.css';
+@import './pages.css';
+@import './states.css';
+@import './sample-app.css';
