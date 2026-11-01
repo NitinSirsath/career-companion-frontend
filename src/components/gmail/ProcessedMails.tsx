@@ -187,7 +187,7 @@ function ReadMailsEmpty({ failed }: { failed: boolean }) {
 
 /**
  * Every job mail a sync read, with what the app and the AI made of it. Other mails are not
- * listed: the app keeps only their ids.
+ * listed: the app keeps only their Gmail ids, date and that they are not job mails, for 35 days.
  */
 export function ProcessedMails({
   devMode,
@@ -219,7 +219,8 @@ export function ProcessedMails({
           Job mails the app has read
         </h2>
         <p className="text-sm text-text-secondary">
-          Check here when a job mail seems missing from Mails. Other mails are not listed or kept.
+          Check here when a job mail seems missing from Mails. Other mails are not listed. For them,
+          the app keeps only Gmail&apos;s id, the date and that they are not job mails, for 35 days.
         </p>
         <BlockedLine />
       </div>
