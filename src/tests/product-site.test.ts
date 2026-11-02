@@ -142,11 +142,43 @@ describe('the changelog', () => {
     expect(new Set(ids).size).toBe(ids.length);
     expect(ids[0]).toBe('oct-31');
   });
+});
 
-  it('is where Home\'s "New" note leads', () => {
-    expect(doc('home').querySelector('.announce')?.getAttribute('href')).toBe(
-      `/changelog#${anchor(RELEASES[0].date)}`,
+describe("Home's hero", () => {
+  it('is calm: the headline in two lines, one line, one action with its note, then the product', () => {
+    const hero = doc('home').querySelector('.hero')!;
+    expect([...hero.querySelectorAll('h1 .hl')].map((l) => l.textContent)).toEqual([
+      'Your job search,',
+      'sorted from your Gmail.',
+    ]);
+    expect(hero.querySelectorAll('.ctas a')).toHaveLength(1);
+    expect(hero.querySelector('.ctas .note')?.textContent).toBe(
+      'Free while in beta. No card, no AI key.',
     );
+    expect(hero.querySelector('.announce, .hint, .btn-secondary')).toBeNull();
+    expect(hero.querySelector('.hero-shot [data-sample][data-autoplay="sync"]')).not.toBeNull();
+  });
+
+  it('waits hidden from the first paint for its intro, except with less motion, ?static or a #link', () => {
+    const head = html('home').split('</head>')[0];
+    expect(head).toContain("d.classList.add('intro')");
+    expect(head).toContain("matchMedia('(prefers-reduced-motion: reduce)').matches");
+    expect(head).toContain("has('static')");
+    expect(head).toContain('location.hash.length>1');
+    expect(head).toContain("d.classList.add('intro-go')},2500)"); // shown even if the script never runs
+    for (const page of ['pricing', 'automation', 'privacy'] as Page[])
+      expect(html(page)).not.toContain("classList.add('intro')");
+  });
+});
+
+describe('the glass header', () => {
+  const chrome = readFileSync(resolve(__dirname, '../../site/styles/chrome.css'), 'utf8');
+
+  it('is see-through with a blur, and solid when the menu is open, without blur or when asked', () => {
+    expect(chrome).toContain('background: color-mix(in srgb, var(--bg) 78%, transparent);');
+    expect(chrome).toContain('.hdr:has(+ .sheet.open) { background: var(--bg); }');
+    expect(chrome).toContain('@supports not ((backdrop-filter: blur(1px))');
+    expect(chrome).toContain('@media (prefers-reduced-transparency: reduce)');
   });
 });
 
