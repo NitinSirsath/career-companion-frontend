@@ -1,4 +1,4 @@
-import { onReplay } from '../runtime/motion.ts';
+import { noMotion, onReplay } from '../runtime/motion.ts';
 import { startAlert } from './alert.ts';
 import { SampleApp } from './app.ts';
 import type { View } from './data.ts';
@@ -57,12 +57,34 @@ export function startExamples(): void {
     const app = phoneEl && examples.get(phoneEl);
     if (phoneEl && app) startAlert(alert, phoneEl, app);
   });
-  // The hero's replay button: back to the start, then the new mail arrives again.
   const hero = document.querySelector('.sa-fit [data-sample]');
+  const heroApp = hero ? examples.get(hero) : undefined;
+  /*
+   * Hero build-in on load (the phone frame on phones, the laptop picture on tablets and laptops): while the
+   * page intro plays (`html.intro`, set in the page head), the hero app waits empty, then builds itself
+   * 1.3 s after the intro starts, as its picture fades in. If a scroll ends the intro early, it builds at once.
+   */
+  const html = document.documentElement;
+  if (heroApp && html.classList.contains('intro') && !noMotion) {
+    heroApp.holdBuild();
+    let timer = 0;
+    const watch = new MutationObserver(() => {
+      if (html.classList.contains('intro-go') && !timer) timer = window.setTimeout(() => heroApp.playBuild(), 1300);
+      if (html.classList.contains('intro')) return;
+      watch.disconnect();
+      clearTimeout(timer);
+      heroApp.playBuild();
+    });
+    watch.observe(html, { attributes: true, attributeFilter: ['class'] });
+  }
+  // The hero's replay button: back to the start, the build-in again, then the new mail arrives.
   onReplay('hero', () => {
-    const app = hero && examples.get(hero);
-    if (!app) return;
-    app.reset();
-    app.play();
+    if (!heroApp) return;
+    heroApp.reset();
+    if (!noMotion) {
+      heroApp.holdBuild();
+      heroApp.playBuild();
+    }
+    heroApp.play();
   });
 }
