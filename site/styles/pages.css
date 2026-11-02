@@ -79,7 +79,7 @@
   .toc-m {
     display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; position: sticky; top: 64px; z-index: 6;
     margin: 0 calc(-1 * var(--gut)) 40px; padding: 10px var(--gut); background: var(--header-bg);
-    backdrop-filter: saturate(1.6) blur(16px); -webkit-backdrop-filter: saturate(1.6) blur(16px); border-bottom: 1px solid var(--line);
+    backdrop-filter: saturate(1.6) blur(16px); border-bottom: 1px solid var(--line);
   }
   .toc-m::-webkit-scrollbar { display: none; }
   .toc-m a { flex: none; height: 32px; padding: 0 12px; display: inline-flex; align-items: center; background: var(--bg-2); font-size: 13px; color: var(--text-2); text-decoration: none; }
