@@ -57,6 +57,56 @@
 }
 
 /* ---------- Motion: once, small, and off when asked ---------- */
+/* Hero intro (owner, 1 Nov; after linear.app): plays once on load, about 2 s in all (owner asked for
+   slower than the first 1.2 s). Each headline line rises out of a soft blur, then the lead, then the
+   action; the product comes last. Only opacity, transform and filter move, so nothing shifts.
+   html.intro is set in the page head, so the hero waits hidden from the first paint; runtime/motion.ts adds
+   html.intro-go once the header, sample app and font are in. */
+@keyframes intro-text { from { opacity: 0; filter: blur(8px); transform: translateY(0.3em); } }
+@keyframes intro-rise { from { opacity: 0; transform: translateY(8px); } }
+@keyframes intro-shot { from { opacity: 0; transform: translateY(24px); } }
+html.intro .hero .hl, html.intro .hero .lead { animation: intro-text 1000ms var(--ease-intro) backwards paused; }
+html.intro .hero .hl + br + .hl { animation-delay: 120ms; }
+html.intro .hero .lead { animation-delay: 260ms; }
+html.intro .hero .ctas { animation: intro-rise 900ms var(--ease-intro) 400ms backwards paused; } /* no blur on the blue button */
+html.intro .hero .hero-shot { animation: intro-shot 1300ms var(--ease-intro) 700ms backwards paused; }
+html.intro.intro-go .hero :is(.hl, .lead, .ctas, .hero-shot) { animation-play-state: running; }
+/* Hero build-in (owner, 1 Nov: "show it empty, then the components appear slowly", "and desktop frame
+   also"). The hero app starts empty, then its parts fade up one after another; the sync waits for it.
+   example/app.ts adds .sa-build (the parts wait hidden) and .sa-build-go (they play), then removes both.
+   Phones, in the phone frame: the screen starts empty (status bar and background), then the top bar,
+   the sync line, search, the mail cards one by one and the tabs, 1.84 s. */
+@keyframes sa-part-in { from { opacity: 0; transform: translateY(8px); } }
+@keyframes sa-fade { from { opacity: 0; } }
+.hero-shot .sa-build :where(.sa-ptop, .sa-pbar, .sa-ptools, .sa-pcard, .sa-ptabs) { animation: sa-part-in 800ms var(--ease-intro) backwards paused; }
+.hero-shot .sa-build.sa-build-go :is(.sa-ptop, .sa-pbar, .sa-ptools, .sa-pcard, .sa-ptabs) { animation-play-state: running; }
+.hero-shot .sa-build .sa-pbar { animation-delay: 130ms; }
+.hero-shot .sa-build .sa-ptools { animation-delay: 260ms; }
+.hero-shot .sa-build .sa-pcard:nth-child(3) { animation-delay: 390ms; } /* the first card (after the sync line and search) */
+.hero-shot .sa-build .sa-pcard:nth-child(4) { animation-delay: 520ms; }
+.hero-shot .sa-build .sa-pcard:nth-child(5) { animation-delay: 650ms; }
+.hero-shot .sa-build .sa-pcard:nth-child(6) { animation-delay: 780ms; }
+.hero-shot .sa-build .sa-pcard:nth-child(n+7) { animation-delay: 910ms; }
+.hero-shot .sa-build .sa-ptabs { animation-delay: 1040ms; }
+/* Laptops and tablets: the empty app frame (outline and fill), then brand and top bar, the side menu
+   items, the page head with Sync now, tabs, search and filters, the table head and the rows one by one,
+   1.9 s. The side menu's line fades in with its items. The tablet crop stays as it is. */
+.hero-shot .sa-build .sa-grid :where(.sa-brand, .sa-top, .sa-side > *, .sa-head, .sa-tabs, .sa-tools, .sa-th, .sa-tr.row) { animation: sa-part-in 700ms var(--ease-intro) backwards paused; } /* :where keeps this below the delays */
+.hero-shot .sa-build .sa-grid .sa-side { animation: sa-fade 700ms var(--ease-intro) 120ms backwards paused; }
+.hero-shot .sa-build.sa-build-go .sa-grid :is(.sa-brand, .sa-top, .sa-side, .sa-side > *, .sa-head, .sa-tabs, .sa-tools, .sa-th, .sa-tr.row) { animation-play-state: running; }
+.hero-shot .sa-build .sa-grid .sa-side > :nth-child(1) { animation-delay: 120ms; } /* Dashboard, Mails, Applications, then the rest */
+.hero-shot .sa-build .sa-grid .sa-side > :nth-child(2) { animation-delay: 170ms; }
+.hero-shot .sa-build .sa-grid .sa-side > :nth-child(3) { animation-delay: 220ms; }
+.hero-shot .sa-build .sa-grid .sa-side > :nth-child(n+4) { animation-delay: 270ms; }
+.hero-shot .sa-build .sa-grid .sa-head { animation-delay: 240ms; }
+.hero-shot .sa-build .sa-grid .sa-tabs { animation-delay: 360ms; }
+.hero-shot .sa-build .sa-grid .sa-tools { animation-delay: 480ms; }
+.hero-shot .sa-build .sa-grid .sa-th { animation-delay: 600ms; }
+.hero-shot .sa-build .sa-grid .sa-tr.row:nth-child(2) { animation-delay: 720ms; } /* the first row, after the table head */
+.hero-shot .sa-build .sa-grid .sa-tr.row:nth-child(3) { animation-delay: 840ms; }
+.hero-shot .sa-build .sa-grid .sa-tr.row:nth-child(4) { animation-delay: 960ms; }
+.hero-shot .sa-build .sa-grid .sa-tr.row:nth-child(5) { animation-delay: 1080ms; }
+.hero-shot .sa-build .sa-grid .sa-tr.row:nth-child(n+6) { animation-delay: 1200ms; }
 .rv { opacity: 0; transform: translateY(8px); transition: opacity 240ms var(--ease-in), transform 240ms var(--ease-in); }
 .rv.in { opacity: 1; transform: none; }
 html.no-motion .rv { opacity: 1; transform: none; }

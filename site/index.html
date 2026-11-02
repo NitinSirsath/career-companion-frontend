@@ -19,6 +19,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=Geist+Mono:wght@400..500&display=swap" rel="stylesheet">
 <script>try{if(localStorage.getItem('northlist-site-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<!-- Hero intro: the hero waits hidden from the first paint until runtime/motion.ts plays it once. Not for reduced motion, ?static or a #link. -->
+<script>(function(){var d=document.documentElement;try{if(matchMedia('(prefers-reduced-motion: reduce)').matches||new URLSearchParams(location.search).has('static')||location.hash.length>1)return;d.classList.add('intro');if(document.fonts)document.fonts.load('560 16px Geist');setTimeout(function(){if(d.classList.contains('intro'))d.classList.add('intro-go')},2500)}catch(e){d.classList.remove('intro')}})()</script>
 <link rel="stylesheet" href="/styles/site.css">
 </head>
 <body data-page="home">
@@ -26,22 +28,20 @@
 
 <main class="wrap">
 
-  <!-- 1. What NorthList is, and the product itself -->
+  <!-- 1. What NorthList is, one action, then the product. It plays in once on load (styles/states.css "Hero intro"). -->
   <section class="band hero" aria-labelledby="hero-title">
-    <a class="announce rv" href="/changelog#oct-31"><span class="tag tag-tint">New</span> NorthList on your phone, with alerts <i data-icon="arrowRight" data-size="14"></i></a>
-    <h1 id="hero-title" class="display rv">Your job search,<br>sorted from your Gmail.</h1>
-    <p class="lead rv">NorthList reads the job mails in your Gmail, finds what each one asks of you, and keeps every application up to date.</p>
-    <div class="ctas rv">
+    <h1 id="hero-title" class="display"><span class="hl">Your job search,</span><br><span class="hl">sorted from your Gmail.</span></h1>
+    <p class="lead">NorthList reads the job mails in your Gmail, finds what each one asks of you, and keeps every application up to date.</p>
+    <div class="ctas">
       <a class="btn btn-primary btn-lg btn-carbon" href="https://app.northlist.site/login">Start free <i data-icon="arrowRight"></i></a>
-      <a class="btn btn-secondary btn-lg" href="#your-data">How your mail is handled <span class="ph-arrow"><i data-icon="arrowDown" data-size="14"></i></span></a>
+      <p class="note">Free while in beta. No card, no AI key.</p>
     </div>
-    <p class="note rv">Free while in beta. Sign in with Google to start. No card, no AI key.</p>
 
     <div class="hero-shot">
       <div class="device phone-only" data-frame><div class="sa-fit"><div data-sample="mails" data-autoplay="sync" role="region" aria-label="A working example of NorthList with made-up mails"></div></div></div>
       <div class="shot-cap">
-        <span>A working example with made-up companies and mails. Nothing you do here leaves this page.</span>
-        <span class="cap-r"><span class="hint">Try it: open a mail, press Reply, then Write with AI.</span><button type="button" class="replay" data-replay="hero" aria-label="Play the example again" title="Play the example again"><i data-icon="renew"></i></button></span>
+        <span>A working example with made-up mails. Nothing you do here leaves this page.</span>
+        <button type="button" class="replay" data-replay="hero" aria-label="Play the example again" title="Play the example again"><i data-icon="renew"></i></button>
       </div>
     </div>
   </section>

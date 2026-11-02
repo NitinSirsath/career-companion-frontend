@@ -171,7 +171,7 @@
 .run-tr .co span, .run-tr .when span { font-size: 12px; line-height: 16px; color: var(--text-3); }
 .run-tr .st { display: inline-flex; align-items: center; gap: 6px; color: var(--text-2); }
 .run-tr.arrive { animation: arrive 1400ms var(--ease-in); }
-.run-cap { flex-wrap: nowrap; align-items: center; gap: 16px; }
+.run-cap { padding-top: 14px; }
 .rules { margin-top: 48px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px; }
 .rule { display: flex; flex-direction: column; gap: 6px; }
 .rule svg { color: var(--text-2); margin-bottom: 8px; }
