@@ -6,7 +6,7 @@
 .hdr {
   position: sticky; top: 0; z-index: 60; height: 64px;
   background: color-mix(in srgb, var(--bg) 78%, transparent);
-  backdrop-filter: blur(20px) saturate(1.8); -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  backdrop-filter: blur(20px) saturate(1.8); /* plain only: the build adds -webkit- for Safari, and drops the plain one if both are written */
   border-bottom: 1px solid transparent; transition: border-color 150ms var(--ease);
 }
 .hdr.scrolled { border-bottom-color: var(--line); }
@@ -17,7 +17,7 @@
   .hdr { background: var(--bg); }
 }
 @media (prefers-reduced-transparency: reduce) {
-  .hdr { background: var(--bg); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .hdr { background: var(--bg); backdrop-filter: none; }
 }
 .hdr-in { max-width: calc(var(--max) + 2 * var(--gut)); margin: 0 auto; height: 100%; display: flex; align-items: center; gap: 4px; padding: 0 var(--gut); }
 .brand { display: inline-flex; align-items: center; height: 40px; padding-right: 24px; text-decoration: none; color: var(--text); }
