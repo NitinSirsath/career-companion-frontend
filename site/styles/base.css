@@ -75,6 +75,7 @@
   --mono: 'Geist Mono', ui-monospace, Menlo, monospace;
   --ease: cubic-bezier(0.2, 0, 0.38, 0.9);
   --ease-in: cubic-bezier(0, 0, 0.38, 0.9);
+  --ease-intro: cubic-bezier(0.25, 0.1, 0.25, 1); /* the hero intro, as on linear.app */
   --max: 1200px;
   --gut: 32px;
 }
