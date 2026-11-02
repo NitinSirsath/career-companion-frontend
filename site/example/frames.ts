@@ -1,13 +1,18 @@
 /*
  * Phone pictures (owner, 1 Nov 2026): the phone layout inside an iPhone 18 or a Pixel 11 Pro, drawn
  * flat at their real screen sizes (402 x 874 and 427 x 952 CSS px; the iPhone 18's is the iPhone 18
- * Pro's 6.3-inch screen), then zoomed to fit. Android visitors see the Pixel, everyone else the iPhone.
+ * Pro's 6.3-inch screen), then zoomed to fit. Android visitors see the Pixel, everyone else the iPhone;
+ * `?device=pixel` or `?device=iphone` picks one.
  * The hero's frame (`.phone-only`) shows on phones only: from 600 px up it falls away (the styles make
  * it `display: contents`) and the laptop picture shows instead.
  */
 export type Device = 'iphone' | 'pixel';
 
-export const deviceFor = (userAgent: string): Device => (/Android/i.test(userAgent) ? 'pixel' : 'iphone');
+export const deviceFor = (userAgent: string, search = ''): Device => {
+  const asked = new URLSearchParams(search).get('device');
+  if (asked === 'iphone' || asked === 'pixel') return asked;
+  return /Android/i.test(userAgent) ? 'pixel' : 'iphone';
+};
 
 /** Signal, Wi-Fi and battery, drawn the way each phone draws them. */
 const STATUS_ICONS: Record<Device, string> = {
@@ -63,7 +68,7 @@ function fitDevice(dev: HTMLElement): void {
 }
 
 /** Wraps each `[data-frame]` element's content in a phone: status bar, camera, screen, home bar. */
-export function buildFrames(device: Device = deviceFor(navigator.userAgent)): void {
+export function buildFrames(device: Device = deviceFor(navigator.userAgent, location.search)): void {
   document.documentElement.dataset.device = device;
   document.querySelectorAll<HTMLElement>('[data-frame]').forEach((dev) => {
     const kids = [...dev.childNodes];
