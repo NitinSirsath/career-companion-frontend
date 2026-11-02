@@ -71,10 +71,7 @@ export function AutomationSetup() {
               :
             </p>
             {serverAddress && (
-              <CodeSnippet
-                code={`- Career Companion server: ${serverAddress}`}
-                label="the profile line"
-              />
+              <CodeSnippet code={`- NorthList server: ${serverAddress}`} label="the profile line" />
             )}
             <p className="text-xs text-text-secondary">
               For each application it sends: company, job title, platform, job and apply page links,
