@@ -68,6 +68,10 @@ describe('the phone pictures', () => {
     expect(deviceFor('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari/605.1.15')).toBe(
       'iphone',
     );
+    // ?device=pixel or ?device=iphone picks one, whatever the browser.
+    expect(deviceFor('Mozilla/5.0 (Macintosh)', '?device=pixel')).toBe('pixel');
+    expect(deviceFor('Mozilla/5.0 (Linux; Android 16)', '?device=iphone')).toBe('iphone');
+    expect(deviceFor('Mozilla/5.0 (Linux; Android 16)', '?device=nokia')).toBe('pixel');
   });
 
   it('wrap the hero example and the phone section in a phone with status bar, camera and home bar', async () => {
@@ -249,5 +253,78 @@ describe('the run on the Automation page', () => {
       '.run-log li.pending, .run-tr.pending { visibility: hidden; }',
     );
     expect(css('pages.css')).toContain('.run-log .stack > * { grid-area: 1 / 1; }');
+  });
+});
+
+describe("Home's intro and the hero build-in", () => {
+  async function loadIntro() {
+    vi.resetModules();
+    stubBrowser();
+    // A real browser tells the observer after the current script, so the hold comes first.
+    vi.stubGlobal(
+      'IntersectionObserver',
+      class extends SeenAtOnce {
+        observe() {
+          queueMicrotask(() => super.observe());
+        }
+      },
+    );
+    document.documentElement.className = 'intro';
+    document.body.innerHTML = new DOMParser().parseFromString(home(), 'text/html').body.innerHTML;
+    const examples = await import('../../site/example/index');
+    const motion = await import('../../site/runtime/motion');
+    examples.startExamples();
+    return { examples, motion };
+  }
+  afterEach(() => (document.documentElement.className = ''));
+  const heroEl = () => $('.hero-shot [data-sample]');
+
+  it('holds the hero app empty during the intro, builds it 1.3 s in, then syncs', async () => {
+    const { examples, motion } = await loadIntro();
+    const app = examples.examples.get(heroEl())!;
+    expect(heroEl().classList.contains('sa-build')).toBe(true);
+    motion.startIntro();
+    await vi.advanceTimersByTimeAsync(300 + 20);
+    expect(document.documentElement.classList.contains('intro-go')).toBe(true);
+    expect(heroEl().classList.contains('sa-build-go')).toBe(false);
+    await vi.advanceTimersByTimeAsync(1300);
+    expect(heroEl().classList.contains('sa-build-go')).toBe(true);
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(heroEl().classList.contains('sa-build')).toBe(false);
+    expect(document.documentElement.classList.contains('intro')).toBe(false); // cleaned up after 2.3 s
+    expect(app.s.syncing).toBe(false);
+    await vi.advanceTimersByTimeAsync(900);
+    expect(app.s.syncing).toBe(true);
+  });
+
+  it('shows everything at once when the visitor scrolls during the intro', async () => {
+    const { motion } = await loadIntro();
+    motion.startIntro();
+    await vi.advanceTimersByTimeAsync(320);
+    dispatchEvent(new Event('scroll'));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(document.documentElement.classList.contains('intro')).toBe(false);
+    expect(heroEl().classList.contains('sa-build-go')).toBe(true);
+  });
+
+  it('builds again on replay, then syncs again', async () => {
+    const { examples } = await loadIntro();
+    const app = examples.examples.get(heroEl())!;
+    $('[data-replay="hero"]').click();
+    expect(heroEl().classList.contains('sa-build-go')).toBe(true);
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(heroEl().classList.contains('sa-build')).toBe(false);
+    await vi.advanceTimersByTimeAsync(900);
+    expect(app.s.syncing).toBe(true);
+  });
+
+  it('keeps the build-in parts in place: only opacity and transform move', () => {
+    const motion = css('states.css');
+    expect(motion).toContain(
+      '@keyframes sa-part-in { from { opacity: 0; transform: translateY(8px); } }',
+    );
+    expect(motion).toContain(
+      'html.intro.intro-go .hero :is(.hl, .lead, .ctas, .hero-shot) { animation-play-state: running; }',
+    );
   });
 });
