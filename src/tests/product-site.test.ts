@@ -81,7 +81,7 @@ describe('the product site pages', () => {
 });
 
 describe('the Automation page', () => {
-  const REPO = 'https://github.com/NitinSirsath/job-application-automation';
+  const REPO = 'https://github.com/NitinSirsath/northlist-apply';
 
   it('is linked from Home, and both its Start buttons open the automation on GitHub', () => {
     expect(doc('home').querySelector('#automation a[href="/automation"]')).not.toBeNull();
@@ -90,6 +90,12 @@ describe('the Automation page', () => {
     );
     expect(start).toHaveLength(2);
     for (const a of start) expect(a.getAttribute('href')).toBe(REPO);
+  });
+
+  it('names the automation, and says the NorthList app never applies to jobs itself', () => {
+    const text = doc('automation').body.textContent ?? '';
+    expect(text).toContain('NorthList Apply is a free job automation');
+    expect(text).toContain('The NorthList app never applies to jobs itself.');
   });
 
   it('says how far it is tested, and makes no claims about speed or results', () => {
