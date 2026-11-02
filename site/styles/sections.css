@@ -6,7 +6,6 @@
 .replay svg { transition: transform 300ms var(--ease); }
 .replay:active svg { transform: rotate(-120deg); }
 .replay-row { display: flex; justify-content: flex-end; margin-top: 12px; }
-.cap-r { display: inline-flex; align-items: center; gap: 12px; margin-left: auto; }
 html.no-motion .replay { display: none; }
 
 /* ---------- Your data: four promises, no boxes ---------- */
