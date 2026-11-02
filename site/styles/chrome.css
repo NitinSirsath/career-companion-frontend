@@ -2,7 +2,7 @@
 
 /* ---------- Header: its line shows only once the page scrolls ---------- */
 /* Glass: see-through page color with a blur behind it. Flat: no shadow, glow or gradient.
-  78% keeps grey header text at 4.5:1 even over pure black or white content. */
+   78% keeps grey header text at 4.5:1 even over pure black or white content. */
 .hdr {
   position: sticky; top: 0; z-index: 60; height: 64px;
   background: color-mix(in srgb, var(--bg) 78%, transparent);
