@@ -1,17 +1,14 @@
 /* Product site: Home: hero, the ask steps, applications card, reply box. Loaded in order by site.css. */
 
-/* ---------- Hero ---------- */
+/* ---------- Hero (owner, 1 Nov: calmer): headline, one line, one action, then the product ---------- */
 .hero { padding-top: 96px; }
-.announce { display: inline-flex; align-items: center; gap: 10px; min-height: 28px; font-size: 14px; line-height: 20px; color: var(--text-2); text-decoration: none; transition: color 70ms var(--ease); }
-.announce:hover { color: var(--text); }
-.hero h1 { margin-top: 24px; max-width: 900px; }
+.hero h1 { max-width: 900px; }
+.hero h1 .hl { display: inline-block; } /* each line moves on its own in the intro */
 .hero .lead { margin-top: 24px; }
-.hero .ctas { margin-top: 32px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
-.hero .note { margin-top: 12px; font-size: 14px; line-height: 20px; color: var(--text-3); }
-.hero .ctas .ph-arrow { display: none; }
+.hero .ctas { margin-top: 32px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+.hero .note { font-size: 14px; line-height: 20px; color: var(--text-3); }
 .hero-shot { margin-top: 64px; }
-.shot-cap { display: flex; justify-content: space-between; gap: 8px 24px; flex-wrap: wrap; padding-top: 14px; font-size: 14px; line-height: 20px; color: var(--text-3); }
-.shot-cap .hint { color: var(--text-2); }
+.shot-cap { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 14px; font-size: 14px; line-height: 20px; color: var(--text-3); }
 @media (max-width: 1023px) {
   .hero { padding-top: 72px; }
   .hero-shot { margin-top: 48px; }
@@ -19,16 +16,12 @@
   .sa-fit .sa:not(.used) .sa-main { overflow-y: hidden; }
 }
 @media (max-width: 599px) {
-  .hero { padding-top: 40px; }
-  .hero h1 { margin-top: 20px; }
+  .hero { padding-top: 48px; }
   .hero .lead { margin-top: 18px; }
-  .hero .ctas { margin-top: 28px; flex-direction: column; align-items: stretch; gap: 4px; }
-  .hero .ctas .btn-secondary { border-color: transparent; background: transparent; justify-content: flex-start; padding: 0; height: 44px; gap: 6px; }
-  .hero .ctas .ph-arrow { display: inline-block; }
+  .hero .ctas { margin-top: 28px; flex-direction: column; align-items: stretch; gap: 12px; }
   /* Phones: the phone app inside a phone frame, with the caption and replay button above it */
   .hero-shot { margin-top: 32px; display: flex; flex-direction: column; align-items: center; }
-  .hero-shot .shot-cap { order: -1; align-self: stretch; flex-wrap: nowrap; align-items: flex-start; padding: 0 0 12px; }
-  .shot-cap .hint { display: none; }
+  .hero-shot .shot-cap { order: -1; align-self: stretch; align-items: flex-start; padding: 0 0 12px; }
   .phone-only .sa-fit { margin: 0; flex: 1; min-height: 0; display: flex; flex-direction: column; }
   .phone-only .sa-fit > .sa { flex: 1; min-height: 0; border: 0; }
   .phone-only .sa-p { height: 100%; }
