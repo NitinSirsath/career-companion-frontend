@@ -5,9 +5,10 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { RELEASES, anchor } from '../../site/parts/changelog';
 import { fillParts } from '../../site/parts/index';
 
-/** The product site's five pages, as the build writes them (shared parts filled in). */
+/** The product site's six pages, as the build writes them (shared parts filled in). */
 const PAGES = {
   home: 'index.html',
+  automation: 'automation/index.html',
   pricing: 'pricing/index.html',
   privacy: 'privacy/index.html',
   changelog: 'changelog/index.html',
@@ -48,6 +49,7 @@ describe('the product site pages', () => {
       for (const href of [
         '/',
         '/#features',
+        '/automation',
         '/privacy/',
         '/pricing',
         '/changelog',
@@ -71,7 +73,40 @@ describe('the product site pages', () => {
 
   it('marks the open page in the header', () => {
     expect(doc('pricing').querySelector('.nav [aria-current="page"]')?.textContent).toBe('Pricing');
+    expect(doc('automation').querySelector('.nav [aria-current="page"]')?.textContent).toBe(
+      'Automation',
+    );
     expect(doc('home').querySelector('.nav [aria-current="page"]')).toBeNull();
+  });
+});
+
+describe('the Automation page', () => {
+  const REPO = 'https://github.com/NitinSirsath/job-application-automation';
+
+  it('is linked from Home, and both its Start buttons open the automation on GitHub', () => {
+    expect(doc('home').querySelector('#automation a[href="/automation"]')).not.toBeNull();
+    const start = [...doc('automation').querySelectorAll('a')].filter((a) =>
+      a.textContent?.startsWith('Start on GitHub'),
+    );
+    expect(start).toHaveLength(2);
+    for (const a of start) expect(a.getAttribute('href')).toBe(REPO);
+  });
+
+  it('says how far it is tested, and makes no claims about speed or results', () => {
+    const text = doc('automation').body.textContent ?? '';
+    expect(text).toContain('In beta. Tried so far on LinkedIn Easy Apply, Naukri and Indeed.');
+    expect(text).not.toMatch(
+      /\b(fast|faster|quickly|instantly|in minutes|success rate|guarantee)/i,
+    );
+  });
+
+  it("says what NorthList keeps from the automation in the privacy policy's words", () => {
+    const page = doc('automation').body.textContent ?? '';
+    const policy = readFileSync(resolve(__dirname, '../../site/public/privacy.html'), 'utf8');
+    for (const words of ['whether it skipped the job or left it for you', 'first 12 characters']) {
+      expect(page).toContain(words);
+      expect(policy).toContain(words);
+    }
   });
 });
 
