@@ -1,8 +1,9 @@
 import { noMotion, onReplay, whenSeen } from './motion.ts';
 
 /*
- * Home's self-playing pictures (owner, 1 Nov 2026). Each plays once when it comes into view and has a
- * replay button under it. Nothing beside them moves while they play: each keeps its finished size.
+ * The self-playing pictures on Home and the Automation page (owner, 1 Nov 2026). Each plays once when it
+ * comes into view and has a replay button under it. Nothing beside them moves while they play: each
+ * keeps its finished size.
  */
 
 /** The four steps of an ask light up one after another (under 5 seconds), then rest with a full bar. */
@@ -145,8 +146,72 @@ function replyDraft(demo: HTMLElement): void {
   onReplay('reply', () => play(false));
 }
 
+/*
+ * Automation page: a run in the visitor's AI app. Its lines appear one by one (`data-at`, ms); a working
+ * step shows grey shimmer text (`data-work`, for `data-for` ms), then its result in the same place. Last,
+ * the job arrives at the top of NorthList's Submitted list. The HTML holds the end state; this rewinds it.
+ */
+function automationRun(demo: HTMLElement): void {
+  const lines = [...demo.querySelectorAll<HTMLElement>('.run-log li')];
+  const row = demo.querySelector<HTMLElement>('[data-newrow]');
+  if (!row) return;
+  for (const li of lines) {
+    const tx = li.querySelector('.tx');
+    if (!li.dataset.work || !tx) continue;
+    const stack = document.createElement('span');
+    stack.className = 'stack';
+    tx.replaceWith(stack);
+    const wk = document.createElement('span');
+    wk.className = 'wk shimmer';
+    wk.textContent = li.dataset.work;
+    stack.append(tx, wk);
+  }
+  if (noMotion) return;
+  let timers: number[] = [];
+  const later = (ms: number, fn: () => void) => timers.push(window.setTimeout(fn, ms));
+  const before = () => {
+    for (const li of lines) {
+      li.classList.remove('show', 'working');
+      li.classList.add('pending');
+    }
+    row.classList.remove('arrive');
+    row.classList.add('pending');
+  };
+  const play = (still = false) => {
+    timers.forEach(clearTimeout);
+    timers = [];
+    if (still) {
+      for (const li of lines) li.classList.remove('pending', 'working');
+      row.classList.remove('pending');
+      return;
+    }
+    before();
+    let end = 0;
+    for (const li of lines) {
+      const at = Number(li.dataset.at) || 0;
+      const work = li.dataset.work ? Number(li.dataset.for) || 900 : 0;
+      later(at, () => {
+        li.classList.remove('pending');
+        li.classList.add('show');
+        li.classList.toggle('working', work > 0);
+      });
+      if (work) later(at + work, () => li.classList.remove('working'));
+      end = Math.max(end, at + work);
+    }
+    later(end + 250, () => {
+      row.classList.remove('pending');
+      void row.offsetWidth;
+      row.classList.add('arrive');
+    });
+  };
+  before();
+  whenSeen(demo, play, 0.35);
+  onReplay('run', () => play());
+}
+
 export function startPictures(): void {
   document.querySelectorAll<HTMLElement>('[data-life]').forEach(askSteps);
   document.querySelectorAll<HTMLElement>('[data-appdemo]').forEach(applicationCard);
   document.querySelectorAll<HTMLElement>('[data-replydemo]').forEach(replyDraft);
+  document.querySelectorAll<HTMLElement>('[data-rundemo]').forEach(automationRun);
 }

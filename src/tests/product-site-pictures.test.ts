@@ -4,8 +4,10 @@ import { resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fillParts } from '../../site/parts/index';
 
-/** Home's self-playing pictures and phone pictures on the product site. */
-const home = () => fillParts(readFileSync(resolve(__dirname, '../../site/index.html'), 'utf8'));
+/** The self-playing pictures (Home and Automation) and phone pictures on the product site. */
+const page = (file: string) =>
+  fillParts(readFileSync(resolve(__dirname, '../../site', file), 'utf8'));
+const home = () => page('index.html');
 const css = (name: string) => readFileSync(resolve(__dirname, '../../site/styles', name), 'utf8');
 
 /** Every picture "comes into view" at once. */
@@ -191,5 +193,61 @@ describe('the self-playing pictures', () => {
     const cards = css('home.css');
     expect(cards).toContain('.history li.pending { visibility: hidden; }');
     expect(cards).toContain('.track .later .d { visibility: hidden; }');
+  });
+});
+
+describe('the run on the Automation page', () => {
+  async function loadRun(reduceMotion = false) {
+    vi.resetModules();
+    stubBrowser(reduceMotion);
+    document.body.innerHTML = new DOMParser().parseFromString(
+      page('automation/index.html'),
+      'text/html',
+    ).body.innerHTML;
+    const pictures = await import('../../site/runtime/pictures');
+    pictures.startPictures();
+  }
+  const lines = () => [...document.querySelectorAll('.run-log li')];
+  const shown = () => lines().filter((li) => !li.classList.contains('pending')).length;
+
+  it('shows the AI app steps one by one, each working step as grey shimmer first', async () => {
+    await loadRun();
+    expect(shown()).toBe(0);
+    expect($('[data-newrow]').classList.contains('pending')).toBe(true);
+    await vi.advanceTimersByTimeAsync(200);
+    expect(shown()).toBe(1);
+    await vi.advanceTimersByTimeAsync(500);
+    const reading = lines()[1];
+    expect(reading.classList.contains('working')).toBe(true);
+    expect(reading.querySelector('.wk.shimmer')?.textContent).toBe('Reading the job post');
+    await vi.advanceTimersByTimeAsync(900);
+    expect(reading.classList.contains('working')).toBe(false);
+  });
+
+  it('then adds the job to the top of Submitted, tagged Sent by automation, and replays', async () => {
+    await loadRun();
+    await vi.advanceTimersByTimeAsync(6000);
+    expect(shown()).toBe(lines().length);
+    expect($('[data-newrow]').classList.contains('pending')).toBe(true);
+    await vi.advanceTimersByTimeAsync(300);
+    expect($('[data-newrow]').classList.contains('arrive')).toBe(true);
+    expect($('[data-newrow] .tag').textContent).toBe('Sent by automation');
+    $('[data-replay="run"]').click();
+    expect(shown()).toBe(0);
+    expect($('[data-newrow]').classList.contains('pending')).toBe(true);
+  });
+
+  it('shows its end state at once when the visitor asks for less motion', async () => {
+    await loadRun(true);
+    expect(shown()).toBe(lines().length);
+    expect(document.querySelector('.run .pending, .run .working')).toBeNull();
+    expect(lines()[1].querySelector('.wk')?.textContent).toBe('Reading the job post');
+  });
+
+  it('keeps its size while it plays (hidden, not removed)', () => {
+    expect(css('pages.css')).toContain(
+      '.run-log li.pending, .run-tr.pending { visibility: hidden; }',
+    );
+    expect(css('pages.css')).toContain('.run-log .stack > * { grid-area: 1 / 1; }');
   });
 });

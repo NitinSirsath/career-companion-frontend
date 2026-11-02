@@ -1,4 +1,4 @@
-/* Product site: Pricing, Privacy, Changelog, About. Loaded in order by site.css. */
+/* Product site: Pricing, Privacy, Changelog, About, Automation. Loaded in order by site.css. */
 
 /* ---------- Pricing ---------- */
 .plans { display: grid; grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); gap: 64px; align-items: start; }
@@ -134,3 +134,74 @@
 .contact a.mail:hover { color: var(--link); text-decoration-color: var(--link); }
 @media (max-width: 899px) { .story-grid, .contact { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 599px) { .story p { font-size: 17px; line-height: 28px; } .contact .act .btn { width: 100%; } }
+
+/* ---------- Automation (owner, 1 Nov): head button, the run picture, four rules, three places, four steps ---------- */
+.page-head .ctas { margin-top: 32px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+.page-head .ctas .note { margin-top: 0; }
+.run { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: stretch; }
+.run-panel { min-width: 0; }
+.run-hd { display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px; border-bottom: 1px solid var(--line); font-size: 13px; line-height: 18px; font-weight: 500; }
+.run-hd svg { flex: none; color: var(--text-2); }
+.run-hd .run-where { margin-left: auto; color: var(--text-3); font-weight: 400; }
+.run-log { padding: 16px; display: flex; flex-direction: column; gap: 12px; font-size: 14px; line-height: 21px; }
+.run-log li { display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 10px; color: var(--text-2); }
+.run-log li > svg { margin-top: 4px; color: var(--text-2); }
+.run-log li b { color: var(--text); font-weight: 500; }
+.run-log .ask > svg { color: var(--mark); }
+.run-log .you { grid-template-columns: auto auto; justify-content: end; align-items: center; gap: 8px; }
+.run-log .who { font-size: 12px; line-height: 16px; color: var(--text-3); }
+.run-log .say { padding: 3px 10px; background: var(--bg-2); color: var(--text); font-family: var(--mono); font-size: 13px; line-height: 20px; }
+/* A step shows grey shimmer text while the AI works, then its result in the same place (one grid cell, so nothing moves) */
+.run-log .stack { display: grid; }
+.run-log .stack > * { grid-area: 1 / 1; }
+.run-log .wk { visibility: hidden; }
+.run-log li.working .wk { visibility: visible; }
+.run-log li.working .tx, .run-log li.working > svg { visibility: hidden; }
+.run-log li.pending, .run-tr.pending { visibility: hidden; }
+.run-log li.show { animation: run-in 260ms var(--ease-in); }
+@keyframes run-in { from { opacity: 0; transform: translateY(4px); } }
+.run-tabs { display: flex; gap: 20px; padding: 0 16px; border-bottom: 1px solid var(--line); font-size: 13px; line-height: 18px; color: var(--text-2); white-space: nowrap; overflow: hidden; }
+.run-tabs span { padding: 12px 0 10px; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.run-tabs .on { color: var(--text); font-weight: 500; border-bottom-color: var(--mark); }
+.run-table { padding: 0 16px 8px; }
+.run-tr { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 0.9fr); gap: 16px; padding: 12px 0; border-top: 1px solid var(--line); font-size: 14px; line-height: 20px; align-items: start; }
+.run-tr.run-th { border-top: 0; padding: 12px 0 8px; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--text-2); }
+.run-tr .co, .run-tr .when { display: flex; flex-direction: column; min-width: 0; }
+.run-tr .co b { font-weight: 560; }
+.run-tr .co span, .run-tr .when span { font-size: 12px; line-height: 16px; color: var(--text-3); }
+.run-tr .st { display: inline-flex; align-items: center; gap: 6px; color: var(--text-2); }
+.run-tr.arrive { animation: arrive 1400ms var(--ease-in); }
+.run-cap { flex-wrap: nowrap; align-items: center; gap: 16px; }
+.rules { margin-top: 48px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px; }
+.rule { display: flex; flex-direction: column; gap: 6px; }
+.rule svg { color: var(--text-2); margin-bottom: 8px; }
+.rule b { font-size: 16px; line-height: 24px; font-weight: 560; }
+.rule p, .trio p { font-size: 15px; line-height: 24px; color: var(--text-2); }
+.rules-note { margin-top: 40px; max-width: 640px; font-size: 15px; line-height: 24px; color: var(--text-3); }
+.rules-note.tight { margin-top: 12px; }
+.trio { margin-top: 48px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px 48px; }
+.trio h3 { margin-bottom: 6px; }
+.setup.four { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 40px; max-width: none; }
+@media (max-width: 1023px) {
+  .rules { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 40px; margin-top: 40px; }
+  .trio { margin-top: 40px; }
+  .setup.four { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 899px) {
+  .run { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .trio { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+}
+@media (max-width: 599px) {
+  .page-head .ctas { margin-top: 28px; flex-direction: column; align-items: stretch; gap: 12px; }
+  /* Phones: the two panels run edge to edge, like the application card on Home */
+  .run { margin-inline: calc(-1 * var(--gut)); }
+  .run-hd, .run-log, .run-tabs, .run-table { padding-inline: var(--gut); }
+  .run-tr { grid-template-columns: minmax(0, 1fr) auto; }
+  .run-tr .when, .run-th > :nth-child(3) { display: none; }
+  .rules, .setup.four { grid-template-columns: minmax(0, 1fr); gap: 24px; margin-top: 32px; }
+  .rule { display: grid; grid-template-columns: 20px minmax(0, 1fr); column-gap: 14px; row-gap: 4px; }
+  .rule svg { grid-row: 1 / span 2; margin: 2px 0 0; }
+  .rules-note { margin-top: 32px; }
+  .rules-note.tight { margin-top: 12px; }
+  .trio { margin-top: 32px; }
+}

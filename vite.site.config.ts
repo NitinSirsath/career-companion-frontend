@@ -5,7 +5,7 @@ import { fillParts } from './site/parts/index.ts';
 
 /**
  * The product site on northlist.site (owner, 31 Oct and 1 Nov 2026): `npm run build:site` writes it to
- * `dist-site`. Five plain pages, each with its words in its HTML: the shared parts (header, footer,
+ * `dist-site`. Six plain pages, each with its words in its HTML: the shared parts (header, footer,
  * data promises, icons) are filled in here. It also holds `site/public` (privacy policy, page not found,
  * Google's file, `sw.js`) and the icons and link-preview image it shares with the app. No server calls,
  * no service worker of its own and no web manifest.
@@ -13,7 +13,7 @@ import { fillParts } from './site/parts/index.ts';
 const SHARED_FILES = ['favicon.ico', 'favicon.svg', 'apple-touch-icon.png', 'og-image.png'];
 const root = path.resolve(import.meta.dirname, 'site');
 const outDir = path.resolve(import.meta.dirname, 'dist-site');
-const PAGES = ['index', 'pricing/index', 'privacy/index', 'changelog/index', 'about/index'];
+const PAGES = ['index', 'automation/index', 'pricing/index', 'privacy/index', 'changelog/index', 'about/index'];
 
 const sharedFiles: Plugin = {
   name: 'shared-files',
