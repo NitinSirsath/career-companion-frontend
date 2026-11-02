@@ -180,6 +180,14 @@ describe('the glass header', () => {
     expect(chrome).toContain('@supports not ((backdrop-filter: blur(1px))');
     expect(chrome).toContain('@media (prefers-reduced-transparency: reduce)');
   });
+
+  it('writes the blur only as plain backdrop-filter, which the build keeps and prefixes for Safari', () => {
+    // With both written, the build's CSS minifier keeps only -webkit-backdrop-filter, and Chrome shows no blur.
+    for (const file of ['chrome.css', 'pages.css']) {
+      const css = readFileSync(resolve(__dirname, '../../site/styles', file), 'utf8');
+      expect(css.replace(/@supports[^{]*/g, '')).not.toMatch(/-webkit-backdrop-filter:/);
+    }
+  });
 });
 
 describe('the theme switch and the phone menu', () => {
