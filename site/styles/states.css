@@ -58,10 +58,10 @@
 
 /* ---------- Motion: once, small, and off when asked ---------- */
 /* Hero intro (owner, 1 Nov; after linear.app): plays once on load, about 2 s in all (owner asked for
-  slower than the first 1.2 s). Each headline line rises out of a soft blur, then the lead, then the
-  action; the product comes last. Only opacity, transform and filter move, so nothing shifts.
-  html.intro is set in the page head, so the hero waits hidden from the first paint; runtime/motion.ts adds
-  html.intro-go once the header, sample app and font are in. */
+   slower than the first 1.2 s). Each headline line rises out of a soft blur, then the lead, then the
+   action; the product comes last. Only opacity, transform and filter move, so nothing shifts.
+   html.intro is set in the page head, so the hero waits hidden from the first paint; runtime/motion.ts adds
+   html.intro-go once the header, sample app and font are in. */
 @keyframes intro-text { from { opacity: 0; filter: blur(8px); transform: translateY(0.3em); } }
 @keyframes intro-rise { from { opacity: 0; transform: translateY(8px); } }
 @keyframes intro-shot { from { opacity: 0; transform: translateY(24px); } }
