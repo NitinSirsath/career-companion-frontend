@@ -33,6 +33,11 @@ export class SampleApp {
   private run = 0;
   private lastView = '';
   private toastTimer = 0;
+  /** The build-in (the hero only): the parts wait hidden, then appear one by one. */
+  private building = false;
+  private buildTimer = 0;
+  private built: Promise<void> = Promise.resolve();
+  private builtDone = () => {};
 
   constructor(root: HTMLElement, opts: Options = {}) {
     this.root = root;
@@ -156,13 +161,43 @@ export class SampleApp {
     this.render();
   }
 
-  /** The self-playing part: a moment after it is seen, Gmail is checked and a new job mail arrives. */
+  /*
+   * Build-in (the hero only, styles/states.css "Hero build-in"): holdBuild() hides the app's parts,
+   * playBuild() lets them appear one by one, endBuild() shows everything. Any redraw ends it at once.
+   */
+  holdBuild(): void {
+    if (this.building) return;
+    this.building = true;
+    this.root.classList.add('sa-build');
+    this.built = new Promise((r) => (this.builtDone = r));
+  }
+
+  playBuild(): void {
+    if (!this.building || this.buildTimer) return;
+    this.root.classList.add('sa-build-go');
+    // The parts take 1.84 s on a phone and 1.9 s on the laptop picture.
+    this.buildTimer = window.setTimeout(() => this.endBuild(), 2000);
+  }
+
+  endBuild(): void {
+    if (!this.building) return;
+    clearTimeout(this.buildTimer);
+    this.building = false;
+    this.buildTimer = 0;
+    this.root.classList.remove('sa-build', 'sa-build-go');
+    this.builtDone();
+  }
+
+  /** The self-playing part: a moment after it is seen, and after any build-in, Gmail is checked and a new job mail arrives. */
   play(): void {
     if (this.autoplay !== 'sync') return;
     const run = this.run;
-    setTimeout(() => {
-      if (run === this.run && !this.touched) void this.sync();
-    }, 1400);
+    const waits = this.building;
+    void (waits ? this.built : Promise.resolve()).then(() => {
+      setTimeout(() => {
+        if (run === this.run && !this.touched) void this.sync();
+      }, waits ? 900 : 1400);
+    });
   }
 
   private async sync(): Promise<void> {
@@ -256,6 +291,7 @@ export class SampleApp {
   /* ---------- Drawing ---------- */
   /** Draws the current state, keeping the list's scroll place and keyboard focus. */
   render(): void {
+    if (this.building) this.endBuild(); // new parts would start the build-in again
     const s = this.s;
     const main = this.root.querySelector('.sa-main, .sa-pmain');
     const keep = main && this.lastView === s.view + s.mailId ? main.scrollTop : 0;
