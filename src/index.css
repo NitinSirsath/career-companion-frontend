@@ -397,7 +397,8 @@
     --tag-yellow: #fddc69;
 
     --chart-1: #4589ff;
-    --chart-2: #08bdba;
+    /* Teal one step darker than Carbon's dark chart teal: #08bdba fails the colour-blind lightness check on this page. */
+    --chart-2: #009d9a;
     --chart-3: #a56eff;
     --chart-4: #6f6f6f;
     --chart-5: #fa4d56;
