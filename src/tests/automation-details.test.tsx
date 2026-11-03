@@ -269,6 +269,7 @@ describe('automation page', () => {
       serverAddress: 'https://cc-api.example.com',
     });
     show('/automation?tab=setup');
+    fireEvent.click(await screen.findByRole('button', { name: 'Set it up by hand instead' }));
     expect(await screen.findByText('https://cc-api.example.com/mcp')).toBeInTheDocument();
     expect(screen.getByText('- NorthList server: https://cc-api.example.com')).toBeInTheDocument();
     expect(screen.queryByText(`${window.location.origin}/mcp`)).toBeNull();
