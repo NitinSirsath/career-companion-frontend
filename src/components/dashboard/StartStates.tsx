@@ -77,19 +77,21 @@ export function ReadingFirstMails({ reading }: { reading: AIReadingStatusRespons
   );
 }
 
+/** The page's shape while the numbers load: three tiles, five numbers, a chart. */
 export function DashboardSkeleton() {
   return (
-    <div className="flex flex-col gap-6" aria-hidden>
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+    <div className="flex flex-col gap-8" aria-hidden>
+      <div className="grid gap-2 md:grid-cols-3">
+        {[0, 1, 2].map((i) => (
+          <Skeleton key={i} className="h-20 md:h-40" />
+        ))}
+      </div>
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
         {[0, 1, 2, 3, 4].map((i) => (
           <Skeleton key={i} className="h-28" />
         ))}
       </div>
-      <Skeleton className="h-36" />
-      <div className="grid gap-4 lg:grid-cols-[3fr_2fr]">
-        <Skeleton className="h-72" />
-        <Skeleton className="h-72" />
-      </div>
+      <Skeleton className="h-72" />
     </div>
   );
 }

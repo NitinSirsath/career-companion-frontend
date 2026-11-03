@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import type { DashboardResponse } from '../../contracts/dashboard';
 import { RATE_BASE, barPercent, rateText, siteName, workModeName } from '../../lib/dashboard';
-import { DashCard, ShareBar, TD_CLASS, TH_CLASS } from './DashCard';
+import { DashCard, DashSection, ShareBar, TD_CLASS, TH_CLASS } from './DashCard';
 
 type Automation = DashboardResponse['automation'];
 
@@ -146,48 +146,15 @@ function Coverage({ automation }: { automation: Automation }) {
   );
 }
 
-/** For everyone (owner, 27 Oct 2026): without the automation, the cards say where it comes from. */
-function FromAutomation({ title }: { title: string }) {
-  return (
-    <DashCard title={title}>
-      <div className="flex flex-col items-center gap-2 px-2 pt-8 pb-2 text-center">
-        <p className="text-base font-semibold">Comes from your automation</p>
-        <p className="max-w-90 text-xs text-text-secondary">
-          Jobs found in your mail don't say which site they came from. When your automation sends
-          applications, this shows which sites and work modes get answers.
-        </p>
-        <Link
-          to="/automation"
-          search={{ tab: 'setup' }}
-          className="mt-2 inline-flex h-10 items-center border border-border-default px-4 text-sm hover:bg-layer-hover"
-        >
-          Set up automation
-        </Link>
-      </div>
-    </DashCard>
-  );
-}
-
+/** What works best: only for users who sent applications through the automation (owner, 3 Nov 2026). */
 export function WorksBest({ automation }: { automation: Automation }) {
   return (
-    <section className="flex flex-col gap-3" aria-labelledby="works-best">
-      <h2 id="works-best" className="text-xl leading-7 font-normal">
-        What works best
-      </h2>
-      {automation.used ? (
-        <>
-          <div className="grid gap-4 lg:grid-cols-2">
-            <SiteTable sites={automation.sites} />
-            <WorkModeTable modes={automation.workModes} />
-          </div>
-          <Coverage automation={automation} />
-        </>
-      ) : (
-        <div className="grid gap-4 lg:grid-cols-2">
-          <FromAutomation title="By site" />
-          <FromAutomation title="By work mode" />
-        </div>
-      )}
-    </section>
+    <DashSection title="What works best">
+      <div className="grid gap-2 @min-[900px]:grid-cols-2">
+        <SiteTable sites={automation.sites} />
+        <WorkModeTable modes={automation.workModes} />
+      </div>
+      <Coverage automation={automation} />
+    </DashSection>
   );
 }

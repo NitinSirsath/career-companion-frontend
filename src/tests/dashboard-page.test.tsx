@@ -66,40 +66,91 @@ afterEach(() => {
 });
 
 describe('the Dashboard', () => {
-  it('shows the numbers of the last 30 days, each leading to its list', async () => {
+  it('greets the user and puts what needs them first, each tile leading to its list', async () => {
     renderPage();
-    expect(await screen.findByText('Right now: 51 active jobs')).toBeInTheDocument();
-    expect(screen.getByText('↑ 8 vs the 30 days before')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Interview\s*2/ })).toHaveAttribute(
+    expect(
+      await screen.findByRole('heading', {
+        level: 1,
+        name: /^Good (morning|afternoon|evening), T$/,
+      }),
+    ).toBeInTheDocument();
+    const now = await screen.findByRole('region', { name: 'Needs you now' });
+    expect(within(now).getByRole('link', { name: /New job mails/ })).toHaveAttribute(
       'href',
-      '/applications?status=INTERVIEW',
+      '/mails?unseen=true',
     );
-    expect(screen.getByRole('link', { name: '3 not linked to a job' })).toHaveAttribute(
-      'href',
-      '/mails?application=none',
-    );
-    expect(screen.getByText('Response rate').nextSibling).toHaveTextContent('35%');
-    expect(screen.getByRole('link', { name: 'Acme Analytics' })).toHaveAttribute(
-      'href',
-      '/applications/app-1',
-    );
-    expect(screen.getByRole('link', { name: '3 still need you in Mails' })).toHaveAttribute(
+    expect(within(now).getByRole('link', { name: /Needs action/ })).toHaveAttribute(
       'href',
       '/mails?request=open',
     );
+    const interviews = within(now).getByRole('link', { name: /Interviews coming up/ });
+    expect(interviews).toHaveAttribute('href', '/mails/thread-9');
+    expect(interviews).toHaveTextContent('Next: Thu, Nov 5 · 10:00 AM · Harbor Analytics');
+    expect(within(now).getByText('2 today')).toBeInTheDocument();
     expect(api.getDashboard).toHaveBeenCalledWith(
       expect.objectContaining({ period: '30d' }),
       expect.anything(),
     );
   });
 
+  it('shows the progress of the period and the mailbox', async () => {
+    renderPage();
+    const progress = await screen.findByRole('region', { name: 'Your progress' });
+    expect(within(progress).getByText('↑ 8 vs the 30 days before')).toBeInTheDocument();
+    expect(
+      within(progress).getByRole('heading', { name: 'Running total this period' }),
+    ).toBeInTheDocument();
+    expect(within(progress).getByText('Response rate').nextSibling).toHaveTextContent('35%');
+    expect(within(progress).getByText('Usual reply time').nextSibling).toHaveTextContent('6 days');
+    expect(within(progress).getByRole('link', { name: /Acme Analytics/ })).toHaveAttribute(
+      'href',
+      '/applications/app-1',
+    );
+    const mailbox = screen.getByRole('region', { name: 'Your mailbox' });
+    expect(within(mailbox).getByText('1,402')).toBeInTheDocument();
+    expect(within(mailbox).getByText('214 in the last 30 days')).toBeInTheDocument();
+    expect(within(mailbox).getByRole('link', { name: 'Link them on Mails' })).toHaveAttribute(
+      'href',
+      '/mails?application=none',
+    );
+    expect(within(mailbox).getByRole('heading', { name: 'Job mails per day' })).toBeInTheDocument();
+  });
+
+  it('leaves out what the owner removed: tips, the AI tip and the old cards', async () => {
+    renderPage();
+    await screen.findByRole('region', { name: 'Needs you now' });
+    for (const gone of ['Tips', 'Right now', 'Where rejected jobs ended', 'Week by week'])
+      expect(screen.queryByText(new RegExp(gone))).not.toBeInTheDocument();
+    for (const gone of ['How you keep up', 'Kept safe', 'How fast companies answer'])
+      expect(screen.queryByText(gone)).not.toBeInTheDocument();
+    expect(screen.queryByText(/AI tip/)).not.toBeInTheDocument();
+  });
+
   it('asks for the period in the address', async () => {
     renderPage('/dashboard?period=90d');
-    await screen.findByText('Right now: 51 active jobs');
+    await screen.findByRole('region', { name: 'Your progress' });
     expect(api.getDashboard).toHaveBeenCalledWith(
       expect.objectContaining({ period: '90d' }),
       expect.anything(),
     );
+  });
+
+  it('says so when nothing needs the user', async () => {
+    vi.mocked(api.getDashboard).mockResolvedValue(
+      dashboardFixture({
+        now: {
+          newJobMails: { count: 0, today: 0 },
+          needsAction: { count: 0, waitingOverADay: 0 },
+          interviews: { count: 0, next: null },
+        },
+      }),
+    );
+    renderPage();
+    const now = await screen.findByRole('region', { name: 'Needs you now' });
+    expect(within(now).getByText('You have opened every job mail')).toBeInTheDocument();
+    expect(within(now).getByText('Nothing is waiting on you')).toBeInTheDocument();
+    expect(within(now).getByText('No interviews booked yet')).toBeInTheDocument();
+    expect(within(now).queryByRole('link', { name: /Interviews coming up/ })).toBeNull();
   });
 
   it('shows counts, not rates, under 5 applications', async () => {
@@ -119,14 +170,17 @@ describe('the Dashboard', () => {
     expect(screen.queryByText('Response rate')).not.toBeInTheDocument();
   });
 
-  it('without the automation, the site cards say where they come from', async () => {
+  it('shows what works best only to users of the automation', async () => {
     renderPage();
-    const section = await screen.findByRole('region', { name: 'What works best' });
-    expect(within(section).getAllByText('Comes from your automation')).toHaveLength(2);
-    expect(within(section).getAllByRole('link', { name: 'Set up automation' })[0]).toHaveAttribute(
-      'href',
-      '/automation?tab=setup',
-    );
+    await screen.findByRole('region', { name: 'Your mailbox' });
+    expect(screen.queryByRole('region', { name: 'What works best' })).not.toBeInTheDocument();
+    cleanup();
+
+    const used = dashboardFixture();
+    used.automation = { ...used.automation, used: true, sent: 4, lookedAt: 6 };
+    vi.mocked(api.getDashboard).mockResolvedValue(used);
+    renderPage();
+    expect(await screen.findByRole('region', { name: 'What works best' })).toBeInTheDocument();
   });
 
   it('a new user with no Gmail gets one clear start', async () => {
@@ -138,7 +192,7 @@ describe('the Dashboard', () => {
     vi.mocked(api.getDashboard).mockResolvedValue(dashboardFixture({ dataStartsAt: null }));
     renderPage();
     expect(await screen.findByText('See your job search in numbers')).toBeInTheDocument();
-    expect(screen.queryByText(/active jobs/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Needs you now' })).not.toBeInTheDocument();
   });
 
   it('while the AI reads the first mails, it shows progress instead of empty numbers', async () => {
@@ -149,11 +203,9 @@ describe('the Dashboard', () => {
       total: 50,
       secondsLeft: 240,
     });
-    vi.mocked(api.getDashboard).mockResolvedValue(
-      dashboardFixture({
-        data: { jobMailsRead: 0, notLinked: 0, waitingForAI: 38, fakeOffers: 0 },
-      }),
-    );
+    const empty = dashboardFixture();
+    empty.mailbox = { ...empty.mailbox, jobMails: { total: 0, inPeriod: 0 } };
+    vi.mocked(api.getDashboard).mockResolvedValue(empty);
     renderPage();
     expect(await screen.findByText('The AI is reading your mails')).toBeInTheDocument();
     expect(screen.getByText(/about 4 min left. The numbers fill in/)).toBeInTheDocument();
