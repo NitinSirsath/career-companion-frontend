@@ -1,0 +1,44 @@
+name: Finish dashboard-v2-page once (temporary)
+# Renames and deletes files on feat/dashboard-v2-page and commits only that.
+# Lives only on the throwaway branch tmp/dashboard-v2-page-finish, which is deleted afterwards.
+on:
+  push:
+    branches: [tmp/dashboard-v2-page-finish]
+permissions:
+  contents: write
+concurrency:
+  group: finish-dashboard-v2-page-once
+  cancel-in-progress: false
+jobs:
+  finish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: feat/dashboard-v2-page
+      - name: Check the hand commits
+        run: |
+          if [ "$(git rev-parse 'HEAD^{tree}')" != "8164bab48d8099f737984e9542531c6b324d0617" ]; then
+            echo "The hand commits do not match the reviewed files. Nothing was changed."
+            exit 1
+          fi
+      - name: Rename and delete
+        run: |
+          git rm -q src/components/dashboard/Overview.tsx
+          git rm -q src/components/dashboard/Progress.tsx
+          git rm -q src/components/dashboard/Tips.tsx
+          git rm -q src/components/dashboard/WeekByWeek.tsx
+          git rm -q src/lib/dashboardTips.ts
+          git rm -q src/tests/dashboard-tips.test.tsx
+      - name: Commit only the reviewed result
+        run: |
+          if [ "$(git write-tree)" != "21c6c03c8b255e80cc7e38889293dd77db15a249" ]; then
+            echo "The result does not match the reviewed tree. Nothing was pushed."
+            git status --short
+            exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(dashboard): delete the old Dashboard parts'
+          git push origin HEAD:feat/dashboard-v2-page
