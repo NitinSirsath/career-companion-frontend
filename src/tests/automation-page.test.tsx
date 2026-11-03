@@ -80,9 +80,14 @@ async function createToken(name = 'Work laptop', days?: string) {
   fireEvent.change(await screen.findByLabelText('Name'), { target: { value: name } });
   if (days)
     await chooseOption(screen.getByRole('combobox', { name: 'Expires after' }), `${days} days`);
-  fireEvent.click(screen.getByRole('button', { name: 'Create token' }));
+  const create = screen.getByRole('button', { name: 'Create setup prompt' });
+  await waitFor(() => expect(create).toBeEnabled()); // once the server address is known
+  fireEvent.click(create);
 }
 
+/** Opens "Set it up by hand instead", where today's address, header and profile line are. */
+const openByHand = async () =>
+  fireEvent.click(await screen.findByRole('button', { name: 'Set it up by hand instead' }));
 beforeEach(() => {
   cleanup();
   vi.clearAllMocks();
@@ -113,12 +118,13 @@ describe('navigation', () => {
       '/automation',
     );
     fireEvent.click(within(menu).getByRole('button', { name: 'Close menu' }));
+    await openByHand();
     expect(await screen.findByText(`${window.location.origin}/mcp`)).toBeInTheDocument();
   });
 });
 
 describe('creating a token', () => {
-  it('shows the plaintext once with a copy button and a warning, and keeps it out of every cache', async () => {
+  it('shows the setup prompt once with copy buttons and a warning, and keeps the token out of every cache', async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     Object.assign(navigator, { clipboard: { writeText } });
     vi.mocked(api.createIntegrationToken).mockResolvedValue({
@@ -128,21 +134,25 @@ describe('creating a token', () => {
     renderPage();
     await createToken('  Work laptop ', '30');
 
-    const shown = (await screen.findByLabelText('New token')) as HTMLInputElement;
+    const shown = (await screen.findByLabelText('Setup prompt')) as HTMLTextAreaElement;
     expect(api.createIntegrationToken).toHaveBeenCalledWith({
       name: 'Work laptop',
       expiresInDays: 30,
     });
-    expect(shown.value).toBe(PLAINTEXT);
+    expect(shown.value).toContain(`Token: ${PLAINTEXT}`);
+    expect(shown.value).toContain(`NorthList server: ${window.location.origin}`);
+    expect(shown.value).toContain('Follow instructions/northlist_connect.md in this folder.');
     expect(shown).toHaveAttribute('readonly');
-    expect(screen.getByText(/It will not be shown again/)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Copy token' }));
-    await waitFor(() => expect(writeText).toHaveBeenCalledWith(PLAINTEXT));
+    expect(screen.getByText(/is not shown again/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Copy setup prompt' }));
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith(shown.value));
     expect(await screen.findByText('Copied.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Copy token only' }));
+    await waitFor(() => expect(writeText).toHaveBeenLastCalledWith(PLAINTEXT));
     expect(browserState()).not.toContain('SENTINEL');
 
-    fireEvent.click(screen.getByRole('button', { name: 'Done, I saved it' }));
-    expect(screen.queryByLabelText('New token')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Done, I copied it' }));
+    expect(screen.queryByLabelText('Setup prompt')).not.toBeInTheDocument();
     expect(document.body.innerHTML).not.toContain('SENTINEL');
     expect(browserState()).not.toContain('SENTINEL');
     await waitFor(() => expect(api.listIntegrationTokens).toHaveBeenCalledTimes(2)); // list refreshed after create
@@ -155,12 +165,40 @@ describe('creating a token', () => {
     });
     const view = renderPage();
     await createToken();
-    await screen.findByLabelText('New token');
+    await screen.findByLabelText('Setup prompt');
     view.unmount();
     renderPage();
     await screen.findByLabelText('Name');
     expect(document.body.innerHTML).not.toContain('SENTINEL');
     expect(browserState()).not.toContain('SENTINEL');
+  });
+
+  it('asks for a year by default, and builds the prompt with the backend address', async () => {
+    vi.mocked(api.getMcpConnection).mockResolvedValue({
+      serverAddress: 'https://cc-api.example.com',
+    });
+    vi.mocked(api.createIntegrationToken).mockResolvedValue({
+      integrationToken: token(),
+      plaintextToken: PLAINTEXT,
+    });
+    renderPage();
+    expect(await screen.findByRole('link', { name: /NorthList Apply on GitHub/ })).toHaveAttribute(
+      'href',
+      'https://github.com/NitinSirsath/northlist-apply',
+    );
+    await createToken('Laptop');
+    expect(api.createIntegrationToken).toHaveBeenCalledWith({ name: 'Laptop', expiresInDays: 365 });
+    const shown = (await screen.findByLabelText('Setup prompt')) as HTMLTextAreaElement;
+    expect(shown.value).toBe(
+      [
+        'Connect this NorthList Apply folder to my NorthList account.',
+        '',
+        'NorthList server: https://cc-api.example.com',
+        `Token: ${PLAINTEXT}`,
+        '',
+        "Follow instructions/northlist_connect.md in this folder. Keep the token only in this app's own MCP settings, never in a file in this folder. If that file is missing, tell me to download NorthList Apply again.",
+      ].join('\n'),
+    );
   });
 
   it('asks for a name before calling the API', async () => {
@@ -182,7 +220,7 @@ describe('creating a token', () => {
     renderPage();
     await createToken();
     expect(await screen.findByRole('alert')).toHaveTextContent('at most 5 active tokens');
-    expect(screen.getByRole('button', { name: 'Create token' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Create setup prompt' })).toBeEnabled();
   });
 
   it('an uncertain outcome refreshes the list and never resubmits automatically', async () => {
@@ -193,10 +231,10 @@ describe('creating a token', () => {
     await createToken();
     expect(await screen.findByText('Token creation outcome unknown')).toBeInTheDocument();
     expect(screen.getByText(/If a new token appears there, revoke it/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Create token' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Create setup prompt' })).toBeDisabled();
     await waitFor(() => expect(api.listIntegrationTokens).toHaveBeenCalledTimes(2));
     fireEvent.click(screen.getByRole('button', { name: 'I checked the list' }));
-    expect(screen.getByRole('button', { name: 'Create token' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Create setup prompt' })).toBeEnabled();
     expect(api.createIntegrationToken).toHaveBeenCalledTimes(1);
   });
 });
