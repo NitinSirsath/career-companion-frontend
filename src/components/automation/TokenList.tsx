@@ -121,7 +121,7 @@ export function TokenList() {
       {error && <SectionError title="Could not load your tokens" />}
       {data && data.items.length === 0 && (
         <p className="text-sm text-text-secondary">
-          {offset > 0 ? 'No tokens on this page.' : 'No tokens yet. Create one in step 1.'}
+          {offset > 0 ? 'No tokens on this page.' : 'No tokens yet. Create one in step 2.'}
         </p>
       )}
       {data && data.items.length > 0 && (
