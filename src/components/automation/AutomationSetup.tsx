@@ -1,9 +1,13 @@
-import type { ReactNode } from 'react';
+import { useId, useState, type ReactNode } from 'react';
+import { ChevronDown, Launch } from '@carbon/icons-react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../api/client';
 import { INTEGRATION_TOKEN_MAX_ACTIVE } from '../../contracts/integrationToken';
+import { NORTHLIST_APPLY_URL } from '../../lib/setupPrompt';
+import { cn } from '../../lib/utils';
 import { SettingsSection } from '../layout/SettingsSection';
 import { CodeSnippet } from '../ui/code-snippet';
+import { Collapse } from '../ui/collapse';
 import { CreateTokenForm } from './CreateTokenForm';
 import { TokenList } from './TokenList';
 
@@ -24,6 +28,58 @@ function Step({ number, title, children }: { number: number; title: string; chil
   );
 }
 
+const Code = ({ children }: { children: ReactNode }) => (
+  <code className="bg-layer-accent px-1.5 py-0.5 font-mono text-xs">{children}</code>
+);
+
+/** Today's setup steps, for people who connect their AI app themselves. Closed by default. */
+function ByHand({ serverAddress }: { serverAddress: string | null }) {
+  const [open, setOpen] = useState(false);
+  const panelId = useId();
+  return (
+    <div className="border-t border-border-subtle pt-4">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={panelId}
+        onClick={() => setOpen(!open)}
+        className="flex cursor-pointer items-center gap-2 text-sm font-medium text-link hover:underline"
+      >
+        <ChevronDown
+          size={16}
+          aria-hidden="true"
+          className={cn('transition-transform duration-150 ease-standard', !open && '-rotate-90')}
+        />
+        Set it up by hand instead
+      </button>
+      <Collapse open={open} id={panelId}>
+        <div className="flex flex-col gap-3 pt-4">
+          <p className="text-sm">
+            Create the prompt above and copy the token from it. Then add NorthList as an MCP server
+            in your AI app’s user-level settings:
+          </p>
+          {serverAddress && (
+            <CodeSnippet code={`${serverAddress}/mcp`} label="the server address" />
+          )}
+          <CodeSnippet code="Authorization: Bearer <token>" label="the header" />
+          <p className="text-sm">
+            Allow the two tools, <Code>record_application_submission</Code> and{' '}
+            <Code>record_not_submitted_job</Code>, then add this line to your automation profile,{' '}
+            <Code>personal_data/profile.md</Code>:
+          </p>
+          {serverAddress && (
+            <CodeSnippet code={`- NorthList server: ${serverAddress}`} label="the profile line" />
+          )}
+          <p className="text-xs text-text-secondary">
+            Put your token in place of &lt;token&gt;. Keep it in your app’s user-level settings,
+            never in a file inside a repository.
+          </p>
+        </div>
+      </Collapse>
+    </div>
+  );
+}
+
 /** How to connect the automation, and the tokens it uses. */
 export function AutomationSetup() {
   // The backend's own public address when it has one (on Render the page and the backend differ);
@@ -39,40 +95,36 @@ export function AutomationSetup() {
     : (connection.data?.serverAddress ?? window.location.origin);
   return (
     <>
-      <SettingsSection title="Connect your automation" help="Three steps, once per computer.">
+      <SettingsSection
+        title="Connect your automation"
+        help="Three steps, once per computer. Your AI app does the setup."
+      >
         <ol className="flex flex-col gap-6">
-          <Step number={1} title="Create a token">
-            <CreateTokenForm />
-          </Step>
-          <Step number={2} title="Add NorthList as an MCP server in your AI client">
-            {serverAddress && (
-              <CodeSnippet code={`${serverAddress}/mcp`} label="the server address" />
-            )}
-            <CodeSnippet code="Authorization: Bearer <token>" label="the header" />
-            <p className="text-xs text-text-secondary">
-              Put your token in place of &lt;token&gt;. Keep it in your client’s user-level
-              settings, never in a file inside a repository.
-            </p>
-          </Step>
-          <Step number={3} title="Allow the tools and turn on sync">
+          <Step number={1} title="Get NorthList Apply">
             <p className="text-sm">
-              Allow the two tools,{' '}
-              <code className="bg-layer-accent px-1.5 py-0.5 font-mono text-xs">
-                record_application_submission
-              </code>{' '}
-              and{' '}
-              <code className="bg-layer-accent px-1.5 py-0.5 font-mono text-xs">
-                record_not_submitted_job
-              </code>
-              , then add this line to your automation profile,{' '}
-              <code className="bg-layer-accent px-1.5 py-0.5 font-mono text-xs">
-                personal_data/profile.md
-              </code>
-              :
+              Download it from GitHub, then open its folder in your AI app: Claude Code, Codex or
+              Antigravity.
             </p>
-            {serverAddress && (
-              <CodeSnippet code={`- NorthList server: ${serverAddress}`} label="the profile line" />
-            )}
+            <a
+              href={NORTHLIST_APPLY_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-8 w-fit items-center gap-2 border border-button-tertiary px-3 text-sm font-medium text-button-tertiary transition-colors duration-70 ease-standard hover:bg-button-tertiary hover:text-button-tertiary-hover-text"
+            >
+              NorthList Apply on GitHub
+              <Launch size={16} aria-hidden="true" />
+            </a>
+          </Step>
+          <Step number={2} title="Create your setup prompt">
+            <CreateTokenForm serverAddress={serverAddress} />
+          </Step>
+          <Step number={3} title="Paste it into your AI app">
+            <p className="text-sm">
+              Paste the prompt into a chat in the NorthList Apply folder. The app adds NorthList to
+              its own settings and asks you to allow the change. When it says so, open a new chat or
+              restart the app, then type <Code>start</Code>. When it first asks to use NorthList,
+              allow it.
+            </p>
             <p className="text-xs text-text-secondary">
               For each application it sends: company, job title, platform, job and apply page links,
               job ID, where the job was found, location, work mode, time, the site’s confirmation,
@@ -82,6 +134,7 @@ export function AutomationSetup() {
             </p>
           </Step>
         </ol>
+        <ByHand serverAddress={serverAddress} />
       </SettingsSection>
       <SettingsSection
         title="Your tokens"
