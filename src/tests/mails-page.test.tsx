@@ -146,6 +146,31 @@ describe('home and navigation', () => {
     expect(localStorage.getItem('career-companion-menu')).toBe('open');
   });
 
+  it('starts with icons only at tablet width, until the user chooses', async () => {
+    const tablet = (query: string) => ({
+      matches: query.includes('max-width: 1199.98px'),
+      media: query,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+    });
+    vi.stubGlobal('matchMedia', tablet);
+    try {
+      localStorage.removeItem('career-companion-menu');
+      show('/mails');
+      expect(await screen.findByRole('button', { name: 'Expand menu' })).toBeInTheDocument();
+      expect(localStorage.getItem('career-companion-menu')).toBeNull();
+      cleanup();
+
+      // A choice the user made wins over the width.
+      localStorage.setItem('career-companion-menu', 'open');
+      show('/mails');
+      expect(await screen.findByRole('button', { name: 'Collapse menu' })).toBeInTheDocument();
+    } finally {
+      vi.unstubAllGlobals();
+      localStorage.removeItem('career-companion-menu');
+    }
+  });
+
   it('keeps Account, the theme and Log out in one account menu', async () => {
     show('/mails');
     fireEvent.click(await screen.findByRole('button', { name: 'Account menu' }));
