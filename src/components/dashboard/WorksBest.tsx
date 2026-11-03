@@ -157,4 +157,4 @@ export function WorksBest({ automation }: { automation: Automation }) {
       <Coverage automation={automation} />
     </DashSection>
   );
-} 
+}
