@@ -4,12 +4,14 @@ import { useDashboard } from '../api/dashboard';
 import { useGmailStatus } from '../api/gmail';
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
 import { PageHeader } from '../components/layout/PageHeader';
-import { DataLine, RightNow, TotalsStrip } from '../components/dashboard/Overview';
-import { Funnel, RejectedAfter } from '../components/dashboard/Funnel';
-import { WeekByWeek } from '../components/dashboard/WeekByWeek';
-import { AnswerSpeed, GoneQuiet, KeepingUp, KeptSafe } from '../components/dashboard/Progress';
+import { DashSection } from '../components/dashboard/DashCard';
+import { Funnel } from '../components/dashboard/Funnel';
+import { GoneQuiet } from '../components/dashboard/GoneQuiet';
+import { Mailbox } from '../components/dashboard/Mailbox';
+import { NeedsYouNow } from '../components/dashboard/NeedsYouNow';
+import { ProgressNumbers } from '../components/dashboard/ProgressNumbers';
+import { RunningTotal } from '../components/dashboard/RunningTotal';
 import { WorksBest } from '../components/dashboard/WorksBest';
-import { Tips } from '../components/dashboard/Tips';
 import {
   DashboardSkeleton,
   NoGmailYet,
@@ -18,7 +20,13 @@ import {
 import { SectionError } from '../components/ui/section-error';
 import { Select } from '../components/ui/select';
 import type { DashboardPeriod, DashboardResponse } from '../contracts/dashboard';
-import { DEFAULT_PERIOD, PERIOD_OPTIONS, dashboardSearchSchema, longDate } from '../lib/dashboard';
+import {
+  DEFAULT_PERIOD,
+  PERIOD_OPTIONS,
+  dashboardSearchSchema,
+  greeting,
+  todayLine,
+} from '../lib/dashboard';
 
 export const Route = createFileRoute('/dashboard')({
   errorComponent: RouteErrorPage,
@@ -26,43 +34,30 @@ export const Route = createFileRoute('/dashboard')({
   component: DashboardPage,
 });
 
+/**
+ * The home page (owner, 3 Nov 2026): a greeting, what needs the user now, their progress in the
+ * period, and their mailbox. The menu still calls it Dashboard.
+ */
 function DashboardPage() {
   const period = Route.useSearch().period ?? DEFAULT_PERIOD;
   const navigate = useNavigate({ from: Route.fullPath });
+  const { user } = Route.useRouteContext();
   const dashboard = useDashboard(period);
   const gmail = useGmailStatus();
   const reading = useAIReading();
   const numbers = dashboard.data;
   const hasData = !!numbers?.dataStartsAt;
   const noGmail = gmail.data?.connected === false && !hasData;
-  const firstRead = reading.data?.state === 'READING' && !numbers?.data.jobMailsRead;
-
-  const picker = !noGmail && (
-    <Select<DashboardPeriod>
-      label="Period"
-      hideLabel
-      options={PERIOD_OPTIONS}
-      value={period}
-      onValueChange={(next) =>
-        void navigate({ search: next === DEFAULT_PERIOD ? {} : { period: next }, replace: true })
-      }
-      className="w-full md:w-60"
-    />
-  );
+  const firstRead = reading.data?.state === 'READING' && !numbers?.mailbox.jobMails.total;
+  const setPeriod = (next: DashboardPeriod) =>
+    void navigate({ search: next === DEFAULT_PERIOD ? {} : { period: next }, replace: true });
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Dashboard"
-        phoneCompact
-        description={
-          numbers?.dataStartsAt
-            ? `Your job search in numbers, from your mails since ${longDate(numbers.dataStartsAt)}.`
-            : 'Your job search in numbers, from your mails.'
-        }
-        actions={picker}
+        title={greeting(user?.name)}
+        description={todayLine(numbers?.dataStartsAt ?? null)}
       />
-      <div className="md:hidden">{picker}</div>
       {noGmail && <NoGmailYet status={gmail.data?.status} />}
       {!noGmail && firstRead && reading.data && <ReadingFirstMails reading={reading.data} />}
       {!noGmail && !firstRead && dashboard.isPending && <DashboardSkeleton />}
@@ -72,32 +67,52 @@ function DashboardPage() {
           onRetry={() => void dashboard.refetch()}
         />
       )}
-      {!noGmail && !firstRead && numbers && <DashboardBody numbers={numbers} />}
+      {!noGmail && !firstRead && numbers && (
+        <DashboardBody numbers={numbers} period={period} onPeriodChange={setPeriod} />
+      )}
     </div>
   );
 }
 
-function DashboardBody({ numbers }: { numbers: DashboardResponse }) {
+function DashboardBody({
+  numbers,
+  period,
+  onPeriodChange,
+}: {
+  numbers: DashboardResponse;
+  period: DashboardPeriod;
+  onPeriodChange: (period: DashboardPeriod) => void;
+}) {
+  const picker = (
+    <Select<DashboardPeriod>
+      label="Period"
+      hideLabel
+      options={PERIOD_OPTIONS}
+      value={period}
+      onValueChange={onPeriodChange}
+      className="w-52 md:w-60"
+    />
+  );
+  // The layout follows the page's own width, so it fits with the side menu open or closed.
   return (
-    <div className="flex flex-col gap-6 md:gap-8">
-      <DataLine data={numbers.data} />
-      <Tips tips={numbers.tips} aiTip={numbers.aiTip} />
-      <TotalsStrip numbers={numbers} />
-      <RightNow rightNow={numbers.rightNow} />
-      <div className="grid gap-4 lg:grid-cols-[3fr_2fr]">
-        <Funnel numbers={numbers} />
-        <RejectedAfter rejected={numbers.rejectedAfter} />
-      </div>
-      <WeekByWeek weeks={numbers.weeks} />
-      <div className="grid gap-4 lg:grid-cols-[3fr_2fr]">
-        <GoneQuiet quiet={numbers.goneQuiet} />
-        <AnswerSpeed speed={numbers.answerSpeed} />
-      </div>
-      <div className="grid gap-4 lg:grid-cols-2">
-        <KeepingUp keeping={numbers.keepingUp} />
-        <KeptSafe fakeOffers={numbers.data.fakeOffers} />
-      </div>
-      <WorksBest automation={numbers.automation} />
+    <div className="@container flex flex-col gap-8 @min-[600px]:gap-14">
+      <DashSection title="Needs you now">
+        <NeedsYouNow now={numbers.now} />
+      </DashSection>
+      <DashSection title="Your progress" aside={picker}>
+        <div className="flex flex-col gap-2">
+          <ProgressNumbers numbers={numbers} />
+          <RunningTotal series={numbers.series} />
+          <div className="grid gap-2 @min-[900px]:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+            <Funnel numbers={numbers} />
+            <GoneQuiet quiet={numbers.goneQuiet} />
+          </div>
+        </div>
+      </DashSection>
+      <DashSection title="Your mailbox">
+        <Mailbox mailbox={numbers.mailbox} series={numbers.series} period={period} />
+      </DashSection>
+      {numbers.automation.used && <WorksBest automation={numbers.automation} />}
     </div>
   );
 }
