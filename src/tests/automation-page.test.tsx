@@ -88,6 +88,7 @@ async function createToken(name = 'Work laptop', days?: string) {
 /** Opens "Set it up by hand instead", where today's address, header and profile line are. */
 const openByHand = async () =>
   fireEvent.click(await screen.findByRole('button', { name: 'Set it up by hand instead' }));
+
 beforeEach(() => {
   cleanup();
   vi.clearAllMocks();
