@@ -98,7 +98,9 @@ afterEach(cleanup);
 describe('home and navigation', () => {
   it('lands on the Dashboard, and lists it first in the menu', async () => {
     show('/');
-    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { level: 1, name: /^Good (morning|afternoon|evening)/ }),
+    ).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/dashboard');
     // The desktop sidebar and the phone bar: both are in the page, one is shown. Agenda is not in
     // the menu until it works; settings sit in their own group after the daily pages. On phones
