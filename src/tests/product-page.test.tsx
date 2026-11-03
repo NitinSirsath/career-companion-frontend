@@ -49,7 +49,9 @@ afterEach(() => {
 describe('the app on app.northlist.site has no product page', () => {
   it('sends a signed-in user from / to the Dashboard', async () => {
     const router = showApp('/', ME);
-    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { level: 1, name: /^Good (morning|afternoon|evening)/ }),
+    ).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/dashboard');
     expect(screen.queryByRole('heading', { name: TITLE })).not.toBeInTheDocument();
   });
