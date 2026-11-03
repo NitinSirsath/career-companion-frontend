@@ -44,3 +44,16 @@ describe('what NorthList keeps from the automation', () => {
     }
   });
 });
+
+describe('the Dashboard', () => {
+  it('sends nothing to the AI, and the daily count of mails checked is named on both pages', () => {
+    for (const page of [policy, yourData]) {
+      expect(page).not.toMatch(/Dashboard tip|tip on your Dashboard/);
+      expect(page).toMatch(/how many inbox mails/i);
+    }
+    expect(policy).toContain('only the number, no mail details, until you delete your account');
+    expect(yourData).toContain(
+      'only the number, no mail details. Kept until you delete your account',
+    );
+  });
+});
