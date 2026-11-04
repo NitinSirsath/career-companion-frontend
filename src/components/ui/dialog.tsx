@@ -51,7 +51,7 @@ export function DialogContent({
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 max-md:p-0">
         <BaseDialog.Popup
           className={cn(
-            'relative flex max-h-[90vh] w-full max-w-[560px] flex-col overflow-y-auto border border-border-subtle bg-surface text-text-primary shadow-popup outline-none max-md:h-full max-md:max-h-none max-md:max-w-none max-md:border-0 max-md:shadow-none transition-[opacity,translate] duration-240 ease-entrance data-ending-style:translate-y-6 data-ending-style:opacity-0 data-ending-style:ease-exit data-starting-style:translate-y-6 data-starting-style:opacity-0',
+            'relative flex max-h-[90vh] w-full max-w-[560px] flex-col overflow-y-auto rounded-xl border border-border-subtle bg-surface text-text-primary shadow-popup outline-none max-md:h-full max-md:max-h-none max-md:max-w-none max-md:rounded-none max-md:border-0 max-md:shadow-none transition-[opacity,translate] duration-240 ease-entrance data-ending-style:translate-y-6 data-ending-style:opacity-0 data-ending-style:ease-exit data-starting-style:translate-y-6 data-starting-style:opacity-0',
             className,
           )}
           {...props}
@@ -60,7 +60,7 @@ export function DialogContent({
           <AutoHeight contentClassName="flex flex-col px-6 pt-6">{children}</AutoHeight>
           <BaseDialog.Close
             aria-label="Close dialog"
-            className="absolute top-5 right-5 flex size-8 cursor-pointer items-center justify-center text-text-secondary transition-colors duration-70 ease-standard hover:bg-layer-hover hover:text-text-primary"
+            className="absolute top-5 right-5 flex size-8 cursor-pointer items-center justify-center rounded-md text-text-secondary transition-colors duration-70 ease-standard hover:bg-layer-hover hover:text-text-primary"
           >
             <Close size={16} aria-hidden="true" />
           </BaseDialog.Close>
