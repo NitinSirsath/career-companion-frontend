@@ -21,16 +21,34 @@ import { isOfflineError } from '../../lib/offline';
 
 /**
  * The conversation's application, or the one-click way to give it one. In a table row ("cell")
- * the way to create one is a quiet link; on a mail's page it is a full button.
+ * the way to create one is a quiet link; on a mail's page it is a full button. In a Mails list row
+ * ("row") the company is plain text and the status tag sits beside the role.
  */
 export function ConversationApplication({
   conversation,
   appearance = 'panel',
 }: {
   conversation: Conversation;
-  appearance?: 'cell' | 'panel';
+  appearance?: 'cell' | 'row' | 'panel';
 }) {
   const { application } = conversation;
+  if (application && appearance === 'row')
+    return (
+      <div className="flex min-w-0 flex-col items-start gap-1">
+        <Link
+          to="/applications/$id"
+          params={{ id: application.id }}
+          className="max-w-full truncate font-medium text-text-primary hover:underline"
+        >
+          {application.companyName}
+        </Link>
+        <div className="flex max-w-full items-center gap-2 text-xs text-text-secondary">
+          <StatusBadge status={application.effectiveStatus} />
+          {application.archived && <Tag color="outline">Archived</Tag>}
+          {application.jobTitle && <span className="truncate">{application.jobTitle}</span>}
+        </div>
+      </div>
+    );
   if (application)
     return (
       <div className="flex flex-col items-start gap-1">
@@ -65,7 +83,7 @@ function CreateApplication({
   appearance,
 }: {
   conversation: Conversation;
-  appearance: 'cell' | 'panel';
+  appearance: 'cell' | 'row' | 'panel';
 }) {
   const link = useLinkConversation(conversation.key);
   const [problem, setProblem] = useState<LinkProblem | null>(null);
@@ -95,7 +113,7 @@ function CreateApplication({
         onChoose={(applicationId) => send({ applicationId })}
       />
     );
-  const cell = appearance === 'cell';
+  const cell = appearance !== 'panel';
   // A probable fake offer: linking stays possible, but it is not the suggested next move.
   const quiet = cell || conversation.fakeOfferWarning !== null;
   return (
