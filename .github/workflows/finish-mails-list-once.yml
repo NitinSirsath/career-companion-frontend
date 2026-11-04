@@ -1,0 +1,671 @@
+name: Finish mails-list once (temporary)
+# Applies the reviewed second half of the Mails list to feat/mails-list and commits only that.
+# Lives only on the throwaway branch tmp/mails-list-finish, which is deleted afterwards.
+on:
+  push:
+    branches: [tmp/mails-list-finish]
+permissions:
+  contents: write
+concurrency:
+  group: finish-mails-list-once
+  cancel-in-progress: false
+jobs:
+  finish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: feat/mails-list
+      - name: Check the starting point
+        run: |
+          if [ "$(git rev-parse 'HEAD^{tree}')" != "80beb3bbdebf3c680bd617aae8a14ea7d7f6ee33" ]; then
+            echo "feat/mails-list is not where the reviewed change starts. Nothing was changed."
+            exit 1
+          fi
+      - name: Apply the reviewed change
+        run: |
+          git apply --unidiff-zero <<'PATCH'
+          diff --git a/src/components/mails/ConversationAction.tsx b/src/components/mails/ConversationAction.tsx
+          deleted file mode 100644
+          index fb00500..0000000
+          --- a/src/components/mails/ConversationAction.tsx
+          +++ /dev/null
+          @@ -1,83 +0,0 @@
+          -import { useSetRequestState } from '../../api/conversations';
+          -import type { Conversation } from '../../contracts/conversation';
+          -import {
+          -  fakeOfferStep,
+          -  requestControls,
+          -  requestDetail,
+          -  requestPastDue,
+          -  requestTitle,
+          -  scheduleLine,
+          -} from '../../lib/mails';
+          -import { cn } from '../../lib/utils';
+          -import { Button } from '../ui/button';
+          -import { TodoState } from './TodoState';
+          -import { isOfflineError } from '../../lib/offline';
+          -
+          -interface ConversationActionProps {
+          -  conversation: Conversation;
+          -  /** The details page: also lets a request the user replied to be marked done. */
+          -  detailed?: boolean;
+          -  /** False where the action is only shown, such as on the application page. */
+          -  controls?: boolean;
+          -}
+          -
+          -/** What a conversation needs from the user, where that stands, and the buttons to change it. */
+          -export function ConversationAction({
+          -  conversation,
+          -  detailed = false,
+          -  controls = true,
+          -}: ConversationActionProps) {
+          -  const change = useSetRequestState(conversation.key);
+          -  const asked = conversation.request;
+          -  if (!asked) {
+          -    const schedule = scheduleLine(conversation);
+          -    return schedule ? (
+          -      <p className="text-sm font-semibold break-words">{schedule}</p>
+          -    ) : (
+          -      <p className="text-sm text-text-secondary">Nothing needed</p>
+          -    );
+          -  }
+          -  const title = requestTitle(asked);
+          -  const detail = requestDetail(asked);
+          -  return (
+          -    <div className="space-y-2">
+          -      <p
+          -        className={cn(
+          -          'text-sm break-words',
+          -          detailed && 'font-semibold',
+          -          asked.state === 'DONE' && 'text-text-secondary',
+          -        )}
+          -      >
+          -        {title}
+          -      </p>
+          -      <div className="flex flex-wrap items-center gap-2 text-xs text-text-secondary">
+          -        {/* A fake offer's own tag sits beside its type, so the step shows no state tag. */}
+          -        {!fakeOfferStep(conversation) && <TodoState state={asked.state} />}
+          -        {detail && (
+          -          <span className={cn(requestPastDue(asked) && 'text-danger-text')}>{detail}</span>
+          -        )}
+          -      </div>
+          -      {controls && (
+          -        <div className="flex flex-wrap gap-2">
+          -          {requestControls(asked).map((control) => (
+          -            <Button
+          -              key={control.label}
+          -              variant="tertiary"
+          -              size="sm"
+          -              aria-label={`${control.label}: ${title}`}
+          -              disabled={change.isPending}
+          -              onClick={() => change.mutate({ emailId: asked.emailId, state: control.state })}
+          -            >
+          -              {control.label}
+          -            </Button>
+          -          ))}
+          -        </div>
+          -      )}
+          -      {change.isError && !isOfflineError(change.error) && (
+          -        <p role="alert" className="text-xs text-status-error">
+          -          Could not update: {change.error.message}
+          -        </p>
+          -      )}
+          -    </div>
+          -  );
+          -}
+          diff --git a/src/components/mails/MailSummary.tsx b/src/components/mails/MailSummary.tsx
+          new file mode 100644
+          index 0000000..d728571
+          --- /dev/null
+          +++ b/src/components/mails/MailSummary.tsx
+          @@ -0,0 +1,40 @@
+          +import { useConversationSummary } from '../../api/conversations';
+          +
+          +/**
+          + * "4 mails need you, 2 are past due. Everything else is up to date." under the Mails title (owner,
+          + * 3 Nov 2026), counted by the server over all mails. "4 mails need you" turns the Needs action
+          + * filter on and off.
+          + */
+          +export function MailSummary({
+          +  needsActionOn,
+          +  onToggleNeedsAction,
+          +}: {
+          +  needsActionOn: boolean;
+          +  onToggleNeedsAction: () => void;
+          +}) {
+          +  const { data } = useConversationSummary();
+          +  if (!data) return null;
+          +  const { needsAction, pastDue } = data;
+          +  if (needsAction === 0) return <>Nothing needs you right now. Everything is up to date.</>;
+          +  return (
+          +    <>
+          +      <button
+          +        type="button"
+          +        aria-pressed={needsActionOn}
+          +        onClick={onToggleNeedsAction}
+          +        className="cursor-pointer font-medium text-text-primary underline decoration-border-default underline-offset-4 hover:decoration-text-primary"
+          +      >
+          +        {needsAction === 1 ? '1 mail needs you' : `${needsAction} mails need you`}
+          +      </button>
+          +      {pastDue > 0 && (
+          +        <>
+          +          ,{' '}
+          +          <span className="text-danger-text">
+          +            {pastDue === 1 ? '1 is past due' : `${pastDue} are past due`}
+          +          </span>
+          +        </>
+          +      )}
+          +      . Everything else is up to date.
+          +    </>
+          +  );
+          +}
+          diff --git a/src/components/mails/MailsBars.tsx b/src/components/mails/MailsBars.tsx
+          new file mode 100644
+          index 0000000..76e1cc0
+          --- /dev/null
+          +++ b/src/components/mails/MailsBars.tsx
+          @@ -0,0 +1,44 @@
+          +import { useState } from 'react';
+          +import { Search } from '@carbon/icons-react';
+          +import type { MailsSearch } from '../../lib/mails';
+          +import { TopBarActions } from '../layout/Breadcrumb';
+          +import { TopBarButton } from '../layout/TopBarButtons';
+          +import { MailFilterChips, MailTools, PhoneMailSearch } from './ConversationFilters';
+          +import { MailsTabs } from './MailsTabs';
+          +
+          +type BarProps = { search: MailsSearch; onChange: (changes: Partial<MailsSearch>) => void };
+          +
+          +/** Laptops: tabs, search, Filters and Sort on one line that stays on screen, then the chips. */
+          +export function LaptopBar({
+          +  tab,
+          +  search,
+          +  onChange,
+          +}: BarProps & { tab: 'job' | 'gmail' | 'restricted' }) {
+          +  return (
+          +    <div className="sticky top-14 z-20 -mx-12 mt-4 bg-background px-12 pt-3">
+          +      <div className="flex flex-wrap items-end justify-between gap-x-6 border-b border-border-subtle">
+          +        <MailsTabs tab={tab} />
+          +        {!search.tab && <MailTools search={search} onChange={onChange} />}
+          +      </div>
+          +      {!search.tab && <MailFilterChips search={search} onChange={onChange} />}
+          +    </div>
+          +  );
+          +}
+          +
+          +/** Phones: the top bar's search button, and the search row it opens under the top bar. */
+          +export function PhoneSearch({ search, onChange }: BarProps) {
+          +  const [searching, setSearching] = useState(false);
+          +  if (searching)
+          +    return (
+          +      <div className="sticky top-14 z-20 -mx-4 border-b border-border-subtle bg-background px-4 py-2">
+          +        <PhoneMailSearch search={search} onChange={onChange} onClose={() => setSearching(false)} />
+          +      </div>
+          +    );
+          +  return (
+          +    <TopBarActions>
+          +      <TopBarButton label="Search mails" onClick={() => setSearching(true)}>
+          +        <Search size={20} aria-hidden="true" />
+          +      </TopBarButton>
+          +    </TopBarActions>
+          +  );
+          +}
+          diff --git a/src/components/mails/MailsPhoneTitle.tsx b/src/components/mails/MailsPhoneTitle.tsx
+          new file mode 100644
+          index 0000000..49dcfa5
+          --- /dev/null
+          +++ b/src/components/mails/MailsPhoneTitle.tsx
+          @@ -0,0 +1,49 @@
+          +import { useLayoutEffect } from 'react';
+          +import { createPortal } from 'react-dom';
+          +import { Menu } from '@base-ui/react/menu';
+          +import { Checkmark, ChevronDown } from '@carbon/icons-react';
+          +import { useBreadcrumbSlot } from '../layout/breadcrumbSlot';
+          +import { ITEM_CLASS, POPUP_CLASS } from '../ui/select';
+          +import { useMailsLists, useOpenMailsList, type MailsTab } from './mailsLists';
+          +
+          +/**
+          + * The phone top bar's title on the Mails page (owner, 3 Nov 2026): "Job mails ▾" switches between
+          + * the three lists, so the tabs need no row of their own.
+          + */
+          +export function MailsPhoneTitle({ tab }: { tab: MailsTab }) {
+          +  const slot = useBreadcrumbSlot();
+          +  const claim = slot?.claim;
+          +  useLayoutEffect(() => claim?.(), [claim]);
+          +  const lists = useMailsLists();
+          +  const open = useOpenMailsList();
+          +  if (!slot?.target) return null;
+          +  const current = lists.find((list) => list.value === tab) ?? lists[0];
+          +  return createPortal(
+          +    <Menu.Root>
+          +      <Menu.Trigger className="flex min-w-0 cursor-pointer items-center gap-1.5 text-base font-semibold text-text-primary outline-none focus-visible:outline-2 focus-visible:outline-border-focus">
+          +        <span className="truncate">{current.label}</span>
+          +        <ChevronDown size={16} aria-hidden="true" />
+          +      </Menu.Trigger>
+          +      <Menu.Portal>
+          +        <Menu.Positioner align="start" sideOffset={10} className="z-50 outline-none">
+          +          <Menu.Popup aria-label="Mail lists" className={`${POPUP_CLASS} min-w-60`}>
+          +            {lists.map((list) => (
+          +              <Menu.Item key={list.value} className={ITEM_CLASS} onClick={() => open(list.value)}>
+          +                <span className="flex items-center gap-3">
+          +                  <span className="flex w-4 text-link">
+          +                    {list.value === tab && <Checkmark size={16} aria-label="Shown" />}
+          +                  </span>
+          +                  {list.label}
+          +                </span>
+          +                {'count' in list && list.count !== undefined && (
+          +                  <span className="text-text-tertiary tabular-nums">{list.count}</span>
+          +                )}
+          +              </Menu.Item>
+          +            ))}
+          +          </Menu.Popup>
+          +        </Menu.Positioner>
+          +      </Menu.Portal>
+          +    </Menu.Root>,
+          +    slot.target,
+          +  );
+          +}
+          diff --git a/src/components/mails/MailsTabs.tsx b/src/components/mails/MailsTabs.tsx
+          index 726b757..876f713 100644
+          --- a/src/components/mails/MailsTabs.tsx
+          +++ b/src/components/mails/MailsTabs.tsx
+          @@ -1,4 +0,0 @@
+          -import { useNavigate } from '@tanstack/react-router';
+          -import { useConversations } from '../../api/conversations';
+          -import { useBlockedSenders } from '../../api/removal';
+          -import { pageCount, type MailsSearch } from '../../lib/mails';
+          @@ -5,0 +2 @@ import { Tabs } from '../ui/tabs';
+          +import { useMailsLists, useOpenMailsList, type MailsTab } from './mailsLists';
+          @@ -7,3 +4 @@ import { Tabs } from '../ui/tabs';
+          -type MailsTab = 'job' | 'gmail' | 'restricted';
+          -
+          -/** The lists of the Mails page. Changing tab keeps the Job mails filters in the URL. */
+          +/** The lists of the Mails page as underlined tabs (laptops; phones switch in the top bar). */
+          @@ -11,4 +6,2 @@ export function MailsTabs({ tab }: { tab: MailsTab }) {
+          -  // The unfiltered list, so the number says how many job mails there are, not how many match.
+          -  const { data } = useConversations({}, 0);
+          -  const blocked = useBlockedSenders();
+          -  const navigate = useNavigate({ from: '/mails/' });
+          +  const lists = useMailsLists();
+          +  const open = useOpenMailsList();
+          @@ -17,0 +11 @@ export function MailsTabs({ tab }: { tab: MailsTab }) {
+          +      look="underline"
+          @@ -19,17 +13,2 @@ export function MailsTabs({ tab }: { tab: MailsTab }) {
+          -      onValueChange={(next) =>
+          -        void navigate({
+          -          search: (current: MailsSearch) => ({
+          -            ...current,
+          -            tab: next === 'job' ? undefined : next,
+          -          }),
+          -        })
+          -      }
+          -      items={[
+          -        { value: 'job', label: 'Job mails', count: data ? pageCount(data) : undefined },
+          -        { value: 'gmail', label: 'Whole inbox' },
+          -        {
+          -          value: 'restricted',
+          -          label: 'Restricted',
+          -          count: blocked.data?.items.length || undefined,
+          -        },
+          -      ]}
+          +      onValueChange={open}
+          +      items={lists}
+          diff --git a/src/components/mails/PhoneMailRow.tsx b/src/components/mails/PhoneMailRow.tsx
+          index 4437bf6..3988222 100644
+          --- a/src/components/mails/PhoneMailRow.tsx
+          +++ b/src/components/mails/PhoneMailRow.tsx
+          @@ -4 +4 @@ import type { Conversation } from '../../contracts/conversation';
+          -import { mailDate, parseSender } from '../../lib/mails';
+          +import { CATEGORY_LABEL, mailDate, parseSender } from '../../lib/mails';
+          @@ -9,3 +9 @@ import { useSwipeRight } from '../ui/swipe';
+          -import { ConversationAction } from './ConversationAction';
+          -import { FakeOfferTag } from './FakeOffer';
+          -import { MailType } from './MailType';
+          +import { StepLine } from './MailRow';
+          @@ -15,2 +13,2 @@ import { useRequestChange } from './useRequestChange';
+          - * A job mail on a phone: who wrote, when, the subject, what it needs and its application, in one
+          - * tappable row. Swiping it to the right does its first action, such as "I did this" on a request
+          + * A job mail on a phone (owner, 3 Nov 2026): who wrote and when, the subject in grey, the next
+          + * step with its due date on its own line, then the application, in one tappable row. Swiping it to the right does its first action, such as "I did this" on a request
+          @@ -26 +24 @@ export function PhoneMailRow({ conversation: c }: { conversation: Conversation }
+          -    <div className="relative -mx-4 overflow-hidden border-b border-border-subtle">
+          +    <div className="relative overflow-hidden border-b border-border-subtle">
+          @@ -48 +46 @@ export function PhoneMailRow({ conversation: c }: { conversation: Conversation }
+          -        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          +        <div className="flex min-w-0 flex-1 flex-col">
+          @@ -50 +48,6 @@ export function PhoneMailRow({ conversation: c }: { conversation: Conversation }
+          -            <span className={cn('min-w-0 flex-1 truncate', c.isNew && 'font-semibold')}>
+          +            <span
+          +              className={cn(
+          +                'min-w-0 flex-1 truncate text-[15px]',
+          +                c.isNew ? 'font-semibold' : 'font-medium',
+          +              )}
+          +            >
+          @@ -54 +57 @@ export function PhoneMailRow({ conversation: c }: { conversation: Conversation }
+          -            <span className="shrink-0 text-xs text-text-tertiary">
+          +            <span className="shrink-0 text-xs text-text-tertiary tabular-nums">
+          @@ -58,7 +61,7 @@ export function PhoneMailRow({ conversation: c }: { conversation: Conversation }
+          -          <span className={cn('truncate', c.isNew && 'font-semibold')}>
+          -            {c.subject || '(No subject)'}
+          -          </span>
+          -          <div className="mt-1 flex flex-col gap-2">
+          -            <ConversationAction conversation={c} controls={false} />
+          -            <div className="flex flex-wrap items-center gap-1.5">
+          -              {c.application ? (
+          +          <span className="truncate text-text-secondary">{c.subject || '(No subject)'}</span>
+          +          <div className="mt-1 text-[15px] leading-[22px]">
+          +            <StepLine conversation={c} dueApart />
+          +          </div>
+          +          <div className="mt-2 flex min-w-0 items-center gap-2 text-xs text-text-secondary">
+          +            {c.application ? (
+          +              <>
+          @@ -66,5 +69,11 @@ export function PhoneMailRow({ conversation: c }: { conversation: Conversation }
+          -              ) : (
+          -                c.category && <MailType category={c.category} />
+          -              )}
+          -              {c.fakeOfferWarning && <FakeOfferTag />}
+          -            </div>
+          +                <span className="truncate">
+          +                  {[c.application.companyName, c.application.jobTitle].filter(Boolean).join(' · ')}
+          +                </span>
+          +              </>
+          +            ) : (
+          +              <span className="truncate">
+          +                {[c.category && CATEGORY_LABEL[c.category], 'Not linked']
+          +                  .filter(Boolean)
+          +                  .join(' · ')}
+          +              </span>
+          +            )}
+          diff --git a/src/components/mails/SyncLine.tsx b/src/components/mails/SyncLine.tsx
+          index 197ff72..5703242 100644
+          --- a/src/components/mails/SyncLine.tsx
+          +++ b/src/components/mails/SyncLine.tsx
+          @@ -8 +8,2 @@ import { Button } from '../ui/button';
+          - * `compact`: one quiet line with a text button, for phones.
+          + * `look`: `button` beside the page title (laptops); `icon` a small sync button at the end of the
+          + * phone filter row; `note` only the time, under the phone list.
+          @@ -10 +11 @@ import { Button } from '../ui/button';
+          -export function SyncLine({ compact = false }: { compact?: boolean }) {
+          +export function SyncLine({ look = 'button' }: { look?: 'button' | 'icon' | 'note' }) {
+          @@ -15,0 +17 @@ export function SyncLine({ compact = false }: { compact?: boolean }) {
+          +  const synced = last ? `Synced ${mailDateTime(last)}` : 'Not synced yet';
+          @@ -17 +19,2 @@ export function SyncLine({ compact = false }: { compact?: boolean }) {
+          -  if (compact)
+          +  if (look === 'note') return <p className="py-4 text-xs text-text-tertiary">{synced}</p>;
+          +  if (look === 'icon')
+          @@ -19,6 +22,11 @@ export function SyncLine({ compact = false }: { compact?: boolean }) {
+          -      <div className="flex items-center justify-between gap-4 text-xs text-text-secondary">
+          -        <span>{last ? `Synced ${mailDateTime(last)}` : 'Not synced yet'}</span>
+          -        <Button variant="ghost" size="sm" loading={syncing} onClick={() => sync.mutate()}>
+          -          {label}
+          -        </Button>
+          -      </div>
+          +      <Button
+          +        variant="ghost"
+          +        size="icon-sm"
+          +        aria-label={label}
+          +        title={synced}
+          +        className="text-text-secondary"
+          +        onClick={() => sync.mutate()}
+          +        disabled={syncing}
+          +      >
+          +        <Renew size={16} aria-hidden="true" className={syncing ? 'animate-spin' : undefined} />
+          +      </Button>
+          @@ -27,4 +35,2 @@ export function SyncLine({ compact = false }: { compact?: boolean }) {
+          -    <div className="flex flex-wrap items-center gap-4">
+          -      <span className="text-xs text-text-secondary">
+          -        {last ? `Synced ${mailDateTime(last)}` : 'Not synced yet'}
+          -      </span>
+          +    <div className="flex flex-wrap items-center gap-3">
+          +      <span className="text-xs text-text-tertiary">{synced}</span>
+          diff --git a/src/components/mails/mailsLists.ts b/src/components/mails/mailsLists.ts
+          new file mode 100644
+          index 0000000..0ee2b95
+          --- /dev/null
+          +++ b/src/components/mails/mailsLists.ts
+          @@ -0,0 +1,27 @@
+          +import { useNavigate } from '@tanstack/react-router';
+          +import { useConversations } from '../../api/conversations';
+          +import { useBlockedSenders } from '../../api/removal';
+          +import { pageCount, type MailsSearch } from '../../lib/mails';
+          +
+          +export type MailsTab = 'job' | 'gmail' | 'restricted';
+          +
+          +/** The Mails page's lists, their names and the Job mails count. */
+          +export function useMailsLists() {
+          +  // The unfiltered list, so the number says how many job mails there are, not how many match.
+          +  const { data } = useConversations({}, 0);
+          +  const blocked = useBlockedSenders();
+          +  return [
+          +    { value: 'job', label: 'Job mails', count: data ? pageCount(data) : undefined },
+          +    { value: 'gmail', label: 'Whole inbox' },
+          +    { value: 'restricted', label: 'Restricted', count: blocked.data?.items.length || undefined },
+          +  ] as const satisfies readonly { value: MailsTab; label: string; count?: string | number }[];
+          +}
+          +
+          +/** Opens another list; the Job mails filters stay in the URL. */
+          +export function useOpenMailsList() {
+          +  const navigate = useNavigate({ from: '/mails/' });
+          +  return (next: MailsTab) =>
+          +    void navigate({
+          +      search: (current: MailsSearch) => ({ ...current, tab: next === 'job' ? undefined : next }),
+          +    });
+          +}
+          diff --git a/src/routes/mails.index.tsx b/src/routes/mails.index.tsx
+          index 2762efd..b8d09ff 100644
+          --- a/src/routes/mails.index.tsx
+          +++ b/src/routes/mails.index.tsx
+          @@ -5 +4,0 @@ import { RouteErrorPage } from '../components/errors/RouteErrorPage';
+          -import { TopBarActions } from '../components/layout/Breadcrumb';
+          @@ -7 +5,0 @@ import { PageHeader } from '../components/layout/PageHeader';
+          -import { TopBarSearch } from '../components/layout/TopBarButtons';
+          @@ -9 +7,2 @@ import { useIsPhone } from '../components/layout/useIsPhone';
+          -import { MAIL_SEARCH_ID } from '../components/mails/ConversationFilters';
+          +import { PhoneMailChips } from '../components/mails/ConversationFilters';
+          +import { LaptopBar, PhoneSearch } from '../components/mails/MailsBars';
+          @@ -12 +11,2 @@ import { JobMails } from '../components/mails/JobMails';
+          -import { MailsTabs } from '../components/mails/MailsTabs';
+          +import { MailsPhoneTitle } from '../components/mails/MailsPhoneTitle';
+          +import { MailSummary } from '../components/mails/MailSummary';
+          @@ -23,0 +24,6 @@ export const Route = createFileRoute('/mails/')({
+          +/**
+          + * The Mails page (owner, 3 Nov 2026): the title with "4 mails need you, 2 are past due", a slim AI
+          + * notice, then the lists. Laptops: tabs, search, Filters and Sort on one line that stays on screen.
+          + * Phones: the lists switch in the top bar title, the top bar's search button opens a search row
+          + * under it, and one row of chips sits above the mails.
+          + */
+          @@ -33,0 +40,4 @@ function MailsPage() {
+          +  // A changed filter starts again at the first page.
+          +  const filter = (changes: Partial<MailsSearch>) => change({ ...changes, offset: undefined });
+          +  const tab = search.tab ?? 'job';
+          +  const needsActionOn = search.request === 'open';
+          @@ -39 +49 @@ function MailsPage() {
+          -    <div className="space-y-6">
+          +    <div>
+          @@ -43 +53,8 @@ function MailsPage() {
+          -        description="Every job mail, what it needs from you, and the application it belongs to."
+          +        description={
+          +          !search.tab && (
+          +            <MailSummary
+          +              needsActionOn={needsActionOn}
+          +              onToggleNeedsAction={() => filter({ request: needsActionOn ? undefined : 'open' })}
+          +            />
+          +          )
+          +        }
+          @@ -46,4 +63,13 @@ function MailsPage() {
+          -      {phone && !search.tab && (
+          -        <TopBarActions>
+          -          <TopBarSearch targetId={MAIL_SEARCH_ID} label="Search mails" />
+          -        </TopBarActions>
+          +      {phone && <MailsPhoneTitle tab={tab} />}
+          +      {phone && !search.tab && <PhoneSearch search={search} onChange={filter} />}
+          +      <div className="mt-5 max-md:mt-3">
+          +        <AIAccessNotice compact />
+          +      </div>
+          +      {phone ? (
+          +        !search.tab && (
+          +          <div className="mt-3 mb-3">
+          +            <PhoneMailChips search={search} onChange={filter} end={<SyncLine look="icon" />} />
+          +          </div>
+          +        )
+          +      ) : (
+          +        <LaptopBar tab={tab} search={search} onChange={filter} />
+          @@ -51,6 +77,5 @@ function MailsPage() {
+          -      <AIAccessNotice />
+          -      <MailsTabs tab={search.tab ?? 'job'} />
+          -      {phone && <SyncLine compact />}
+          -      {search.tab === 'gmail' && <GmailInbox />}
+          -      {search.tab === 'restricted' && <RestrictedList />}
+          -      {!search.tab && <JobMails search={search} onChange={change} />}
+          +      <div className="md:mt-1">
+          +        {search.tab === 'gmail' && <GmailInbox />}
+          +        {search.tab === 'restricted' && <RestrictedList />}
+          +        {!search.tab && <JobMails search={search} onChange={change} />}
+          +      </div>
+          diff --git a/src/tests/delete-and-block.test.tsx b/src/tests/delete-and-block.test.tsx
+          index 05e0573..b021482 100644
+          --- a/src/tests/delete-and-block.test.tsx
+          +++ b/src/tests/delete-and-block.test.tsx
+          @@ -195 +195 @@ describe('the Restricted tab', () => {
+          -    expect(screen.getByRole('tab', { name: /Restricted/ })).toHaveTextContent('(1)');
+          +    expect(screen.getByRole('tab', { name: /Restricted/ })).toHaveTextContent(/^Restricted\s*1$/);
+          diff --git a/src/tests/fake-offer.test.tsx b/src/tests/fake-offer.test.tsx
+          index c996ab4..fcab8f1 100644
+          --- a/src/tests/fake-offer.test.tsx
+          +++ b/src/tests/fake-offer.test.tsx
+          @@ -177 +177 @@ describe('a fake job offer in the Mails list', () => {
+          -      (await screen.findByRole('link', { name: SUBJECT })).closest<HTMLElement>('[role="row"]')!,
+          +      (await screen.findByRole('link', { name: SUBJECT })).closest<HTMLElement>('li')!,
+          @@ -179 +179 @@ describe('a fake job offer in the Mails list', () => {
+          -    expect(cells.getByText('Offer')).toBeInTheDocument();
+          +    expect(cells.getByText(/· Offer ·/)).toBeInTheDocument();
+          diff --git a/src/tests/mails-page.test.tsx b/src/tests/mails-page.test.tsx
+          index aa18014..8d5580f 100644
+          --- a/src/tests/mails-page.test.tsx
+          +++ b/src/tests/mails-page.test.tsx
+          @@ -45,0 +46 @@ let inbox: Record<string, { items: MailboxThread[]; nextPageToken: string | null
+          +let summary: { needsAction: number; pastDue: number };
+          @@ -66,3 +67,6 @@ const row = async (subject: string) =>
+          -  within(
+          -    (await screen.findByRole('link', { name: subject })).closest<HTMLElement>('[role="row"]')!,
+          -  );
+          +  within((await screen.findByRole('link', { name: subject })).closest<HTMLElement>('li')!);
+          +/** Opens the Filters menu of the Mails toolbar. */
+          +const openFilters = async () => {
+          +  fireEvent.click(screen.getByRole('button', { name: /^Filters/ }));
+          +  return screen.findByRole('dialog', { name: 'Filters' });
+          +};
+          @@ -77,0 +82 @@ beforeEach(() => {
+          +  summary = { needsAction: 1, pastDue: 1 };
+          @@ -80,0 +86 @@ beforeEach(() => {
+          +    if (path.startsWith('/api/conversations/summary')) return summary;
+          @@ -213,2 +219,4 @@ describe('Job mails tab', () => {
+          -    expect(cells.getByText('Priya Nair · Northwind Robotics · 1 mail')).toBeInTheDocument();
+          -    expect(cells.getByText('Interview')).toBeInTheDocument();
+          +    // One grey line says who, where, what type and how many (owner, 3 Nov 2026).
+          +    expect(
+          +      cells.getByText('Priya Nair · Northwind Robotics · Interview · 1 mail'),
+          +    ).toBeInTheDocument();
+          @@ -216 +224,2 @@ describe('Job mails tab', () => {
+          -    expect(cells.getByText('Needs action')).toBeInTheDocument();
+          +    // One list, newest first: no "Needs action" tag on each row; the blue arrow marks the step.
+          +    expect(cells.queryByText('Needs action')).not.toBeInTheDocument();
+          @@ -223 +232 @@ describe('Job mails tab', () => {
+          -    expect(screen.getByRole('tab', { name: /^Job mails/ })).toHaveTextContent('Job mails (1)');
+          +    expect(screen.getByRole('tab', { name: /^Job mails/ })).toHaveTextContent(/^Job mails\s*1$/);
+          @@ -250 +259 @@ describe('Job mails tab', () => {
+          -    expect(cells.getByText('Update')).toBeInTheDocument();
+          +    expect(cells.getByText(/· Update ·/)).toBeInTheDocument();
+          @@ -295 +304,4 @@ describe('Job mails tab', () => {
+          -    expect(cells.getByText('Done')).toBeInTheDocument();
+          +    // A done step is grey, with its reason.
+          +    expect(cells.getByText('Send your available dates').closest('span.min-w-0')).toHaveClass(
+          +      'text-text-secondary',
+          +    );
+          @@ -317 +328,0 @@ describe('Job mails tab', () => {
+          -    expect(cells.getByText('Replied')).toBeInTheDocument();
+          @@ -380,5 +391,9 @@ describe('Job mails tab', () => {
+          -    await chooseOption(screen.getByRole('combobox', { name: 'Action' }), 'Needs action');
+          -    await chooseOption(screen.getByRole('combobox', { name: 'Type' }), 'Update');
+          -    await chooseOption(screen.getByRole('combobox', { name: 'Application' }), 'No application yet');
+          -    await chooseOption(screen.getByRole('combobox', { name: 'Sort' }), 'Newest first');
+          -    fireEvent.click(screen.getByLabelText('New only'));
+          +    await chooseOption(screen.getByRole('combobox', { name: 'Sort' }), 'Needs action first');
+          +    const filters = within(await openFilters());
+          +    await chooseOption(filters.getByRole('combobox', { name: 'Action' }), 'Needs action');
+          +    await chooseOption(filters.getByRole('combobox', { name: 'Type' }), 'Update');
+          +    await chooseOption(
+          +      filters.getByRole('combobox', { name: 'Application' }),
+          +      'No application yet',
+          +    );
+          +    fireEvent.click(filters.getByLabelText('New only'));
+          @@ -391 +406 @@ describe('Job mails tab', () => {
+          -        sort: 'newest',
+          +        sort: 'attention',
+          @@ -404 +419 @@ describe('Job mails tab', () => {
+          -        sort: 'newest',
+          +        sort: 'attention',
+          @@ -410,0 +426,32 @@ describe('Job mails tab', () => {
+          +  it('lists newest first, and says how many mails need the user, counted by the server', async () => {
+          +    summary = { needsAction: 4, pastDue: 2 };
+          +    show();
+          +    await row('Interview: first round availability');
+          +    // The list asks for newest first; the tab count asks for the whole list, unsorted.
+          +    expect(
+          +      listCalls().some((call) => new URLSearchParams(call.split('?')[1]).get('sort') === 'newest'),
+          +    ).toBe(true);
+          +    expect(get).toHaveBeenCalledWith(
+          +      expect.stringMatching(/^\/api\/conversations\/summary\?timeZone=/),
+          +      expect.anything(),
+          +    );
+          +    const sentence = (await screen.findByRole('button', { name: '4 mails need you' }))
+          +      .parentElement!;
+          +    expect(sentence).toHaveTextContent(
+          +      '4 mails need you, 2 are past due. Everything else is up to date.',
+          +    );
+          +    fireEvent.click(screen.getByRole('button', { name: '4 mails need you' }));
+          +    await waitFor(() => expect(router.state.location.search).toEqual({ request: 'open' }));
+          +    expect(screen.getByRole('button', { name: '4 mails need you' })).toHaveAttribute(
+          +      'aria-pressed',
+          +      'true',
+          +    );
+          +    cleanup();
+          +
+          +    summary = { needsAction: 0, pastDue: 0 };
+          +    show();
+          +    expect(
+          +      await screen.findByText('Nothing needs you right now. Everything is up to date.'),
+          +    ).toBeInTheDocument();
+          +  });
+          +
+          @@ -415 +462 @@ describe('Job mails tab', () => {
+          -    fireEvent.click(screen.getByLabelText('New only'));
+          +    fireEvent.click(within(await openFilters()).getByLabelText('New only'));
+          diff --git a/src/tests/phone.test.tsx b/src/tests/phone.test.tsx
+          index 89dda32..d75c89c 100644
+          --- a/src/tests/phone.test.tsx
+          +++ b/src/tests/phone.test.tsx
+          @@ -139,0 +140 @@ describe('phone top bar and menu', () => {
+          +    // The search opens in the top bar, ready to type, with Cancel to close it.
+          @@ -141,0 +143,2 @@ describe('phone top bar and menu', () => {
+          +    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+          +    expect(document.getElementById('mail-search')).toBeNull();
+          @@ -154,2 +157,2 @@ describe('phone lists', () => {
+          -    // The row's columns are not drawn: one tappable row instead.
+          -    expect(row.closest('[role="row"]')!.querySelectorAll('[role="cell"]')).toHaveLength(1);
+          +    // No table columns on a phone: one tappable row in a plain list.
+          +    expect(row.closest('[role="listitem"]')!.querySelectorAll('[role="cell"]')).toHaveLength(0);
+          PATCH
+          git add -A
+      - name: Commit only the reviewed result
+        run: |
+          if [ "$(git write-tree)" != "b0e76304fe321e0e7442c139690cf8dc6d575819" ]; then
+            echo "The result does not match the reviewed tree. Nothing was pushed."
+            git status --short
+            exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat(mails): the Mails list as in the mock, second half'
+          git push origin HEAD:feat/mails-list
