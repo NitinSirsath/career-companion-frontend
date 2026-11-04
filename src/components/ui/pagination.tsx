@@ -12,7 +12,7 @@ interface PaginationProps {
 
 /** A small bordered square with an arrow, for the page before or after. */
 export const PAGE_BUTTON =
-  'flex size-8 cursor-pointer items-center justify-center border border-border-default bg-background text-text-primary transition-colors duration-70 ease-standard hover:bg-layer-hover disabled:cursor-not-allowed disabled:border-border-subtle disabled:text-text-disabled disabled:hover:bg-transparent';
+  'flex size-8 cursor-pointer items-center justify-center rounded-md border border-border-default bg-background text-text-primary transition-colors duration-70 ease-standard hover:bg-layer-hover disabled:cursor-not-allowed disabled:border-border-subtle disabled:text-text-disabled disabled:hover:bg-transparent';
 
 /** The line under a list, with no frame: the page number, and buttons for the page before and after. */
 export function Pagination({
