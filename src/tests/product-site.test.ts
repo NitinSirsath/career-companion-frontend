@@ -146,7 +146,7 @@ describe('the changelog', () => {
     const ids = [...doc('changelog').querySelectorAll('article.entry')].map((a) => a.id);
     expect(ids).toEqual(dates.map(anchor));
     expect(new Set(ids).size).toBe(ids.length);
-    expect(ids[0]).toBe('oct-31');
+    expect(ids[0]).toBe('nov-4');
   });
 });
 
