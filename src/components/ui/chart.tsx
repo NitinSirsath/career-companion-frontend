@@ -167,7 +167,7 @@ function ChartTooltipContent({
   return (
     <div
       className={cn(
-        'grid min-w-[8rem] items-start gap-1.5 border border-border-subtle bg-menu px-3 py-2 text-xs shadow-popup',
+        'grid min-w-[8rem] items-start gap-1.5 rounded-md border border-border-subtle bg-menu px-3 py-2 text-xs shadow-popup',
         className,
       )}
     >
