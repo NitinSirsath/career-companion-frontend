@@ -18,14 +18,69 @@ export function Emphasized({ text, strong }: { text: string; strong?: string }) 
   );
 }
 
-/** Shown wherever waiting emails matter, while the user's AI access is not ready. */
-export function AIAccessNotice() {
+type Waiting = ReturnType<typeof useWaitingNotice>;
+
+/** The one-line notice of the Mails page: the same words and the same ways to fix it. */
+function CompactNotice({
+  notice,
+  read,
+  failed,
+  sendsTest,
+}: {
+  notice: NonNullable<Waiting['notice']>;
+  read: Waiting['read'];
+  failed: Waiting['failed'];
+  sendsTest: Waiting['sendsTest'];
+}) {
+  return (
+    <section
+      role="status"
+      aria-label="AI status"
+      className="flex animate-open flex-wrap items-center gap-x-4 gap-y-2 rounded-lg bg-notice-warning px-3.5 py-2.5 shadow-[inset_0_0_0_1px_var(--border-subtle)]"
+    >
+      <WarningAltFilled size={16} aria-hidden="true" className="shrink-0 text-warning-icon" />
+      <p className="min-w-0 flex-1 basis-60 text-sm">
+        <strong className="font-semibold">{notice.title}.</strong>{' '}
+        <Emphasized text={notice.detail} strong={notice.strong} />
+        {[notice.hint, ...notice.notes].filter(Boolean).map((line) => ` ${line}`)}
+        {failed && ' The new try could not be started. Try again.'}
+      </p>
+      <span className="flex flex-wrap items-center gap-4 text-sm">
+        {notice.fix?.href && (
+          <a className="text-link" href={notice.fix.href} target="_blank" rel="noopener noreferrer">
+            {notice.fix.label}
+            <span aria-hidden="true"> ↗</span>
+          </a>
+        )}
+        <Link to="/ai" className="text-link">
+          {notice.fix?.to ? notice.fix.label : 'Set up AI'}
+        </Link>
+        {notice.button !== 'none' && (
+          <Button type="button" size="sm" disabled={notice.button === 'trying'} onClick={read}>
+            {notice.button === 'trying' ? 'Trying now…' : 'Read waiting mails now'}
+          </Button>
+        )}
+        {notice.button !== 'none' && sendsTest && (
+          <span className="text-xs text-text-secondary">Sends 1 mail first, as a test.</span>
+        )}
+      </span>
+    </section>
+  );
+}
+
+/**
+ * Shown wherever waiting emails matter, while the user's AI access is not ready. `compact`: one
+ * slim line (the Mails page, owner 3 Nov 2026), with the same words and the same ways to fix it.
+ */
+export function AIAccessNotice({ compact = false }: { compact?: boolean }) {
   const { data } = useQuery({
     queryKey: ['aiSettings'],
     queryFn: ({ signal }) => api.getAISettings({ signal }),
   });
   const { notice, read, failed, sendsTest } = useWaitingNotice(data);
   if (!notice) return null;
+  if (compact)
+    return <CompactNotice notice={notice} read={read} failed={failed} sendsTest={sendsTest} />;
   return (
     <section
       role="status"
