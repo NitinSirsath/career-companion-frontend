@@ -40,7 +40,7 @@ function GmailMailPage() {
         </div>
         <aside
           aria-label="About this mail"
-          className="flex flex-col gap-3 border border-border-subtle bg-surface p-6 lg:sticky lg:top-20"
+          className="flex flex-col gap-3 panel p-6 lg:sticky lg:top-20"
         >
           <h2 className="text-sm font-semibold">Not a job mail</h2>
           <p className="text-sm">
