@@ -33,7 +33,7 @@ interface SelectProps<V extends string> {
  * that fades and grows out of the side next to its field (150ms); it closes in 110ms.
  */
 export const POPUP_CLASS =
-  'border border-border-subtle bg-menu py-1 text-text-primary shadow-popup outline-none origin-[var(--transform-origin)] transition-[opacity,scale] duration-150 ease-entrance data-ending-style:scale-[0.98] data-ending-style:opacity-0 data-ending-style:duration-110 data-ending-style:ease-exit data-starting-style:scale-[0.96] data-starting-style:opacity-0';
+  'rounded-lg border border-border-subtle bg-menu py-1 text-text-primary shadow-popup outline-none origin-[var(--transform-origin)] transition-[opacity,scale] duration-150 ease-entrance data-ending-style:scale-[0.98] data-ending-style:opacity-0 data-ending-style:duration-110 data-ending-style:ease-exit data-starting-style:scale-[0.96] data-starting-style:opacity-0';
 
 export const ITEM_CLASS =
   'flex min-h-10 cursor-pointer items-center justify-between gap-4 px-4 py-2 text-[14px] leading-5 text-text-primary outline-none select-none transition-colors duration-70 ease-standard data-highlighted:bg-menu-hover data-disabled:cursor-not-allowed data-disabled:text-text-disabled';
@@ -81,8 +81,8 @@ export function Select<V extends string>({
           className={cn(
             'group flex cursor-pointer items-center justify-between gap-2 text-left text-[14px] leading-5 text-text-primary transition-colors duration-70 ease-standard outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-border-focus data-disabled:cursor-not-allowed data-disabled:text-text-disabled',
             inline
-              ? 'h-10 border border-border-default bg-field px-3 whitespace-nowrap hover:bg-layer-hover'
-              : 'h-10 w-full border border-border-default bg-field px-3 hover:bg-layer-hover',
+              ? 'h-9 rounded-md border border-border-default bg-field px-3 whitespace-nowrap hover:bg-layer-hover'
+              : 'h-9 w-full rounded-md border border-border-default bg-field px-3 hover:bg-layer-hover',
           )}
         >
           <span className="min-w-0 truncate">
