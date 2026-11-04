@@ -152,7 +152,7 @@ export function OtherProviders({
           Connected and checked, but not reading your mail. Make one active to switch at once.
         </p>
       </div>
-      <div className="border border-border-subtle bg-surface">
+      <div className="panel">
         {others.length > 0 || backup ? (
           <ul aria-label={active ? 'Other connected providers' : 'Connected providers'}>
             {others.map((connection) => (
