@@ -17,10 +17,7 @@ export function ApplicationConversations({ applicationId }: { applicationId: str
   );
   const nextOffset = data?.metadata.nextOffset ?? null;
   return (
-    <section
-      aria-labelledby="conversations-heading"
-      className="flex flex-col border border-border-subtle bg-surface pt-5"
-    >
+    <section aria-labelledby="conversations-heading" className="flex flex-col panel pt-5">
       <div className="flex items-baseline gap-3 px-6 pb-3">
         <h2 id="conversations-heading" className="text-xl leading-7 font-medium">
           Conversations
