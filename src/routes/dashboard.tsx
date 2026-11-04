@@ -103,7 +103,7 @@ function DashboardBody({
         <div className="flex flex-col gap-2">
           <ProgressNumbers numbers={numbers} />
           <RunningTotal series={numbers.series} />
-          <div className="grid gap-2 @min-[900px]:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+          <div className="grid items-start gap-2 @min-[900px]:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
             <Funnel numbers={numbers} />
             <GoneQuiet quiet={numbers.goneQuiet} />
           </div>
