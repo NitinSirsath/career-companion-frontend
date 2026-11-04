@@ -82,7 +82,7 @@ function GoogleSignInProblem({ error }: { error: string }) {
   return (
     <InlineNotification kind="warning" title={BETA_FULL_TITLE}>
       {BETA_FULL_TEXT}{' '}
-      <a href={\`mailto:\${CONTACT_EMAIL}\`} className="text-link underline hover:text-link-hover">
+      <a href={`mailto:${CONTACT_EMAIL}`} className="text-link underline hover:text-link-hover">
         {CONTACT_EMAIL}
       </a>
       .
