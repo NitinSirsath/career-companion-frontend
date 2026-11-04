@@ -121,6 +121,8 @@ export class SampleApp {
     if (a === 'send') void this.send();
     if (a === 'back') this.set({ view: 'mails', mailId: null, reply: null });
     if (a === 'did') this.did();
+    if (a === 'needs') this.set({ needsOnly: !this.s.needsOnly });
+    if (a === 'new') this.set({ newOnly: !this.s.newOnly });
   }
 
   private key(e: KeyboardEvent): void {
