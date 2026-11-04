@@ -198,14 +198,18 @@ describe('signing in returns to the page asked for', () => {
 
   it('sends a signed-out visitor to sign-in with the page as next', async () => {
     const router = showApp('/applications?status=OFFER', null);
-    expect(await screen.findByRole('heading', { name: 'Sign in' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'Sign in to NorthList' }),
+    ).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/login');
     expect(router.state.location.search).toEqual({ next: '/applications?status=OFFER' });
   });
 
   it('asks for no next on the home page', async () => {
     const router = showApp('/', null);
-    expect(await screen.findByRole('heading', { name: 'Sign in' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'Sign in to NorthList' }),
+    ).toBeInTheDocument();
     expect(router.state.location.search).toEqual({});
   });
 
@@ -239,7 +243,7 @@ describe('signing in returns to the page asked for', () => {
       testAccount: false,
     });
     wrap(<LoginPage next="/applications/123" />);
-    fireEvent.click(await screen.findByRole('button', { name: 'Sign in with Google' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Continue with Google' }));
     expect(assign).toHaveBeenLastCalledWith('/api/auth/connect?returnTo=%2Fapplications%2F123');
 
     fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'u@test.local' } });
