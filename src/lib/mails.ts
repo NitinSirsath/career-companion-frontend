@@ -85,8 +85,8 @@ export const APPLICATION_FILTERS = [
 
 export const TYPE_OPTIONS = TYPE_FILTERS.map((value) => ({ value, label: CATEGORY_LABEL[value] }));
 
-/** "Needs action first" is the order when nothing is chosen. */
-export const SORT_OPTIONS = [{ value: 'newest', label: 'Newest first' }] as const;
+/** "Newest first" is the order when nothing is chosen (owner, 3 Nov 2026: one list, like a mail app). */
+export const SORT_OPTIONS = [{ value: 'attention', label: 'Needs action first' }] as const;
 
 const { request, category, sort } = ConversationFiltersSchema.shape;
 
@@ -113,7 +113,8 @@ export function filtersFromSearch(search: MailsSearch): ConversationFilters {
     category: search.category,
     application: search.application,
     unseen: search.unseen ? 'true' : undefined,
-    sort: search.sort,
+    // The server's own default is "needs action first", so newest is asked for by name.
+    sort: search.sort === 'attention' ? 'attention' : 'newest',
   };
 }
 
