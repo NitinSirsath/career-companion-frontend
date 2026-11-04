@@ -1,3 +1,4 @@
+import { avatarTone } from '../../lib/avatarTone';
 import { cn } from '../../lib/utils';
 
 /** The first letters of up to two words: "Maya Chen" gives "MC". */
@@ -27,7 +28,7 @@ export function Avatar({
       className={cn(
         'inline-flex shrink-0 items-center justify-center rounded-full font-semibold',
         size === 'md' ? 'size-8 text-xs' : 'size-6 text-[11px]',
-        me ? 'bg-tint text-link-hover' : 'bg-tag-gray-bg text-tag-gray',
+        me ? 'bg-tint text-link-hover' : avatarTone(name),
         className,
       )}
     >
