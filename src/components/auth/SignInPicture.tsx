@@ -80,7 +80,7 @@ export function SignInPicture() {
         {NAV.map(({ label, Icon, open }) => (
           <span
             key={label}
-            className={\`flex h-8 items-center gap-2 rounded-md px-2 \${open ? 'bg-[var(--nav-active)] font-medium' : 'text-text-secondary'}\`}
+            className={`flex h-8 items-center gap-2 rounded-md px-2 ${open ? 'bg-[var(--nav-active)] font-medium' : 'text-text-secondary'}`}
           >
             <Icon size={14} className={open ? '' : 'text-text-tertiary'} />
             {label}
@@ -112,7 +112,7 @@ export function SignInPicture() {
                   <span className="truncate">{mail.step}</span>
                   {mail.due && (
                     <span
-                      className={\`shrink-0 \${mail.due.late ? 'text-danger-text' : 'text-text-secondary'}\`}
+                      className={`shrink-0 ${mail.due.late ? 'text-danger-text' : 'text-text-secondary'}`}
                     >
                       · {mail.due.text}
                     </span>
