@@ -39,11 +39,14 @@ export function ProgressNumbers({ numbers }: { numbers: DashboardResponse }) {
             <span className="text-[28px] leading-9 font-light tracking-[-0.01em] @min-[600px]:text-[32px] @min-[600px]:leading-10">
               {current[key]}
             </span>
-            <Sparkline
-              values={numbers.trend.weeks.map((w) => w[week])}
-              highlight={highlight}
-              className="mb-1"
-            />
+            {/* Twelve empty weeks say nothing: no bars then. */}
+            {numbers.trend.weeks.some((w) => w[week] > 0) && (
+              <Sparkline
+                values={numbers.trend.weeks.map((w) => w[week])}
+                highlight={highlight}
+                className="mb-1"
+              />
+            )}
           </dd>
           <dd className="text-xs text-text-secondary">
             {changeText(
