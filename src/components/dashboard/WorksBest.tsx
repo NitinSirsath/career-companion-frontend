@@ -103,7 +103,7 @@ function Coverage({ automation }: { automation: Automation }) {
       }
     >
       <p className="mt-2 text-[28px] leading-9 font-light md:text-[32px] md:leading-10">
-        {automation.lookedAt} jobs looked at
+        {automation.lookedAt} {automation.lookedAt === 1 ? 'job' : 'jobs'} looked at
       </p>
       {automation.lookedAt > 0 && (
         <div className="mt-3 flex h-2 gap-0.5" aria-hidden>
