@@ -43,6 +43,7 @@ const thread = (overrides: Partial<MailboxThread> = {}): MailboxThread => ({
 
 let conversations: Conversation[];
 let inbox: Record<string, { items: MailboxThread[]; nextPageToken: string | null }>;
+let summary: { needsAction: number; pastDue: number };
 const get = vi.mocked(api.get);
 const listCalls = () =>
   get.mock.calls.map(([path]) => path).filter((path) => path.startsWith('/api/conversations?'));
@@ -63,9 +64,12 @@ function show(path = '/mails') {
   );
 }
 const row = async (subject: string) =>
-  within(
-    (await screen.findByRole('link', { name: subject })).closest<HTMLElement>('[role="row"]')!,
-  );
+  within((await screen.findByRole('link', { name: subject })).closest<HTMLElement>('li')!);
+/** Opens the Filters menu of the Mails toolbar. */
+const openFilters = async () => {
+  fireEvent.click(screen.getByRole('button', { name: /^Filters/ }));
+  return screen.findByRole('dialog', { name: 'Filters' });
+};
 /** Opens a row's "…" menu and returns its items' names. */
 const openRowMenu = async (cells: ReturnType<typeof within>) => {
   fireEvent.click(cells.getByRole('button', { name: /^Actions for/ }));
@@ -75,9 +79,11 @@ const openRowMenu = async (cells: ReturnType<typeof within>) => {
 beforeEach(() => {
   vi.resetAllMocks();
   conversations = [makeConversation()];
+  summary = { needsAction: 1, pastDue: 1 };
   inbox = { '': { items: [thread()], nextPageToken: null } };
   get.mockImplementation(async (path: string) => {
     if (path.startsWith('/api/conversations?')) return page(conversations);
+    if (path.startsWith('/api/conversations/summary')) return summary;
     if (path.startsWith('/api/mailbox/threads')) {
       const token = new URLSearchParams(path.split('?')[1]).get('pageToken') ?? '';
       return inbox[token];
@@ -210,17 +216,20 @@ describe('Job mails tab', () => {
     show();
     const cells = await row('Interview: first round availability');
     expect(cells.getByText('New')).toBeInTheDocument();
-    expect(cells.getByText('Priya Nair · Northwind Robotics · 1 mail')).toBeInTheDocument();
-    expect(cells.getByText('Interview')).toBeInTheDocument();
+    // One grey line says who, where, what type and how many (owner, 3 Nov 2026).
+    expect(
+      cells.getByText('Priya Nair · Northwind Robotics · Interview · 1 mail'),
+    ).toBeInTheDocument();
     expect(cells.getByText('Send your available dates')).toBeInTheDocument();
-    expect(cells.getByText('Needs action')).toBeInTheDocument();
+    // One list, newest first: no "Needs action" tag on each row; the blue arrow marks the step.
+    expect(cells.queryByText('Needs action')).not.toBeInTheDocument();
     // The fixture's deadline has passed: the request stays open and says so.
     expect(cells.getByText('Past due · Oct 13, 2026')).toHaveClass('text-danger-text');
     expect(cells.getByText('Not linked')).toBeInTheDocument();
     expect(
       cells.getByRole('link', { name: 'Interview: first round availability' }),
     ).toHaveAttribute('href', '/mails/thread-1');
-    expect(screen.getByRole('tab', { name: /^Job mails/ })).toHaveTextContent('Job mails (1)');
+    expect(screen.getByRole('tab', { name: /^Job mails/ })).toHaveTextContent(/^Job mails\s*1$/);
 
     vi.mocked(api.post).mockResolvedValue({});
     fireEvent.click(cells.getByRole('button', { name: 'Create application' }));
@@ -247,7 +256,7 @@ describe('Job mails tab', () => {
     ];
     show();
     const cells = await row('Interview: first round availability');
-    expect(cells.getByText('Update')).toBeInTheDocument();
+    expect(cells.getByText(/· Update ·/)).toBeInTheDocument();
     expect(cells.getByText('Nothing needed')).toBeInTheDocument();
     expect(cells.queryByText('New')).not.toBeInTheDocument();
     expect(cells.getByRole('link', { name: 'Umbrella Labs' })).toHaveAttribute(
@@ -292,7 +301,10 @@ describe('Job mails tab', () => {
     ];
     show();
     const cells = await row('Interview: first round availability');
-    expect(cells.getByText('Done')).toBeInTheDocument();
+    // A done step is grey, with its reason.
+    expect(cells.getByText('Send your available dates').closest('span.min-w-0')).toHaveClass(
+      'text-text-secondary',
+    );
     expect(cells.getByText('Your reply answered it')).toBeInTheDocument();
     await openRowMenu(cells);
     pressOption(screen.getByRole('menuitem', { name: 'Reopen' }));
@@ -314,7 +326,6 @@ describe('Job mails tab', () => {
     ];
     show();
     const cells = await row('Interview: first round availability');
-    expect(cells.getByText('Replied')).toBeInTheDocument();
     expect(cells.getByText(/^You replied /)).toBeInTheDocument();
     expect(await openRowMenu(cells)).toEqual(['Ask me again', 'Open in Gmail']);
   });
@@ -377,18 +388,22 @@ describe('Job mails tab', () => {
   it('keeps the filters in the URL and sends them to the list', async () => {
     show('/mails?offset=20');
     await row('Interview: first round availability');
-    await chooseOption(screen.getByRole('combobox', { name: 'Action' }), 'Needs action');
-    await chooseOption(screen.getByRole('combobox', { name: 'Type' }), 'Update');
-    await chooseOption(screen.getByRole('combobox', { name: 'Application' }), 'No application yet');
-    await chooseOption(screen.getByRole('combobox', { name: 'Sort' }), 'Newest first');
-    fireEvent.click(screen.getByLabelText('New only'));
+    await chooseOption(screen.getByRole('combobox', { name: 'Sort' }), 'Needs action first');
+    const filters = within(await openFilters());
+    await chooseOption(filters.getByRole('combobox', { name: 'Action' }), 'Needs action');
+    await chooseOption(filters.getByRole('combobox', { name: 'Type' }), 'Update');
+    await chooseOption(
+      filters.getByRole('combobox', { name: 'Application' }),
+      'No application yet',
+    );
+    fireEvent.click(filters.getByLabelText('New only'));
     fireEvent.change(screen.getByLabelText('Search'), { target: { value: 'north' } });
     await waitFor(() =>
       expect(router.state.location.search).toEqual({
         request: 'open',
         category: 'FOLLOW_UP',
         application: 'none',
-        sort: 'newest',
+        sort: 'attention',
         unseen: true,
         q: 'north',
       }),
@@ -401,18 +416,50 @@ describe('Job mails tab', () => {
         request: 'open',
         category: 'FOLLOW_UP',
         application: 'none',
-        sort: 'newest',
+        sort: 'attention',
         unseen: 'true',
         q: 'north',
       });
     });
   });
 
+  it('lists newest first, and says how many mails need the user, counted by the server', async () => {
+    summary = { needsAction: 4, pastDue: 2 };
+    show();
+    await row('Interview: first round availability');
+    // The list asks for newest first; the tab count asks for the whole list, unsorted.
+    expect(
+      listCalls().some((call) => new URLSearchParams(call.split('?')[1]).get('sort') === 'newest'),
+    ).toBe(true);
+    expect(get).toHaveBeenCalledWith(
+      expect.stringMatching(/^\/api\/conversations\/summary\?timeZone=/),
+      expect.anything(),
+    );
+    const sentence = (await screen.findByRole('button', { name: '4 mails need you' }))
+      .parentElement!;
+    expect(sentence).toHaveTextContent(
+      '4 mails need you, 2 are past due. Everything else is up to date.',
+    );
+    fireEvent.click(screen.getByRole('button', { name: '4 mails need you' }));
+    await waitFor(() => expect(router.state.location.search).toEqual({ request: 'open' }));
+    expect(screen.getByRole('button', { name: '4 mails need you' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    cleanup();
+
+    summary = { needsAction: 0, pastDue: 0 };
+    show();
+    expect(
+      await screen.findByText('Nothing needs you right now. Everything is up to date.'),
+    ).toBeInTheDocument();
+  });
+
   it('says so when there are no job mails yet, and when nothing matches', async () => {
     conversations = [];
     show();
     expect(await screen.findByText('No job mails yet')).toBeInTheDocument();
-    fireEvent.click(screen.getByLabelText('New only'));
+    fireEvent.click(within(await openFilters()).getByLabelText('New only'));
     expect(await screen.findByText('No job mails match this view')).toBeInTheDocument();
   });
 });

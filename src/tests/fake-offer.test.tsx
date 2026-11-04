@@ -174,9 +174,9 @@ describe('a fake job offer in the Mails list', () => {
   it('tags the row by its type, and shows the next step without "Needs action"', async () => {
     show('/mails');
     const cells = within(
-      (await screen.findByRole('link', { name: SUBJECT })).closest<HTMLElement>('[role="row"]')!,
+      (await screen.findByRole('link', { name: SUBJECT })).closest<HTMLElement>('li')!,
     );
-    expect(cells.getByText('Offer')).toBeInTheDocument();
+    expect(cells.getByText(/· Offer ·/)).toBeInTheDocument();
     expect(cells.getByText('Probably fake')).toBeInTheDocument();
     expect(cells.getByText(SAFE_STEP)).toBeInTheDocument();
     expect(cells.queryByText('Needs action')).not.toBeInTheDocument();

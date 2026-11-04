@@ -137,8 +137,11 @@ describe('phone top bar and menu', () => {
   it('puts the search one tap away, and the two filters used most as chips', async () => {
     show('/mails');
     await screen.findByRole('link', { name: ROW_NAME });
+    // The search opens in the top bar, ready to type, with Cancel to close it.
     fireEvent.click(screen.getByRole('button', { name: 'Search mails' }));
     expect(document.activeElement).toBe(document.getElementById('mail-search'));
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(document.getElementById('mail-search')).toBeNull();
 
     const needs = screen.getByRole('button', { name: 'Needs action', pressed: false });
     fireEvent.click(needs);
@@ -151,8 +154,8 @@ describe('phone lists', () => {
   it('shows a job mail as one row, and no swipe closes an ask answered by mail', async () => {
     show('/mails');
     const row = await screen.findByRole('link', { name: ROW_NAME });
-    // The row's columns are not drawn: one tappable row instead.
-    expect(row.closest('[role="row"]')!.querySelectorAll('[role="cell"]')).toHaveLength(1);
+    // No table columns on a phone: one tappable row in a plain list.
+    expect(row.closest('[role="listitem"]')!.querySelectorAll('[role="cell"]')).toHaveLength(0);
     swipeRight(row, 110);
     expect(api.patch).not.toHaveBeenCalled();
   });

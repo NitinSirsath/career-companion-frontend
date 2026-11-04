@@ -2,14 +2,14 @@ import { useEffect } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { AIAccessNotice } from '../components/ai/AIAccessNotice';
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
-import { TopBarActions } from '../components/layout/Breadcrumb';
 import { PageHeader } from '../components/layout/PageHeader';
-import { TopBarSearch } from '../components/layout/TopBarButtons';
 import { useIsPhone } from '../components/layout/useIsPhone';
-import { MAIL_SEARCH_ID } from '../components/mails/ConversationFilters';
+import { PhoneMailChips } from '../components/mails/ConversationFilters';
+import { LaptopBar, PhoneSearch } from '../components/mails/MailsBars';
 import { GmailInbox } from '../components/mails/GmailInbox';
 import { JobMails } from '../components/mails/JobMails';
-import { MailsTabs } from '../components/mails/MailsTabs';
+import { MailsPhoneTitle } from '../components/mails/MailsPhoneTitle';
+import { MailSummary } from '../components/mails/MailSummary';
 import { RestrictedList } from '../components/mails/RestrictedList';
 import { SyncLine } from '../components/mails/SyncLine';
 import { rememberListSearch } from '../lib/listMemory';
@@ -21,6 +21,12 @@ export const Route = createFileRoute('/mails/')({
   component: MailsPage,
 });
 
+/**
+ * The Mails page (owner, 3 Nov 2026): the title with "4 mails need you, 2 are past due", a slim AI
+ * notice, then the lists. Laptops: tabs, search, Filters and Sort on one line that stays on screen.
+ * Phones: the lists switch in the top bar title, the top bar's search button opens a search row
+ * under it, and one row of chips sits above the mails.
+ */
 function MailsPage() {
   const search = Route.useSearch();
   const phone = useIsPhone();
@@ -31,29 +37,48 @@ function MailsPage() {
       search: (current: MailsSearch) => ({ ...current, ...changes }),
       replace: true,
     });
+  // A changed filter starts again at the first page.
+  const filter = (changes: Partial<MailsSearch>) => change({ ...changes, offset: undefined });
+  const tab = search.tab ?? 'job';
+  const needsActionOn = search.request === 'open';
 
   // Remembered so the breadcrumb on a mail returns to this exact view.
   useEffect(() => rememberListSearch('/mails', search), [search]);
 
   return (
-    <div className="space-y-6">
+    <div>
       <PageHeader
         phoneCompact
         title="Mails"
-        description="Every job mail, what it needs from you, and the application it belongs to."
+        description={
+          !search.tab && (
+            <MailSummary
+              needsActionOn={needsActionOn}
+              onToggleNeedsAction={() => filter({ request: needsActionOn ? undefined : 'open' })}
+            />
+          )
+        }
         actions={phone ? undefined : <SyncLine />}
       />
-      {phone && !search.tab && (
-        <TopBarActions>
-          <TopBarSearch targetId={MAIL_SEARCH_ID} label="Search mails" />
-        </TopBarActions>
+      {phone && <MailsPhoneTitle tab={tab} />}
+      {phone && !search.tab && <PhoneSearch search={search} onChange={filter} />}
+      <div className="mt-5 max-md:mt-3">
+        <AIAccessNotice compact />
+      </div>
+      {phone ? (
+        !search.tab && (
+          <div className="mt-3 mb-3">
+            <PhoneMailChips search={search} onChange={filter} end={<SyncLine look="icon" />} />
+          </div>
+        )
+      ) : (
+        <LaptopBar tab={tab} search={search} onChange={filter} />
       )}
-      <AIAccessNotice />
-      <MailsTabs tab={search.tab ?? 'job'} />
-      {phone && <SyncLine compact />}
-      {search.tab === 'gmail' && <GmailInbox />}
-      {search.tab === 'restricted' && <RestrictedList />}
-      {!search.tab && <JobMails search={search} onChange={change} />}
+      <div className="md:mt-1">
+        {search.tab === 'gmail' && <GmailInbox />}
+        {search.tab === 'restricted' && <RestrictedList />}
+        {!search.tab && <JobMails search={search} onChange={change} />}
+      </div>
     </div>
   );
 }
