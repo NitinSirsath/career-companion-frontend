@@ -1,19 +1,17 @@
 import { Link } from '@tanstack/react-router';
 import { Checkmark } from '@carbon/icons-react';
 import type { Conversation } from '../../contracts/conversation';
-import { mailDate, parseSender } from '../../lib/mails';
+import { CATEGORY_LABEL, mailDate, parseSender } from '../../lib/mails';
 import { cn } from '../../lib/utils';
 import { StatusBadge } from '../ApplicationStatus';
 import { Avatar } from '../ui/avatar';
 import { useSwipeRight } from '../ui/swipe';
-import { ConversationAction } from './ConversationAction';
-import { FakeOfferTag } from './FakeOffer';
-import { MailType } from './MailType';
+import { StepLine } from './MailRow';
 import { useRequestChange } from './useRequestChange';
 
 /**
- * A job mail on a phone: who wrote, when, the subject, what it needs and its application, in one
- * tappable row. Swiping it to the right does its first action, such as "I did this" on a request
+ * A job mail on a phone (owner, 3 Nov 2026): who wrote and when, the subject in grey, the next
+ * step with its due date on its own line, then the application, in one tappable row. Swiping it to the right does its first action, such as "I did this" on a request
  * done outside mail.
  */
 export function PhoneMailRow({ conversation: c }: { conversation: Conversation }) {
@@ -23,7 +21,7 @@ export function PhoneMailRow({ conversation: c }: { conversation: Conversation }
   const sender = parseSender(c.sender).name;
   return (
     // Edge to edge, as phone mail apps draw their rows.
-    <div className="relative -mx-4 overflow-hidden border-b border-border-subtle">
+    <div className="relative overflow-hidden border-b border-border-subtle">
       {action && (
         <div
           aria-hidden="true"
@@ -45,29 +43,40 @@ export function PhoneMailRow({ conversation: c }: { conversation: Conversation }
         {...swipe.handlers}
       >
         <Avatar name={sender} className="size-10 text-sm" />
-        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <div className="flex min-w-0 flex-1 flex-col">
           <div className="flex items-baseline gap-2">
-            <span className={cn('min-w-0 flex-1 truncate', c.isNew && 'font-semibold')}>
+            <span
+              className={cn(
+                'min-w-0 flex-1 truncate text-[15px]',
+                c.isNew ? 'font-semibold' : 'font-medium',
+              )}
+            >
               {sender}
             </span>
             {c.isNew && <span className="size-2 shrink-0 self-center rounded-full bg-link" />}
-            <span className="shrink-0 text-xs text-text-tertiary">
+            <span className="shrink-0 text-xs text-text-tertiary tabular-nums">
               {mailDate(c.lastReceivedAt)}
             </span>
           </div>
-          <span className={cn('truncate', c.isNew && 'font-semibold')}>
-            {c.subject || '(No subject)'}
-          </span>
-          <div className="mt-1 flex flex-col gap-2">
-            <ConversationAction conversation={c} controls={false} />
-            <div className="flex flex-wrap items-center gap-1.5">
-              {c.application ? (
+          <span className="truncate text-text-secondary">{c.subject || '(No subject)'}</span>
+          <div className="mt-1 text-[15px] leading-[22px]">
+            <StepLine conversation={c} dueApart />
+          </div>
+          <div className="mt-2 flex min-w-0 items-center gap-2 text-xs text-text-secondary">
+            {c.application ? (
+              <>
                 <StatusBadge status={c.application.effectiveStatus} />
-              ) : (
-                c.category && <MailType category={c.category} />
-              )}
-              {c.fakeOfferWarning && <FakeOfferTag />}
-            </div>
+                <span className="truncate">
+                  {[c.application.companyName, c.application.jobTitle].filter(Boolean).join(' · ')}
+                </span>
+              </>
+            ) : (
+              <span className="truncate">
+                {[c.category && CATEGORY_LABEL[c.category], 'Not linked']
+                  .filter(Boolean)
+                  .join(' · ')}
+              </span>
+            )}
           </div>
         </div>
       </Link>

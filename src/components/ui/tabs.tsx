@@ -18,6 +18,8 @@ interface TabsProps<V extends string> {
   className?: string;
   /** On phones: tabs across the full width with a line under the chosen one, or a row of chips. */
   phoneLook?: 'underline' | 'chips';
+  /** `underline` on every width: plain words with a line under the chosen one (the Mails list). */
+  look?: 'segmented' | 'underline';
 }
 
 const PHONE_LIST = {
@@ -46,7 +48,32 @@ export function Tabs<V extends string>({
   children,
   className,
   phoneLook = 'underline',
+  look = 'segmented',
 }: TabsProps<V>) {
+  if (look === 'underline')
+    return (
+      <BaseTabs.Root
+        value={value}
+        onValueChange={(next) => onValueChange(next as V)}
+        className={className}
+      >
+        <BaseTabs.List aria-label={label} className="flex max-w-full gap-7 overflow-x-auto">
+          {items.map((item) => (
+            <BaseTabs.Tab
+              key={item.value}
+              value={item.value}
+              className="flex shrink-0 cursor-pointer items-center gap-1.5 pb-2.5 text-[14px] leading-5 whitespace-nowrap text-text-secondary shadow-[inset_0_-2px_0_transparent] transition-[color,box-shadow] duration-70 ease-standard outline-none hover:text-text-primary focus-visible:outline-2 focus-visible:outline-border-focus data-active:font-medium data-active:text-text-primary data-active:shadow-[inset_0_-2px_0_var(--border-interactive)]"
+            >
+              {item.label}
+              {item.count !== undefined && (
+                <span className="font-normal text-text-tertiary tabular-nums">{item.count}</span>
+              )}
+            </BaseTabs.Tab>
+          ))}
+        </BaseTabs.List>
+        {children}
+      </BaseTabs.Root>
+    );
   return (
     <BaseTabs.Root
       value={value}

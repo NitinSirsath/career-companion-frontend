@@ -41,7 +41,7 @@ export function ApplicationConversations({ applicationId }: { applicationId: str
           No mails yet. Mails about this job join here by themselves.
         </p>
       )}
-      {data && data.items.length > 0 && <ConversationTable conversations={data.items} compact />}
+      {data && data.items.length > 0 && <ConversationTable conversations={data.items} />}
       {(offset > 0 || nextOffset !== null) && (
         <Pagination
           offset={offset}

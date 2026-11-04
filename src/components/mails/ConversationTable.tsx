@@ -1,42 +1,11 @@
 import type { ReactNode } from 'react';
 import { Link } from '@tanstack/react-router';
 import type { ColumnDef } from '@tanstack/react-table';
-import { useSandboxMailbox } from '../../api/appMode';
 import type { Conversation } from '../../contracts/conversation';
 import { conversationSummary, fakeOfferStep, mailDate } from '../../lib/mails';
 import { cn } from '../../lib/utils';
-import { getGmailConversationUrl } from '../../utils/gmail';
 import { DataTable, ROW_LINK_CLASS } from '../ui/data-table';
-import { OverflowMenu, type MenuAction } from '../ui/menu';
-import { ConversationAction } from './ConversationAction';
-import { ConversationApplication } from './ConversationApplication';
-import { FakeOfferTag } from './FakeOffer';
-import { MailType } from './MailType';
-import { PhoneMailRow } from './PhoneMailRow';
 import { TodoState } from './TodoState';
-import { useRequestChange } from './useRequestChange';
-
-/** The row's "…" menu: change what the mail needs, and open it in Gmail. */
-function RowMenu({ conversation }: { conversation: Conversation }) {
-  const request = useRequestChange(conversation);
-  const sandbox = useSandboxMailbox();
-  const actions: MenuAction[] = request.controls.map((control) => ({
-    label: control.label,
-    disabled: request.pending,
-    onSelect: () => request.apply(control),
-  }));
-  if (conversation.threadId && !sandbox) {
-    const url = getGmailConversationUrl(conversation.threadId);
-    actions.push({
-      label: 'Open in Gmail',
-      onSelect: () => window.open(url, '_blank', 'noopener'),
-    });
-  }
-  if (actions.length === 0) return null;
-  return (
-    <OverflowMenu label={`Actions for ${conversation.subject || 'this mail'}`} actions={actions} />
-  );
-}
 
 function MailCell({ conversation }: { conversation: Conversation }) {
   return (
@@ -55,25 +24,6 @@ function MailCell({ conversation }: { conversation: Conversation }) {
   );
 }
 
-/** The mail's type, with "Probably fake" under it when the AI thinks it is a fake offer. */
-function TypeCell({ conversation }: { conversation: Conversation }) {
-  return (
-    <div className="flex flex-col items-start gap-1.5">
-      {conversation.category && <MailType category={conversation.category} />}
-      {conversation.fakeOfferWarning && <FakeOfferTag />}
-    </div>
-  );
-}
-
-function NewDot({ isNew }: { isNew: boolean }) {
-  if (!isNew) return null;
-  return (
-    <span className="mt-1.5 block size-2 rounded-full bg-link">
-      <span className="sr-only">New</span>
-    </span>
-  );
-}
-
 const column = (
   id: string,
   header: ReactNode,
@@ -86,38 +36,8 @@ const column = (
   meta,
 });
 
-const FULL_COLUMNS: ColumnDef<Conversation>[] = [
-  column('new', <span className="sr-only">New</span>, (c) => <NewDot isNew={c.isNew} />, {
-    className: 'hidden md:block',
-  }),
-  column('mail', 'Mail', (c) => <MailCell conversation={c} />, { count: true }),
-  column('type', 'Type', (c) => <TypeCell conversation={c} />),
-  column('step', 'Next step', (c) => <ConversationAction conversation={c} controls={false} />, {
-    sortKey: 'needs',
-  }),
-  column(
-    'application',
-    'Application',
-    (c) => <ConversationApplication conversation={c} appearance="cell" />,
-    {
-      interactive: true,
-      phoneLabel: 'Application',
-    },
-  ),
-  column(
-    'last',
-    'Last mail',
-    (c) => <span className="text-xs">{mailDate(c.lastReceivedAt)}</span>,
-    { sortKey: 'newest', phoneLabel: 'Last mail' },
-  ),
-  column('menu', <span className="sr-only">Actions</span>, (c) => <RowMenu conversation={c} />, {
-    interactive: true,
-    className: 'md:-my-1.5 md:justify-self-end',
-  }),
-];
-
 // The application page lists its steps above, so here each conversation shows only its to-do state.
-const COMPACT_COLUMNS: ColumnDef<Conversation>[] = [
+const COLUMNS: ColumnDef<Conversation>[] = [
   column('mail', 'Mail', (c) => <MailCell conversation={c} />, { count: true }),
   column(
     'todo',
@@ -138,36 +58,18 @@ const COMPACT_COLUMNS: ColumnDef<Conversation>[] = [
   ),
 ];
 
-interface ConversationTableProps {
-  conversations: Conversation[];
-  /** The application page: its own conversations, without the application column and menu. */
-  compact?: boolean;
-  sort?: { active: string; onSort: (key: string) => void };
-  loading?: boolean;
-  empty?: ReactNode;
-  toolbar?: ReactNode;
-  footer?: ReactNode;
-}
-
-/** One row per job-mail conversation: the mail, what it needs, and its application. */
-export function ConversationTable({
-  conversations,
-  compact = false,
-  ...rest
-}: ConversationTableProps) {
+/**
+ * An application's own conversations, on its page: the mail, its to-do state and the last mail.
+ * The Mails page has its own list (`JobMails`).
+ */
+export function ConversationTable({ conversations }: { conversations: Conversation[] }) {
   return (
     <DataTable
-      label={compact ? 'Conversations' : 'Job mails'}
+      label="Conversations"
       data={conversations}
-      columns={compact ? COMPACT_COLUMNS : FULL_COLUMNS}
+      columns={COLUMNS}
       getRowId={(c) => c.key}
-      gridTemplate={
-        compact
-          ? 'minmax(220px,1fr) 140px 112px'
-          : '8px minmax(220px,2.2fr) 120px minmax(220px,2fr) minmax(170px,1.4fr) 112px 32px'
-      }
-      phoneRow={compact ? undefined : (c) => <PhoneMailRow conversation={c} />}
-      {...rest}
+      gridTemplate="minmax(220px,1fr) 140px 112px"
     />
   );
 }

@@ -192,7 +192,7 @@ describe('the Restricted tab', () => {
     show('/mails?tab=restricted');
     expect(await screen.findByText('infosys.com')).toBeVisible();
     expect(screen.getByText('When you deleted a conversation')).toBeVisible();
-    expect(screen.getByRole('tab', { name: /Restricted/ })).toHaveTextContent('(1)');
+    expect(screen.getByRole('tab', { name: /Restricted/ })).toHaveTextContent(/^Restricted\s*1$/);
     fireEvent.click(screen.getByRole('button', { name: 'Unblock' }));
     expect(await screen.findByText('New mails from infosys.com come in again.')).toBeVisible();
   });
