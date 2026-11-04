@@ -77,6 +77,7 @@ export function ToolbarSearch({
   placeholder,
   maxLength = 100,
   id: givenId,
+  autoFocus = false,
 }: {
   label: string;
   value: string;
@@ -85,6 +86,8 @@ export function ToolbarSearch({
   maxLength?: number;
   /** For a button elsewhere that puts the cursor in this box, such as the phone top bar's search. */
   id?: string;
+  /** Ready to type as soon as it shows (the phone top bar's search). */
+  autoFocus?: boolean;
 }) {
   const ownId = React.useId();
   const id = givenId ?? ownId;
@@ -96,6 +99,8 @@ export function ToolbarSearch({
       </label>
       <input
         id={id}
+        // eslint-disable-next-line jsx-a11y/no-autofocus -- opened by the user's own tap
+        autoFocus={autoFocus}
         type="search"
         maxLength={maxLength}
         value={value}
