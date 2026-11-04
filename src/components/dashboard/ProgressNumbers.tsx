@@ -30,7 +30,7 @@ export function ProgressNumbers({ numbers }: { numbers: DashboardResponse }) {
         <div
           key={key}
           className={cn(
-            'flex min-w-0 flex-col gap-1 bg-surface-subtle p-4 @min-[600px]:p-5 @min-[900px]:col-span-1',
+            'flex min-w-0 flex-col gap-1 rounded-lg bg-surface-subtle p-4 @min-[600px]:p-5 @min-[900px]:col-span-1',
             SPAN[i],
           )}
         >
