@@ -184,7 +184,7 @@ function LinkField({
   };
   return (
     <div className={cn('flex flex-col gap-1', className)}>
-      <div className="flex h-10 items-center gap-2 border border-border-subtle bg-surface-raised px-2.5 shadow-popup">
+      <div className="flex h-10 items-center gap-2 rounded-md border border-border-subtle bg-surface-raised px-2.5 shadow-popup">
         <LinkIcon size={16} aria-hidden="true" className="shrink-0 text-text-secondary" />
         <input
           ref={field}
@@ -208,7 +208,7 @@ function LinkField({
           }}
           className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-text-tertiary"
         />
-        <kbd className="border border-border-default px-1 font-mono text-xs text-text-secondary">
+        <kbd className="rounded border border-border-default px-1 font-mono text-xs text-text-secondary">
           ↵
         </kbd>
       </div>
@@ -230,7 +230,7 @@ function LinkCard({ editor, onEdit }: { editor: Editor; onEdit: () => void }) {
   const icon =
     'inline-flex size-7 cursor-pointer items-center justify-center text-text-secondary hover:bg-layer-hover hover:text-text-primary';
   return (
-    <div className="flex max-w-[360px] items-center gap-1 border border-border-subtle bg-surface-raised py-1 pr-1 pl-2.5 text-[13px] shadow-popup">
+    <div className="flex max-w-[360px] items-center gap-1 rounded-md border border-border-subtle bg-surface-raised py-1 pr-1 pl-2.5 text-[13px] shadow-popup">
       <span className="min-w-0 truncate text-link">
         {href?.replace(/^(https?:\/\/|mailto:)/, '')}
       </span>
@@ -361,7 +361,7 @@ function FloatingMenus({ editor, link }: { editor: Editor; link: LinkState }) {
           <div
             role="toolbar"
             aria-label="Format the selected words"
-            className="flex items-center gap-0.5 border border-border-subtle bg-surface-raised p-1 shadow-popup"
+            className="flex items-center gap-0.5 rounded-md border border-border-subtle bg-surface-raised p-1 shadow-popup"
           >
             <FormatButtons editor={editor} large={false} onLink={link.open} />
           </div>
