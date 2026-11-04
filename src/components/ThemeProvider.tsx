@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useLayoutEffect, useState } from 'react';
 import {
   parseStoredTheme,
   resolveTheme,
@@ -16,6 +16,8 @@ interface ThemeProviderState {
   theme: ThemeChoice;
   resolvedTheme: ResolvedTheme;
   setTheme: (theme: ThemeChoice) => void;
+  /** While true the page shows the light theme; the saved choice stays (the sign-in pages). */
+  setLightOnly: (lightOnly: boolean) => void;
 }
 
 // Outside a provider (as in tests) the app shows the light theme and ignores changes.
@@ -23,6 +25,7 @@ const ThemeProviderContext = createContext<ThemeProviderState>({
   theme: 'system',
   resolvedTheme: 'light',
   setTheme: () => undefined,
+  setLightOnly: () => undefined,
 });
 
 const DARK_QUERY = '(prefers-color-scheme: dark)';
@@ -37,6 +40,8 @@ export function ThemeProvider({ children, storageKey = 'vite-ui-theme' }: ThemeP
   );
   const [prefersDark, setPrefersDark] = useState(systemPrefersDark);
   const resolvedTheme = resolveTheme(theme, prefersDark);
+  const [lightOnly, setLightOnly] = useState(false);
+  const shown: ResolvedTheme = lightOnly ? 'light' : resolvedTheme;
 
   // "System" follows the computer while the app is open, not only at start.
   useEffect(() => {
@@ -47,18 +52,20 @@ export function ThemeProvider({ children, storageKey = 'vite-ui-theme' }: ThemeP
     return () => query.removeEventListener('change', onChange);
   }, []);
 
-  useEffect(() => {
+  // Before the page is painted, so a light-only page never shows a flash of dark.
+  useLayoutEffect(() => {
     const root = window.document.documentElement;
     root.classList.remove('theme-light', 'theme-dark', 'dark');
-    root.classList.add(`theme-${resolvedTheme}`);
-    if (resolvedTheme === 'dark') root.classList.add('dark');
-    root.style.colorScheme = resolvedTheme === 'dark' ? 'dark' : 'light';
-    setWindowBarColor(resolvedTheme);
-  }, [resolvedTheme]);
+    root.classList.add(`theme-${shown}`);
+    if (shown === 'dark') root.classList.add('dark');
+    root.style.colorScheme = shown === 'dark' ? 'dark' : 'light';
+    setWindowBarColor(shown);
+  }, [shown]);
 
   const value = {
     theme,
     resolvedTheme,
+    setLightOnly,
     setTheme: (next: ThemeChoice) => {
       localStorage.setItem(storageKey, next);
       setThemeState(next);

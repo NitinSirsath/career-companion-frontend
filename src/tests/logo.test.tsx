@@ -15,7 +15,7 @@ vi.mock('../api/client', async (importOriginal) => {
   };
 });
 
-import { SignInBar } from '../components/auth/SignInBar';
+import { SignInLayout } from '../components/auth/SignInLayout';
 import { Logo, Wordmark } from '../components/layout/Logo';
 import { StartupScreen } from '../components/startup/StartupScreen';
 import { routeTree } from '../routeTree.gen';
@@ -160,10 +160,12 @@ describe('where the logo shows: the name, or the mark alone, never both', () => 
     expect(within(menu).getByRole('button', { name: 'Close menu' })).toBeInTheDocument();
   });
 
-  it('shows the name in the sign-in pages’ top bar', () => {
+  it('shows the name at the top of the sign-in pages', () => {
     render(
       <QueryClientProvider client={queryClient}>
-        <SignInBar />
+        <SignInLayout>
+          <p>Form</p>
+        </SignInLayout>
       </QueryClientProvider>,
     );
     const bar = screen.getByRole('banner');
