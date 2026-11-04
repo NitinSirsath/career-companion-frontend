@@ -11,12 +11,14 @@ import { api } from './client';
 import {
   ConversationDetailSchema,
   ConversationSchema,
+  ConversationSummarySchema,
   LinkConversationResponseSchema,
   ListConversationsResponseSchema,
   ReplyDraftResponseSchema,
   type Conversation,
   type ConversationDetail,
   type ConversationFilters,
+  type ConversationSummary,
   type LinkConversation,
   type LinkConversationResponse,
   type ListConversationsResponse,
@@ -25,6 +27,7 @@ import {
   type SetRequestState,
 } from '../contracts/conversation';
 import { DOMAIN_QUERY_KEYS } from '../lib/processingRefresh';
+import { browserTimeZone } from '../lib/workspace';
 
 export const CONVERSATION_PAGE_SIZE = 20;
 
@@ -34,6 +37,8 @@ export const conversationKeys = {
   list: (filters: ConversationFilters, offset: number) =>
     ['conversations', 'list', filters, offset] as const,
   detail: (key: string) => ['conversations', 'detail', key] as const,
+  // Under `lists`, so whatever refreshes the lists refreshes the counts too.
+  summary: (timeZone: string) => ['conversations', 'list', 'summary', timeZone] as const,
 };
 
 const conversationPath = (key: string) => `/api/conversations/${encodeURIComponent(key)}`;
@@ -51,6 +56,25 @@ export async function listConversations(
   return ListConversationsResponseSchema.parse(
     await api.get<unknown>(`/api/conversations?${query}`, { signal }),
   );
+}
+
+/** "4 mails need you, 2 are past due": counted by the server over all mails, not one page. */
+export async function getConversationSummary(
+  timeZone: string,
+  signal?: AbortSignal,
+): Promise<ConversationSummary> {
+  const query = new URLSearchParams({ timeZone });
+  return ConversationSummarySchema.parse(
+    await api.get<unknown>(`/api/conversations/summary?${query}`, { signal }),
+  );
+}
+
+export function useConversationSummary() {
+  const timeZone = browserTimeZone();
+  return useQuery({
+    queryKey: conversationKeys.summary(timeZone),
+    queryFn: ({ signal }) => getConversationSummary(timeZone, signal),
+  });
 }
 
 /** `key` is the conversation's own key, or the ID of any of its emails. */
