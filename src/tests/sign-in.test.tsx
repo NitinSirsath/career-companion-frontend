@@ -13,6 +13,7 @@ vi.mock('../api/client', async (importOriginal) => ({
 import { ApiError, api } from '../api/client';
 import { AccountPage } from '../components/auth/AccountPage';
 import { CreateTestUserForm } from '../components/auth/CreateTestUserForm';
+import { ThemeProvider } from '../components/ThemeProvider';
 import { LoginPage } from '../components/auth/LoginPage';
 import { PasswordSignInForm } from '../components/auth/PasswordSignInForm';
 import type { UserProfile } from '../contracts/auth';
@@ -100,15 +101,45 @@ describe('sign-in wording', () => {
 });
 
 describe('login page', () => {
-  it('offers email and password and Google in prod mode, and no test user', async () => {
+  it('offers Google first, then email and password, in prod mode, and no test user', async () => {
     renderWithQuery(<LoginPage error="denied" />);
     await waitFor(() => expect(modeFetch).toHaveBeenCalled());
-    expect(screen.getByLabelText('Email')).toBeInTheDocument();
+    const google = screen.getByRole('button', { name: 'Continue with Google' });
+    const email = screen.getByLabelText('Email');
+    expect(google.compareDocumentPosition(email) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(
+      screen.getByText('New here? Continuing with Google creates your account.'),
+    ).toBeVisible();
     expect(screen.getByLabelText('Password')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Sign in with Google' })).toBeInTheDocument();
     expect(screen.queryByRole('form', { name: 'Create test user' })).not.toBeInTheDocument();
     expect(screen.getByRole('alert')).toHaveTextContent(/denied the sign-in request/);
-    expect(screen.getByText(/Forgot your password\?/)).toBeInTheDocument();
+  });
+
+  it('opens and closes the forgot-password advice by the Password label', async () => {
+    renderWithQuery(<LoginPage />);
+    await waitFor(() => expect(modeFetch).toHaveBeenCalled());
+    const forgot = screen.getByRole('button', { name: 'Forgot password?' });
+    expect(screen.queryByText(/set a new password on the Account page/)).not.toBeInTheDocument();
+    fireEvent.click(forgot);
+    expect(forgot).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByText(/Continue with Google, then set a new password/)).toBeVisible();
+    fireEvent.click(forgot);
+    expect(screen.queryByText(/set a new password on the Account page/)).not.toBeInTheDocument();
+  });
+
+  it('shows the light theme while open, and keeps the saved theme', async () => {
+    localStorage.setItem('vite-ui-theme', 'dark');
+    const view = renderWithQuery(
+      <ThemeProvider>
+        <LoginPage />
+      </ThemeProvider>,
+    );
+    await waitFor(() => expect(modeFetch).toHaveBeenCalled());
+    expect(document.documentElement).toHaveClass('theme-light');
+    expect(document.documentElement).not.toHaveClass('theme-dark');
+    view.unmount();
+    expect(localStorage.getItem('vite-ui-theme')).toBe('dark');
+    localStorage.removeItem('vite-ui-theme');
   });
 
   it('says the beta is full as a warning with the address to ask for a place', async () => {
@@ -131,7 +162,8 @@ describe('login page', () => {
     expect(await screen.findByRole('form', { name: 'Create test user' })).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent(/^Dev mode/);
     expect(screen.getByRole('form', { name: 'Sign in' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Sign in with Google' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Continue with Google' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Forgot password?' })).not.toBeInTheDocument();
   });
 });
 
