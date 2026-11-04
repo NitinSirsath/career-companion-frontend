@@ -22,7 +22,7 @@ export function TopBar({ user, collapsed }: { user: User | null; collapsed: bool
   const claimed = !!slot?.claimed;
   const phone = useIsPhone();
   return (
-    <header className="sticky top-0 z-40 flex h-14 shrink-0 items-stretch border-b border-border-subtle bg-background">
+    <header className="sticky top-0 z-40 flex h-14 shrink-0 items-stretch border-b border-border-subtle bg-background md:border-[var(--shell-line)] md:bg-canvas">
       <PhoneMenu />
       <Link
         to="/dashboard"
