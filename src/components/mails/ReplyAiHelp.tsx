@@ -25,7 +25,7 @@ export function WritingDraft({ model, onStop }: { model: string | null; onStop: 
   return (
     <div
       role="status"
-      className="flex min-h-32 items-start justify-between gap-3 border border-border-default bg-layer-hover px-4 py-3 text-sm"
+      className="flex min-h-32 items-start justify-between gap-3 rounded-lg border border-border-default bg-layer-hover px-4 py-3 text-sm"
     >
       <span className="flex flex-wrap items-center gap-1.5">
         <span className="text-text-secondary">{model ?? 'AI'} ·</span>
