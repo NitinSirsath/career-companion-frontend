@@ -5,10 +5,7 @@ import { Avatar } from '../ui/avatar';
 
 function Card({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section
-      aria-label={title}
-      className="flex flex-col gap-3 border border-border-subtle bg-surface p-6"
-    >
+    <section aria-label={title} className="flex flex-col gap-3 panel p-6">
       <h2 className="mb-1 text-sm font-semibold">{title}</h2>
       {children}
     </section>
