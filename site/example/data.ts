@@ -70,6 +70,9 @@ export interface State {
   synced: boolean;
   reading: boolean;
   syncedAt: string;
+  /** The Mails list's quick filters: Needs action, New only */
+  needsOnly: boolean;
+  newOnly: boolean;
 }
 
 export const TYPE: Record<MailType, [string, string]> = {
@@ -155,5 +158,14 @@ export function startState(view: View): State {
     synced: false,
     reading: false,
     syncedAt: '9:40 AM',
+    needsOnly: false,
+    newOnly: false,
   };
 }
+
+/** The mails that need the visitor: open steps the AI has read. */
+export const needing = (s: State) => s.mails.filter((m) => m.state === 'OPEN' && !m.reading);
+
+/** The Mails list after its quick filters. */
+export const shownMails = (s: State) =>
+  s.mails.filter((m) => (!s.needsOnly || (m.state === 'OPEN' && !m.reading)) && (!s.newOnly || m.isNew));
