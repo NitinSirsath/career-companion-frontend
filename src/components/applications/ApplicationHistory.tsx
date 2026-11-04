@@ -165,10 +165,7 @@ export function ApplicationHistory({
   const events = query.data?.items;
   const nextOffset = query.data?.metadata.nextOffset ?? null;
   return (
-    <section
-      aria-labelledby="history-heading"
-      className="flex flex-col border border-border-subtle bg-surface px-6 py-5"
-    >
+    <section aria-labelledby="history-heading" className="flex flex-col panel px-6 py-5">
       <div className="flex flex-col gap-1 pb-3">
         <h2 id="history-heading" className="text-xl leading-7 font-medium">
           History
