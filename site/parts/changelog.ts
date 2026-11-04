@@ -13,6 +13,16 @@ interface Release {
 
 export const RELEASES: Release[] = [
   {
+    date: '2026-11-04',
+    title: 'A calmer, clearer NorthList',
+    text: 'A new look across the app: softer colours, rounded corners and grey panels, with a dark mode to match. The Mails page is one list, newest first: each mail shows its next step with an arrow and its due date, and a line at the top says how many mails need you. A new sign-in page, with Continue with Google first.',
+    also: [
+      'On phones, switch between Job mails, Whole inbox and Restricted from the top bar, and filter with one tap.',
+      'The Dashboard says when there is not enough data yet, instead of empty charts.',
+      'The example on this site now looks like the app.',
+    ],
+  },
+  {
     date: '2026-10-31',
     title: 'NorthList on your phone, with alerts',
     text: 'Install NorthList from your browser on your phone or computer, like an app. Turn on alerts on each device, and a new step reaches you when the AI finds one. Pages you opened also work without a connection, read-only.',

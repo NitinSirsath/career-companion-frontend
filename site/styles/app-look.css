@@ -1,0 +1,80 @@
+/*
+ * The app's own look (owner, 4 Nov 2026) for the pictures of the app on the site: the live example
+ * (`.sa`) and the drawn app parts (`.app-look`). The colours are the app's, from src/index.css; the rest
+ * of the site keeps its own.
+ */
+:is(.sa, .app-look) {
+  --bg: #ffffff; --bg-2: #f5f5f6; --bg-3: #ececee;
+  --panel: #f5f5f6;
+  --line: #ededef; --line-2: #e1e1e5; --line-3: #a1a1aa;
+  --text: #18181b; --text-2: #52525b; --text-3: #71717a;
+  --link: #0f62fe; --link-hover: #0043ce;
+  --tint: #eff5ff; --tint-text: #0f62fe;
+  --ok: #079455; --warn-icon: #d97706;
+  --notice-warning: #fffbeb; --notice-warning-ring: #fedf89;
+  --tag-gray-bg: #f4f4f5; --tag-gray: #3f3f46; --tag-gray-ring: #e4e4e7;
+  --tag-blue-bg: #eff5ff; --tag-blue: #0043ce; --tag-blue-ring: #d0e2ff;
+  --tag-cyan-bg: #ecf8ff; --tag-cyan: #00539a; --tag-cyan-ring: #bae6ff;
+  --tag-teal-bg: #ebfbfb; --tag-teal: #005d5d; --tag-teal-ring: #9ef0f0;
+  --tag-green-bg: #ecfdf3; --tag-green: #067647; --tag-green-ring: #abefc6;
+  --tag-red-bg: #fef3f2; --tag-red: #b42318; --tag-red-ring: #fecdca;
+  --tag-yellow-bg: #fffaeb; --tag-yellow: #b54708; --tag-yellow-ring: #fedf89;
+  --avatar-1: #edf5ff; --avatar-1-text: #0043ce;
+  --avatar-2: #d9fbfb; --avatar-2-text: #005d5d;
+  --avatar-3: #f6f2ff; --avatar-3-text: #6929c4;
+  --avatar-4: #fff0f7; --avatar-4-text: #9f1853;
+  --avatar-5: #defbe6; --avatar-5-text: #0e6027;
+  --avatar-6: #e5f6ff; --avatar-6-text: #00539a;
+  --chart-1: #0f62fe; --chart-2: #009d9a; --chart-3: #8a3ffc; --chart-4: #8d8d8d; --chart-5: #da1e28;
+  --chart-grid: #ededef; --chart-track: #f4f4f5;
+  /* The frame around the page: plain white with thin lines in light; in dark a near-black frame around a raised page */
+  --canvas: #ffffff; --sheet: #ffffff; --shell-line: var(--line);
+  --nav-active: #ececee; --nav-active-shadow: none;
+  --sheet-shadow: none; --button-shadow: 0 1px 1px rgb(0 0 0 / 0.04);
+}
+:root[data-theme='dark'] :is(.sa, .app-look) {
+  --bg: #111113; --bg-2: #18181b; --bg-3: #222226;
+  --panel: #18181b;
+  --line: #232327; --line-2: #2e2e33; --line-3: #52525b;
+  --text: #ededef; --text-2: #a1a1aa; --text-3: #8b8b94;
+  --link: #78a9ff; --link-hover: #a6c8ff;
+  --tint: #0e1a30; --tint-text: #a6c8ff;
+  --ok: #47cd89; --warn-icon: #f5b83d;
+  --notice-warning: #1a1405; --notice-warning-ring: #4a3508;
+  --tag-gray-bg: #1c1c1f; --tag-gray: #d4d4d8; --tag-gray-ring: #2c2c30;
+  --tag-blue-bg: #0c1830; --tag-blue: #a6c8ff; --tag-blue-ring: #16305c;
+  --tag-cyan-bg: #071f33; --tag-cyan: #82cfff; --tag-cyan-ring: #0c3a5c;
+  --tag-teal-bg: #062626; --tag-teal: #3ddbd9; --tag-teal-ring: #0b4444;
+  --tag-green-bg: #081f13; --tag-green: #75e0a7; --tag-green-ring: #0f3d25;
+  --tag-red-bg: #250c0b; --tag-red: #fda29b; --tag-red-ring: #4e1611;
+  --tag-yellow-bg: #221905; --tag-yellow: #fec84b; --tag-yellow-ring: #4a3508;
+  --avatar-1: #0c1830; --avatar-1-text: #a6c8ff;
+  --avatar-2: #062626; --avatar-2-text: #3ddbd9;
+  --avatar-3: #1a1030; --avatar-3-text: #d4bbff;
+  --avatar-4: #26091a; --avatar-4-text: #ffafd2;
+  --avatar-5: #08200f; --avatar-5-text: #6fdc8c;
+  --avatar-6: #071f33; --avatar-6-text: #82cfff;
+  --chart-1: #4589ff; --chart-2: #009d9a; --chart-3: #a56eff; --chart-4: #6f6f6f; --chart-5: #fa4d56;
+  --chart-grid: #232327; --chart-track: #18181b;
+  --canvas: #08080a; --sheet: #111113; --shell-line: transparent;
+  --nav-active: #111113; --nav-active-shadow: 0 0 0 1px rgb(255 255 255 / 0.08), 0 1px 2px rgb(0 0 0 / 0.5);
+  --sheet-shadow: 0 0 0 1px rgb(255 255 255 / 0.06), 0 8px 24px rgb(0 0 0 / 0.5); --button-shadow: none;
+}
+
+/* Tags: a pill with a thin ring and a small dot, as in the app */
+:is(.sa, .app-look) .tag { height: 22px; padding: 0 8px; gap: 6px; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--ring, transparent); }
+:is(.sa, .app-look) .tag:not(:has(svg, i))::before { content: ''; width: 6px; height: 6px; flex: none; border-radius: 50%; background: currentColor; }
+:is(.sa, .app-look) .tag-gray { --ring: var(--tag-gray-ring); }
+:is(.sa, .app-look) .tag-blue { --ring: var(--tag-blue-ring); }
+:is(.sa, .app-look) .tag-cyan { --ring: var(--tag-cyan-ring); }
+:is(.sa, .app-look) .tag-teal { --ring: var(--tag-teal-ring); }
+:is(.sa, .app-look) .tag-green { --ring: var(--tag-green-ring); }
+:is(.sa, .app-look) .tag-red { --ring: var(--tag-red-ring); }
+:is(.sa, .app-look) .tag-yellow { --ring: var(--tag-yellow-ring); }
+:is(.sa, .app-look) .tag-outline { --ring: var(--line-3); background: transparent; color: var(--text-2); }
+
+/* Buttons, chips and fields: 6 px corners, as in the app */
+:is(.sa, .app-look) :is(.sa-btn, .chip) { border-radius: 6px; box-shadow: var(--button-shadow); }
+:is(.sa, .app-look) .sa-btn { height: 34px; border-color: var(--line-2); font-weight: 500; }
+:is(.sa, .app-look) .sa-btn.pri { box-shadow: none; }
+:is(.sa, .app-look) .hintrow .field { border-radius: 6px; border-color: var(--line-2); }

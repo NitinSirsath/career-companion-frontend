@@ -1,7 +1,7 @@
 import { icon as I } from '../parts/icons.ts';
 import { STATUS, TYPE, type Mail, type Message, type Reply, type State, type Status } from './data.ts';
 
-/* Small parts of the example, drawn as in the real app: tags, the next step, the reply box, cards. */
+/* Small parts of the example, drawn as in the real app: initials, tags, the next step, the reply box, cards. */
 
 export const esc = (s: string) =>
   String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c] ?? c);
@@ -9,11 +9,32 @@ export const esc = (s: string) =>
 export const statusTag = (s: Status) => `<span class="tag tag-${STATUS[s][1]}">${STATUS[s][0]}</span>`;
 export const fakeTag = `<span class="tag tag-yellow">${I('warning', 12)} Probably fake</span>`;
 
+/** One of six soft colours for a name, the same way the app picks them (src/lib/avatarTone.ts). */
+export function tone(name: string): string {
+  let sum = 0;
+  for (const char of name.trim().toLowerCase().replace(/\s+/g, ' ')) sum += char.charCodeAt(0);
+  return `t${(sum % 6) + 1}`;
+}
+
+/** Coloured initials: "Priya Nair" is PN; the visitor is A. */
+export function avatar(name: string, you = false): string {
+  const init = you
+    ? 'A'
+    : name
+        .split(' ')
+        .map((w) => w[0])
+        .slice(0, 2)
+        .join('')
+        .toUpperCase();
+  return `<span class="sa-av ${you ? 'you' : tone(name)}" aria-hidden="true">${esc(init)}</span>`;
+}
+
 export function type(m: Mail): string {
   const [label, ic] = TYPE[m.type];
   return `<span class="sa-type">${I(ic, 14)} ${label}</span>`;
 }
 
+/** The step's state on the mail page: Needs action, Replied or Done. */
 export function state(m: Mail): string {
   if (m.state === 'OPEN' && m.fake) return '';
   if (m.state === 'OPEN') return '<span class="tag tag-yellow">Needs action</span>';
@@ -21,10 +42,29 @@ export function state(m: Mail): string {
   return `<span class="state">${I('check', 12)} Done</span>`;
 }
 
-export function stepCell(m: Mail): string {
-  if (m.reading) return '<span class="shimmer">AI is reading this mail</span>';
-  const due = m.due && m.state === 'OPEN' ? `<span class="sa-meta">${m.due}</span>` : '';
-  return `<span class="${m.state === 'DONE' ? 'muted' : ''}">${esc(m.step)}</span>${due}${state(m)}`;
+/** A mail that asks for nothing: a rejection, not a step that closed. */
+const asksNothing = (m: Mail) => m.state === 'DONE' && !m.closed && m.step === 'Nothing to do';
+
+const STEP_ICON = { OPEN: 'arrowRight', REPLIED: 'reply', DONE: 'check' } as const;
+
+/**
+ * The next step, as in the app's Mails list: a blue arrow while it is open, a reply mark once replied,
+ * a green check when done, or "Nothing needed". `dueApart`: the due date on its own line (phones).
+ */
+export function stepLine(m: Mail, cls: string, dueApart = false): string {
+  if (m.reading) return `<span class="${cls}"><span class="shimmer">AI is reading this mail</span></span>`;
+  if (asksNothing(m)) return `<span class="${cls} sa-none">Nothing needed</span>`;
+  const due = m.due && m.state === 'OPEN' ? m.due : '';
+  const inline = due && !dueApart ? ` <span class="due">· ${due}</span>` : '';
+  const line = `<span class="${cls} ${m.state.toLowerCase()}">${I(STEP_ICON[m.state], 16)}<span>${esc(m.step)}${inline}${m.fake ? ` ${fakeTag}` : ''}</span></span>`;
+  return due && dueApart ? `${line}<span class="pdue">${due}</span>` : line;
+}
+
+/** "5 mails · 2 from you" */
+export function mailCount(m: Mail): string {
+  const mine = m.thread.filter((x) => x.you).length;
+  const all = m.thread.length;
+  return `${all} mail${all === 1 ? '' : 's'}${mine ? ` · ${mine} from you` : ''}`;
 }
 
 /** The side menu's reading status. */
@@ -85,14 +125,7 @@ export function appCard(m: Mail): string {
 }
 
 export function message(msg: Message): string {
-  const init = msg.you
-    ? 'A'
-    : msg.from
-        .split(' ')
-        .map((w) => w[0])
-        .slice(0, 2)
-        .join('');
-  return `<article class="sa-msg${msg.you ? ' you' : ''}${msg.fold ? ' fold' : ''}"><header><span class="sa-av">${esc(init)}</span><div><b>${esc(msg.from)}</b><span class="sa-meta">${esc(msg.email)}</span></div><span class="sa-meta">${esc(msg.when)}</span></header><div class="sa-msg-b">${esc(msg.body)}</div></article>`;
+  return `<article class="sa-msg${msg.you ? ' you' : ''}${msg.fold ? ' fold' : ''}"><header>${avatar(msg.from, msg.you)}<div><b>${esc(msg.from)}</b><span class="sa-meta">${esc(msg.email)}</span></div><span class="sa-meta">${esc(msg.when)}</span></header><div class="sa-msg-b">${esc(msg.body)}</div></article>`;
 }
 
 /** "Synced Today, 9:40 AM", "Synced just now", or the grey "Checking Gmail" while it checks. */

@@ -128,6 +128,41 @@ describe('the live example', () => {
     expect(start({}, 1120).root.querySelector('.sa-side')).not.toBeNull();
   });
 
+  it('draws the Mails list as the app does: the summary line, one list, and the Needs action filter', () => {
+    const { root } = start({}, 1120);
+    expect(root.querySelector('.sa-sub')?.textContent).toBe(
+      '3 mails need you. Everything else is up to date.',
+    );
+    expect(root.querySelector('.sa-th')).toBeNull();
+    expect(root.querySelectorAll('.sa-list [data-open]')).toHaveLength(5);
+    expect(root.querySelector('[data-open="orbitly"] .sa-step')?.textContent).toBe(
+      'Nothing needed',
+    );
+    click(root, '[data-act="needs"]');
+    expect(root.querySelectorAll('.sa-list [data-open]')).toHaveLength(3);
+    expect(root.querySelector('[data-act="needs"]')?.getAttribute('aria-pressed')).toBe('true');
+    click(root, '[data-act="needs"]');
+    expect(root.querySelectorAll('.sa-list [data-open]')).toHaveLength(5);
+  });
+
+  it('gives each sender the colour the app gives them, and New only on phones', async () => {
+    const { tone } = await import('../../site/example/pieces');
+    const { avatarTone } = await import('../lib/avatarTone');
+    for (const name of [
+      'Priya Nair',
+      'Kestrel Hiring',
+      'Daniel Ortiz',
+      'HR Team',
+      'Orbitly Careers',
+    ])
+      expect(avatarTone(name)).toContain(`--avatar-${tone(name).slice(1)})`);
+    const { root } = start({ phone: true });
+    click(root, '[data-act="new"]');
+    expect(
+      [...root.querySelectorAll('[data-open]')].map((el) => el.getAttribute('data-open')),
+    ).toEqual(['brightwave', 'kestrel']);
+  });
+
   it('asks the server for nothing', async () => {
     const fetchSpy = vi.fn();
     vi.stubGlobal('fetch', fetchSpy);
