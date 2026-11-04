@@ -63,20 +63,20 @@ function activeChips(
 ): FilterChip[] {
   const chips: FilterChip[] = [];
   if (search.q)
-    chips.push({ label: \`Search: \${search.q}\`, onRemove: () => onChange({ q: undefined }) });
+    chips.push({ label: `Search: ${search.q}`, onRemove: () => onChange({ q: undefined }) });
   if (search.request)
     chips.push({
-      label: \`Action: \${labelOf(ACTION_FILTERS, search.request)}\`,
+      label: `Action: ${labelOf(ACTION_FILTERS, search.request)}`,
       onRemove: () => onChange({ request: undefined }),
     });
   if (search.category)
     chips.push({
-      label: \`Type: \${CATEGORY_LABEL[search.category]}\`,
+      label: `Type: ${CATEGORY_LABEL[search.category]}`,
       onRemove: () => onChange({ category: undefined }),
     });
   if (search.application)
     chips.push({
-      label: \`Application: \${labelOf(APPLICATION_FILTERS, search.application)}\`,
+      label: `Application: ${labelOf(APPLICATION_FILTERS, search.application)}`,
       onRemove: () => onChange({ application: undefined }),
     });
   if (search.unseen)
@@ -102,7 +102,7 @@ function FilterFields({ search, onChange, layout }: FiltersProps & { layout: str
   return (
     <>
       <FilterSelect
-        id={\`mail-action-\${layout}\`}
+        id={`mail-action-${layout}`}
         label="Action"
         layout="sheet"
         value={search.request}
@@ -110,7 +110,7 @@ function FilterFields({ search, onChange, layout }: FiltersProps & { layout: str
         onChange={(request) => onChange({ request })}
       />
       <FilterSelect
-        id={\`mail-type-\${layout}\`}
+        id={`mail-type-${layout}`}
         label="Type"
         layout="sheet"
         value={search.category}
@@ -118,7 +118,7 @@ function FilterFields({ search, onChange, layout }: FiltersProps & { layout: str
         onChange={(category) => onChange({ category })}
       />
       <FilterSelect
-        id={\`mail-application-\${layout}\`}
+        id={`mail-application-${layout}`}
         label="Application"
         layout="sheet"
         value={search.application}
@@ -141,7 +141,7 @@ function FilterFields({ search, onChange, layout }: FiltersProps & { layout: str
 function SortSelect({ search, onChange, layout }: FiltersProps & { layout: 'inline' | 'sheet' }) {
   return (
     <FilterSelect
-      id={\`mail-sort-\${layout}\`}
+      id={`mail-sort-${layout}`}
       label="Sort"
       layout={layout}
       emptyLabel="Newest first"
@@ -226,7 +226,7 @@ const QUICK_CHIP =
 
 /**
  * On phones, one row under the AI notice: Needs action and New only, one tap each; Filters opens a
- * sheet with every filter and the sort; \`end\` (the sync button) sits at the right.
+ * sheet with every filter and the sort; `end` (the sync button) sits at the right.
  */
 export function PhoneMailChips({
   search,
