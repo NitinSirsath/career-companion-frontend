@@ -8,7 +8,7 @@ import { cn } from '../../lib/utils';
 type Now = DashboardResponse['now'];
 
 const TILE =
-  'grid grid-cols-[minmax(0,1fr)_auto_16px] items-center gap-x-3 bg-surface-subtle px-4 py-3.5 @min-[600px]:row-span-3 @min-[600px]:grid-cols-[minmax(0,1fr)_16px] @min-[600px]:grid-rows-subgrid @min-[600px]:items-start @min-[600px]:p-5 @min-[900px]:p-6';
+  'grid grid-cols-[minmax(0,1fr)_auto_16px] items-center gap-x-3 rounded-lg bg-surface-subtle px-4 py-3.5 @min-[600px]:row-span-3 @min-[600px]:grid-cols-[minmax(0,1fr)_16px] @min-[600px]:grid-rows-subgrid @min-[600px]:items-start @min-[600px]:p-5 @min-[900px]:p-6';
 
 /**
  * One tile: the name with a blue dot when it holds something, the number, and one line. Phones
