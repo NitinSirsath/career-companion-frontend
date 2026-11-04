@@ -12,7 +12,7 @@ function MailResult({ message }: { message: SandboxMessage }) {
     ? `Me to ${parseSender(message.to).name}`
     : `${parseSender(message.from).name} to me`;
   return (
-    <li className="space-y-2 border border-border-subtle bg-surface p-3 text-sm">
+    <li className="space-y-2 panel p-3 text-sm">
       <p className="text-text-secondary">
         {mailDateTime(message.date)} · {who}
       </p>
@@ -57,10 +57,7 @@ function MailResult({ message }: { message: SandboxMessage }) {
 export function SandboxAppPanel({ messages }: { messages: SandboxMessage[] }) {
   const tracked = messages.find((message) => message.result.job)?.result.job;
   return (
-    <aside
-      aria-label="What the app did"
-      className="space-y-3 border border-border-default bg-surface-subtle p-4 xl:w-80 xl:shrink-0"
-    >
+    <aside aria-label="What the app did" className="panel space-y-3 p-4 xl:w-80 xl:shrink-0">
       <h2 className="text-base font-semibold">What the app did</h2>
       <ul className="space-y-3">
         {messages.map((message) => (
