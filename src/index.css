@@ -121,10 +121,10 @@
   --font-sans: 'Geist', 'Helvetica Neue', Arial, sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, monospace;
 
-  /* Normal text is 15/22 (owner, 26 Oct 2026: larger and stronger on a laptop). Controls (buttons,
-     tabs, the menu, fields) stay 14 with arbitrary sizes, so they keep their heights. */
-  --text-sm: 15px;
-  --text-sm--line-height: 22px;
+  /* Normal text is 14/20 (owner, 3 Nov 2026; replaces 15/22 of 26 Oct). Controls (buttons, tabs, the
+     menu, fields) set their own sizes. */
+  --text-sm: 14px;
+  --text-sm--line-height: 20px;
 
   /* Small text is 13/18, the size of every second line, date and help text. Tags stay 12/16. */
   --text-xs: 13px;
@@ -132,11 +132,14 @@
 
   /* Menus, dropdowns and dialogs: a flat page has no layers to set them apart. */
   --shadow-popup: var(--popup-shadow);
-  --radius: 0px;
-  --radius-sm: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
-  --radius-xl: 0px;
+  /* Rounded corners (owner, 3 Nov 2026; replaces square): 6px controls, 8px menus and panels, 12px
+     dialogs and the dark page sheet. */
+  --radius: 6px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --color-canvas: var(--canvas);
 
   /* Motion: IBM Carbon's productive curves. Times are the Tailwind duration-70 … duration-400 utilities. */
   --ease-standard: cubic-bezier(0.2, 0, 0.38, 0.9);
@@ -229,36 +232,36 @@
   .theme-light {
     --background: #ffffff;
     --surface: #ffffff;
-    --surface-subtle: #f4f4f4;
+    --surface-subtle: #f5f5f6;
     --surface-raised: #ffffff;
-    --surface-selected: #e0e0e0;
-    --surface-disabled: #f4f4f4;
-    --layer-hover: #f4f4f4;
-    --layer-accent: #e0e0e0;
+    --surface-selected: #ececee;
+    --surface-disabled: #f5f5f6;
+    --layer-hover: #f5f5f6;
+    --layer-accent: #ececee;
     --field: #ffffff;
-    --tint: #edf5ff;
+    --tint: #eff5ff;
     --tint-text: #0f62fe;
     --menu: #ffffff;
-    --menu-hover: #f4f4f4;
+    --menu-hover: #f5f5f6;
     --overlay: rgb(22 22 22 / 0.5);
-    --popup-shadow: 0 6px 20px rgb(0 0 0 / 0.08);
+    --popup-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.08);
     --flash: rgb(15 98 254 / 0.16);
-    --skeleton: #e8e8e8;
-    --skeleton-highlight: #f4f4f4;
+    --skeleton: #ececee;
+    --skeleton-highlight: #f5f5f6;
 
-    --text-primary: #161616;
-    --text-secondary: #525252;
-    --text-tertiary: #6f6f6f;
-    --text-disabled: #a8a8a8;
+    --text-primary: #18181b;
+    --text-secondary: #52525b;
+    --text-tertiary: #71717a;
+    --text-disabled: #a1a1aa;
     --text-inverse: #ffffff;
     --link: #0f62fe;
     --link-hover: #0043ce;
-    --danger-text: #da1e28;
-    --ok: #198038;
+    --danger-text: #d92d20;
+    --ok: #079455;
 
-    --border-subtle: #e0e0e0;
-    --border-default: #c6c6c6;
-    --border-strong: #8d8d8d;
+    --border-subtle: #ededef;
+    --border-default: #e1e1e5;
+    --border-strong: #a1a1aa;
     --border-focus: #0f62fe;
     --border-interactive: #0f62fe;
 
@@ -288,70 +291,98 @@
     --status-neutral: #525252;
     --status-neutral-subtle: #e0e0e0;
 
-    --tag-gray-bg: #e0e0e0;
-    --tag-gray: #161616;
-    --tag-blue-bg: #d0e2ff;
-    --tag-blue: #002d9c;
-    --tag-cyan-bg: #bae6ff;
-    --tag-cyan: #003a6d;
-    --tag-teal-bg: #9ef0f0;
-    --tag-teal: #004144;
-    --tag-green-bg: #a7f0ba;
-    --tag-green: #044317;
-    --tag-red-bg: #ffd7d9;
-    --tag-red: #750e13;
-    --tag-yellow-bg: #fcf4d6;
-    --tag-yellow: #483700;
+    --tag-gray-bg: #f4f4f5;
+    --tag-gray: #3f3f46;
+    --tag-blue-bg: #eff5ff;
+    --tag-blue: #0043ce;
+    --tag-cyan-bg: #ecf8ff;
+    --tag-cyan: #00539a;
+    --tag-teal-bg: #ebfbfb;
+    --tag-teal: #005d5d;
+    --tag-green-bg: #ecfdf3;
+    --tag-green: #067647;
+    --tag-red-bg: #fef3f2;
+    --tag-red: #b42318;
+    --tag-yellow-bg: #fffaeb;
+    --tag-yellow: #b54708;
 
     --chart-1: #0f62fe;
     --chart-2: #009d9a;
     --chart-3: #8a3ffc;
     --chart-4: #8d8d8d;
     --chart-5: #da1e28;
-    --chart-grid: #e0e0e0;
-    --chart-track: #f4f4f4;
+    --chart-grid: #ededef;
+    --chart-track: #f4f4f5;
 
-    --notice-info: #edf5ff;
-    --notice-success: #defbe6;
-    --notice-warning: #fcf4d6;
-    --notice-error: #fff1f1;
-    --warning-icon: #8e6a00;
+    --notice-info: #f5f9ff;
+    --notice-success: #f3fdf7;
+    --notice-warning: #fffbeb;
+    --notice-error: #fef6f5;
+    --warning-icon: #d97706;
+    /* 3 Nov 2026 (owner): rings around tags, coloured initials, the menu and the page sheet. */
+    --tag-gray-ring: #e4e4e7;
+    --tag-blue-ring: #d0e2ff;
+    --tag-cyan-ring: #bae6ff;
+    --tag-teal-ring: #9ef0f0;
+    --tag-green-ring: #abefc6;
+    --tag-red-ring: #fecdca;
+    --tag-yellow-ring: #fedf89;
+    --avatar-1: #edf5ff;
+    --avatar-1-text: #0043ce;
+    --avatar-2: #d9fbfb;
+    --avatar-2-text: #005d5d;
+    --avatar-3: #f6f2ff;
+    --avatar-3-text: #6929c4;
+    --avatar-4: #fff0f7;
+    --avatar-4-text: #9f1853;
+    --avatar-5: #defbe6;
+    --avatar-5-text: #0e6027;
+    --avatar-6: #e5f6ff;
+    --avatar-6-text: #00539a;
+    /* Light keeps a plain white menu and top bar with thin lines. */
+    --canvas: #ffffff;
+    --canvas-hover: #f5f5f6;
+    --shell-line: var(--border-subtle);
+    --nav-active: #ececee;
+    --nav-active-shadow: none;
+    --sheet-shadow: none;
+    --button-shadow: 0 1px 1px rgb(0 0 0 / 0.04);
   }
 
   /* Dark: Render's near-black and greys with IBM blue; tags and notices are dark tints with light text. */
   .theme-dark {
-    --background: #0d0d0d;
-    --surface: #0d0d0d;
-    --surface-subtle: #141414;
-    --surface-raised: #141414;
-    --surface-selected: #272727;
-    --surface-disabled: #141414;
-    --layer-hover: #141414;
-    --layer-accent: #272727;
-    --field: #0d0d0d;
+    --background: #111113;
+    --surface: #111113;
+    --surface-subtle: #18181b;
+    --surface-raised: #18181b;
+    --surface-selected: #222226;
+    --surface-disabled: #18181b;
+    --layer-hover: #18181b;
+    --layer-accent: #222226;
+    --field: #111113;
     --tint: #0e1a30;
     --tint-text: #a6c8ff;
-    --menu: #141414;
-    --menu-hover: #272727;
+    --menu: #18181b;
+    --menu-hover: #222226;
     --overlay: rgb(0 0 0 / 0.7);
-    --popup-shadow: 0 8px 24px rgb(0 0 0 / 0.6);
+    --popup-shadow: 0 0 0 1px rgb(255 255 255 / 0.04), 0 12px 32px rgb(0 0 0 / 0.6);
     --flash: rgb(69 137 255 / 0.25);
-    --skeleton: #1a1a1a;
-    --skeleton-highlight: #272727;
+    --skeleton: #18181b;
+    --skeleton-highlight: #222226;
 
-    --text-primary: #f0f0f0;
-    --text-secondary: #b3b3b3;
-    --text-tertiary: #8f8f8f;
-    --text-disabled: #6b6b6b;
+    --text-primary: #ededef;
+    --text-secondary: #a1a1aa;
+    --text-tertiary: #8b8b94;
+    --text-disabled: #52525b;
     --text-inverse: #ffffff;
     --link: #78a9ff;
     --link-hover: #a6c8ff;
-    --danger-text: #ff8389;
-    --ok: #42be65;
+    --danger-text: #f97066;
+    --ok: #47cd89;
 
-    --border-subtle: #272727;
-    --border-default: #3d3d3d;
-    --border-strong: #6b6b6b;
+    --border-subtle: #232327;
+    --border-default: #2e2e33;
+    --border-strong: #52525b;
     --border-focus: #ffffff;
     --border-interactive: #4589ff;
 
@@ -381,20 +412,20 @@
     --status-neutral: #b3b3b3;
     --status-neutral-subtle: #272727;
 
-    --tag-gray-bg: #272727;
-    --tag-gray: #e3e3e3;
-    --tag-blue-bg: #0f2350;
+    --tag-gray-bg: #1c1c1f;
+    --tag-gray: #d4d4d8;
+    --tag-blue-bg: #0c1830;
     --tag-blue: #a6c8ff;
-    --tag-cyan-bg: #0a2a40;
+    --tag-cyan-bg: #071f33;
     --tag-cyan: #82cfff;
-    --tag-teal-bg: #082d2e;
+    --tag-teal-bg: #062626;
     --tag-teal: #3ddbd9;
-    --tag-green-bg: #0b2a17;
-    --tag-green: #6fdc8c;
-    --tag-red-bg: #3a1014;
-    --tag-red: #ffb3b8;
-    --tag-yellow-bg: #2e2600;
-    --tag-yellow: #fddc69;
+    --tag-green-bg: #081f13;
+    --tag-green: #75e0a7;
+    --tag-red-bg: #250c0b;
+    --tag-red: #fda29b;
+    --tag-yellow-bg: #221905;
+    --tag-yellow: #fec84b;
 
     --chart-1: #4589ff;
     /* Teal one step darker than Carbon's dark chart teal: #08bdba fails the colour-blind lightness check on this page. */
@@ -402,14 +433,41 @@
     --chart-3: #a56eff;
     --chart-4: #6f6f6f;
     --chart-5: #fa4d56;
-    --chart-grid: #272727;
-    --chart-track: #1a1a1a;
+    --chart-grid: #232327;
+    --chart-track: #18181b;
 
-    --notice-info: #0e1a30;
-    --notice-success: #0a1f12;
-    --notice-warning: #1f1a05;
-    --notice-error: #2a0d10;
-    --warning-icon: #f1c21b;
+    --notice-info: #0c1424;
+    --notice-success: #08170f;
+    --notice-warning: #1a1405;
+    --notice-error: #1f0b0a;
+    --warning-icon: #f5b83d;
+    --tag-gray-ring: #2c2c30;
+    --tag-blue-ring: #16305c;
+    --tag-cyan-ring: #0c3a5c;
+    --tag-teal-ring: #0b4444;
+    --tag-green-ring: #0f3d25;
+    --tag-red-ring: #4e1611;
+    --tag-yellow-ring: #4a3508;
+    --avatar-1: #0c1830;
+    --avatar-1-text: #a6c8ff;
+    --avatar-2: #062626;
+    --avatar-2-text: #3ddbd9;
+    --avatar-3: #1a1030;
+    --avatar-3-text: #d4bbff;
+    --avatar-4: #26091a;
+    --avatar-4-text: #ffafd2;
+    --avatar-5: #08200f;
+    --avatar-5-text: #6fdc8c;
+    --avatar-6: #071f33;
+    --avatar-6-text: #82cfff;
+    /* Dark: menu and top bar on near-black, the page on a lighter raised sheet. */
+    --canvas: #08080a;
+    --canvas-hover: rgb(255 255 255 / 0.05);
+    --shell-line: transparent;
+    --nav-active: var(--background);
+    --nav-active-shadow: 0 0 0 1px rgb(255 255 255 / 0.08), 0 1px 2px rgb(0 0 0 / 0.5);
+    --sheet-shadow: 0 0 0 1px rgb(255 255 255 / 0.06), 0 8px 24px rgb(0 0 0 / 0.5);
+    --button-shadow: none;
   }
 }
 
@@ -418,14 +476,21 @@
     background-color: var(--background);
     color: var(--text-primary);
     font-family: var(--font-sans);
-    font-size: 15px;
-    line-height: 22px;
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: -0.006em;
   }
 
   :focus-visible {
     outline: 2px solid var(--border-focus);
     outline-offset: -2px;
   }
+}
+
+/* A card: a soft grey panel with no line, as on the Dashboard (owner, 3 Nov 2026). */
+@utility panel {
+  background-color: var(--surface-subtle);
+  border-radius: var(--radius-lg);
 }
 
 @layer utilities {

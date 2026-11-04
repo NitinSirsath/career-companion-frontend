@@ -3,6 +3,16 @@ import type { DashboardResponse } from '../../contracts/dashboard';
 import { RATE_BASE, barPercent, countOf, rateText, replyDaysText } from '../../lib/dashboard';
 import { DashCard } from './DashCard';
 
+/** Under 5 applications there are no rate tiles: the reply time is one line in the card. */
+function ReplyTimeLine({ days }: { days: number }) {
+  return (
+    <p className="mt-5 text-xs text-text-secondary">
+      Companies usually reply in{' '}
+      <span className="font-medium text-text-primary">{replyDaysText(days)}</span>.
+    </p>
+  );
+}
+
 /**
  * Applications sent in the period, by the furthest step they reached: columns when the card is
  * wide, bars when it is narrow (the step names need the room). Then the rates and the usual wait.
@@ -68,7 +78,8 @@ export function Funnel({ numbers }: { numbers: DashboardResponse }) {
           );
         })}
       </ol>
-      {facts.length > 0 && (
+      {few && numbers.usualReplyDays !== null && <ReplyTimeLine days={numbers.usualReplyDays} />}
+      {!few && facts.length > 0 && (
         <dl className="-mx-4 mt-5 -mb-4 grid grid-cols-2 gap-0.5 bg-background pt-0.5 md:-mx-6 md:-mb-6 @min-[560px]/funnel:grid-cols-4">
           {facts.map((fact) => (
             <div key={fact.label} className="bg-surface-subtle px-4 py-3 md:py-4">

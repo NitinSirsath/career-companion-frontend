@@ -109,7 +109,7 @@ export function AutomationSetup() {
               href={NORTHLIST_APPLY_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex h-8 w-fit items-center gap-2 border border-button-tertiary px-3 text-sm font-medium text-button-tertiary transition-colors duration-70 ease-standard hover:bg-button-tertiary hover:text-button-tertiary-hover-text"
+              className="inline-flex h-8 w-fit items-center gap-2 rounded-md border border-button-tertiary px-3 text-sm font-medium text-button-tertiary transition-colors duration-70 ease-standard hover:bg-button-tertiary hover:text-button-tertiary-hover-text"
             >
               NorthList Apply on GitHub
               <Launch size={16} aria-hidden="true" />

@@ -54,7 +54,11 @@ export function DashCard({
   return (
     <section
       id={id}
-      className={cn('scroll-mt-20 bg-surface-subtle', !flush && 'p-4 md:p-6', className)}
+      className={cn(
+        'scroll-mt-20 overflow-hidden rounded-lg bg-surface-subtle',
+        !flush && 'p-4 md:p-6',
+        className,
+      )}
     >
       <div className={cn(flush && 'px-4 pt-4 pb-3 md:px-6 md:pt-6')}>
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">

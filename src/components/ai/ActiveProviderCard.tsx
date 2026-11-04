@@ -160,7 +160,7 @@ export function ActiveProviderCard({
       <h2 id="ai-active-heading" className="text-base leading-[22px] font-semibold">
         Reads your mail now
       </h2>
-      <div className="border border-border-subtle bg-surface">
+      <div className="panel">
         <div className="flex flex-wrap items-start justify-between gap-4 px-6 py-5">
           <div className="flex min-w-0 flex-col gap-1">
             <span className="flex flex-wrap items-center gap-2.5">

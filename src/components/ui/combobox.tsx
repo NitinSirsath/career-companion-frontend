@@ -76,7 +76,7 @@ export function Combobox<T>({
         >
           {label}
         </label>
-        <BaseCombobox.InputGroup className="relative flex h-10 items-center border border-border-default bg-field focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-border-focus">
+        <BaseCombobox.InputGroup className="relative flex h-9 items-center rounded-md border border-border-default bg-field focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-border-focus">
           {/* Named twice on purpose: while the list is open the page around it, label included, is
               hidden from screen readers, and the box must keep its name. */}
           <BaseCombobox.Input

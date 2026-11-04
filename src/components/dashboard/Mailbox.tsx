@@ -141,7 +141,7 @@ export function Mailbox({
     },
   ];
   return (
-    <div className="@container/mailbox bg-surface-subtle">
+    <div className="@container/mailbox overflow-hidden rounded-lg bg-surface-subtle">
       {/* The 2px gaps show the page colour: lines between the numbers. */}
       <dl className="grid grid-cols-2 gap-0.5 border-b-2 border-background bg-background @min-[760px]/mailbox:grid-cols-4">
         {stats.map((stat) => (

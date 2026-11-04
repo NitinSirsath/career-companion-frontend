@@ -39,7 +39,7 @@ export function ErrorState({
 
   return (
     <section role="alert" className="flex min-h-[280px] items-center justify-center p-6">
-      <div className="w-full max-w-xl border border-border-default bg-surface p-8 text-center">
+      <div className="w-full max-w-xl rounded-xl border border-border-default bg-surface p-8 text-center">
         <h1 className="text-2xl font-semibold tracking-tight text-text-primary">{title}</h1>
         <p className="mt-3 text-sm text-text-secondary">{message}</p>
 
@@ -73,7 +73,7 @@ export function ErrorState({
 function ErrorDetails({ details }: { details: ReturnType<typeof errorDetails> }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="mt-6 border border-border-default text-left">
+    <div className="mt-6 overflow-hidden rounded-lg border border-border-default text-left">
       <button
         type="button"
         aria-expanded={open}

@@ -31,7 +31,7 @@ export interface NavItem {
  * Used by the side menu and the phone menu.
  */
 export const NAV_LINK_CLASS =
-  'flex h-9 shrink-0 items-center gap-3 overflow-hidden px-3 text-[14px] leading-5 font-medium whitespace-nowrap text-text-primary transition-colors duration-70 ease-standard hover:bg-layer-hover [&_svg]:text-text-secondary [&.active]:bg-tint [&.active]:text-tint-text [&.active_svg]:text-link';
+  'flex h-[34px] shrink-0 items-center gap-2.5 overflow-hidden rounded-md px-2.5 text-[14px] leading-5 whitespace-nowrap text-text-secondary transition-colors duration-70 ease-standard hover:bg-[var(--canvas-hover)] hover:text-text-primary [&_svg]:text-text-tertiary [&.active]:bg-[var(--nav-active)] [&.active]:shadow-[var(--nav-active-shadow)] [&.active]:font-medium [&.active]:text-text-primary [&.active_svg]:text-text-primary';
 
 /** The pages used every day, in menu order. */
 export const MAIN_NAV: readonly NavItem[] = [

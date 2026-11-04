@@ -446,7 +446,7 @@ export function MailReplyForm({
         }}
         noValidate
         aria-label="Reply"
-        className="flex animate-open flex-col border border-border-default bg-surface transition-colors duration-70 ease-standard focus-within:border-border-focus"
+        className="flex animate-open flex-col overflow-hidden rounded-lg border border-border-default bg-surface transition-colors duration-70 ease-standard focus-within:border-border-focus"
       >
         <div className="flex flex-col gap-3 px-4 pt-3 empty:hidden">
           <ReplyOutcome sentNote={reply.sentNote} problem={reply.problem} />

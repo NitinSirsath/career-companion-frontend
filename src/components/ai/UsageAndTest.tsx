@@ -3,7 +3,7 @@ import { providerName } from '../../lib/aiLabels';
 import { FREE_AI_LIMIT_NOTE, isFreeAI } from '../../lib/freeAI';
 import { SampleTestPanel } from './SampleTestPanel';
 
-const CARD = 'flex flex-col gap-3 border border-border-subtle bg-surface px-6 py-5';
+const CARD = 'flex flex-col gap-3 panel px-6 py-5';
 const HEADING = 'text-base leading-[22px] font-semibold';
 
 /**

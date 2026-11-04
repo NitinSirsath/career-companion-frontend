@@ -56,7 +56,7 @@ export function Tabs<V extends string>({
       <BaseTabs.List
         aria-label={label}
         className={cn(
-          'inline-flex max-w-full overflow-x-auto border border-border-subtle align-top',
+          'inline-flex max-w-full overflow-x-auto rounded-md border border-border-subtle align-top',
           PHONE_LIST[phoneLook],
         )}
       >

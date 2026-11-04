@@ -73,7 +73,7 @@ function ChoiceCard({
   action: React.ReactNode;
 }) {
   return (
-    <li className="flex flex-col items-start gap-3 border border-border-subtle bg-surface px-6 py-5">
+    <li className="flex flex-col items-start gap-3 panel px-6 py-5">
       {tag}
       <h3 className="text-lg leading-[26px]">{title}</h3>
       <p className="text-sm">{lead}</p>

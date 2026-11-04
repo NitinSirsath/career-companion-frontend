@@ -168,6 +168,29 @@ describe('the Dashboard', () => {
     expect(await screen.findByText('Rates show from 5 applications')).toBeInTheDocument();
     expect(screen.getAllByText('1 of 3').length).toBeGreaterThan(0);
     expect(screen.queryByText('Response rate')).not.toBeInTheDocument();
+    // The usual reply time is one line inside the card, not a lone tile.
+    expect(screen.queryByText('Usual reply time')).not.toBeInTheDocument();
+    expect(screen.getByText(/Companies usually reply in/)).toHaveTextContent(
+      'Companies usually reply in 6 days.',
+    );
+  });
+
+  it('draws weekly bars, grey before the period and blue inside it, and none for empty weeks', async () => {
+    const quiet = dashboardFixture();
+    quiet.trend.weeks = quiet.trend.weeks.map((week) => ({ ...week, offers: 0 }));
+    vi.mocked(api.getDashboard).mockResolvedValue(quiet);
+    renderPage();
+    const progress = await screen.findByRole('region', { name: 'Your progress' });
+    const tile = (name: string) =>
+      within(progress)
+        .getAllByText(name)
+        .find((label) => label.tagName === 'DT')!
+        .closest('div')!;
+    const bars = tile('Applications sent').querySelectorAll('svg rect');
+    expect(bars).toHaveLength(12);
+    expect(bars[0]).toHaveClass('fill-chart-4/45');
+    expect(bars[11]).toHaveClass('fill-chart-1');
+    expect(tile('Offers').querySelector('svg')).toBeNull();
   });
 
   it('shows what works best only to users of the automation', async () => {
@@ -181,6 +204,25 @@ describe('the Dashboard', () => {
     vi.mocked(api.getDashboard).mockResolvedValue(used);
     renderPage();
     expect(await screen.findByRole('region', { name: 'What works best' })).toBeInTheDocument();
+    // No site or work mode has 5 applications yet: one line instead of tables of "Too few".
+    expect(screen.getByText(/Not enough yet/)).toBeInTheDocument();
+    expect(screen.queryByText('Too few')).not.toBeInTheDocument();
+    expect(screen.getByText('6 jobs looked at')).toBeInTheDocument();
+    cleanup();
+
+    const one = dashboardFixture();
+    one.automation = {
+      ...one.automation,
+      used: true,
+      sent: 6,
+      lookedAt: 1,
+      sites: [{ platform: 'linkedin', sent: 6, answered: 2, interviews: 1 }],
+    };
+    vi.mocked(api.getDashboard).mockResolvedValue(one);
+    renderPage();
+    expect(await screen.findByText('1 job looked at')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'By site' })).toBeInTheDocument();
+    expect(screen.queryByText(/Not enough yet/)).not.toBeInTheDocument();
   });
 
   it('a new user with no Gmail gets one clear start', async () => {

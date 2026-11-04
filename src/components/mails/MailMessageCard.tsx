@@ -117,7 +117,7 @@ function FoldedMail({ message, onOpen }: { message: MailMessage; onOpen: () => v
       type="button"
       onClick={onOpen}
       aria-label={`Open the mail from ${name}, ${mailDateTime(message.date)}`}
-      className="grid min-h-12 w-full cursor-pointer grid-cols-[32px_minmax(0,140px)_minmax(0,1fr)_auto] items-center gap-3 border border-border-subtle bg-surface px-4 py-2 text-left text-sm transition-colors duration-70 ease-standard hover:bg-layer-hover"
+      className="grid min-h-12 w-full cursor-pointer grid-cols-[32px_minmax(0,140px)_minmax(0,1fr)_auto] items-center gap-3 rounded-lg border border-border-subtle bg-surface px-4 py-2 text-left text-sm transition-colors duration-70 ease-standard hover:bg-layer-hover"
     >
       <Avatar name={name} me={mine} />
       <span className="truncate font-semibold">{name}</span>
@@ -216,7 +216,7 @@ export function MailMessageCard({
         <article
           id={`mail-${message.id}`}
           aria-label={`Mail from ${name}, ${mailDateTime(message.date)}`}
-          className="border border-border-subtle bg-surface"
+          className="rounded-lg border border-border-subtle bg-surface"
         >
           <MailHeader
             message={message}

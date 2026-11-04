@@ -25,7 +25,7 @@ export function NoGmailYet({ status }: { status: string | null | undefined }) {
   const sandbox = useSandboxMailbox();
   return (
     <div className="flex flex-col gap-6">
-      <section className="flex flex-col items-center gap-2 border border-border-subtle px-6 py-12 text-center">
+      <section className="flex flex-col items-center gap-2 panel px-6 py-12 text-center">
         <p className="text-base font-semibold">See your job search in numbers</p>
         <p className="max-w-115 text-sm text-text-secondary">
           Connect Gmail and NorthList reads your job mails: applications, replies, interviews and
@@ -60,7 +60,7 @@ export function ReadingFirstMails({ reading }: { reading: AIReadingStatusRespons
   const share = reading.total ? (reading.done / reading.total) * 100 : 0;
   return (
     <div className="flex flex-col gap-6">
-      <section className="border border-border-subtle p-4 md:p-6" aria-live="polite">
+      <section className="panel p-4 md:p-6" aria-live="polite">
         <p className="ai-shimmer text-sm font-semibold">The AI is reading your mails</p>
         <p className="mt-1 text-xs text-text-secondary">
           {reading.done} of {reading.total} done{time}. The numbers fill in as each mail is read.

@@ -30,7 +30,7 @@ export function ProgressNumbers({ numbers }: { numbers: DashboardResponse }) {
         <div
           key={key}
           className={cn(
-            'flex min-w-0 flex-col gap-1 bg-surface-subtle p-4 @min-[600px]:p-5 @min-[900px]:col-span-1',
+            'flex min-w-0 flex-col gap-1 rounded-lg bg-surface-subtle p-4 @min-[600px]:p-5 @min-[900px]:col-span-1',
             SPAN[i],
           )}
         >
@@ -39,11 +39,14 @@ export function ProgressNumbers({ numbers }: { numbers: DashboardResponse }) {
             <span className="text-[28px] leading-9 font-light tracking-[-0.01em] @min-[600px]:text-[32px] @min-[600px]:leading-10">
               {current[key]}
             </span>
-            <Sparkline
-              values={numbers.trend.weeks.map((w) => w[week])}
-              highlight={highlight}
-              className="mb-1"
-            />
+            {/* Twelve empty weeks say nothing: no bars then. */}
+            {numbers.trend.weeks.some((w) => w[week] > 0) && (
+              <Sparkline
+                values={numbers.trend.weeks.map((w) => w[week])}
+                highlight={highlight}
+                className="mb-1"
+              />
+            )}
           </dd>
           <dd className="text-xs text-text-secondary">
             {changeText(

@@ -36,7 +36,7 @@ import { isOfflineError } from '../../lib/offline';
 function FoldedSection({ title, children }: { title: string; children: ReactNode }) {
   const [open, setOpen] = useState(false);
   return (
-    <section aria-label={title} className="border border-border-subtle bg-surface">
+    <section aria-label={title} className="panel">
       <h2>
         <button
           type="button"
@@ -75,10 +75,7 @@ function PanelSection({
   const phone = useIsPhone();
   if (fold && phone) return <FoldedSection title={title}>{children}</FoldedSection>;
   return (
-    <section
-      aria-label={title}
-      className="flex flex-col gap-3 border border-border-subtle bg-surface p-6 max-md:p-4"
-    >
+    <section aria-label={title} className="flex flex-col gap-3 panel p-6 max-md:p-4">
       <div className="mb-1 flex items-center justify-between gap-3">
         <h2 className="text-sm font-semibold">{title}</h2>
         {menu && <div className="-my-1.5 -mr-2">{menu}</div>}

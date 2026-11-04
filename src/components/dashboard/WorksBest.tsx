@@ -103,7 +103,7 @@ function Coverage({ automation }: { automation: Automation }) {
       }
     >
       <p className="mt-2 text-[28px] leading-9 font-light md:text-[32px] md:leading-10">
-        {automation.lookedAt} jobs looked at
+        {automation.lookedAt} {automation.lookedAt === 1 ? 'job' : 'jobs'} looked at
       </p>
       {automation.lookedAt > 0 && (
         <div className="mt-3 flex h-2 gap-0.5" aria-hidden>
@@ -148,12 +148,25 @@ function Coverage({ automation }: { automation: Automation }) {
 
 /** What works best: only for users who sent applications through the automation (owner, 3 Nov 2026). */
 export function WorksBest({ automation }: { automation: Automation }) {
+  // Tables full of "Too few" say nothing; one line says it better (3 Nov 2026 review).
+  const enough = [...automation.sites, ...automation.workModes].some(
+    (row) => row.sent >= RATE_BASE,
+  );
   return (
     <DashSection title="What works best">
-      <div className="grid gap-2 @min-[900px]:grid-cols-2">
-        <SiteTable sites={automation.sites} />
-        <WorkModeTable modes={automation.workModes} />
-      </div>
+      {enough ? (
+        <div className="grid gap-2 @min-[900px]:grid-cols-2">
+          <SiteTable sites={automation.sites} />
+          <WorkModeTable modes={automation.workModes} />
+        </div>
+      ) : (
+        <DashCard title="By site and work mode">
+          <p className="mt-2 text-sm text-text-secondary">
+            Not enough yet. Reply rates show here once your automation has sent {RATE_BASE}{' '}
+            applications from one site or in one work mode.
+          </p>
+        </DashCard>
+      )}
       <Coverage automation={automation} />
     </DashSection>
   );

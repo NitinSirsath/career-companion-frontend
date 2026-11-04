@@ -44,7 +44,10 @@ export function InlineNotification({
     <Reveal className={className}>
       <div
         role={kind === 'error' ? 'alert' : 'status'}
-        className={cn('flex items-start gap-3 px-4 py-3 text-sm', box)}
+        className={cn(
+          'flex items-start gap-3 rounded-lg px-4 py-3 text-sm shadow-[inset_0_0_0_1px_var(--border-subtle)]',
+          box,
+        )}
       >
         <Icon size={16} aria-hidden="true" className={cn('mt-0.5 shrink-0', icon)} />
         <div className="min-w-0 flex-1">

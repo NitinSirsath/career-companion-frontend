@@ -95,7 +95,7 @@ function NewOnly({
       className={cn(
         'flex h-10 cursor-pointer items-center gap-2 text-sm whitespace-nowrap',
         layout === 'inline' &&
-          'border border-border-default bg-field px-3 transition-colors duration-70 ease-standard hover:bg-layer-hover',
+          'rounded-md border border-border-default bg-field px-3 transition-colors duration-70 ease-standard hover:bg-layer-hover',
       )}
     >
       <input
@@ -113,7 +113,7 @@ function NewOnly({
 export const MAIL_SEARCH_ID = 'mail-search';
 
 const QUICK_CHIP =
-  'flex h-9 shrink-0 cursor-pointer items-center border border-border-default px-3 text-sm whitespace-nowrap text-text-primary transition-colors duration-70 ease-standard aria-pressed:border-transparent aria-pressed:bg-tint aria-pressed:text-tint-text';
+  'flex h-9 shrink-0 cursor-pointer items-center rounded-md border border-border-default px-3 text-sm whitespace-nowrap text-text-primary transition-colors duration-70 ease-standard aria-pressed:border-transparent aria-pressed:bg-tint aria-pressed:text-tint-text';
 
 /** On phones: the two filters used most, one tap each, under the search box. */
 function QuickFilters({ search, onChange }: ConversationFiltersProps) {

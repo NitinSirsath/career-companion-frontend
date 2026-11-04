@@ -166,7 +166,7 @@ function PhoneApplicationCard({ app }: { app: ApplicationResponse }) {
     <Link
       to="/applications/$id"
       params={{ id: app.id }}
-      className="mb-2.5 flex flex-col gap-1 border border-border-subtle p-3.5 text-text-primary transition-colors duration-70 ease-standard active:bg-layer-hover"
+      className="mb-2.5 flex flex-col gap-1 panel p-3.5 text-text-primary transition-colors duration-70 ease-standard active:bg-layer-accent"
     >
       <div className="flex items-start justify-between gap-3">
         <span className="min-w-0 text-base font-semibold break-words">{app.companyName}</span>

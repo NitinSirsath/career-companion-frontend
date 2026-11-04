@@ -24,7 +24,7 @@ function SendingCard({ doc }: { doc: DraftDoc }) {
   return (
     <article
       aria-label="Your reply, sending"
-      className="animate-open border border-border-subtle bg-surface p-4"
+      className="animate-open rounded-lg border border-border-subtle bg-surface p-4"
     >
       <ReplyDocView doc={doc} />
       <p role="status" className="mt-2 flex items-center gap-2 text-xs text-text-secondary">

@@ -97,7 +97,7 @@ export function GmailConnection({
   if (failed) return <SectionError title="Could not load the Gmail connection" />;
   if (!status?.connected)
     return (
-      <div className="flex flex-wrap items-center justify-between gap-4 border border-border-subtle bg-surface px-6 py-4">
+      <div className="flex flex-wrap items-center justify-between gap-4 panel px-6 py-4">
         <p className="text-sm">{copy.notConnected}</p>
         <Button
           onClick={() => {
@@ -110,7 +110,7 @@ export function GmailConnection({
       </div>
     );
   return (
-    <div className="grid border border-border-subtle bg-surface md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+    <div className="grid panel md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
       <div className="flex min-w-0 flex-col gap-2 px-6 py-4">
         <span className="text-xs text-text-secondary">Account</span>
         <div className="flex flex-wrap items-center justify-between gap-3">

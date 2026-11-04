@@ -27,7 +27,7 @@ function ToastList() {
     <Toast.Root
       key={toast.id}
       toast={toast}
-      className="flex min-h-12 w-full items-center gap-4 bg-inverse pl-4 text-[14px] text-inverse-text transition-[opacity,translate] duration-240 ease-entrance data-ending-style:translate-y-4 data-ending-style:opacity-0 data-ending-style:ease-exit data-starting-style:translate-y-4 data-starting-style:opacity-0"
+      className="flex min-h-12 w-full items-center gap-4 overflow-hidden rounded-lg bg-inverse pl-4 text-[14px] text-inverse-text transition-[opacity,translate] duration-240 ease-entrance data-ending-style:translate-y-4 data-ending-style:opacity-0 data-ending-style:ease-exit data-starting-style:translate-y-4 data-starting-style:opacity-0"
     >
       {(toast.data as { offline?: boolean } | undefined)?.offline ? (
         <WifiOff size={16} aria-hidden="true" className="shrink-0" />

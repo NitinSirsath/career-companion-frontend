@@ -33,16 +33,18 @@ export function Toolbar({
       )}
       {filters && (
         <Dialog.Root open={open} onOpenChange={setOpen}>
-          <Dialog.Trigger className="flex h-10 shrink-0 cursor-pointer items-center gap-2 border border-border-default bg-field px-3 text-[14px] leading-5 transition-colors duration-70 ease-standard hover:bg-layer-hover md:hidden">
+          <Dialog.Trigger className="flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-md border border-border-default bg-field px-3 text-[14px] leading-5 transition-colors duration-70 ease-standard hover:bg-layer-hover md:hidden">
             <Filter size={16} aria-hidden="true" />
             Filters
             {filterCount > 0 && (
-              <span className="bg-tag-blue-bg px-1.5 text-xs text-tag-blue">{filterCount}</span>
+              <span className="rounded-full bg-tag-blue-bg px-1.5 text-xs text-tag-blue">
+                {filterCount}
+              </span>
             )}
           </Dialog.Trigger>
           <Dialog.Portal>
             <Dialog.Backdrop className="fixed inset-0 z-50 bg-overlay transition-opacity duration-240 ease-entrance data-ending-style:opacity-0 data-starting-style:opacity-0" />
-            <Dialog.Popup className="fixed right-0 bottom-0 left-0 z-50 max-h-[85vh] overflow-y-auto bg-surface p-4 pt-3 text-text-primary outline-none transition-transform duration-240 ease-entrance data-ending-style:translate-y-full data-ending-style:ease-exit data-starting-style:translate-y-full">
+            <Dialog.Popup className="fixed right-0 bottom-0 left-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-xl bg-surface p-4 pt-3 text-text-primary outline-none transition-transform duration-240 ease-entrance data-ending-style:translate-y-full data-ending-style:ease-exit data-starting-style:translate-y-full">
               <div className="mb-4 flex items-center justify-between">
                 <Dialog.Title className="text-lg">Filters</Dialog.Title>
                 <Dialog.Close
@@ -87,7 +89,7 @@ export function ToolbarSearch({
   const ownId = React.useId();
   const id = givenId ?? ownId;
   return (
-    <div className="flex h-10 items-center gap-2.5 border border-border-default bg-field px-3 text-text-secondary focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-border-focus">
+    <div className="flex h-9 items-center gap-2.5 rounded-md border border-border-default bg-field px-3 text-text-secondary focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-border-focus">
       <Search size={16} aria-hidden="true" className="shrink-0" />
       <label htmlFor={id} className="sr-only">
         {label}
@@ -127,7 +129,7 @@ export function FilterChips({
       {chips.map((chip) => (
         <span
           key={chip.label}
-          className="inline-flex h-6 animate-open items-center bg-tag-gray-bg pl-2 text-xs text-tag-gray"
+          className="inline-flex h-6 animate-open items-center rounded-md bg-tag-gray-bg pl-2 text-xs text-tag-gray"
         >
           {chip.label}
           <button

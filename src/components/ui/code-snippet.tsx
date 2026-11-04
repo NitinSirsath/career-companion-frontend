@@ -24,7 +24,7 @@ export function CodeSnippet({
   };
   return (
     <div className={cn('flex flex-col gap-1', className)}>
-      <div className="flex min-h-10 items-center justify-between gap-2 bg-layer-accent pl-4">
+      <div className="flex min-h-10 items-center justify-between gap-2 overflow-hidden rounded-md bg-layer-accent pl-4">
         <code className="min-w-0 py-2 font-mono text-xs break-all">{code}</code>
         <button
           type="button"
