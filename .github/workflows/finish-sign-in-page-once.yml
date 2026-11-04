@@ -1,0 +1,92 @@
+name: Finish sign-in-page once (temporary)
+# Writes one file and deletes one file on feat/sign-in-page and commits only that.
+# Lives only on the throwaway branch tmp/sign-in-page-finish, which is deleted afterwards.
+on:
+  push:
+    branches: [tmp/sign-in-page-finish]
+permissions:
+  contents: write
+concurrency:
+  group: finish-sign-in-page-once
+  cancel-in-progress: false
+jobs:
+  finish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: feat/sign-in-page
+      - name: Check the hand commits
+        run: |
+          if [ "$(git rev-parse 'HEAD^{tree}')" != "7580688d11fff627cbbdfb631331c456f0a9ac76" ]; then
+            echo "The hand commits do not match the reviewed files. Nothing was changed."
+            exit 1
+          fi
+      - name: Update the test sign-in page
+        run: |
+          git apply --unidiff-zero <<'PATCH'
+          diff --git a/src/components/auth/TestLoginPage.tsx b/src/components/auth/TestLoginPage.tsx
+          index dd27e98..2aa58d8 100644
+          --- a/src/components/auth/TestLoginPage.tsx
+          +++ b/src/components/auth/TestLoginPage.tsx
+          @@ -4 +4 @@ import { PasswordSignInForm } from './PasswordSignInForm';
+          -import { SignInBar } from './SignInBar';
+          +import { SignInLayout } from './SignInLayout';
+          @@ -12,23 +12,17 @@ export function TestLoginPage({ next = null }: { next?: string | null }) {
+          -    <div className="min-h-screen bg-background font-sans text-text-primary">
+          -      <SignInBar />
+          -      <main className="mx-auto flex w-full max-w-4xl animate-fade-in flex-col items-center gap-8 px-4 py-16">
+          -        <section
+          -          aria-labelledby="test-sign-in-title"
+          -          className="flex w-full max-w-sm flex-col gap-6 border border-border-subtle bg-surface p-8"
+          -        >
+          -          <div className="flex flex-col gap-2">
+          -            <h1
+          -              id="test-sign-in-title"
+          -              className="text-[28px] leading-9 font-semibold tracking-[-0.02em]"
+          -            >
+          -              Test account sign-in
+          -            </h1>
+          -            <p className="text-sm text-text-secondary">
+          -              For test accounts only. They use made-up mail in the mail sandbox and a real AI
+          -              provider.
+          -            </p>
+          -          </div>
+          -          <PasswordSignInForm onSignedIn={() => openApp(next)} testAccount />
+          -        </section>
+          -      </main>
+          -    </div>
+          +    <SignInLayout>
+          +      <section aria-labelledby="test-sign-in-title" className="flex flex-col gap-7">
+          +        <div className="flex flex-col gap-2">
+          +          <h1
+          +            id="test-sign-in-title"
+          +            className="text-[26px] leading-8 font-semibold tracking-[-0.03em] md:text-[30px] md:leading-9"
+          +          >
+          +            Test account sign-in
+          +          </h1>
+          +          <p className="text-[15px] leading-[22px] text-text-secondary">
+          +            For test accounts only. They use made-up mail in the mail sandbox and a real AI
+          +            provider.
+          +          </p>
+          +        </div>
+          +        <PasswordSignInForm onSignedIn={() => openApp(next)} testAccount />
+          +      </section>
+          +    </SignInLayout>
+          PATCH
+          git add src/components/auth/TestLoginPage.tsx
+      - name: Delete the old top bar
+        run: |
+          git rm -q src/components/auth/SignInBar.tsx
+      - name: Commit only the reviewed result
+        run: |
+          if [ "$(git write-tree)" != "2100133a206f76ae4671c2fe6ac99b13f36bb2d4" ]; then
+            echo "The result does not match the reviewed tree. Nothing was pushed."
+            git status --short
+            exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(sign-in): delete the old sign-in top bar'
+          git push origin HEAD:feat/sign-in-page
