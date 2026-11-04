@@ -60,7 +60,7 @@ const COLUMNS: ColumnDef<Conversation>[] = [
 
 /**
  * An application's own conversations, on its page: the mail, its to-do state and the last mail.
- * The Mails page has its own list (\`JobMails\`).
+ * The Mails page has its own list (`JobMails`).
  */
 export function ConversationTable({ conversations }: { conversations: Conversation[] }) {
   return (
