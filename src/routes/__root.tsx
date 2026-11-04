@@ -71,12 +71,12 @@ function LoggedInShell({ children }: LoggedInShellProps) {
   });
   return (
     <BreadcrumbProvider>
-      <div className="flex min-h-screen flex-col bg-background font-sans text-text-primary">
+      <div className="flex min-h-screen flex-col bg-background font-sans text-text-primary md:bg-canvas">
         <ProcessingRefreshObserver />
         <TopBar user={user} collapsed={collapsed} />
         <div className="flex min-w-0 flex-1">
           <Sidebar collapsed={collapsed} onCollapsedChange={setCollapsed} />
-          <div className="flex min-w-0 flex-1 flex-col pb-16 md:pb-0">
+          <div className="flex min-w-0 flex-1 flex-col pb-16 md:mr-2 md:mb-2 md:rounded-xl md:bg-background md:pb-0 md:shadow-[var(--sheet-shadow)]">
             <OfflineLine />
             <main className="flex-1 px-4 py-6 md:px-12 md:py-8">
               {/* One width for every page: the full width up to 1584px, centred beyond. */}
