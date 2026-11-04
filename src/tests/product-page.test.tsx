@@ -58,7 +58,9 @@ describe('the app on app.northlist.site has no product page', () => {
 
   it('sends a signed-out visitor from / to sign-in, with no next', async () => {
     const router = showApp('/', null);
-    expect(await screen.findByRole('heading', { name: 'Sign in' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'Sign in to NorthList' }),
+    ).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/login');
     expect(router.state.location.search).toEqual({});
     expect(screen.queryByRole('heading', { name: TITLE })).not.toBeInTheDocument();
@@ -66,7 +68,9 @@ describe('the app on app.northlist.site has no product page', () => {
 
   it('still sends a signed-out visitor from any other page to sign-in', async () => {
     const router = showApp('/mails', null);
-    expect(await screen.findByRole('heading', { name: 'Sign in' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'Sign in to NorthList' }),
+    ).toBeInTheDocument();
     expect(router.state.location.search).toEqual({ next: '/mails' });
   });
 });
