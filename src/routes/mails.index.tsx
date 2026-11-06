@@ -62,7 +62,7 @@ function MailsPage() {
       />
       {phone && <MailsPhoneTitle tab={tab} />}
       {phone && !search.tab && <PhoneSearch search={search} onChange={filter} />}
-      <div className="mt-5 max-md:mt-3">
+      <div className="mt-5 empty:hidden max-md:mt-3 md:mb-6">
         <AIAccessNotice compact />
       </div>
       {phone ? (
