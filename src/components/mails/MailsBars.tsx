@@ -8,14 +8,17 @@ import { MailsTabs } from './MailsTabs';
 
 type BarProps = { search: MailsSearch; onChange: (changes: Partial<MailsSearch>) => void };
 
-/** Laptops: tabs, search, Filters and Sort on one line that stays on screen, then the chips. */
+/**
+ * Laptops: tabs, search, Filters and Sort on one line that stays on screen, then the chips. The top
+ * padding is only for when it sticks under the top bar, so it is pulled up by the same amount.
+ */
 export function LaptopBar({
   tab,
   search,
   onChange,
 }: BarProps & { tab: 'job' | 'gmail' | 'restricted' }) {
   return (
-    <div className="sticky top-14 z-20 -mx-12 mt-4 bg-background px-12 pt-3">
+    <div className="sticky top-14 z-20 -mx-12 -mt-3 bg-background px-12 pt-3">
       <div className="flex flex-wrap items-end justify-between gap-x-6 border-b border-border-subtle">
         <MailsTabs tab={tab} />
         {!search.tab && <MailTools search={search} onChange={onChange} />}
