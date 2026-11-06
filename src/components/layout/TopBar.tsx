@@ -28,7 +28,7 @@ export function TopBar({ user, collapsed }: { user: User | null; collapsed: bool
         to="/dashboard"
         aria-label="NorthList"
         className={cn(
-          'hidden min-w-0 items-center overflow-hidden border-r border-border-subtle transition-[width] duration-240 ease-standard md:flex md:shrink-0',
+          'hidden min-w-0 items-center overflow-hidden border-r border-[var(--shell-line)] transition-[width] duration-240 ease-standard md:flex md:shrink-0',
           collapsed ? 'md:w-14' : 'md:w-72',
         )}
       >

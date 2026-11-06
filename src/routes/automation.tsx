@@ -47,7 +47,7 @@ function AutomationPage() {
         <TabPanel value="not-submitted" className="pt-6">
           <NotSubmittedJobs />
         </TabPanel>
-        <TabPanel value="setup">
+        <TabPanel value="setup" className="pt-4">
           <AutomationSetup />
         </TabPanel>
       </Tabs>
