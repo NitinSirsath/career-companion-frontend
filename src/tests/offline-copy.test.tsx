@@ -133,6 +133,8 @@ describe('opening the app with a saved copy', () => {
   let me: () => Promise<Response>;
 
   beforeEach(() => {
+    // The saved copies are dated NOW, so the clock says NOW too (only the date; timers stay real).
+    vi.useFakeTimers({ toFake: ['Date'], now: NOW });
     me = () => Promise.reject(new TypeError('Failed to fetch'));
     vi.stubGlobal(
       'fetch',
