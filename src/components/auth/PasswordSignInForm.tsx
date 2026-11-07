@@ -24,17 +24,17 @@ function ForgotPasswordNote({ id, open }: { id: string; open: boolean }) {
 
 /**
  * Sign-in with email and password. `onSignedIn` runs once the session exists. `testAccount`: the
- * test sign-in, for test accounts only. `quiet`: an outlined button, where "Continue with Google"
- * is the main way in; it also offers "Forgot password?" by the Password label.
+ * test sign-in, for test accounts only. `withGoogle`: "Continue with Google" is offered too, so
+ * "Forgot password?" by the Password label can point to it.
  */
 export function PasswordSignInForm({
   onSignedIn,
   testAccount = false,
-  quiet = false,
+  withGoogle = false,
 }: {
   onSignedIn: () => void;
   testAccount?: boolean;
-  quiet?: boolean;
+  withGoogle?: boolean;
 }) {
   const login = usePasswordLogin(testAccount);
   const form = useForm<PasswordLoginRequest>({
@@ -70,7 +70,7 @@ export function PasswordSignInForm({
           <Label htmlFor="signin-password" className="text-xs font-medium text-text-secondary">
             Password
           </Label>
-          {quiet && (
+          {withGoogle && (
             <button
               type="button"
               aria-expanded={forgotOpen}
@@ -93,12 +93,7 @@ export function PasswordSignInForm({
         {errors.password && <p className="text-xs text-status-error">{PASSWORD_MISSING}</p>}
         <ForgotPasswordNote id={forgotId} open={forgotOpen} />
       </div>
-      <Button
-        type="submit"
-        variant={quiet ? 'secondary' : 'primary'}
-        className="mt-2 h-10 w-full justify-center"
-        loading={login.isPending}
-      >
+      <Button type="submit" className="mt-2 h-10 w-full justify-center" loading={login.isPending}>
         {login.isPending ? 'Signing in…' : 'Sign in'}
       </Button>
     </form>
