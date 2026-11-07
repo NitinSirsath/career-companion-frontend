@@ -14,6 +14,7 @@ import {
 import { mailDateTime } from '../../lib/mails';
 import { cn } from '../../lib/utils';
 import { AnalyzedBy } from '../ai/AnalyzedBy';
+import { useIsPhone } from '../layout/useIsPhone';
 import type { DialogHandle } from '../../lib/dialogs';
 import { MatchCorrectionDialog } from '../MatchCorrectionDialog';
 import { Button } from '../ui/button';
@@ -99,9 +100,80 @@ function RowMenu({ event, entry }: { event: ApplicationEventResponse; entry: His
   );
 }
 
-function HistoryRow({ event }: { event: ApplicationEventResponse }) {
+/** When the app recorded the row. */
+function RecordedAt({ event }: { event: ApplicationEventResponse }) {
+  return (
+    <time
+      dateTime={event.recordedAt}
+      title={`Recorded ${dateAndTime(event.recordedAt)}`}
+      className="pt-0.5 text-xs whitespace-nowrap text-text-secondary"
+    >
+      {mailDateTime(event.recordedAt)}
+    </time>
+  );
+}
+
+/** The row's mark on the time line: filled for a mail the AI read. */
+function RowDot({ filled }: { filled: boolean }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={cn(
+        'relative z-10 mt-1.5 ml-[7px] size-[9px]',
+        filled ? 'bg-link' : 'bg-surface shadow-[inset_0_0_0_1px_var(--text-secondary)]',
+      )}
+    />
+  );
+}
+
+function HistoryRow({ event, phone }: { event: ApplicationEventResponse; phone: boolean }) {
   const entry = historyEntry(event);
   const retired = retiredLine(event);
+  const title = entry.mailId ? (
+    <Link
+      to="/mails/$key"
+      params={{ key: entry.mailId }}
+      className="break-words text-text-primary hover:underline"
+    >
+      {entry.title}
+    </Link>
+  ) : (
+    <span className="break-words">{entry.title}</span>
+  );
+  const time = <RecordedAt event={event} />;
+  const more = (
+    <>
+      {retired && <span className="text-xs">{retired}</span>}
+      {entry.kind === 'automation' && <SubmissionFacts event={event} />}
+      {entry.kind !== 'automation' && !retired && <AiNote event={event} />}
+    </>
+  );
+  const dot = <RowDot filled={entry.kind === 'mail' && !retired} />;
+
+  // Phones: the title and "…" share the first line; the date, the detail and the AI note take the
+  // full width under them (owner, 7 Nov 2026).
+  if (phone)
+    return (
+      <li
+        className={cn(
+          'relative grid grid-cols-[24px_minmax(0,1fr)_auto] gap-x-3 py-3',
+          retired && 'text-text-secondary',
+        )}
+      >
+        {dot}
+        {title}
+        <div className="-mt-1.5 -mr-2">
+          <RowMenu event={event} entry={entry} />
+        </div>
+        <div className="col-span-2 col-start-2 mt-1 flex min-w-0 flex-col gap-1">
+          <span className="text-xs text-text-secondary">
+            {time}
+            {entry.detail && <> · {entry.detail}</>}
+          </span>
+          {more}
+        </div>
+      </li>
+    );
   return (
     <li
       className={cn(
@@ -109,40 +181,14 @@ function HistoryRow({ event }: { event: ApplicationEventResponse }) {
         retired && 'text-text-secondary',
       )}
     >
-      <span
-        aria-hidden="true"
-        className={cn(
-          'relative z-10 mt-1.5 ml-[7px] size-[9px]',
-          entry.kind === 'mail' && !retired
-            ? 'bg-link'
-            : 'bg-surface shadow-[inset_0_0_0_1px_var(--text-secondary)]',
-        )}
-      />
+      {dot}
       <div className="flex min-w-0 flex-col gap-1">
-        {entry.mailId ? (
-          <Link
-            to="/mails/$key"
-            params={{ key: entry.mailId }}
-            className="break-words text-text-primary hover:underline"
-          >
-            {entry.title}
-          </Link>
-        ) : (
-          <span className="break-words">{entry.title}</span>
-        )}
+        {title}
         {entry.detail && <span className="text-xs text-text-secondary">{entry.detail}</span>}
-        {retired && <span className="text-xs">{retired}</span>}
-        {entry.kind === 'automation' && <SubmissionFacts event={event} />}
-        {entry.kind !== 'automation' && !retired && <AiNote event={event} />}
+        {more}
       </div>
       <div className="flex items-start gap-1">
-        <time
-          dateTime={event.recordedAt}
-          title={`Recorded ${dateAndTime(event.recordedAt)}`}
-          className="pt-0.5 text-xs whitespace-nowrap text-text-secondary"
-        >
-          {mailDateTime(event.recordedAt)}
-        </time>
+        {time}
         <RowMenu event={event} entry={entry} />
       </div>
     </li>
@@ -163,6 +209,7 @@ export function ApplicationHistory({
   onOffset: (offset: number) => void;
 }) {
   const events = query.data?.items;
+  const phone = useIsPhone();
   const nextOffset = query.data?.metadata.nextOffset ?? null;
   return (
     <section aria-labelledby="history-heading" className="flex flex-col panel px-6 py-5">
@@ -186,7 +233,7 @@ export function ApplicationHistory({
       {events && events.length > 0 && (
         <ol className="relative before:absolute before:top-5 before:bottom-5 before:left-[11px] before:w-px before:bg-border-subtle">
           {events.map((event) => (
-            <HistoryRow key={event.id} event={event} />
+            <HistoryRow key={event.id} event={event} phone={phone} />
           ))}
         </ol>
       )}
