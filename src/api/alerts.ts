@@ -27,11 +27,16 @@ export async function turnOffAlerts(device: TurnOffAlertsRequest): Promise<void>
   TurnOffAlertsResponseSchema.parse(await api.post<unknown>('/api/alerts/devices/off', device));
 }
 
-/** The alert key; it changes only when the server's keys do. */
+/**
+ * The alert key. It changes only when the server's keys do, so it is not asked again while the
+ * page stays open. It is asked again each time the page opens: the offline copy brings back the
+ * last answer, and an old "no keys" answer must not hide alerts once the server has keys.
+ */
 export function useAlertKey() {
   return useQuery({
     queryKey: alertKeyKey,
     queryFn: ({ signal }) => getAlertKey(signal),
     staleTime: Infinity,
+    refetchOnMount: 'always',
   });
 }
