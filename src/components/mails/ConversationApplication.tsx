@@ -78,6 +78,20 @@ export function ConversationApplication({
   return <CreateApplication conversation={conversation} appearance={appearance} />;
 }
 
+/**
+ * The create button: quiet in a list row, bordered for a probable fake offer, else the panel's one
+ * primary move, full width and 48px tall on phones (owner, 7 Nov 2026).
+ */
+function createButtonLook(cell: boolean, quiet: boolean) {
+  if (cell) return { variant: 'ghost', size: 'sm', className: '-ml-3' } as const;
+  if (quiet) return { variant: 'secondary', size: 'default' } as const;
+  return {
+    variant: 'primary',
+    size: 'default',
+    className: 'max-md:h-12 max-md:w-full max-md:justify-center',
+  } as const;
+}
+
 function CreateApplication({
   conversation,
   appearance,
@@ -120,9 +134,7 @@ function CreateApplication({
     <div className="flex flex-col items-start gap-1">
       {cell && <span className="text-text-secondary">Not linked</span>}
       <Button
-        variant={cell ? 'ghost' : quiet ? 'secondary' : 'primary'}
-        size={cell ? 'sm' : 'default'}
-        className={cell ? '-ml-3' : undefined}
+        {...createButtonLook(cell, quiet)}
         loading={link.isPending}
         disabled={busy}
         onClick={() => send({})}
