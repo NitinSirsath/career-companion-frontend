@@ -122,7 +122,7 @@ export function LoginPage({ error, next = null }: { error?: string; next?: strin
               <OrDivider />
             </>
           )}
-          <PasswordSignInForm onSignedIn={() => openApp(next)} quiet={!devMode} />
+          <PasswordSignInForm onSignedIn={() => openApp(next)} withGoogle={!devMode} />
         </div>
       </section>
       {devMode && (
