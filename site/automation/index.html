@@ -22,41 +22,118 @@
   <!-- Head: what it is, one action, and how far it is tested. -->
   <section class="band head page-head" aria-labelledby="au-title">
     <h1 id="au-title" class="display rv">Apply with your<br>own AI agent.</h1>
-    <p class="lead rv">NorthList Apply is a free job automation for AI apps that can use your browser, like Codex or Claude Code. It applies to jobs one at a time with your own job-site accounts, and NorthList keeps each one with your applications.</p>
+    <p class="lead rv">NorthList Apply is a free job automation for AI apps that can use your browser, like Antigravity, Claude Code or Codex. It applies to jobs one at a time with your own job-site accounts, and NorthList keeps each one with your applications.</p>
     <div class="ctas rv">
       <a class="btn btn-primary btn-lg btn-carbon" href="https://github.com/NitinSirsath/northlist-apply">Start on GitHub <i data-icon="arrowRight"></i></a>
       <p class="note">In beta. Tried so far on LinkedIn Easy Apply, Naukri and Indeed.</p>
     </div>
   </section>
 
-  <!-- The one self-playing picture: the agent applies (left), the job appears in NorthList (right). The HTML holds the end state. -->
+  <!-- The one self-playing picture (owner, 7 Nov 2026): the AI app on your computer (left) applies in the browser it drives, and the job appears in NorthList (right). The switcher picks the app's look; names in words only, no logos. The HTML holds the end state, as Antigravity. -->
   <section class="band run-band" aria-label="An example run">
     <div class="run rv" data-rundemo>
-      <div class="run-panel run-agent" role="img" aria-label="Your AI app: you type start. It reads a job post for Frontend Engineer at Brightwave, fills the form from your profile, and asks for your OK. You reply ok. It sends the application, LinkedIn confirms it, and it records the job in NorthList.">
-        <div class="run-hd"><i data-icon="code" data-size="14"></i><span>Your AI app</span><span class="run-where">on your computer</span></div>
-        <ol class="run-log" aria-hidden="true">
-          <li class="you" data-at="200"><span class="who">You</span><span class="say">start</span></li>
-          <li data-at="700" data-work="Reading the job post" data-for="900"><i data-icon="check" data-size="14"></i><span class="tx"><b>Frontend Engineer at Brightwave.</b> It fits your titles, city and work mode.</span></li>
-          <li data-at="1800" data-work="Filling in the form from your profile" data-for="1000"><i data-icon="check" data-size="14"></i><span class="tx">Form filled: 6 answers and your resume.</span></li>
-          <li class="ask" data-at="3000"><i data-icon="pen" data-size="14"></i><span class="tx">Ready to apply. Reply <b>ok</b> to send it.</span></li>
-          <li class="you" data-at="3700"><span class="who">You</span><span class="say">ok</span></li>
-          <li data-at="4200" data-work="Sending the application on LinkedIn" data-for="900"><i data-icon="check" data-size="14"></i><span class="tx">LinkedIn confirmed it.</span></li>
-          <li data-at="5300" data-work="Recording it in NorthList" data-for="700"><i data-icon="check" data-size="14"></i><span class="tx">Recorded in NorthList.</span></li>
-        </ol>
+      <div class="pick-row">
+        <div class="pick" role="tablist" aria-label="Your AI app">
+          <button type="button" role="tab" id="run-tab-ag" aria-controls="run-app" aria-selected="true" tabindex="0" data-app="ag" data-title="Antigravity" data-ph="Ask anything, @ to mention, / for actions" data-model="Gemini 3.5 Flash" data-drive="Antigravity is using this page">Antigravity</button>
+          <button type="button" role="tab" id="run-tab-cc" aria-controls="run-app" aria-selected="false" tabindex="-1" data-app="cc" data-title="Claude" data-ph="Reply to Claude…" data-model="Opus 5.5" data-drive="Claude is using this tab">Claude Code</button>
+          <button type="button" role="tab" id="run-tab-cx" aria-controls="run-app" aria-selected="false" tabindex="-1" data-app="cx" data-title="Codex" data-ph="Ask Codex anything" data-model="High" data-drive="Codex is using this page">Codex</button>
+        </div>
+        <p class="pick-note" data-note="ag">Open the NorthList Apply folder in Antigravity and type <b>start</b>.</p>
+        <p class="pick-note" data-note="cc" hidden>Open the folder in Claude Code and type <b>start</b>. It works in its own browser or in Chrome.</p>
+        <p class="pick-note" data-note="cx" hidden>Open the folder in Codex and type <b>start</b>. <span class="warn">Connecting NorthList from Codex is not tested yet.</span></p>
       </div>
-      <div class="run-panel run-nl app-look" role="img" aria-label="NorthList, Automation page: Brightwave, Frontend Engineer, appears at the top of Submitted, tagged Sent by automation, today, LinkedIn. An earlier job, Kestrel Health, has moved on to Recruiter contact from a mail.">
-        <div class="run-hd"><i data-mark="14"></i><span>NorthList</span><span class="run-where">Automation</span></div>
-        <div class="run-tabs" aria-hidden="true"><span class="on">Submitted</span><span>Not submitted</span><span>Setup</span></div>
-        <div class="run-table" aria-hidden="true">
-          <div class="run-tr run-th"><span>Company</span><span>Status</span><span>Applied</span></div>
-          <div class="run-tr" data-newrow><span class="co"><b>Brightwave</b><span>Frontend Engineer</span></span><span class="st"><span class="tag tag-outline">Sent by automation</span><i data-icon="flow" data-size="14"></i></span><span class="when">Today, 10:42<span>LinkedIn</span></span></div>
-          <div class="run-tr"><span class="co"><b>Northwind Labs</b><span>React Developer</span></span><span class="st"><span class="tag tag-outline">Sent by automation</span><i data-icon="flow" data-size="14"></i></span><span class="when">Oct 31<span>Naukri</span></span></div>
-          <div class="run-tr"><span class="co"><b>Kestrel Health</b><span>UI Engineer</span></span><span class="st"><span class="tag tag-cyan">Recruiter contact</span><i data-icon="model" data-size="14"></i></span><span class="when">Oct 30<span>Indeed</span></span></div>
+
+      <div class="wins">
+        <div class="aw" id="run-app" data-app="ag" role="img" aria-label="Your AI app on your computer, partway through a run. In the browser it controls, it opens a Frontend Engineer job at Brightwave on LinkedIn, fills in the form from your profile and submits it. LinkedIn confirms it, and the AI app sends the job to NorthList.">
+          <div class="tb"><span class="lights"><i></i><i></i><i></i></span><span class="tb-title" data-run="title">Antigravity</span></div>
+          <div class="aw-body" aria-hidden="true">
+            <div class="side">
+              <div class="rail" data-only="cx"><i data-icon="chat" data-size="15"></i><i data-icon="clock" data-size="15"></i><i data-icon="dashboard" data-size="15"></i></div>
+              <div class="it" data-only="ag"><i data-icon="folder" data-size="14"></i>northlist-apply<i data-icon="chevronDown" data-size="12"></i></div>
+              <div class="it" data-only="ag"><i data-icon="plus" data-size="14"></i>New conversation</div>
+              <div class="it" data-only="cc"><i data-icon="plus" data-size="14"></i>New session</div>
+              <div class="it" data-only="cx"><span class="app">Codex</span><i data-icon="chevronDown" data-size="12"></i></div>
+              <div class="it" data-only="cx"><i data-icon="plus" data-size="14"></i>New chat</div>
+              <div class="sec">Recent</div>
+              <div class="it on">Apply to jobs<span class="dot"></span></div>
+              <div class="it">Connect NorthList</div>
+              <div class="it">Set up my profile</div>
+              <div class="sec" data-only="cx">Projects</div>
+              <div class="it" data-only="cx"><i data-icon="folder" data-size="14"></i>northlist-apply</div>
+              <div class="grow"></div>
+              <div class="me" data-only="cc"><i>AR</i>Asha</div>
+            </div>
+            <div class="conv">
+              <div class="conv-hd"><span>Apply to jobs</span><span class="jobchip idle" data-run="chip"><i></i><span>Next job in 2 min</span></span></div>
+              <div class="log">
+                <div class="you">start</div>
+                <div class="past">Job 1, Northwind Labs: you said ok. LinkedIn confirmed it, and it's in NorthList.</div>
+                <div class="step" data-at="300" data-for="900" data-work="Opening the next job"><i data-icon="globe" data-size="14"></i><span class="t">Opened <code>linkedin.com/jobs/view/4120…</code></span><span class="ok"><i data-icon="check" data-size="13"></i></span></div>
+                <div class="ai" data-at="1300"><b>Frontend Engineer at Brightwave</b> fits your titles, city and work mode. Applying.</div>
+                <div class="step" data-at="1900" data-for="500" data-work="Clicking Easy Apply"><i data-icon="click" data-size="14"></i><span class="t">Clicked Easy Apply</span><span class="ok"><i data-icon="check" data-size="13"></i></span></div>
+                <div class="step" data-at="2500" data-for="2200" data-work="Filling in the form from your profile"><i data-icon="list" data-size="14"></i><span class="t">Filled 3 answers, attached <code>resume.pdf</code></span><span class="ok"><i data-icon="check" data-size="13"></i></span></div>
+                <div class="step" data-at="4800" data-for="600" data-work="Submitting"><i data-icon="click" data-size="14"></i><span class="t">Clicked Submit application</span><span class="ok"><i data-icon="check" data-size="13"></i></span></div>
+                <div class="ai" data-at="5600">LinkedIn confirmed it.</div>
+                <div class="step" data-at="6000" data-for="800" data-work="northlist · record_application_submission"><i data-icon="plug" data-size="14"></i><span class="t"><code>northlist</code> · record_application_submission</span><span class="ok"><i data-icon="check" data-size="13"></i></span></div>
+                <div class="ai" data-at="7100">Sent to NorthList. Next job in 2 minutes.</div>
+              </div>
+              <div class="comp">
+                <div class="ph" data-run="ph">Ask anything, @ to mention, / for actions</div>
+                <div class="row"><i data-icon="plus" data-size="14"></i><span data-run="model">Gemini 3.5 Flash</span><i data-icon="chevronDown" data-size="11"></i><span class="sp"></span><span class="mic" data-only="ag"><i data-icon="mic" data-size="13"></i></span><span class="send" data-only="cc cx"><i data-icon="arrowUp" data-size="13"></i></span></div>
+              </div>
+              <div class="comp-under"><span><i data-icon="folder" data-size="11"></i>Local</span><span><i data-icon="branch" data-size="11"></i>main</span></div>
+            </div>
+            <div class="brw">
+              <div class="brw-bar"><i data-icon="chevronLeft" data-size="14"></i><i data-icon="chevronRight" data-size="14"></i><span class="brw-url"><i data-icon="lock" data-size="11"></i><span>linkedin.com/jobs/view/4120…</span></span></div>
+              <div class="brw-page" data-run="page">
+                <div class="pg" data-pg="job">
+                  <div class="site-nav"><b>Jobs</b><span>Home</span><span>My jobs</span><span class="bar"></span></div>
+                  <div class="job-logo">B</div>
+                  <div class="job-h">Frontend Engineer</div>
+                  <div class="job-sub">Brightwave · Bengaluru · Hybrid · Full time</div>
+                  <div class="job-acts"><span class="jbtn" data-run="apply">Easy Apply</span><span class="jbtn ghost">Save</span></div>
+                  <div class="lines"><i></i><i></i><i></i><i></i><i></i></div>
+                </div>
+                <div class="pg pg-form" data-pg="form">
+                  <div class="dlg">
+                    <div class="dlg-h">Apply to Brightwave <span>Brightwave</span></div>
+                    <div class="prog"><i data-run="prog"></i></div>
+                    <div class="flds">
+                      <div class="fld"><span>Mobile phone number</span><div class="in"><span class="v">+91 98450 12345</span></div></div>
+                      <div class="fld"><span>Years of experience with React</span><div class="in"><span class="v">5</span></div></div>
+                      <div class="fld"><span>Notice period</span><div class="in"><span class="v">30 days</span></div></div>
+                      <div class="fld"><span>Resume</span><div class="in" data-file><i data-icon="doc" data-size="13"></i><span class="v">resume.pdf</span></div></div>
+                    </div>
+                    <div class="dlg-ft"><span class="jbtn" data-run="submit">Submit application</span></div>
+                  </div>
+                </div>
+                <div class="pg pg-sent on" data-pg="sent">
+                  <span class="okc"><i data-icon="check" data-size="20"></i></span>
+                  <b>Your application was sent to Brightwave</b>
+                  <span class="when">Frontend Engineer · just now</span>
+                </div>
+                <span class="drive" data-run="drive">Antigravity is using this page</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="nlw app-look" role="img" aria-label="NorthList, Automation page: Brightwave, Frontend Engineer, appears at the top of Submitted, sent by automation from LinkedIn today. A notice says it came from your automation.">
+          <div class="tb"><span class="lights"><i></i><i></i><i></i></span><span class="tb-title">app.northlist.site</span></div>
+          <div class="nl-hd" aria-hidden="true"><b>Automation</b><span>Today: 2 sent</span></div>
+          <div class="run-tabs" aria-hidden="true"><span class="on">Submitted</span><span>Not submitted</span><span>Setup</span></div>
+          <div class="run-table" aria-hidden="true">
+            <div class="run-tr run-th"><span>Company</span><span>Status</span></div>
+            <div class="run-tr" data-newrow><span class="co"><b>Brightwave</b><span>Frontend Engineer</span></span><span class="st"><span class="tag tag-outline">Sent by automation</span><span>Today, 10:42 · LinkedIn</span></span></div>
+            <div class="run-tr"><span class="co"><b>Northwind Labs</b><span>React Developer</span></span><span class="st"><span class="tag tag-outline">Sent by automation</span><span>Today, 10:38 · LinkedIn</span></span></div>
+            <div class="run-tr"><span class="co"><b>Kestrel Health</b><span>UI Engineer</span></span><span class="st"><span class="tag tag-cyan">Recruiter contact</span><span>Oct 30 · Indeed</span></span></div>
+          </div>
+          <div class="nl-note" data-run="note" aria-hidden="true"><i data-icon="check" data-size="14"></i>Brightwave added from your automation</div>
         </div>
       </div>
     </div>
     <div class="shot-cap run-cap">
-      <span>An example run with a made-up job. Your AI app's own screen looks different.</span>
+      <span>An example run with a made-up job. It asked for your OK on the first job; after that it applies on its own. Your AI app's own screen looks a bit different.</span>
       <button type="button" class="replay" data-replay="run" aria-label="Play the run again" title="Play the run again"><i data-icon="renew"></i></button>
     </div>
   </section>
