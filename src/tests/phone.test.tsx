@@ -201,10 +201,8 @@ describe('phone mail details', () => {
     await screen.findByText('Send your available dates');
     // No reply bar under the conversation: the floating Reply button is the way in.
     expect(screen.queryByRole('button', { name: /^Reply to .*…/ })).not.toBeInTheDocument();
-    // The job panel comes first, with its longer parts folded.
-    expect(
-      screen.getByRole('button', { name: 'Application', expanded: false }),
-    ).toBeInTheDocument();
+    // The job panel comes first. A mail with no application keeps "Application" open.
+    expect(screen.getByRole('button', { name: 'Create application' })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Reply' }));
     const form = within(await screen.findByRole('form', { name: 'Reply' }));
@@ -218,5 +216,43 @@ describe('phone mail details', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Open draft' }));
     const again = within(await screen.findByRole('form', { name: 'Reply' }));
     expect(await replyWords(again)).toBe('Tuesday works for me.');
+  });
+
+  it('puts "Create application" in view, right under the next step, while the mail has none', async () => {
+    detail.mails = [makeConversationMail({ interviewDate: 'Nov 12' })];
+    show('/mails/thread-1');
+    const create = await screen.findByRole('button', { name: 'Create application' });
+    // Not folded: no "Application" toggle, and the card comes before "Key dates".
+    expect(screen.queryByRole('button', { name: 'Application' })).not.toBeInTheDocument();
+    const panel = screen.getByRole('complementary', { name: 'About this job mail' });
+    const sections = within(panel)
+      .getAllByRole('region')
+      .map((section) => section.getAttribute('aria-label'));
+    expect(sections.indexOf('Application')).toBeLessThan(sections.indexOf('Key dates'));
+    expect(screen.getByRole('region', { name: 'Application' })).toContainElement(create);
+  });
+
+  it('folds "Application" for a mail that has one, and for a probable fake offer', async () => {
+    detail.conversation = makeConversation({
+      link: 'LINKED',
+      application: {
+        id: '7f1c2d3e-4b5a-4c6d-8e9f-0a1b2c3d4e5f',
+        companyName: 'Northwind Robotics',
+        jobTitle: 'Frontend Engineer',
+        effectiveStatus: 'INTERVIEW',
+        archived: false,
+      },
+    });
+    show('/mails/thread-1');
+    expect(
+      await screen.findByRole('button', { name: 'Application', expanded: false }),
+    ).toBeInTheDocument();
+    cleanup();
+
+    detail.conversation = makeConversation({ fakeOfferWarning: 'Asks you to pay to join' });
+    show('/mails/thread-1');
+    expect(
+      await screen.findByRole('button', { name: 'Application', expanded: false }),
+    ).toBeInTheDocument();
   });
 });
