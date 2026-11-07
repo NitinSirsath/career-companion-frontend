@@ -318,3 +318,54 @@ describe('plain-word helpers', () => {
     expect(zoneOffset('UTC')).toBe('UTC+00:00');
   });
 });
+
+describe('on a phone (owner, 7 Nov 2026)', () => {
+  let desktopWidth: number;
+  const setWidth = (width: number) =>
+    Object.defineProperty(window, 'innerWidth', {
+      configurable: true,
+      writable: true,
+      value: width,
+    });
+  beforeEach(() => {
+    desktopWidth = window.innerWidth;
+    setWidth(375);
+  });
+  afterEach(() => setWidth(desktopWidth));
+
+  it('puts the date in the history line under the title, with the AI note beside it', async () => {
+    show();
+    const note = await screen.findByRole('button', { name: 'Show the AI note' });
+    const time = document.querySelector('ol time');
+    expect(time?.parentElement).toHaveTextContent(
+      /· The AI moved the status from Assessment to Interview/,
+    );
+    // The date line and the note share one block under the title, across the row.
+    expect(time?.parentElement?.parentElement).toContainElement(note);
+  });
+
+  it('keeps the date in its own column on wider screens', async () => {
+    setWidth(desktopWidth);
+    show();
+    const note = await screen.findByRole('button', { name: 'Show the AI note' });
+    const time = document.querySelector('ol time');
+    expect(time?.parentElement).not.toHaveTextContent(/The AI moved/);
+    expect(time?.parentElement).not.toContainElement(note);
+  });
+
+  it('keeps the page and step menus, and Complete on the user own step', async () => {
+    vi.mocked(api.getApplicationActions).mockResolvedValue(
+      page([
+        step(),
+        step({ id: 'step-2', origin: 'USER', emailId: null, description: 'Thank Arjun' }),
+      ]),
+    );
+    show();
+    expect(await screen.findByRole('button', { name: 'More for Thank Arjun' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'More for Confirm the interview time' }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'Complete' })).toHaveLength(1);
+    expect(screen.getByRole('button', { name: 'More actions' })).toBeInTheDocument();
+  });
+});
