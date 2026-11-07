@@ -151,6 +151,9 @@
   --animate-open: open 150ms cubic-bezier(0, 0, 0.38, 0.9);
   --animate-reveal: reveal 240ms cubic-bezier(0.2, 0, 0.38, 0.9);
   --animate-flash: flash 700ms cubic-bezier(0.2, 0, 0.38, 0.9);
+  /* The sign-in page's picture: a new mail grows in, and a count's new number rises in. */
+  --animate-mail-in: reveal 480ms cubic-bezier(0.2, 0, 0.38, 0.9);
+  --animate-count-in: page-in 320ms cubic-bezier(0, 0, 0.38, 0.9);
   --animate-shimmer: shimmer 1.4s linear infinite;
   --animate-ai-shimmer: ai-shimmer 1.8s linear infinite;
   --animate-startup-line: startup-line 1.4s cubic-bezier(0.2, 0, 0.38, 0.9) infinite;
