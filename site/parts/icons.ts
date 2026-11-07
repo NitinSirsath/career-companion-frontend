@@ -27,6 +27,22 @@ const PATHS: Record<string, string> = {
     '<path d="m9.5 6 6 6-6 6"/>',
   chevronDown:
     '<path d="m6 9.5 6 6 6-6"/>',
+  chevronLeft:
+    '<path d="m14.5 6-6 6 6 6"/>',
+  arrowUp:
+    '<path d="M12 19V5.5M6.5 11 12 5.5l5.5 5.5"/>',
+  folder:
+    '<path d="M3.5 6h6.5l2 2h8.5v11h-17z"/>',
+  branch:
+    '<circle cx="7" cy="6" r="2"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="8" r="2"/><path d="M7 8v8M17 10c0 4-10 2-10 6"/>',
+  click:
+    '<path d="M9 4v10.5l2.8-2.3 2.7 5.6 2-1-2.7-5.5h3.7z"/>',
+  plug:
+    '<path d="M9 3.5V8M15 3.5V8M6 8h12v3a6 6 0 0 1-12 0zM12 17v3.5"/>',
+  mic:
+    '<path d="M9 5.5a3 3 0 0 1 6 0V11a3 3 0 0 1-6 0zM5.5 11a6.5 6.5 0 0 0 13 0M12 17.5v3"/>',
+  chat:
+    '<path d="M4 5h16v11H9.5L4 20z"/>',
   sun:
     '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/>',
   moon:

@@ -98,6 +98,16 @@ describe('the Automation page', () => {
     expect(text).toContain('The NorthList app never applies to jobs itself.');
   });
 
+  it('shows a run in Antigravity, Claude Code or Codex, named in words only (no logos)', () => {
+    const page = doc('automation');
+    expect(page.body.textContent).toContain('like Antigravity, Claude Code or Codex.');
+    const tabs = [...page.querySelectorAll('.run [role="tab"]')].map((t) => t.textContent);
+    expect(tabs).toEqual(['Antigravity', 'Claude Code', 'Codex']);
+    expect(page.querySelectorAll('.run img, .run picture, .run image')).toHaveLength(0);
+    expect(page.body.textContent).toContain('It asked for your OK on the first job');
+    expect(page.body.textContent).toContain('It shows you the first application of each run');
+  });
+
   it('says how far it is tested, and makes no claims about speed or results', () => {
     const text = doc('automation').body.textContent ?? '';
     expect(text).toContain('In beta. Tried so far on LinkedIn Easy Apply, Naukri and Indeed.');

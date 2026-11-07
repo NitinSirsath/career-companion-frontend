@@ -31,8 +31,8 @@
 /* ---------- Panels that melt into the page (owner, 1 Nov, after render.com/workflows) ----------
    Cards and product pictures sit on a fill a shade off the page (a lighter black in dark). The fill and
    its outline fade out toward the right and bottom edges; the words stay sharp. Phones stay real phones. */
-.life-step .card, .appcard, .rbox, .plan-main, .node, .stats-strip .sa-stats, .run-panel { position: relative; isolation: isolate; }
-.life-step .card::before, .appcard::before, .rbox::before, .plan-main::before, .node::before, .stats-strip .sa-stats::before, .run-panel::before {
+.life-step .card, .appcard, .rbox, .plan-main, .node, .stats-strip .sa-stats { position: relative; isolation: isolate; }
+.life-step .card::before, .appcard::before, .rbox::before, .plan-main::before, .node::before, .stats-strip .sa-stats::before {
   content: ''; position: absolute; inset: -1px; z-index: -1; pointer-events: none;
   background: var(--surface); border: 1px solid var(--line-2); transition: border-color 240ms var(--ease);
   -webkit-mask-image: linear-gradient(to right, #000 var(--fx-x, 55%), transparent), linear-gradient(to bottom, #000 var(--fx-y, 50%), transparent);
@@ -40,8 +40,8 @@
   mask-image: linear-gradient(to right, #000 var(--fx-x, 55%), transparent), linear-gradient(to bottom, #000 var(--fx-y, 50%), transparent);
   mask-composite: intersect;
 }
-/* Phones: the application card, reply box and Automation run panels run edge to edge, so their fill does too, with no side lines */
-@media (max-width: 599px) { .appcard::before, .rbox::before, .run-panel::before { left: 0; right: 0; border-left: 0; border-right: 0; } }
+/* Phones: the application card and reply box run edge to edge, so their fill does too, with no side lines */
+@media (max-width: 599px) { .appcard::before, .rbox::before { left: 0; right: 0; border-left: 0; border-right: 0; } }
 /* Hero picture (tablets and laptops): the app fades out at the bottom, and at the screen edge on tablets.
    Once the visitor clicks into it, it is a whole app again. */
 @media (min-width: 600px) {
