@@ -16,6 +16,8 @@ interface PageHeaderProps {
    * kept for screen readers only and the actions move to the page itself.
    */
   phoneCompact?: boolean;
+  /** Phones: keep the actions (a single "…") beside the title instead of on a line of their own. */
+  actionsBesideTitle?: boolean;
   className?: string;
 }
 
@@ -30,6 +32,7 @@ export function PageHeader({
   actions,
   meta,
   phoneCompact = false,
+  actionsBesideTitle = false,
   className,
 }: PageHeaderProps) {
   return (
@@ -42,11 +45,17 @@ export function PageHeader({
       )}
     >
       {breadcrumb}
-      <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
+      <div
+        className={cn(
+          'flex flex-wrap items-start justify-between gap-x-6 gap-y-4',
+          actionsBesideTitle && 'max-md:flex-nowrap max-md:gap-x-2',
+        )}
+      >
         <div
           className={cn(
             'flex min-w-0 flex-1 basis-80 flex-col gap-2',
             phoneCompact && 'max-md:sr-only',
+            actionsBesideTitle && 'max-md:basis-0',
           )}
         >
           <h1 className="text-[22px] leading-7 font-semibold tracking-[-0.025em] break-words md:text-[26px] md:leading-8">
@@ -56,7 +65,13 @@ export function PageHeader({
           {meta}
         </div>
         {actions && (
-          <div className={cn('flex flex-wrap items-center gap-4', phoneCompact && 'max-md:hidden')}>
+          <div
+            className={cn(
+              'flex flex-wrap items-center gap-4',
+              phoneCompact && 'max-md:hidden',
+              actionsBesideTitle && 'max-md:-mr-2',
+            )}
+          >
             {actions}
           </div>
         )}

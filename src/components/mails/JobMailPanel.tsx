@@ -277,6 +277,21 @@ export function JobMailPanel({ detail }: { detail: ConversationDetail }) {
   // Later mails never join a probable fake offer's application by themselves.
   const oneClick = canCreate && conversation.fakeOfferWarning === null;
   const dates = keyDates(mails);
+  // Phones: a mail with no application yet keeps this card open, right under the next step, so
+  // "Create application" is in view (owner, 7 Nov 2026). A probable fake offer stays folded.
+  const openOnPhone = useIsPhone() && oneClick;
+  const applicationCard = (
+    <PanelSection title="Application" fold={!oneClick}>
+      {canCreate && <p className="text-sm">This conversation has no application yet.</p>}
+      <ConversationApplication conversation={conversation} />
+      {oneClick && (
+        <p className="text-xs text-text-secondary">
+          One click. The details come from this mail. Later mails from the same company join it by
+          themselves.
+        </p>
+      )}
+    </PanelSection>
+  );
   return (
     // On phones it sits above the conversation: the next step first, the rest folded.
     <aside
@@ -284,6 +299,7 @@ export function JobMailPanel({ detail }: { detail: ConversationDetail }) {
       className="flex flex-col gap-4 max-md:order-first max-md:gap-2 lg:sticky lg:top-20"
     >
       <NextStep detail={detail} />
+      {openOnPhone && applicationCard}
       {dates.length > 0 && (
         <PanelSection title="Key dates" fold>
           <dl className="grid grid-cols-[110px_minmax(0,1fr)] gap-x-4 gap-y-2 text-sm">
@@ -297,16 +313,7 @@ export function JobMailPanel({ detail }: { detail: ConversationDetail }) {
           <p className="text-xs text-text-secondary">As the mails wrote them.</p>
         </PanelSection>
       )}
-      <PanelSection title="Application" fold>
-        {canCreate && <p className="text-sm">This conversation has no application yet.</p>}
-        <ConversationApplication conversation={conversation} />
-        {oneClick && (
-          <p className="text-xs text-text-secondary">
-            One click. The details come from this mail. Later mails from the same company join it by
-            themselves.
-          </p>
-        )}
-      </PanelSection>
+      {!openOnPhone && applicationCard}
     </aside>
   );
 }

@@ -48,6 +48,7 @@ export function ApplicationHeader({
     <div className="flex flex-col gap-4">
       <PageHeader
         className="mb-0"
+        actionsBesideTitle
         breadcrumb={breadcrumb}
         title={application.companyName}
         meta={

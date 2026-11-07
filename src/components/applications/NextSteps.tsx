@@ -138,17 +138,19 @@ function StepRow({
   ];
 
   return (
-    <li className="flex animate-fade-in flex-col gap-2 border-t border-border-subtle py-3.5 sm:grid sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-x-4">
+    // Phones: the "…" sits at the step's top right and "Complete" under its text (owner, 7 Nov 2026).
+    <li className="grid animate-fade-in grid-cols-[minmax(0,1fr)_auto] items-start gap-x-2 gap-y-1 border-t border-border-subtle py-3.5 sm:items-center sm:gap-x-4 sm:gap-y-2">
       <div className="flex min-w-0 flex-col gap-1">
         <span className="break-words">{text}</span>
         <StepMeta action={action} source={source} />
       </div>
       {!archived && (
-        <div className="-ml-3 flex items-center gap-1 sm:ml-0">
+        <div className="flex items-center gap-1 max-sm:contents">
           {own && (
             <Button
               variant="ghost"
               size="sm"
+              className="max-sm:col-start-1 max-sm:row-start-2 max-sm:-ml-3 max-sm:justify-self-start"
               disabled={update.isPending}
               onClick={() => change('COMPLETED')}
             >
@@ -156,7 +158,12 @@ function StepRow({
               Complete
             </Button>
           )}
-          <OverflowMenu label={`More for ${text}`} actions={actions} triggerRef={more} />
+          <OverflowMenu
+            label={`More for ${text}`}
+            actions={actions}
+            triggerRef={more}
+            className="max-sm:col-start-2 max-sm:row-start-1 max-sm:-mt-1.5 max-sm:-mr-2"
+          />
           <SnoozeControl action={action} trigger={false} ref={snooze} returnFocus={more} />
         </div>
       )}
