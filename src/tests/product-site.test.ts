@@ -157,12 +157,28 @@ describe("Home's hero", () => {
       'Your job search,',
       'sorted from your Gmail.',
     ]);
-    expect(hero.querySelectorAll('.ctas a')).toHaveLength(1);
+    expect(hero.querySelectorAll('.ctas .btn')).toHaveLength(1);
+    expect(hero.querySelector('.ctas .hero-how')?.getAttribute('href')).toBe('#features');
     expect(hero.querySelector('.ctas .note')?.textContent).toBe(
       'Free while in beta. No card, no AI key.',
     );
     expect(hero.querySelector('.announce, .hint, .btn-secondary')).toBeNull();
     expect(hero.querySelector('.hero-shot [data-sample][data-autoplay="sync"]')).not.toBeNull();
+  });
+
+  it('on phones does not repeat the header buttons: a link, then the phone on a band with a Next step card', () => {
+    const hero = doc('home').querySelector('.hero')!;
+    expect(hero.querySelector('.hero-how')?.textContent?.trim()).toBe('See how it works');
+    const card = hero.querySelector('.hero-shot .hero-float')!;
+    expect(card.getAttribute('aria-hidden')).toBe('true');
+    expect(card.textContent).toContain('Choose an interview time');
+    const css = readFileSync(resolve(__dirname, '../../site/styles/home.css'), 'utf8');
+    expect(css).toContain('.hero .hero-how, .hero-float { display: none; }');
+    const phones = css.slice(css.indexOf('@media (max-width: 599px)'));
+    expect(phones).toContain('.hero .ctas .btn { display: none; }');
+    expect(phones).toContain(
+      '.hero-shot:has(.sa.used)::after, .hero-shot:has(.sa.used) .hero-float { display: none; }',
+    );
   });
 
   it('waits hidden from the first paint for its intro, except with less motion, ?static or a #link', () => {

@@ -15,13 +15,45 @@
   .hero-shot .sa-fit { margin-right: calc(-1 * var(--gut)); }
   .sa-fit .sa:not(.used) .sa-main { overflow-y: hidden; }
 }
+/* Phone-only parts of the hero: hidden from 600 px up */
+.hero .hero-how, .hero-float { display: none; }
+/* Phones (owner, 7 Nov 2026, design E5): the header already has Sign in and Start free, so the hero does not
+   repeat them: a "See how it works" link and the note. The phone picture runs off the right edge of the screen
+   on a light blue band, with a "Next step" card over it; band and phone fade into the page together. A tap
+   opens the whole phone. */
 @media (max-width: 599px) {
-  .hero { padding-top: 48px; }
-  .hero .lead { margin-top: 18px; }
-  .hero .ctas { margin-top: 28px; flex-direction: column; align-items: stretch; gap: 12px; }
-  /* Phones: the phone app inside a phone frame, with the caption and replay button above it */
-  .hero-shot { margin-top: 32px; display: flex; flex-direction: column; align-items: center; }
-  .hero-shot .shot-cap { order: -1; align-self: stretch; align-items: flex-start; padding: 0 0 12px; }
+  .hero { padding-top: 48px; overflow-x: clip; margin-inline: calc(-1 * var(--gut)); padding-inline: var(--gut); } /* clip at the screen edge */
+  .hero .lead { margin-top: 16px; }
+  .hero .ctas { margin-top: 20px; flex-direction: column; align-items: flex-start; gap: 10px; }
+  .hero .ctas .btn { display: none; }
+  .hero .hero-how { display: inline-flex; }
+  /* Band and phone share one grid row, so the band always ends where the phone is cut */
+  .hero-shot { margin: 36px -88px 0 0; display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start; position: relative; isolation: isolate; }
+  .hero-shot::before {
+    content: ''; grid-row: 1; grid-column: 1; align-self: stretch; justify-self: stretch; z-index: -1;
+    margin: 72px 0 0 calc(-1 * var(--gut)); background: color-mix(in srgb, var(--tag-blue-bg) 60%, var(--bg));
+  }
+  .hero-shot::after {
+    content: ''; grid-row: 1; grid-column: 1; align-self: end; justify-self: stretch; height: 140px; z-index: 7; pointer-events: none;
+    margin-left: calc(-1 * var(--gut)); background: linear-gradient(to bottom, transparent, var(--bg) 92%);
+  }
+  .hero-shot .device.phone-only { --dv-max: 410px; grid-row: 1; grid-column: 1; margin-left: 64px; max-height: 560px; overflow: hidden; }
+  .hero-shot .device.phone-only:not(:has(.sa.used)) { border-bottom-left-radius: 0; border-bottom-right-radius: 0; } /* a straight cut */
+  .hero-shot .device.phone-only:has(.sa.used) { max-height: none; }
+  .hero-shot:has(.sa.used)::after, .hero-shot:has(.sa.used) .hero-float { display: none; }
+  .hero-shot .shot-cap { grid-row: 2; justify-self: stretch; align-items: flex-start; margin-right: 88px; padding: 14px 0 0; }
+  /* The "Next step" card arrives last, once the example has built itself */
+  .hero-float {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 4px; position: absolute; z-index: 8;
+    left: 0; top: 250px; width: 204px; padding: 12px 14px; background: var(--bg); border: 1px solid var(--line-2);
+    font-size: 14px; line-height: 20px; color: var(--text);
+    transition: opacity 500ms var(--ease-intro), transform 500ms var(--ease-intro);
+  }
+  .hero-shot:has(.sa-build) .hero-float { opacity: 0; transform: translateY(8px); }
+  .hero-float .lbl { font-size: 12px; line-height: 16px; color: var(--text-3); }
+  .hero-float b { font-weight: 560; }
+  .hero-float .sub { font-size: 12px; line-height: 16px; color: var(--text-2); }
+  .hero-float .tag { margin-top: 4px; }
   .phone-only .sa-fit { margin: 0; flex: 1; min-height: 0; display: flex; flex-direction: column; }
   .phone-only .sa-fit > .sa { flex: 1; min-height: 0; border: 0; }
   .phone-only .sa-p { height: 100%; }
