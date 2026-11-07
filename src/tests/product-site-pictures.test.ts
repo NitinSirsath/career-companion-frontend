@@ -211,48 +211,105 @@ describe('the run on the Automation page', () => {
     const pictures = await import('../../site/runtime/pictures');
     pictures.startPictures();
   }
-  const lines = () => [...document.querySelectorAll('.run-log li')];
-  const shown = () => lines().filter((li) => !li.classList.contains('pending')).length;
+  const steps = () => [...document.querySelectorAll('.run .log [data-at]')];
+  const shown = () => steps().filter((st) => !st.classList.contains('pending')).length;
+  const onPage = () => $('.run [data-pg].on')?.dataset.pg;
+  const typed = () => [...document.querySelectorAll('.run .fld .v')].map((v) => v.textContent);
+  const tab = (name: string) => $<HTMLButtonElement>(`.run [role="tab"][data-app="${name}"]`);
 
-  it('shows the AI app steps one by one, each working step as grey shimmer first', async () => {
+  it("shows the AI app's steps one by one, each working step as grey shimmer first", async () => {
     await loadRun();
     expect(shown()).toBe(0);
     expect($('[data-newrow]').classList.contains('pending')).toBe(true);
-    await vi.advanceTimersByTimeAsync(200);
-    expect(shown()).toBe(1);
-    await vi.advanceTimersByTimeAsync(500);
-    const reading = lines()[1];
-    expect(reading.classList.contains('working')).toBe(true);
-    expect(reading.querySelector('.wk.shimmer')?.textContent).toBe('Reading the job post');
+    expect($('.run .jobchip').textContent).toBe('Job 2 of 10');
+    await vi.advanceTimersByTimeAsync(400);
+    const opening = steps()[0];
+    expect(opening.classList.contains('working')).toBe(true);
+    expect(opening.querySelector('.wk.shimmer')?.textContent).toBe('Opening the next job');
     await vi.advanceTimersByTimeAsync(900);
-    expect(reading.classList.contains('working')).toBe(false);
+    expect(opening.classList.contains('working')).toBe(false);
+    expect(shown()).toBe(2);
   });
 
-  it('then adds the job to the top of Submitted, tagged Sent by automation, and replays', async () => {
+  it('drives the browser: job page, the form filled in field by field, then the sent page', async () => {
     await loadRun();
-    await vi.advanceTimersByTimeAsync(6000);
-    expect(shown()).toBe(lines().length);
+    expect(onPage()).toBeUndefined();
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(onPage()).toBe('job');
+    expect($('.run [data-run="page"]').classList.contains('driving')).toBe(true);
+    await vi.advanceTimersByTimeAsync(1500);
+    expect(onPage()).toBe('form');
+    expect(typed()).toEqual(['', '', '', '']);
+    await vi.advanceTimersByTimeAsync(700);
+    expect(typed()[0]).toBe('+91 98450 12345');
+    await vi.advanceTimersByTimeAsync(1600);
+    expect(typed()).toEqual(['+91 98450 12345', '5', '30 days', 'resume.pdf']);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(onPage()).toBe('sent');
+    expect($('.run [data-pg="sent"]').textContent).toContain(
+      'Your application was sent to Brightwave',
+    );
+  });
+
+  it('then adds the job to the top of Submitted with a notice, and replays', async () => {
+    await loadRun();
+    await vi.advanceTimersByTimeAsync(6800);
     expect($('[data-newrow]').classList.contains('pending')).toBe(true);
-    await vi.advanceTimersByTimeAsync(300);
+    await vi.advanceTimersByTimeAsync(100);
     expect($('[data-newrow]').classList.contains('arrive')).toBe(true);
     expect($('[data-newrow] .tag').textContent).toBe('Sent by automation');
+    expect($('.run [data-run="note"]').classList.contains('on')).toBe(true);
+    await vi.advanceTimersByTimeAsync(500);
+    expect(shown()).toBe(steps().length);
+    expect($('.run .jobchip').textContent).toBe('Next job in 2 min');
     $('[data-replay="run"]').click();
     expect(shown()).toBe(0);
     expect($('[data-newrow]').classList.contains('pending')).toBe(true);
   });
 
-  it('shows its end state at once when the visitor asks for less motion', async () => {
-    await loadRun(true);
-    expect(shown()).toBe(lines().length);
-    expect(document.querySelector('.run .pending, .run .working')).toBeNull();
-    expect(lines()[1].querySelector('.wk')?.textContent).toBe('Reading the job post');
+  it('switches to another AI app: its look, its words and how-to line, and plays again', async () => {
+    await loadRun();
+    await vi.advanceTimersByTimeAsync(9000);
+    tab('cx').click();
+    expect($('.run .aw').dataset.app).toBe('cx');
+    expect(tab('cx').getAttribute('aria-selected')).toBe('true');
+    expect(tab('ag').getAttribute('aria-selected')).toBe('false');
+    expect($('.run [data-run="title"]').textContent).toBe('Codex');
+    expect($('.run [data-run="ph"]').textContent).toBe('Ask Codex anything');
+    expect($('.run [data-run="drive"]').textContent).toBe('Codex is using this page');
+    expect($('.run [data-note="cx"]').hidden).toBe(false);
+    expect($('.run [data-note="ag"]').hidden).toBe(true);
+    expect($('.run [data-note="cx"]').textContent).toContain(
+      'Connecting NorthList from Codex is not tested yet.',
+    );
+    expect(shown()).toBe(0);
+    tab('cx').dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
+    expect($('.run .aw').dataset.app).toBe('cc');
+    expect($('.run [data-run="title"]').textContent).toBe('Claude');
+    expect(document.activeElement).toBe(tab('cc'));
+    expect(tab('cc').tabIndex).toBe(0);
+    expect(tab('cx').tabIndex).toBe(-1);
   });
 
-  it('keeps its size while it plays (hidden, not removed)', () => {
-    expect(css('pages.css')).toContain(
-      '.run-log li.pending, .run-tr.pending { visibility: hidden; }',
-    );
-    expect(css('pages.css')).toContain('.run-log .stack > * { grid-area: 1 / 1; }');
+  it('shows its end state at once when the visitor asks for less motion, and the switcher still works', async () => {
+    await loadRun(true);
+    expect(shown()).toBe(steps().length);
+    expect(document.querySelector('.run .pending, .run .working, .run .driving')).toBeNull();
+    expect(onPage()).toBe('sent');
+    expect(typed()).toEqual(['+91 98450 12345', '5', '30 days', 'resume.pdf']);
+    tab('cc').click();
+    expect($('.run .aw').dataset.app).toBe('cc');
+    expect(shown()).toBe(steps().length);
+    expect(onPage()).toBe('sent');
+  });
+
+  it('keeps its size while it plays, and its styles stay inside the picture', () => {
+    const run = css('automation.css');
+    expect(run).toContain('.run-tr.pending { visibility: hidden; }');
+    expect(run).toContain('.run .aw {');
+    const rules = run.replace(/\/\*[\s\S]*?\*\//g, '').match(/^[^@\s}][^{]*\{/gm) ?? [];
+    for (const rule of rules) expect(rule).toMatch(/^(\.run[ -]|\.run\.|@keyframes)/);
+    expect(css('site.css')).toContain("@import './automation.css';");
   });
 });
 
