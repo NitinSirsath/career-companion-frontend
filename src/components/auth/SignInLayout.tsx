@@ -7,7 +7,7 @@ import { useTheme } from '../ThemeProvider';
 import { SignInPicture } from './SignInPicture';
 
 /** The half sun of the NorthList mark, large and faint in the panel's corner. */
-const HALF_SUN = 'M2 16A14 0 0 1 30 16Z';
+const HALF_SUN = 'M2 16A14 14 0 0 1 30 16Z';
 const HEADLINE = 'Your job search, sorted from your Gmail.';
 
 /**
