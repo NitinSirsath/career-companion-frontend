@@ -18,6 +18,7 @@ import { makeApplication, makeEvent } from './fixtures';
 vi.mock('../api/client', () => ({
   api: {
     listApplications: vi.fn(),
+    getApplicationGroups: vi.fn(),
     getApplication: vi.fn(),
     getApplicationEvents: vi.fn(),
     getApplicationActions: vi.fn(),
@@ -61,6 +62,10 @@ const automationEvent = makeEvent({
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.mocked(api.getApplicationGroups).mockResolvedValue({
+    inProgress: 0,
+    apply: { total: 1, replied: 0, waiting: 1 },
+  });
   vi.mocked(api.getGmailStatus).mockResolvedValue({
     connected: false,
     gmailEmail: null,
@@ -72,10 +77,10 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe('status precedence with submittedVia', () => {
-  it('shows "Sent by automation" only when there is no status at all', () => {
+  it('shows "No reply yet" only when there is no status at all', () => {
     const app = makeApplication({ submittedVia: 'AUTOMATION' });
     expect(ApplicationResponseSchema.parse(app).statusSource).toBe('UNKNOWN');
-    expect(applicationTag(app).label).toBe('Sent by automation');
+    expect(applicationTag(app).label).toBe('No reply yet');
     expect(statusSourceLine(app)).toBe('Reported by your automation');
   });
 
@@ -111,12 +116,12 @@ describe('status precedence with submittedVia', () => {
     renderRoute('/applications/app-1');
     const details = await screen.findByRole('region', { name: 'Details' });
     expect(within(details).getByText('Sent by')).toBeInTheDocument();
-    expect(within(details).getByText('Your automation')).toBeInTheDocument();
+    expect(within(details).getByText('NorthList Apply')).toBeInTheDocument();
   });
 });
 
 describe('timeline', () => {
-  it('renders the automation event as "Sent by your automation", never as AI or email evidence', async () => {
+  it('renders the automation event as "Sent by NorthList Apply", never as AI or email evidence', async () => {
     vi.mocked(api.getApplication).mockResolvedValue(
       makeApplication({ submittedVia: 'AUTOMATION' }),
     );
@@ -126,7 +131,7 @@ describe('timeline', () => {
     vi.mocked(api.getApplicationActions).mockResolvedValue(page([]));
     renderRoute('/applications/app-1');
 
-    const title = await screen.findByText('Sent by your automation');
+    const title = await screen.findByText('Sent by NorthList Apply');
     const item = title.closest('li')!;
     const scope = within(item);
     expect(scope.getByText('Company site · jobs.lever.co')).toBeInTheDocument();
@@ -159,7 +164,7 @@ describe('timeline', () => {
     expect(screen.queryByText('A job mail (details unavailable)')).not.toBeInTheDocument();
   });
 
-  it('shows "Sent by your automation" on the list page’s last-activity line and the automation tag', async () => {
+  it('shows "Sent by NorthList Apply" on the NorthList Apply list’s last-activity line and the tag', async () => {
     vi.mocked(api.listApplications).mockResolvedValue(
       page([
         makeApplication({
@@ -174,8 +179,8 @@ describe('timeline', () => {
         }),
       ]),
     );
-    renderRoute('/applications');
-    expect(await screen.findByText('Sent by your automation')).toBeInTheDocument();
-    expect(screen.getByText('Sent by automation', { selector: 'span' })).toBeInTheDocument();
+    renderRoute('/applications?view=apply');
+    expect(await screen.findByText('Sent by NorthList Apply')).toBeInTheDocument();
+    expect(screen.getByText('No reply yet', { selector: 'span' })).toBeInTheDocument();
   });
 });
