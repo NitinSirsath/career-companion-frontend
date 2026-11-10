@@ -9,7 +9,7 @@ export const POLICY = '/privacy.html';
 /** The main links: label, address, and the page they mark as current. */
 const NAV: [string, string, string][] = [
   ['Features', '/#features', 'features'],
-  ['Automation', '/automation', 'automation'],
+  ['NorthList Apply', '/automation', 'automation'],
   ['Privacy', '/privacy/', 'privacy'], // with the slash: Render serves privacy.html (the policy) at /privacy
   ['Pricing', '/pricing', 'pricing'],
   ['Changelog', '/changelog', 'changelog'],
@@ -46,7 +46,7 @@ export function header(page: string): string {
 export function footer(): string {
   return `<footer class="ftr"><div class="ftr-in">
     <div class="brandcol">${wordmark(20)}<p class="tagline">Your job search, sorted from your Gmail.</p></div>
-    <div><h4>Product</h4><ul><li><a href="/#features">Features</a></li><li><a href="/automation">Automation</a></li><li><a href="/pricing">Pricing</a></li><li><a href="/changelog">Changelog</a></li></ul></div>
+    <div><h4>Product</h4><ul><li><a href="/#features">Features</a></li><li><a href="/automation">NorthList Apply</a></li><li><a href="/pricing">Pricing</a></li><li><a href="/changelog">Changelog</a></li></ul></div>
     <div><h4>Trust</h4><ul><li><a href="/privacy/">Privacy</a></li><li><a href="${POLICY}">Privacy policy</a></li></ul></div>
     <div><h4>Company</h4><ul><li><a href="/about">About</a></li><li><a href="mailto:${CONTACT}">Contact</a></li></ul></div>
     <div class="base"><span>© 2026 NorthList</span>${themeSwitch()}</div>
