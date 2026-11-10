@@ -74,7 +74,7 @@ describe('the product site pages', () => {
   it('marks the open page in the header', () => {
     expect(doc('pricing').querySelector('.nav [aria-current="page"]')?.textContent).toBe('Pricing');
     expect(doc('automation').querySelector('.nav [aria-current="page"]')?.textContent).toBe(
-      'Automation',
+      'NorthList Apply',
     );
     expect(doc('home').querySelector('.nav [aria-current="page"]')).toBeNull();
   });
