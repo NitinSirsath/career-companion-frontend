@@ -46,14 +46,14 @@ describe('one status look', () => {
     expect(statusTag(null)).toEqual({ label: 'Status unknown', color: 'outline' });
   });
 
-  it('says "Sent by automation" only before any status exists', () => {
+  it('says "No reply yet" only before any status exists', () => {
     expect(
       applicationTag({
         statusSource: 'UNKNOWN',
         submittedVia: 'AUTOMATION',
         effectiveStatus: null,
       }),
-    ).toEqual({ label: 'Sent by automation', color: 'outline' });
+    ).toEqual({ label: 'No reply yet', color: 'outline' });
     expect(
       applicationTag({ statusSource: 'AI', submittedVia: 'AUTOMATION', effectiveStatus: 'OFFER' }),
     ).toEqual({ label: 'Offer', color: 'green' });
