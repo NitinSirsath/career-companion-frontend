@@ -106,7 +106,7 @@ export function historyEntry(event: ApplicationEventResponse): HistoryEntry {
   if (event.type === AUTOMATION_SUBMITTED) {
     const submission = event.sourceSubmission;
     return {
-      title: 'Sent by your automation',
+      title: 'Sent by NorthList Apply',
       mailId: null,
       detail: submission
         ? [platformLabel(submission.platform), submission.destinationHost]

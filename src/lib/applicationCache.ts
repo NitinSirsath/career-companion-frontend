@@ -8,6 +8,9 @@ import {
 } from '../contracts/application';
 
 export const applicationKey = (id: string) => ['application', id] as const;
+/** Under 'applications', so everything that refreshes the lists refreshes the counts too. */
+export const applicationGroupsKey = (archive: ApplicationFilters['archive']) =>
+  ['applications', 'groups', archive ?? 'active'] as const;
 
 /**
  * Manual status is ordered by userStatusRevision. A read that started before an acknowledged
@@ -72,6 +75,11 @@ export function applyAcknowledgedApplication(queryClient: QueryClient, app: Appl
   );
   const acknowledged = queryClient.getQueryData<ApplicationResponse>(applicationKey(app.id))!;
   for (const query of queryClient.getQueryCache().findAll({ queryKey: ['applications'] })) {
+    // The counts are not a list: read them again.
+    if (query.queryKey[1] === 'groups') {
+      void queryClient.invalidateQueries({ queryKey: query.queryKey, exact: true });
+      continue;
+    }
     const filters = query.queryKey[1] as ApplicationFilters | undefined;
     queryClient.setQueryData<ListApplicationsResponse>(
       query.queryKey,
@@ -94,8 +102,21 @@ export function applyAcknowledgedApplication(queryClient: QueryClient, app: Appl
   }
 }
 
+/** NorthList Apply: a reply is any status but Applied (the server's rule, owner 10 Nov 2026). */
+const hasReply = (item: ApplicationResponse) =>
+  item.effectiveStatus !== null && item.effectiveStatus !== 'APPLIED';
+
+function matchesGroup(item: ApplicationResponse, filters: ApplicationFilters) {
+  const viaApply = item.submittedVia === 'AUTOMATION';
+  if (filters.group === 'progress' && viaApply && !hasReply(item)) return false;
+  if ((filters.group === 'apply' || filters.reply) && !viaApply) return false;
+  if (filters.reply) return filters.reply === 'replied' ? hasReply(item) : !hasReply(item);
+  return true;
+}
+
 function matchesFilters(item: ApplicationResponse, filters: ApplicationFilters) {
   return (
+    matchesGroup(item, filters) &&
     (!filters.effectiveStatus ||
       (filters.effectiveStatus === 'UNKNOWN'
         ? item.effectiveStatus === null

@@ -12,6 +12,11 @@ import { makeApplication, makeEvent } from './fixtures';
 vi.mock('../api/client', () => ({
   api: {
     listApplications: vi.fn(),
+    // vi.fn(impl): a reset keeps this answer.
+    getApplicationGroups: vi.fn(async () => ({
+      inProgress: 3,
+      apply: { total: 5, replied: 1, waiting: 4 },
+    })),
     getApplication: vi.fn(),
     getApplicationEvents: vi.fn(),
     getApplicationActions: vi.fn(),
@@ -572,14 +577,21 @@ describe('application discovery controls (S9)', () => {
     });
     await screen.findByText(/Could not load your applications/);
     expect(api.listApplications).toHaveBeenLastCalledWith(
-      { archive: 'active', q: 'Acme', limit: 20, offset: 0 },
+      { archive: 'active', q: 'Acme', group: 'progress', limit: 20, offset: 0 },
       expect.anything(),
     );
     expect(screen.getByLabelText('Search company or job title')).toHaveValue('Acme');
     fireEvent.click(screen.getByRole('tab', { name: 'Rejected' }));
     await waitFor(() =>
       expect(api.listApplications).toHaveBeenLastCalledWith(
-        { archive: 'active', q: 'Acme', effectiveStatus: 'REJECTED', limit: 20, offset: 0 },
+        {
+          archive: 'active',
+          q: 'Acme',
+          group: 'progress',
+          effectiveStatus: 'REJECTED',
+          limit: 20,
+          offset: 0,
+        },
         expect.anything(),
       ),
     );
@@ -593,7 +605,7 @@ describe('application discovery controls (S9)', () => {
     expect(box).toHaveValue('Acme');
     await waitFor(() =>
       expect(api.listApplications).toHaveBeenLastCalledWith(
-        { archive: 'active', q: 'Acme', limit: 20, offset: 0 },
+        { archive: 'active', q: 'Acme', group: 'progress', limit: 20, offset: 0 },
         expect.anything(),
       ),
     );
@@ -650,9 +662,10 @@ describe('application discovery completion (AD-02)', () => {
 
   it('preserves every discovery control and page through a detail visit', async () => {
     vi.mocked(api.listApplications).mockImplementation(async (params) =>
-      page([recorded], params?.offset, 20),
+      page(params?.group === 'apply' ? [recorded] : [], params?.offset, 20),
     );
     renderWithProviders(qc, '/applications');
+    fireEvent.click(await screen.findByRole('tab', { name: /^NorthList Apply/ }));
     await screen.findByText('Automation target');
     fireEvent.change(screen.getByLabelText('Search company or job title'), {
       target: { value: 'target' },
@@ -663,9 +676,7 @@ describe('application discovery completion (AD-02)', () => {
         expect.anything(),
       ),
     );
-    fireEvent.click(screen.getByRole('tab', { name: 'All' })); // Was UNKNOWN status, but since we removed it, this test needs adjustment. Actually, UNKNOWN apps are in ALL.
-    // wait, how to filter UNKNOWN now? There is no tab for UNKNOWN.
-    fireEvent.click(screen.getByRole('tab', { name: 'Sent by automation' }));
+    fireEvent.click(screen.getByRole('tab', { name: /^Waiting/ }));
     await chooseOption(
       screen.getByRole('combobox', { name: 'Application visibility' }),
       'All applications',
@@ -683,10 +694,11 @@ describe('application discovery completion (AD-02)', () => {
     fireEvent.click(screen.getAllByRole('link', { name: 'Applications' })[0]);
     await screen.findByLabelText('Sort applications');
     expect(screen.getByLabelText('Search company or job title')).toHaveValue('target');
-    expect(screen.getByRole('tab', { name: 'Sent by automation' })).toHaveAttribute(
+    expect(screen.getByRole('tab', { name: /^NorthList Apply/ })).toHaveAttribute(
       'aria-selected',
       'true',
     );
+    expect(screen.getByRole('tab', { name: /^Waiting/ })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('combobox', { name: 'Application visibility' })).toHaveTextContent(
       'All applications',
     );
@@ -700,19 +712,50 @@ describe('application discovery completion (AD-02)', () => {
           limit: 20,
           archive: 'all',
           q: 'target',
-          effectiveStatus: 'UNKNOWN',
-          submittedVia: 'AUTOMATION',
+          group: 'apply',
+          reply: 'waiting',
           sort: 'applied_desc',
         },
         expect.anything(),
       ),
     );
+    expect(api.getApplicationGroups).toHaveBeenLastCalledWith('all', expect.anything());
     expect(screen.getByText('Unknown')).toBeInTheDocument();
   });
 
-  it('resets paging for sort and source and clears all discovery controls', async () => {
+  it('shows the In progress and NorthList Apply counts and how many companies replied', async () => {
+    vi.mocked(api.listApplications).mockResolvedValue(page([]));
+    renderWithProviders(qc, '/applications');
+    expect(await screen.findByRole('tab', { name: /^In progress\s*3$/ })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(screen.queryByText(/companies replied/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: 'Sent by automation' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: /^NorthList Apply\s*5$/ }));
+    expect(await screen.findByText(/companies replied/)).toHaveTextContent(
+      '1 of 5 companies replied',
+    );
+    expect(screen.getByRole('tab', { name: 'Replied (1)' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Waiting (4)' })).toBeInTheDocument();
+    expect(await screen.findByText('Nothing sent by NorthList Apply yet')).toBeInTheDocument();
+  });
+
+  it('opens an old "Sent by automation" link as NorthList Apply › Waiting', async () => {
+    vi.mocked(api.listApplications).mockResolvedValue(page([recorded]));
+    renderWithProviders(qc, '/applications?status=SUBMITTED');
+    await screen.findByText('Automation target');
+    expect(screen.getByRole('tab', { name: /^Waiting/ })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByText('No reply yet', { selector: 'span' })).toBeInTheDocument();
+    expect(api.listApplications).toHaveBeenLastCalledWith(
+      { offset: 0, limit: 20, archive: 'active', group: 'apply', reply: 'waiting' },
+      expect.anything(),
+    );
+  });
+
+  it('resets paging for sort and list and clears all discovery controls', async () => {
     vi.mocked(api.listApplications).mockImplementation(async (params) =>
-      page([recorded], params?.offset, 20),
+      page([params?.group === 'apply' ? recorded : makeApp()], params?.offset, 20),
     );
     renderWithProviders(qc, '/applications');
     fireEvent.click(await screen.findByRole('button', { name: 'Next' }));
@@ -723,47 +766,50 @@ describe('application discovery completion (AD-02)', () => {
     );
     await waitFor(() =>
       expect(api.listApplications).toHaveBeenLastCalledWith(
-        { offset: 0, limit: 20, archive: 'active', sort: 'applied_asc' },
+        { offset: 0, limit: 20, archive: 'active', group: 'progress', sort: 'applied_asc' },
         expect.anything(),
       ),
     );
-    fireEvent.click(screen.getByRole('tab', { name: 'Sent by automation' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await screen.findByText('Showing 21–21');
+    fireEvent.click(screen.getByRole('tab', { name: /^NorthList Apply/ }));
     await waitFor(() =>
       expect(api.listApplications).toHaveBeenLastCalledWith(
-        expect.objectContaining({ offset: 0, submittedVia: 'AUTOMATION' }),
+        expect.objectContaining({ offset: 0, group: 'apply' }),
         expect.anything(),
       ),
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Clear all' }));
+    fireEvent.click(screen.getByRole('tab', { name: /^Replied/ }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Clear all' }));
+    // Clearing keeps the chosen list.
     await waitFor(() =>
       expect(api.listApplications).toHaveBeenLastCalledWith(
-        { offset: 0, limit: 20, archive: 'active' },
+        { offset: 0, limit: 20, archive: 'active', group: 'apply' },
         expect.anything(),
       ),
     );
     expect(screen.getByRole('combobox', { name: 'Sort applications' })).toHaveTextContent(
       'Newest added',
     );
-    expect(screen.getByRole('tab', { name: 'All' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tab', { name: /^All/ })).toHaveAttribute('aria-selected', 'true');
   });
 
   it('retries a failed filtered read and refreshes newly recorded intake without posting', async () => {
     vi.mocked(api.listApplications).mockImplementation(async (params) => {
-      if (params?.submittedVia) throw new Error('Temporarily unavailable');
+      if (params?.reply) throw new Error('Temporarily unavailable');
       return page([]);
     });
     renderWithProviders(qc, '/applications');
     await screen.findByText('No applications yet');
-    fireEvent.click(screen.getByRole('tab', { name: 'Sent by automation' }));
+    fireEvent.click(screen.getByRole('tab', { name: /^NorthList Apply/ }));
+    await screen.findByText('Nothing sent by NorthList Apply yet');
+    fireEvent.click(screen.getByRole('tab', { name: /^Waiting/ }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Could not load your applications');
-    expect(screen.getByRole('tab', { name: 'Sent by automation' })).toHaveAttribute(
-      'aria-selected',
-      'true',
-    );
+    expect(screen.getByRole('tab', { name: /^Waiting/ })).toHaveAttribute('aria-selected', 'true');
     vi.mocked(api.listApplications).mockResolvedValue(page([]));
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
     await screen.findByText('No matching applications');
-    expect(screen.getByRole('link', { name: 'Automation review' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'NorthList Apply review' })).toHaveAttribute(
       'href',
       '/automation',
     );
@@ -774,7 +820,7 @@ describe('application discovery completion (AD-02)', () => {
 
   it('returns an empty later page to the first page while retaining discovery choices', async () => {
     vi.mocked(api.listApplications).mockImplementation(async (params) =>
-      page(params?.offset ? [] : [recorded], params?.offset, params?.offset ? null : 20),
+      page(params?.offset ? [] : [makeApp()], params?.offset, params?.offset ? null : 20),
     );
     renderWithProviders(qc, '/applications');
     await chooseOption(

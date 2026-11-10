@@ -44,7 +44,7 @@ export const MAIN_NAV: readonly NavItem[] = [
 export const SETTINGS_NAV: readonly NavItem[] = [
   { to: '/gmail', label: 'Gmail sync', icon: Renew },
   { to: '/ai', label: 'AI providers', icon: MachineLearningModel },
-  { to: '/automation', label: 'Automation', icon: Flow },
+  { to: '/automation', label: 'NorthList Apply', icon: Flow },
 ];
 
 /** A list page returns to its last filters and page when opened from the menu. */

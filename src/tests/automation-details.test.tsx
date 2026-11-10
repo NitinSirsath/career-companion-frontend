@@ -161,17 +161,17 @@ describe('application page', () => {
     vi.mocked(api.getApplication).mockResolvedValue(manualApp);
     show('/applications/app-2');
     await screen.findByRole('heading', { name: 'Manual Co' });
-    expect(screen.queryByRole('tab', { name: 'Automation details' })).toBeNull();
+    expect(screen.queryByRole('tab', { name: 'NorthList Apply details' })).toBeNull();
     expect(api.getApplicationSubmissions).not.toHaveBeenCalled();
   });
 
-  it('shows every detail and answer in the Automation details tab', async () => {
+  it('shows every detail and answer in the NorthList Apply details tab', async () => {
     show('/applications/app-1');
     expect(await screen.findByRole('tab', { name: 'Overview' })).toHaveAttribute(
       'aria-selected',
       'true',
     );
-    fireEvent.click(screen.getByRole('tab', { name: 'Automation details' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'NorthList Apply details' }));
     const details = await screen.findByRole('region', { name: 'Submission' });
     const value = (label: string) => within(details).getByText(label).nextElementSibling;
     expect(within(value('Job post') as HTMLElement).getByRole('link')).toHaveAttribute(
@@ -207,7 +207,7 @@ describe('application page', () => {
       ],
     });
     show('/applications/app-1');
-    fireEvent.click(await screen.findByRole('tab', { name: 'Automation details' }));
+    fireEvent.click(await screen.findByRole('tab', { name: 'NorthList Apply details' }));
     const details = await screen.findByRole('region', { name: 'Submission' });
     expect(within(details).getAllByText('Not sent')).toHaveLength(3);
     expect(within(details).queryByRole('link')).toBeNull();

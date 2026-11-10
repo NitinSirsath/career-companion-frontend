@@ -200,7 +200,7 @@ describe('pending submissions panel', () => {
   it('is hidden when nothing needs review', async () => {
     vi.mocked(api.getPendingSubmissions).mockResolvedValue(page([]));
     renderAutomation();
-    await screen.findByRole('heading', { name: 'Automation' });
+    await screen.findByRole('heading', { name: 'NorthList Apply' });
     await waitFor(() => expect(api.getPendingSubmissions).toHaveBeenCalled());
     expect(screen.queryByRole('heading', { name: 'Waiting for a match' })).not.toBeInTheDocument();
   });

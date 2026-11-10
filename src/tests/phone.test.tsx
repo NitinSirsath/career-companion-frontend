@@ -125,7 +125,7 @@ describe('phone top bar and menu', () => {
       'Applications',
       'Gmail sync',
       'AI providers',
-      'Automation',
+      'NorthList Apply',
     ]);
     fireEvent.click(menu.getByRole('link', { name: 'Applications' }));
     await waitFor(() => expect(router.state.location.pathname).toBe('/applications'));

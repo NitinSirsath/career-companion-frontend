@@ -98,7 +98,7 @@ function Coverage({ automation }: { automation: Automation }) {
       title="What your automation did"
       aside={
         <Link to="/automation" className="text-link hover:underline">
-          Open Automation
+          Open NorthList Apply
         </Link>
       }
     >
