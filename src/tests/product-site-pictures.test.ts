@@ -257,7 +257,7 @@ describe('the run on the Automation page', () => {
     expect($('[data-newrow]').classList.contains('pending')).toBe(true);
     await vi.advanceTimersByTimeAsync(100);
     expect($('[data-newrow]').classList.contains('arrive')).toBe(true);
-    expect($('[data-newrow] .tag').textContent).toBe('Sent by automation');
+    expect($('[data-newrow] .tag').textContent).toBe('No reply yet');
     expect($('.run [data-run="note"]').classList.contains('on')).toBe(true);
     await vi.advanceTimersByTimeAsync(500);
     expect(shown()).toBe(steps().length);
