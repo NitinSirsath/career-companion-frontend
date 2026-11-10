@@ -24,6 +24,7 @@ import {
   AIReadingStatusResponseSchema,
   AISampleTestResponseSchema,
   AISettingsResponseSchema,
+  ApplicationGroupsResponseSchema,
   ApplicationResponseSchema,
   CheckAIProviderResponseSchema,
   CreateIntegrationTokenResponseSchema,
@@ -41,6 +42,7 @@ import {
   SaveAIProviderResponseSchema,
 } from '../contracts';
 import type {
+  ApplicationGroupsResponse,
   ApplicationResponse,
   ListApplicationsResponse,
   ListApplicationEventsResponse,
@@ -263,12 +265,26 @@ export class ApiClient {
     if (params?.archive) urlParams.append('archive', params.archive);
     if (params?.effectiveStatus) urlParams.append('effectiveStatus', params.effectiveStatus);
     if (params?.submittedVia) urlParams.append('submittedVia', params.submittedVia);
+    if (params?.group) urlParams.append('group', params.group);
+    if (params?.reply) urlParams.append('reply', params.reply);
     if (params?.sort) urlParams.append('sort', params.sort);
     const q = urlParams.toString();
     return this.request(
       `/api/applications${q ? '?' + q : ''}`,
       { method: 'GET', cache: 'no-store', signal: options?.signal },
       ListApplicationsResponseSchema,
+    );
+  }
+
+  /** Counts for the In progress / NorthList Apply switch and the reply bar. */
+  async getApplicationGroups(
+    archive: ApplicationFilters['archive'],
+    options?: RequestOptions,
+  ): Promise<ApplicationGroupsResponse> {
+    return this.request(
+      `/api/applications/groups${archive && archive !== 'active' ? '?archive=' + archive : ''}`,
+      { method: 'GET', cache: 'no-store', signal: options?.signal },
+      ApplicationGroupsResponseSchema,
     );
   }
 
