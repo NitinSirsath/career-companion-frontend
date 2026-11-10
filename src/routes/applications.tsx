@@ -6,7 +6,7 @@ import { useIsPhone } from '../components/layout/useIsPhone';
 import { Renew } from '@carbon/icons-react';
 import { useCallback, useEffect, useRef, type Dispatch, type SetStateAction } from 'react';
 
-import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
+import { createFileRoute, Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearchText } from '../components/useSearchText';
 import { fetchApplicationsPage } from '../lib/applicationCache';
@@ -16,21 +16,23 @@ import { Select } from '../components/ui/select';
 
 import { Pagination } from '../components/ui/pagination';
 import { ApplicationsTable } from '../components/applications/ApplicationsTable';
-import { EmptyState } from '../components/ui/empty-state';
+import {
+  ApplicationListTabs,
+  ApplicationsEmpty,
+} from '../components/applications/ApplicationLists';
 import { SectionError } from '../components/ui/section-error';
-import { Tabs } from '../components/ui/tabs';
 import { FilterChips, Toolbar, ToolbarSearch } from '../components/ui/toolbar';
 import {
   ARCHIVE_OPTIONS,
   INITIAL_VIEW,
+  REPLY_TABS,
   SORT_OPTIONS,
   STATUS_TABS,
   applicationsSearchSchema,
+  listFilters,
   searchFromView,
-  tabFilters,
   viewFromSearch,
   type DiscoveryView,
-  type StatusTab,
 } from '../lib/applicationsView';
 import { rememberListSearch } from '../lib/listMemory';
 
@@ -52,7 +54,7 @@ function ApplicationsDashboard({
 }) {
   const queryClient = useQueryClient();
   const phone = useIsPhone();
-  const { offset, search, tab, archive, sort } = view;
+  const { offset, search, list, reply, tab, archive, sort } = view;
   const setOffset = (offset: number) => setView((current) => ({ ...current, offset }));
   const changeFilters = (changes: Partial<DiscoveryView>) =>
     setView((current) => ({ ...current, ...changes, offset: 0 }));
@@ -60,17 +62,14 @@ function ApplicationsDashboard({
     changeFilters({ search: text }),
   );
 
-  const { effectiveStatus, submittedVia } = tabFilters(tab);
-
   const limit = 20;
   const filters = {
     archive,
     ...(search.trim() ? { q: search.trim() } : {}),
-    ...(effectiveStatus ? { effectiveStatus } : {}),
-    ...(submittedVia ? { submittedVia } : {}),
+    ...listFilters(view),
     ...(sort !== 'added_desc' ? { sort } : {}),
   };
-  const hasFilters = !!(search.trim() || tab !== 'ALL' || archive !== 'active');
+  const hasFilters = !!(search.trim() || tab !== 'ALL' || reply !== 'ALL' || archive !== 'active');
   const params = { offset, limit, ...filters };
 
   const {
@@ -125,19 +124,7 @@ function ApplicationsDashboard({
         }
       />
 
-      <Tabs<StatusTab>
-        label="Status"
-        value={tab}
-        onValueChange={(next) => changeFilters({ tab: next })}
-        items={STATUS_TABS}
-        phoneLook="chips"
-      />
-      {tab === 'SUBMITTED' && (
-        <p className="text-sm text-text-secondary">
-          These applications were sent by your automation but have no company confirmation yet.
-          Submissions waiting for a match are in <Link to="/automation">Automation review</Link>.
-        </p>
-      )}
+      <ApplicationListTabs view={view} onChange={changeFilters} />
       <ApplicationsTable
         applications={error ? [] : applications}
         loading={isLoading}
@@ -193,6 +180,14 @@ function ApplicationsDashboard({
                       },
                     ]
                   : []),
+                ...(reply !== 'ALL'
+                  ? [
+                      {
+                        label: `Replies: ${REPLY_TABS.find((t) => t.value === reply)?.label}`,
+                        onRemove: () => changeFilters({ reply: 'ALL' }),
+                      },
+                    ]
+                  : []),
                 ...(archive !== 'active'
                   ? [
                       {
@@ -202,7 +197,7 @@ function ApplicationsDashboard({
                     ]
                   : []),
               ]}
-              onClearAll={() => setView(INITIAL_VIEW)}
+              onClearAll={() => setView({ ...INITIAL_VIEW, list })}
             />
           </div>
         }
@@ -213,22 +208,12 @@ function ApplicationsDashboard({
               title="Could not load your applications"
               onRetry={() => void refetch()}
             />
-          ) : hasFilters ? (
-            <EmptyState
-              title="No matching applications"
-              action={
-                <Button variant="ghost" className="-ml-4" onClick={() => setView(INITIAL_VIEW)}>
-                  Clear all filters
-                </Button>
-              }
-            >
-              Try changing the search, the status or what is shown.
-            </EmptyState>
           ) : (
-            <EmptyState title="No applications yet">
-              They appear here when the app finds one in your mails, or when your automation records
-              one. Submissions waiting for a match are in <Link to="/automation">Automation</Link>.
-            </EmptyState>
+            <ApplicationsEmpty
+              list={list}
+              hasFilters={hasFilters}
+              onClear={() => setView({ ...INITIAL_VIEW, list })}
+            />
           )
         }
         footer={
