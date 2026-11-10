@@ -23,7 +23,8 @@ export const STATUS_TAG_COLOR: Record<ApplicationStatus, TagColor> = {
 };
 
 export const STATUS_UNKNOWN_TAG: TagLook = { label: 'Status unknown', color: 'outline' };
-export const SENT_BY_AUTOMATION_TAG: TagLook = { label: 'Sent by automation', color: 'outline' };
+/** NorthList Apply sent it and the company has not written yet (owner, 10 Nov 2026). */
+export const SENT_BY_AUTOMATION_TAG: TagLook = { label: 'No reply yet', color: 'outline' };
 export const ARCHIVED_TAG: TagLook = { label: 'Archived', color: 'outline' };
 
 export function statusTag(status: ApplicationStatus | null): TagLook {
