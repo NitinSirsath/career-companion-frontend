@@ -4,7 +4,7 @@ import { AutomationDetails } from './AutomationDetails';
 
 const PAGE_TABS = [
   { value: 'overview', label: 'Overview' },
-  { value: 'automation', label: 'Automation details' },
+  { value: 'automation', label: 'NorthList Apply details' },
 ] as const;
 type PageTab = (typeof PAGE_TABS)[number]['value'];
 
