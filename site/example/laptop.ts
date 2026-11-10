@@ -172,7 +172,7 @@ export function laptop(s: State, m: Mail | null): string {
     <div class="sa-brand">${wordmark(17)}</div>
     <div class="sa-top"><div class="sa-crumb">${crumb}</div><div class="sa-top-right"><span><span class="sa-avatar">A</span></span></div></div>
     <aside class="sa-side" aria-label="Sample app menu">${nav('dashboard', 'dashboard', 'Dashboard')}${nav('mails', 'mail', 'Mails')}${nav('applications', 'doc', 'Applications')}
-      <span class="sa-group">Settings</span>${soon('renew', 'Gmail sync')}${soon('model', 'AI providers')}${soon('flow', 'Automation')}${reading(s)}</aside>
+      <span class="sa-group">Settings</span>${soon('renew', 'Gmail sync')}${soon('model', 'AI providers')}${soon('flow', 'NorthList Apply')}${reading(s)}</aside>
     <div class="sa-main">${view}</div>
   </div>`;
 }
