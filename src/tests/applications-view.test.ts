@@ -3,8 +3,8 @@ import {
   activityLine,
   applicationsSearchSchema,
   INITIAL_VIEW,
+  listFilters,
   searchFromView,
-  tabFilters,
   viewFromSearch,
 } from '../lib/applicationsView';
 
@@ -12,6 +12,8 @@ describe('Applications view in the URL', () => {
   it('keeps a plain list as a plain URL', () => {
     expect(searchFromView(INITIAL_VIEW)).toEqual({
       q: undefined,
+      view: undefined,
+      reply: undefined,
       status: undefined,
       archive: undefined,
       sort: undefined,
@@ -23,28 +25,67 @@ describe('Applications view in the URL', () => {
     const view = {
       offset: 20,
       search: 'acme',
+      list: 'progress',
+      reply: 'ALL',
       tab: 'OFFER',
       archive: 'all',
       sort: 'company_asc',
     } as const;
     expect(viewFromSearch(applicationsSearchSchema.parse(searchFromView(view)))).toEqual(view);
+    const apply = { ...view, list: 'apply', reply: 'replied', tab: 'ALL' } as const;
+    expect(searchFromView(apply)).toMatchObject({
+      view: 'apply',
+      reply: 'replied',
+      status: undefined,
+    });
+    expect(viewFromSearch(applicationsSearchSchema.parse(searchFromView(apply)))).toEqual(apply);
+  });
+
+  it('opens an old "Sent by automation" link as NorthList Apply › Waiting', () => {
+    expect(viewFromSearch(applicationsSearchSchema.parse({ status: 'SUBMITTED' }))).toMatchObject({
+      list: 'apply',
+      reply: 'waiting',
+      tab: 'ALL',
+    });
+  });
+
+  it('keeps each list to its own tabs', () => {
+    expect(
+      viewFromSearch(applicationsSearchSchema.parse({ status: 'OFFER', view: 'apply' })),
+    ).toMatchObject({ list: 'apply', reply: 'ALL', tab: 'ALL' });
+    expect(viewFromSearch(applicationsSearchSchema.parse({ reply: 'replied' }))).toMatchObject({
+      list: 'progress',
+      reply: 'ALL',
+    });
   });
 
   it('ignores a broken URL value instead of failing the page', () => {
-    expect(applicationsSearchSchema.parse({ status: 'NOPE', offset: -3 })).toEqual({
+    expect(
+      applicationsSearchSchema.parse({ status: 'NOPE', offset: -3, view: 'x', reply: 'y' }),
+    ).toEqual({
       status: undefined,
       offset: undefined,
+      view: undefined,
+      reply: undefined,
     });
   });
 
-  it('maps the status tabs to server filters', () => {
-    expect(tabFilters('ALL')).toEqual({});
-    expect(tabFilters('RECEIVED')).toEqual({ effectiveStatus: 'APPLIED' });
-    expect(tabFilters('SUBMITTED')).toEqual({
-      effectiveStatus: 'UNKNOWN',
-      submittedVia: 'AUTOMATION',
+  it('maps the lists and their tabs to server filters', () => {
+    const progress = { list: 'progress', reply: 'ALL' } as const;
+    expect(listFilters({ ...progress, tab: 'ALL' })).toEqual({ group: 'progress' });
+    expect(listFilters({ ...progress, tab: 'RECEIVED' })).toEqual({
+      group: 'progress',
+      effectiveStatus: 'APPLIED',
     });
-    expect(tabFilters('INTERVIEW')).toEqual({ effectiveStatus: 'INTERVIEW' });
+    expect(listFilters({ ...progress, tab: 'INTERVIEW' })).toEqual({
+      group: 'progress',
+      effectiveStatus: 'INTERVIEW',
+    });
+    expect(listFilters({ list: 'apply', reply: 'ALL', tab: 'ALL' })).toEqual({ group: 'apply' });
+    expect(listFilters({ list: 'apply', reply: 'waiting', tab: 'ALL' })).toEqual({
+      group: 'apply',
+      reply: 'waiting',
+    });
   });
 });
 
@@ -68,9 +109,9 @@ describe('last activity in plain words', () => {
       })?.what,
     ).toBe('Mail from Arjun Mehta');
   });
-  it('says when the automation sent it, and never shows system words', () => {
+  it('says when NorthList Apply sent it, and never shows system words', () => {
     expect(activityLine({ ...base, type: 'AUTOMATION_SUBMITTED', sourceEmail: null })?.what).toBe(
-      'Sent by your automation',
+      'Sent by NorthList Apply',
     );
     expect(activityLine({ ...base, type: 'EMAIL_PROCESSED', sourceEmail: null })?.what).toBe(
       'A job mail',
