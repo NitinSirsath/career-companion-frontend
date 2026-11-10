@@ -18,7 +18,7 @@ const SOURCE: Record<'USER' | 'AI' | 'AUTOMATION', { icon: ReactNode; label: str
     icon: <MachineLearningModel size={16} aria-hidden="true" />,
     label: 'Status set by the AI from a mail',
   },
-  AUTOMATION: { icon: <Flow size={16} aria-hidden="true" />, label: 'Reported by your automation' },
+  AUTOMATION: { icon: <Flow size={16} aria-hidden="true" />, label: 'From NorthList Apply' },
 };
 
 function sourceOf(app: ApplicationResponse): keyof typeof SOURCE | null {
