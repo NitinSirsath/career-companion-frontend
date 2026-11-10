@@ -32,7 +32,7 @@ export function ApplicationFacts({
   ];
   if (application.location) rows.push({ label: 'Location', value: application.location });
   if (application.submittedVia === 'AUTOMATION')
-    rows.push({ label: 'Sent by', value: 'Your automation' });
+    rows.push({ label: 'Sent by', value: 'NorthList Apply' });
   const people = mailPeople(events);
   return (
     <aside aria-label="About this application" className="flex flex-col gap-4 lg:sticky lg:top-20">
