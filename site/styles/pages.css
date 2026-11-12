@@ -138,6 +138,29 @@
 /* ---------- Automation (owner, 1 Nov): head button, four rules, three places, four steps. The run picture is in automation.css ---------- */
 .page-head .ctas { margin-top: 32px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
 .page-head .ctas .note { margin-top: 0; }
+/* Sites it was tried on (owner, 12 Nov 2026, mock view D): names in words, each in a light tint of that site's colour.
+   Colours only, never the sites' logos or lettering. Text colours are adjusted to at least 4.5:1 on their tint. */
+.tested { display: flex; flex-direction: column; gap: 10px; }
+.site-chips { display: flex; flex-wrap: wrap; gap: 8px; max-width: 640px; margin: 0; padding: 0; list-style: none; }
+.site-chips li { padding: 4px 10px; border: 1px solid var(--chip-line); border-radius: 6px; background: var(--chip-bg); color: var(--chip); font-size: 13px; line-height: 18px; font-weight: 500; }
+.site-chips .s-linkedin { --chip: #0a66c2; --chip-bg: #e6f0f9; --chip-line: #b6d1ed; }
+.site-chips .s-naukri { --chip: #3967d1; --chip-bg: #ecf2ff; --chip-line: #c7d8ff; }
+.site-chips .s-indeed { --chip: #2557a7; --chip-bg: #e9eef6; --chip-line: #becde5; }
+.site-chips .s-wellfound { --chip: #ce2700; --chip-bg: #fdeae6; --chip-line: #f9c0b2; }
+.site-chips .s-instahyre { --chip: #15739f; --chip-bg: #e8f5fb; --chip-line: #bbe1f3; }
+.site-chips .s-workday { --chip: #0769ca; --chip-bg: #e6f1fc; --chip-line: #b5d6f6; }
+.site-chips .s-greenhouse { --chip: #1b795e; --chip-bg: #e9f6f2; --chip-line: #bde4d9; }
+.site-chips .s-lever { --chip: #297870; --chip-bg: #eaf2f1; --chip-line: #bfd7d5; }
+.site-chips .s-ashby { --chip: #5b4ee8; --chip-bg: #efedfd; --chip-line: #cecaf8; }
+:root[data-theme='dark'] .site-chips .s-linkedin { --chip: #458bd1; --chip-bg: #0c1d2e; --chip-line: #0c355e; }
+:root[data-theme='dark'] .site-chips .s-naukri { --chip: #5086ff; --chip-bg: #172139; --chip-line: #26407a; }
+:root[data-theme='dark'] .site-chips .s-indeed { --chip: #6286c0; --chip-bg: #111a29; --chip-line: #182e52; }
+:root[data-theme='dark'] .site-chips .s-wellfound { --chip: #ee522e; --chip-bg: #35130b; --chip-line: #701b07; }
+:root[data-theme='dark'] .site-chips .s-instahyre { --chip: #1d9bd7; --chip-bg: #102731; --chip-line: #144d68; }
+:root[data-theme='dark'] .site-chips .s-workday { --chip: #308be6; --chip-bg: #0c2033; --chip-line: #0b3c6c; }
+:root[data-theme='dark'] .site-chips .s-greenhouse { --chip: #24a47f; --chip-bg: #112822; --chip-line: #175140; }
+:root[data-theme='dark'] .site-chips .s-lever { --chip: #50928b; --chip-bg: #12211f; --chip-line: #1a3e3a; }
+:root[data-theme='dark'] .site-chips .s-ashby { --chip: #8278ee; --chip-bg: #1b1934; --chip-line: #302a70; }
 .rules { margin-top: 48px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px; }
 .rule { display: flex; flex-direction: column; gap: 6px; }
 .rule svg { color: var(--text-2); margin-bottom: 8px; }
