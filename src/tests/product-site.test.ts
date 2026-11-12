@@ -110,7 +110,22 @@ describe('the Automation page', () => {
 
   it('says how far it is tested, and makes no claims about speed or results', () => {
     const text = doc('automation').body.textContent ?? '';
-    expect(text).toContain('In beta. Tried so far on LinkedIn Easy Apply, Naukri and Indeed.');
+    expect(text).toContain('In beta. Tested on');
+    const chips = [...doc('automation').querySelectorAll('.site-chips li')].map(
+      (li) => li.textContent,
+    );
+    expect(chips).toEqual([
+      'LinkedIn',
+      'Naukri',
+      'Indeed',
+      'Wellfound',
+      'Instahyre',
+      'Workday',
+      'Greenhouse',
+      'Lever',
+      'Ashby',
+    ]);
+    expect(doc('automation').querySelector('.site-chips img, .site-chips svg')).toBeNull();
     expect(text).not.toMatch(
       /\b(fast|faster|quickly|instantly|in minutes|success rate|guarantee)/i,
     );
