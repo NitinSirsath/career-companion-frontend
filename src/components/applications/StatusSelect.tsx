@@ -1,5 +1,5 @@
 import { Select as BaseSelect } from '@base-ui/react/select';
-import { Checkmark, ChevronDown } from '@carbon/icons-react';
+import { CheckIcon, ChevronDownIcon } from 'lucide-react';
 import { ApplicationStatusSchema, type ApplicationResponse } from '../../contracts/application';
 import { statusSourceLine } from '../../lib/applicationDetail';
 import { USE_AI, statusWords, type Choice, type Phase } from '../../lib/statusChoice';
@@ -37,7 +37,7 @@ function StatusSelect({
         className="group inline-flex h-8 cursor-pointer items-center gap-1 pr-2 transition-colors duration-70 ease-standard outline-none hover:bg-layer-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-border-focus data-disabled:cursor-not-allowed data-disabled:opacity-60 data-disabled:hover:bg-transparent"
       >
         <Tag color={shown.color}>{shown.label}</Tag>
-        <ChevronDown
+        <ChevronDownIcon
           size={16}
           aria-hidden="true"
           className="transition-transform duration-110 ease-standard group-data-popup-open:rotate-180"
@@ -58,7 +58,7 @@ function StatusSelect({
                     {STATUS_LABEL[status]}
                   </BaseSelect.ItemText>
                   <BaseSelect.ItemIndicator className="flex text-link">
-                    <Checkmark size={16} aria-hidden="true" />
+                    <CheckIcon size={16} aria-hidden="true" />
                   </BaseSelect.ItemIndicator>
                 </BaseSelect.Item>
               ))}
@@ -68,7 +68,7 @@ function StatusSelect({
                   Use the AI's status ({ai ? STATUS_LABEL[ai] : 'none yet'})
                 </BaseSelect.ItemText>
                 <BaseSelect.ItemIndicator className="flex text-link">
-                  <Checkmark size={16} aria-hidden="true" />
+                  <CheckIcon size={16} aria-hidden="true" />
                 </BaseSelect.ItemIndicator>
               </BaseSelect.Item>
             </BaseSelect.List>
