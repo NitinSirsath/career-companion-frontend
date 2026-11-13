@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Dialog as BaseDialog } from '@base-ui/react/dialog';
-import { Close } from '@carbon/icons-react';
+import { XIcon } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { AutoHeight } from './auto-height';
 
@@ -60,9 +60,9 @@ export function DialogContent({
           <AutoHeight contentClassName="flex flex-col px-6 pt-6">{children}</AutoHeight>
           <BaseDialog.Close
             aria-label="Close dialog"
-            className="absolute top-5 right-5 flex size-8 cursor-pointer items-center justify-center rounded-md text-text-secondary transition-colors duration-70 ease-standard hover:bg-layer-hover hover:text-text-primary"
+            className="absolute top-5 right-5 flex size-8 cursor-pointer items-center justify-center rounded-full text-text-secondary transition-colors duration-70 ease-standard hover:bg-layer-hover hover:text-text-primary"
           >
-            <Close size={16} aria-hidden="true" />
+            <XIcon size={16} aria-hidden="true" />
           </BaseDialog.Close>
         </BaseDialog.Popup>
       </div>
