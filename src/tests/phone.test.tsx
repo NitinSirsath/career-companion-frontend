@@ -104,34 +104,37 @@ afterEach(() => {
   setWidth(desktopWidth);
 });
 
-describe('phone top bar and menu', () => {
-  it('opens every page from the menu cell, and keeps three pages in the bottom bar', async () => {
+describe('phone tab bar and Settings', () => {
+  it('keeps four tabs in the tab bar, and every other page in the Settings tab', async () => {
     show('/mails');
     await screen.findByRole('link', { name: ROW_NAME });
-    const [, phoneBar] = screen.getAllByRole('navigation', { name: 'Main' });
-    const bar = within(phoneBar);
+    const bar = within(screen.getByRole('navigation', { name: 'Main' }));
     expect(bar.getAllByRole('link').map((link) => link.textContent)).toEqual([
       'Dashboard',
       'Mails',
       'Applications',
+      'Settings',
     ]);
+    expect(bar.getByRole('link', { name: 'Mails' })).toHaveAttribute('aria-current', 'page');
+    // No menu and no account button on phones: the Settings tab holds them.
+    expect(screen.queryByRole('button', { name: 'Open menu' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Account menu' })).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Open menu' }));
-    const menu = within(await screen.findByRole('dialog', { name: 'Menu' }));
-    const links = menu.getByRole('navigation', { name: 'Menu' }).querySelectorAll('a');
-    expect(Array.from(links, (link) => link.textContent)).toEqual([
-      'Dashboard',
-      'Mails',
-      'Applications',
-      'Gmail sync',
-      'AI providers',
-      'NorthList Apply',
-    ]);
-    fireEvent.click(menu.getByRole('link', { name: 'Applications' }));
-    await waitFor(() => expect(router.state.location.pathname).toBe('/applications'));
-    await waitFor(() =>
-      expect(screen.queryByRole('dialog', { name: 'Menu' })).not.toBeInTheDocument(),
-    );
+    fireEvent.click(bar.getByRole('link', { name: 'Settings' }));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/settings'));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Settings' })).toBeInTheDocument();
+    for (const [name, href] of [
+      ['Gmail sync', '/gmail'],
+      ['AI providers', '/ai'],
+      ['NorthList Apply', '/automation'],
+      ['Account', '/account'],
+      ['Appearance', '/settings/appearance'],
+    ])
+      expect(screen.getByRole('link', { name: new RegExp(\`^\${name}\`) })).toHaveAttribute(
+        'href',
+        href,
+      );
+    expect(screen.getByRole('button', { name: 'Sign out' })).toBeInTheDocument();
   });
 
   it('puts the search one tap away, and the two filters used most as chips', async () => {
@@ -184,14 +187,13 @@ describe('phone lists', () => {
     expect(router.state.location.pathname).toBe('/mails');
   });
 
-  it('shows an application as a card, with only search in the top bar', async () => {
+  it('shows an application as a card, with no add button', async () => {
     show('/applications');
     expect(await screen.findByRole('link', { name: /^Quanta Labs/ })).toHaveAttribute(
       'href',
       expect.stringMatching(/^\/applications\//),
     );
-    const topBar = within(screen.getByRole('button', { name: 'Open menu' }).closest('header')!);
-    expect(topBar.queryByRole('button', { name: 'Add application' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Add application' })).not.toBeInTheDocument();
   });
 });
 
