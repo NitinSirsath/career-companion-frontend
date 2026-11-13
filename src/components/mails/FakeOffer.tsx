@@ -1,4 +1,4 @@
-import { WarningAlt } from '@carbon/icons-react';
+import { TriangleAlertIcon } from 'lucide-react';
 import { FAKE_OFFER } from '../../lib/mails';
 import { InlineNotification } from '../ui/notification';
 import { Tag } from '../ui/tag';
@@ -7,7 +7,7 @@ import { Tag } from '../ui/tag';
 export function FakeOfferTag() {
   return (
     <Tag color="yellow">
-      <WarningAlt size={12} aria-hidden="true" />
+      <TriangleAlertIcon size={12} aria-hidden="true" />
       {FAKE_OFFER.tag}
     </Tag>
   );
