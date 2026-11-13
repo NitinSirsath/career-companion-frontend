@@ -664,6 +664,16 @@
   }
 }
 
+/* iPhones zoom into a field whose text is under 16px: on phones no field is smaller. */
+@media (max-width: 767px) {
+  input:not([type='checkbox'], [type='radio'], [type='range']),
+  textarea,
+  select,
+  [contenteditable='true'] {
+    font-size: max(16px, 1em) !important;
+  }
+}
+
 /* "Reduce motion" on the computer: nothing moves. */
 @media (prefers-reduced-motion: reduce) {
   *,
