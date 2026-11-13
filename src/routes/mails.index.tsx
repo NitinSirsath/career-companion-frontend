@@ -4,11 +4,10 @@ import { AIAccessNotice } from '../components/ai/AIAccessNotice';
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
 import { PageHeader } from '../components/layout/PageHeader';
 import { useIsPhone } from '../components/layout/useIsPhone';
-import { PhoneMailChips } from '../components/mails/ConversationFilters';
-import { LaptopBar, PhoneSearch } from '../components/mails/MailsBars';
+import { LaptopBar } from '../components/mails/MailsBars';
 import { GmailInbox } from '../components/mails/GmailInbox';
 import { JobMails } from '../components/mails/JobMails';
-import { MailsPhoneTitle } from '../components/mails/MailsPhoneTitle';
+import { PhoneMailsPage } from '../components/mails/PhoneMailsPage';
 import { MailSummary } from '../components/mails/MailSummary';
 import { RestrictedList } from '../components/mails/RestrictedList';
 import { SyncLine } from '../components/mails/SyncLine';
@@ -45,6 +44,8 @@ function MailsPage() {
   // Remembered so the breadcrumb on a mail returns to this exact view.
   useEffect(() => rememberListSearch('/mails', search), [search]);
 
+  if (phone)
+    return <PhoneMailsPage search={search} tab={tab} onFilter={filter} onChange={change} />;
   return (
     <div>
       <PageHeader
@@ -58,11 +59,9 @@ function MailsPage() {
             />
           )
         }
-        actions={phone ? undefined : <SyncLine />}
+        actions={<SyncLine />}
       />
-      {phone && <MailsPhoneTitle tab={tab} />}
-      {phone && !search.tab && <PhoneSearch search={search} onChange={filter} />}
-      <div className="mt-5 empty:hidden max-md:mt-3 md:mb-6">
+      <div className="mt-5 mb-6 empty:hidden">
         <AIAccessNotice compact />
       </div>
       <LaptopBar tab={tab} search={search} onChange={filter} />
