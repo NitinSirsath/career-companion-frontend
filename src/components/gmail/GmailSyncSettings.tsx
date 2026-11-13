@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { CheckmarkFilled, Renew } from '@carbon/icons-react';
+import { CircleCheckIcon, RefreshCwIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { api, isApiError } from '../../api/client';
 import { useSyncNow } from '../../api/gmail';
@@ -33,7 +33,7 @@ export function GmailSyncNow({ status, sync }: { status: GmailStatusResponse; sy
     <>
       <span className="text-xs text-text-secondary">{gmailSyncLine(status)}</span>
       <Button variant="secondary" loading={running} onClick={() => sync.mutate()}>
-        {!running && <Renew size={16} aria-hidden="true" />}
+        {!running && <RefreshCwIcon size={16} aria-hidden="true" />}
         {running ? 'Syncing…' : 'Sync now'}
       </Button>
     </>
@@ -87,7 +87,7 @@ export function GmailLookback({ status }: { status: GmailStatusResponse }) {
         <p role="status" className="min-h-6 pb-2 text-xs">
           {save.isSuccess && (
             <span className="inline-flex animate-fade-in items-center gap-1.5 text-ok">
-              <CheckmarkFilled size={16} aria-hidden="true" />
+              <CircleCheckIcon size={16} aria-hidden="true" />
               Saved. The next sync looks back {chosen?.label.replace(' (default)', '')}.
             </span>
           )}
