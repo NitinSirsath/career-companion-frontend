@@ -232,7 +232,7 @@ export function MailFilterPills({ search, onChange }: FiltersProps) {
         <button
           key={chip.label}
           type="button"
-          aria-label={\`Remove filter ${chip.label}\`}
+          aria-label={`Remove filter ${chip.label}`}
           onClick={chip.onRemove}
           className="flex h-[30px] max-w-full cursor-pointer items-center gap-1 rounded-full bg-layer-accent pr-2 pl-3 text-[15px] text-text-primary active:opacity-60"
         >
