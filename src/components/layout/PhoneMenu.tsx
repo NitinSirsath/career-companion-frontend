@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Dialog } from '@base-ui/react/dialog';
 import { Link } from '@tanstack/react-router';
-import { Close, Menu } from '@carbon/icons-react';
+import { MenuIcon, XIcon } from 'lucide-react';
 import { useDevMode, useSandboxMailbox } from '../../api/appMode';
 import { cn } from '../../lib/utils';
 import { Wordmark } from './Logo';
@@ -52,7 +52,7 @@ export function PhoneMenu() {
         aria-label="Open menu"
         className={cn(CELL, 'border-r border-border-subtle md:hidden')}
       >
-        <Menu size={20} aria-hidden="true" />
+        <MenuIcon size={20} aria-hidden="true" />
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Backdrop className="fixed inset-0 z-50 bg-overlay transition-opacity duration-240 ease-entrance data-ending-style:opacity-0 data-starting-style:opacity-0 md:hidden" />
@@ -66,7 +66,7 @@ export function PhoneMenu() {
               aria-label="Close menu"
               className={cn(CELL, 'border-l border-border-subtle')}
             >
-              <Close size={20} aria-hidden="true" />
+              <XIcon size={20} aria-hidden="true" />
             </Dialog.Close>
           </div>
           <nav aria-label="Menu" className="flex flex-1 flex-col gap-0.5 overflow-y-auto p-2">
