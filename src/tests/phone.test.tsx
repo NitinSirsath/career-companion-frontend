@@ -137,19 +137,24 @@ describe('phone tab bar and Settings', () => {
     expect(screen.getByRole('button', { name: 'Sign out' })).toBeInTheDocument();
   });
 
-  it('puts the search one tap away, and the two filters used most as chips', async () => {
+  it('keeps refresh, search and filters in the glass capsule, and shows filters as pills', async () => {
     show('/mails');
     await screen.findByRole('link', { name: ROW_NAME });
-    // The search opens in the top bar, ready to type, with Cancel to close it.
-    fireEvent.click(screen.getByRole('button', { name: 'Search mails' }));
+    const capsule = within(screen.getByRole('group', { name: 'Mail tools' }));
+    expect(capsule.getByRole('button', { name: 'Refresh' })).toBeInTheDocument();
+    // The search opens under the title, ready to type, with Cancel to close it.
+    fireEvent.click(capsule.getByRole('button', { name: 'Search mails' }));
     expect(document.activeElement).toBe(document.getElementById('mail-search'));
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
     expect(document.getElementById('mail-search')).toBeNull();
 
-    const needs = screen.getByRole('button', { name: 'Needs action', pressed: false });
-    fireEvent.click(needs);
+    // The filters menu grows out of its button: the quick ones, the order, and every filter.
+    fireEvent.click(capsule.getByRole('button', { name: 'Filter and sort' }));
+    fireEvent.click(await screen.findByRole('menuitemcheckbox', { name: 'Needs action' }));
     await waitFor(() => expect(router.state.location.search).toMatchObject({ request: 'open' }));
-    expect(screen.getByRole('button', { name: 'Needs action', pressed: true })).toBeInTheDocument();
+    const pill = await screen.findByRole('button', { name: /^Remove filter Action: / });
+    fireEvent.click(pill);
+    await waitFor(() => expect(router.state.location.search).not.toHaveProperty('request'));
   });
 });
 
@@ -161,6 +166,18 @@ describe('phone lists', () => {
     expect(row.closest('[role="listitem"]')!.querySelectorAll('[role="cell"]')).toHaveLength(0);
     swipeRight(row, 110);
     expect(api.patch).not.toHaveBeenCalled();
+  });
+
+  it('marks a new mail with a dot in its own lane, and lines up every row at the text', async () => {
+    detail.conversation = makeConversation({ isNew: true });
+    show('/mails');
+    const row = await screen.findByRole('link', { name: ROW_NAME });
+    // The text starts 32px in on every row; the dot sits in the lane left of it (owner, 13 Nov 2026).
+    expect(row).toHaveClass('pl-8');
+    expect(row.querySelector('[data-new-dot]')).toHaveClass('left-[11px]', 'size-2.5');
+    cleanup();
+    detail.conversation = makeConversation({ isNew: false });
+    show('/mails');
   });
 
   it('swipes "I did this" on an ask done outside mail', async () => {
@@ -220,21 +237,22 @@ describe('phone mail details', () => {
     expect(await replyWords(again)).toBe('Tuesday works for me.');
   });
 
-  it('puts "Create application" in view, right under the next step, while the mail has none', async () => {
+  it('puts "Create application" right under the next step, with key dates behind ⓘ', async () => {
     detail.mails = [makeConversationMail({ interviewDate: 'Nov 12' })];
     show('/mails/thread-1');
     const create = await screen.findByRole('button', { name: 'Create application' });
-    // Not folded: no "Application" toggle, and the card comes before "Key dates".
-    expect(screen.queryByRole('button', { name: 'Application' })).not.toBeInTheDocument();
-    const panel = screen.getByRole('complementary', { name: 'About this job mail' });
-    const sections = within(panel)
-      .getAllByRole('region')
-      .map((section) => section.getAttribute('aria-label'));
-    expect(sections.indexOf('Application')).toBeLessThan(sections.indexOf('Key dates'));
-    expect(screen.getByRole('region', { name: 'Application' })).toContainElement(create);
+    const top = screen.getByRole('group', { name: 'About this job mail' });
+    expect(within(top).getByRole('region', { name: 'Application' })).toContainElement(create);
+    expect(within(top).getByRole('button', { name: /^Next step: / })).toBeInTheDocument();
+    // Key dates are not on the page, but in the ⓘ sheet.
+    expect(screen.queryByText('Nov 12')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'About this job mail' }));
+    const sheet = within(await screen.findByRole('dialog', { name: 'About this job mail' }));
+    expect(sheet.getByText('Key dates')).toBeInTheDocument();
+    expect(sheet.getByText('Nov 12')).toBeInTheDocument();
   });
 
-  it('folds "Application" for a mail that has one, and for a probable fake offer', async () => {
+  it('keeps the application in the ⓘ sheet for a linked mail and a probable fake offer', async () => {
     detail.conversation = makeConversation({
       link: 'LINKED',
       application: {
@@ -246,15 +264,98 @@ describe('phone mail details', () => {
       },
     });
     show('/mails/thread-1');
-    expect(
-      await screen.findByRole('button', { name: 'Application', expanded: false }),
-    ).toBeInTheDocument();
+    await screen.findByText('Send your available dates');
+    expect(screen.queryByRole('button', { name: 'Create application' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'About this job mail' }));
+    const sheet = within(await screen.findByRole('dialog', { name: 'About this job mail' }));
+    expect(sheet.getByRole('link', { name: /Northwind Robotics/ })).toHaveAttribute(
+      'href',
+      '/applications/7f1c2d3e-4b5a-4c6d-8e9f-0a1b2c3d4e5f',
+    );
     cleanup();
 
     detail.conversation = makeConversation({ fakeOfferWarning: 'Asks you to pay to join' });
     show('/mails/thread-1');
-    expect(
-      await screen.findByRole('button', { name: 'Application', expanded: false }),
-    ).toBeInTheDocument();
+    await screen.findByText('Send your available dates');
+    expect(screen.queryByRole('button', { name: 'Create application' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'About this job mail' }));
+    const fake = within(await screen.findByRole('dialog', { name: 'About this job mail' }));
+    expect(fake.getByRole('button', { name: 'Create application' })).toBeInTheDocument();
+  });
+
+  it('has an action bar in place of the tab bar, and Back and ⓘ over the page', async () => {
+    show('/mails/thread-1');
+    await screen.findByText('Send your available dates');
+    // A page opened from a list has no tab bar: its own action bar floats in its place.
+    expect(screen.queryByRole('navigation', { name: 'Main' })).not.toBeInTheDocument();
+    const bar = within(screen.getByRole('navigation', { name: 'Mail actions' }));
+    // An ask answered by mail has no "Done": the reply closes it.
+    expect(bar.getAllByRole('button').map((button) => button.textContent)).toEqual([
+      'Reply',
+      'AI reply',
+      'More',
+    ]);
+    expect(screen.getByRole('button', { name: 'Back' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'About this job mail' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Open menu' })).not.toBeInTheDocument();
+  });
+
+  it('marks an ask done outside mail as done from the action bar', async () => {
+    const conversation = makeConversation();
+    detail.conversation = {
+      ...conversation,
+      request: { ...conversation.request!, askKind: 'OUTSIDE_MAIL', canReply: false },
+    };
+    show('/mails/thread-1');
+    const bar = within(await screen.findByRole('navigation', { name: 'Mail actions' }));
+    fireEvent.click(bar.getByRole('button', { name: 'Done' }));
+    await waitFor(() =>
+      expect(api.patch).toHaveBeenCalledWith('/api/conversations/thread-1/request', {
+        emailId: '11111111-1111-4111-8111-111111111111',
+        state: 'DONE',
+      }),
+    );
+  });
+
+  it('opens the next step in a sheet with "I did this" and the way to its mail', async () => {
+    const conversation = makeConversation();
+    detail.conversation = {
+      ...conversation,
+      request: { ...conversation.request!, askKind: 'OUTSIDE_MAIL', canReply: false },
+    };
+    show('/mails/thread-1');
+    fireEvent.click(await screen.findByRole('button', { name: /^Next step: / }));
+    const sheet = within(await screen.findByRole('dialog', { name: 'Next step' }));
+    expect(sheet.getByText(/When you've done it, choose "I did this".$/)).toBeInTheDocument();
+    fireEvent.click(sheet.getByRole('button', { name: 'I did this' }));
+    await waitFor(() =>
+      expect(api.patch).toHaveBeenCalledWith('/api/conversations/thread-1/request', {
+        emailId: '11111111-1111-4111-8111-111111111111',
+        state: 'DONE',
+      }),
+    );
+  });
+
+  it('shows the conversation\'s "⋯" actions in a sheet from More', async () => {
+    show('/mails/thread-1');
+    const bar = within(await screen.findByRole('navigation', { name: 'Mail actions' }));
+    fireEvent.click(bar.getByRole('button', { name: 'More' }));
+    const sheet = within(await screen.findByRole('dialog', { name: 'This conversation' }));
+    expect(sheet.getByRole('button', { name: 'Delete from NorthList…' })).toBeInTheDocument();
+    expect(sheet.getByRole('button', { name: 'Close' })).toBeInTheDocument();
+  });
+
+  it('opens the reply with the AI hint ready from "AI reply"', async () => {
+    show('/mails/thread-1');
+    const bar = within(await screen.findByRole('navigation', { name: 'Mail actions' }));
+    fireEvent.click(bar.getByRole('button', { name: 'AI reply' }));
+    // One Reply sheet, with the AI's help inside it (owner, 13 Nov 2026).
+    expect(await screen.findByRole('dialog', { name: 'Reply' })).toBeInTheDocument();
+    await screen.findByRole('form', { name: 'Reply' });
+    await waitFor(() =>
+      expect(document.activeElement).toBe(
+        screen.getByLabelText('What the AI should say (optional)'),
+      ),
+    );
   });
 });
