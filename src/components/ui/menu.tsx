@@ -1,6 +1,6 @@
 import type { Ref } from 'react';
 import { Menu as BaseMenu } from '@base-ui/react/menu';
-import { OverflowMenuVertical } from '@carbon/icons-react';
+import { EllipsisVerticalIcon } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { ITEM_CLASS, POPUP_CLASS } from './select';
 
@@ -41,7 +41,7 @@ export function OverflowMenu({
           className,
         )}
       >
-        <OverflowMenuVertical size={16} aria-hidden="true" />
+        <EllipsisVerticalIcon size={16} aria-hidden="true" />
       </BaseMenu.Trigger>
       <BaseMenu.Portal>
         <BaseMenu.Positioner align="end" sideOffset={4} className="z-50 outline-none">
