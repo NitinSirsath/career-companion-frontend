@@ -192,7 +192,7 @@ describe('job mail details', () => {
     );
   });
 
-  it("shows the user's reply in its place, and lets a replied action be asked again", async () => {
+  it("shows the user's reply in its place, and lets a replied action be reopened", async () => {
     const { conversation } = detail;
     detail = {
       ...detail,
@@ -229,7 +229,7 @@ describe('job mail details', () => {
     expect(panel.queryByText(/We do not read what you wrote/)).not.toBeInTheDocument();
     expect(panel.queryByRole('button', { name: /^Mark done/ })).not.toBeInTheDocument();
     vi.mocked(api.patch).mockResolvedValue(detail.conversation);
-    fireEvent.click(panel.getByRole('button', { name: /^Ask me again/ }));
+    fireEvent.click(panel.getByRole('button', { name: /^Reopen/ }));
     await waitFor(() =>
       expect(api.patch).toHaveBeenCalledWith('/api/conversations/thread-1/request', {
         emailId: '11111111-1111-4111-8111-111111111111',
