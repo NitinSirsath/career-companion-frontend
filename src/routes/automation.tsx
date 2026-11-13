@@ -38,6 +38,7 @@ function AutomationPage() {
     <div className="flex flex-col">
       <PhoneRefreshCapsule />
       <PageHeader
+        refresh
         title="NorthList Apply"
         description="Let your own job-application automation tell NorthList about each application it sends. NorthList never applies to jobs itself."
       />

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { api } from '../api/client';
@@ -124,6 +124,16 @@ describe('the Dashboard', () => {
     for (const gone of ['How you keep up', 'Kept safe', 'How fast companies answer'])
       expect(screen.queryByText(gone)).not.toBeInTheDocument();
     expect(screen.queryByText(/AI tip/)).not.toBeInTheDocument();
+  });
+
+  it('fetches the page again from the refresh button, so nobody has to reload the app', async () => {
+    renderPage();
+    await screen.findByRole('heading', { level: 1, name: /^Good (morning|afternoon|evening)/ });
+    const before = vi.mocked(api.getDashboard).mock.calls.length;
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh' }));
+    await waitFor(() =>
+      expect(vi.mocked(api.getDashboard).mock.calls.length).toBeGreaterThan(before),
+    );
   });
 
   it('asks for the period in the address', async () => {

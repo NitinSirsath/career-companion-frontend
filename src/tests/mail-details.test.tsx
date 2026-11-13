@@ -518,6 +518,22 @@ describe('replying from the mail details page', () => {
     await waitFor(async () => expect(await replyBox()).toHaveFocus());
   });
 
+  it('closes the open box with × or Esc on a laptop, keeps the text and returns the focus', async () => {
+    show('/mails/thread-1');
+    const form = await box();
+    await write(form, 'Tuesday works for me.');
+    fireEvent.keyDown(await replyBox(form), { key: 'Escape' });
+    expect(screen.queryByRole('form', { name: 'Reply' })).not.toBeInTheDocument();
+    // The closed bar says a draft is kept, and has the focus back.
+    const bar = await screen.findByRole('button', { name: /^Draft to Priya Nair/ });
+    await waitFor(() => expect(bar).toHaveFocus());
+    fireEvent.click(bar);
+    const again = within(await screen.findByRole('form', { name: 'Reply' }));
+    expect(await replyWords(again)).toBe('Tuesday works for me.');
+    fireEvent.click(again.getByRole('button', { name: 'Close reply' }));
+    expect(screen.queryByRole('form', { name: 'Reply' })).not.toBeInTheDocument();
+  });
+
   it('opens the reply box from the Reply button next to the title', async () => {
     show('/mails/thread-1');
     await screen.findByRole('button', { name: /^Reply to .*…/ });
