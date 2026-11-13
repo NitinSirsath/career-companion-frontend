@@ -323,7 +323,7 @@ describe('Job mails tab', () => {
     );
   });
 
-  it('offers "Ask me again" after the user replied', async () => {
+  it('offers "Reopen" after the user replied', async () => {
     const replied = makeConversation({ sentCount: 1 });
     conversations = [
       {
@@ -334,7 +334,7 @@ describe('Job mails tab', () => {
     show();
     const cells = await row('Interview: first round availability');
     expect(cells.getByText(/^You replied /)).toBeInTheDocument();
-    expect(await openRowMenu(cells)).toEqual(['Ask me again', 'Open in Gmail']);
+    expect(await openRowMenu(cells)).toEqual(['Reopen', 'Open in Gmail']);
   });
 
   it('asks for the company when the AI could not read one', async () => {
