@@ -15,7 +15,7 @@ const newestFirst = (a: Conversation, b: Conversation) =>
 
 /**
  * The action bar of an application on a phone (owner, 12 Nov 2026, approved mock
- * \`PHONE-DETAIL-mock/\`): Reply answers the newest mail (a sheet asks which conversation when there
+ * `PHONE-DETAIL-mock/`): Reply answers the newest mail (a sheet asks which conversation when there
  * are several; no Reply without one), Status opens the status sheet, More has Archive or Restore
  * and Delete.
  */
