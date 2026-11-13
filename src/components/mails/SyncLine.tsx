@@ -1,4 +1,4 @@
-import { Renew } from '@carbon/icons-react';
+import { RefreshCwIcon } from 'lucide-react';
 import { useGmailStatus, useSyncNow } from '../../api/gmail';
 import { mailDateTime } from '../../lib/mails';
 import { Button } from '../ui/button';
@@ -28,14 +28,18 @@ export function SyncLine({ look = 'button' }: { look?: 'button' | 'icon' | 'note
         onClick={() => sync.mutate()}
         disabled={syncing}
       >
-        <Renew size={16} aria-hidden="true" className={syncing ? 'animate-spin' : undefined} />
+        <RefreshCwIcon
+          size={16}
+          aria-hidden="true"
+          className={syncing ? 'animate-spin' : undefined}
+        />
       </Button>
     );
   return (
     <div className="flex flex-wrap items-center gap-3">
       <span className="text-xs text-text-tertiary">{synced}</span>
       <Button variant="secondary" loading={syncing} onClick={() => sync.mutate()}>
-        {!syncing && <Renew size={16} aria-hidden="true" />}
+        {!syncing && <RefreshCwIcon size={16} aria-hidden="true" />}
         {label}
       </Button>
     </div>
