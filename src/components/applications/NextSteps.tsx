@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
-import { Link } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { CheckIcon, ChevronRightIcon } from 'lucide-react';
+import { CheckIcon, ChevronRightIcon, ClockIcon, MailIcon, XIcon } from 'lucide-react';
 import { api } from '../../api/client';
 import type { ApplicationActionListItem } from '../../contracts/application';
 import { dateAndTime, stepSource, stepText } from '../../lib/applicationDetail';
@@ -11,7 +11,11 @@ import { dueIn } from '../../lib/mailThread';
 import { cn } from '../../lib/utils';
 import { SnoozeControl } from '../FollowThrough';
 import type { DialogHandle } from '../../lib/dialogs';
+import { ChevronRightIcon as ChevronIcon, CircleCheckIcon as DoneIcon } from 'lucide-react';
+import { useIsPhone } from '../layout/useIsPhone';
 import { TodoState } from '../mails/TodoState';
+import { PHONE_ROW, PhoneGroupSection as PhoneSection } from '../phone/PhoneList';
+import { Sheet, SheetAction, SheetBody, SheetGroup } from '../ui/sheet';
 import { Button } from '../ui/button';
 import { Collapse } from '../ui/collapse';
 import { OverflowMenu, type MenuAction } from '../ui/menu';
@@ -48,9 +52,12 @@ function useStepUpdate(action: ApplicationActionListItem) {
 function StepMeta({
   action,
   source,
+  plain = false,
 }: {
   action: ApplicationActionListItem;
   source: ReturnType<typeof stepSource>;
+  /** No link, for a row that is itself a button (phones). */
+  plain?: boolean;
 }) {
   const parts: React.ReactNode[] = [];
   // Once the user replied, when they replied matters more than the due date.
@@ -71,7 +78,7 @@ function StepMeta({
     );
   if (source)
     parts.push(
-      source.mailId ? (
+      source.mailId && !plain ?
         <Link key="source" to="/mails/$key" params={{ key: source.mailId }} className="text-link">
           {source.text}
         </Link>
@@ -97,6 +104,23 @@ function StepMeta({
   );
 }
 
+/** Changes a step and says so, with Undo. */
+function useStepChange(action: ApplicationActionListItem) {
+  const update = useStepUpdate(action);
+  const text = stepText(action);
+  const change = (status: 'COMPLETED' | 'DISMISSED') =>
+    update.mutate(
+      { status, revision: action.actionRevision },
+      {
+        onSuccess: (saved) =>
+          showToast(`${status === 'COMPLETED' ? 'Done' : 'Dismissed'}: ${text}`, {
+            undo: () => update.mutate({ status: 'PENDING', revision: saved.actionRevision }),
+          }),
+      },
+    );
+  return { update, change };
+}
+
 /**
  * One open step: what to do, when, where it came from, and more in "…". Only the user's own
  * steps have "Complete"; a step from a mail closes when a reply or a newer mail settles it, and
@@ -111,20 +135,10 @@ function StepRow({
   archived: boolean;
   source: ReturnType<typeof stepSource>;
 }) {
-  const update = useStepUpdate(action);
+  const { update, change } = useStepChange(action);
   const snooze = useRef<DialogHandle>(null);
   const more = useRef<HTMLButtonElement>(null);
   const text = stepText(action);
-  const change = (status: 'COMPLETED' | 'DISMISSED') =>
-    update.mutate(
-      { status, revision: action.actionRevision },
-      {
-        onSuccess: (saved) =>
-          showToast(`${status === 'COMPLETED' ? 'Done' : 'Dismissed'}: ${text}`, {
-            undo: () => update.mutate({ status: 'PENDING', revision: saved.actionRevision }),
-          }),
-      },
-    );
   const own = action.origin === 'USER' || !action.emailId;
   const actions: MenuAction[] = [
     ...(!own && closesByHand(action)
@@ -178,6 +192,155 @@ function StepRow({
   );
 }
 
+/**
+ * One open step on a phone (owner, 12 Nov 2026): a row with what to do, when and where from; a tap
+ * opens a sheet with all of it and what can be done: Complete (own steps), "I did this", Snooze,
+ * Dismiss, and the mail it came from.
+ */
+/** A step's sheet actions on a phone: complete it, snooze it, dismiss it, or open its mail. */
+function StepSheetActions({
+  own,
+  action,
+  busy,
+  onPick,
+  onSnooze,
+  onMail,
+}: {
+  own: boolean;
+  action: ApplicationActionListItem;
+  busy: boolean;
+  onPick: (status: 'COMPLETED' | 'DISMISSED') => void;
+  onSnooze: () => void;
+  onMail?: () => void;
+}) {
+  const done = own || closesByHand(action);
+  return (
+    <SheetGroup>
+      {done && (
+        <SheetAction
+          icon={<DoneIcon size={22} />}
+          disabled={busy}
+          onClick={() => onPick('COMPLETED')}
+        >
+          {own ? 'Complete' : 'I did this'}
+        </SheetAction>
+      )}
+      <SheetAction icon={<ClockIcon size={22} />} onClick={onSnooze}>
+        {action.snoozedUntil ? 'Change snooze…' : 'Snooze…'}
+      </SheetAction>
+      <SheetAction icon={<XIcon size={22} />} disabled={busy} onClick={() => onPick('DISMISSED')}>
+        Dismiss
+      </SheetAction>
+      {onMail && (
+        <SheetAction icon={<MailIcon size={22} />} onClick={onMail}>
+          Open the mail
+        </SheetAction>
+      )}
+    </SheetGroup>
+  );
+}
+
+function PhoneStepRow({
+  action,
+  archived,
+  source,
+}: {
+  action: ApplicationActionListItem;
+  archived: boolean;
+  source: ReturnType<typeof stepSource>;
+}) {
+  const { update, change } = useStepChange(action);
+  const [open, setOpen] = useState(false);
+  const snooze = useRef<DialogHandle>(null);
+  const navigate = useNavigate();
+  const text = stepText(action);
+  const own = action.origin === 'USER' || !action.emailId;
+  const body = (
+    <span className="flex min-w-0 flex-1 flex-col gap-1">
+      <span className="text-[15px] leading-[21px] break-words">{text}</span>
+      <StepMeta action={action} source={source} plain />
+    </span>
+  );
+  if (archived) return <div className={PHONE_ROW}>{body}</div>;
+  const pick = (status: 'COMPLETED' | 'DISMISSED') => {
+    setOpen(false);
+    change(status);
+  };
+  const openSnooze = () => {
+    setOpen(false);
+    snooze.current?.open();
+  };
+  const openMail = () => {
+    setOpen(false);
+    if (source?.mailId) void navigate({ to: '/mails/$key', params: { key: source.mailId } });
+  };
+  return (
+    <>
+      <button type="button" className={PHONE_ROW} onClick={() => setOpen(true)}>
+        {body}
+        <ChevronIcon size={18} className="shrink-0 text-text-tertiary" />
+      </button>
+      <Sheet open={open} onOpenChange={setOpen} title="Next step">
+        <SheetBody>
+          <p className="text-[17px] leading-6 break-words">{text}</p>
+          <StepMeta action={action} source={source} />
+        </SheetBody>
+        <StepSheetActions
+          own={own}
+          action={action}
+          busy={update.isPending}
+          onPick={pick}
+          onSnooze={openSnooze}
+          onMail={source?.mailId ? openMail : undefined}
+        />
+      </Sheet>
+      <SnoozeControl action={action} trigger={false} ref={snooze} />
+      {update.isError && !isOfflineError(update.error) && (
+        <div className="px-3.5 py-2">
+          <InlineNotification kind="error">
+            We could not confirm this change. The list was read again: check the step before you try
+            once more.
+          </InlineNotification>
+        </div>
+      )}
+    </>
+  );
+}
+
+/** Finished steps on a phone: a "Done (3)" row that opens them in place. */
+function PhoneDoneSteps({ actions }: { actions: ApplicationActionListItem[] }) {
+  const [open, setOpen] = useState(false);
+  if (actions.length === 0) return null;
+  return (
+    <>
+      <button
+        type="button"
+        aria-expanded={open}
+        className={PHONE_ROW}
+        onClick={() => setOpen(!open)}
+      >
+        <span className="flex-1 text-[15px]">Done ({actions.length})</span>
+        <ChevronIcon
+          size={18}
+          className={cn(
+            'shrink-0 text-text-tertiary transition-transform duration-150 ease-standard',
+            open && 'rotate-90',
+          )}
+        />
+      </button>
+      {open &&
+        actions.map((action) => (
+          <div key={action.id} className={cn(PHONE_ROW, 'text-sm text-text-secondary')}>
+            <span className="flex-1 break-words line-through decoration-text-tertiary">
+              {stepText(action)}
+            </span>
+            <span className="shrink-0 text-xs">{doneLabel(action)}</span>
+          </div>
+        ))}
+    </>
+  );
+}
+
 const DONE_LABEL: Record<string, string> = { COMPLETED: 'Done', DISMISSED: 'Dismissed' };
 /** Why a finished step closed, when something closed it; else Done or Dismissed. */
 const doneLabel = (action: ApplicationActionListItem) =>
@@ -224,11 +387,58 @@ function DoneSteps({ actions }: { actions: ApplicationActionListItem[] }) {
   );
 }
 
+/** The next steps on a phone, as one grouped list: open steps, then "Done (3)". */
+function PhoneNextSteps({ applicationId, archived, senders }: NextStepsProps) {
+  const [offset, onOffset] = useState(0);
+  const query = useQuery({
+    queryKey: ['application-actions', applicationId, offset],
+    queryFn: ({ signal }) => api.getApplicationActions(applicationId, { offset }, { signal }),
+  });
+  const items = query.data?.items ?? [];
+  const open = items.filter((action) => action.status === 'PENDING');
+  const done = items.filter((action) => action.status !== 'PENDING');
+  const nextOffset = query.data?.metadata.nextOffset ?? null;
+  const note = open.some((action) => action.emailId)
+    ? 'Steps from mails close by themselves when your reply or a newer mail settles them. Setting the application to Rejected or Closed closes them too.'
+    : null;
+  return (
+    <PhoneSection title="Next steps" count={query.data && `${open.length} open`} note={note}>
+      {query.isLoading && <SkeletonList rows={2} label="Loading next steps" />}
+      {query.isError && (
+        <SectionError title="Could not load next steps" onRetry={() => void query.refetch()} />
+      )}
+      {query.data && open.length === 0 && (
+        <p className={cn(PHONE_ROW, 'text-sm text-text-secondary')}>
+          {offset > 0 ? 'No open steps on this page.' : 'Nothing to do now.'}
+        </p>
+      )}
+      {open.map((action) => (
+        <PhoneStepRow
+          key={action.id}
+          action={action}
+          archived={archived}
+          source={stepSource(action, senders)}
+        />
+      ))}
+      <PhoneDoneSteps actions={done} />
+      {(offset > 0 || nextOffset !== null) && (
+        <Pagination
+          offset={offset}
+          limit={PAGE}
+          hasNext={nextOffset !== null}
+          onPrevious={() => onOffset(Math.max(0, offset - PAGE))}
+          onNext={() => nextOffset !== null && onOffset(nextOffset)}
+        />
+      )}
+    </PhoneSection>
+  );
+}
+
 /**
  * The application's to-dos: open ones first, each with Complete and a "…" menu; finished ones
  * folded below.
  */
-export function NextSteps({
+function PanelNextSteps({
   applicationId,
   archived,
   senders,
@@ -295,4 +505,17 @@ export function NextSteps({
       )}
     </section>
   );
+}
+
+interface NextStepsProps {
+  applicationId: string;
+  archived: boolean;
+  /** Who wrote each mail the page knows, to say where a step came from. */
+  senders: ReadonlyMap<string, string>;
+}
+
+/** The application's next steps: a grouped list on phones (owner, 12 Nov 2026), else a card. */
+export function NextSteps(props: NextStepsProps) {
+  const phone = useIsPhone();
+  return phone ? <PhoneNextSteps {...props} /> : <PanelNextSteps {...props} />;
 }
