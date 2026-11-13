@@ -178,6 +178,9 @@ describe('phone lists', () => {
     cleanup();
     detail.conversation = makeConversation({ isNew: false });
     show('/mails');
+    const seen = await screen.findByRole('link', { name: ROW_NAME });
+    expect(seen).toHaveClass('pl-8');
+    expect(seen.querySelector('[data-new-dot]')).toBeNull();
   });
 
   it('swipes "I did this" on an ask done outside mail', async () => {
@@ -326,7 +329,7 @@ describe('phone mail details', () => {
     show('/mails/thread-1');
     fireEvent.click(await screen.findByRole('button', { name: /^Next step: / }));
     const sheet = within(await screen.findByRole('dialog', { name: 'Next step' }));
-    expect(sheet.getByText(/When you've done it, choose "I did this".$/)).toBeInTheDocument();
+    expect(sheet.getByText(/When you've done it, choose "I did this"\.$/)).toBeInTheDocument();
     fireEvent.click(sheet.getByRole('button', { name: 'I did this' }));
     await waitFor(() =>
       expect(api.patch).toHaveBeenCalledWith('/api/conversations/thread-1/request', {
