@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import type { ColumnDef } from '@tanstack/react-table';
-import { UserIcon, WorkflowIcon } from 'lucide-react';
+import { ChevronRightIcon, UserIcon, WorkflowIcon } from 'lucide-react';
 import { AiIcon } from '../ui/ai-icon';
 import { format } from 'date-fns';
 import type { ApplicationResponse } from '../../contracts/application';
@@ -161,7 +161,10 @@ interface ApplicationsTableProps {
 }
 
 /** One row per application: company and role, status, open to-dos, applied date, latest news. */
-/** An application on a phone: one tappable card with its company, status, role and latest news. */
+/**
+ * An application on a phone (owner, 13 Nov 2026): one row of the group with its company and
+ * status, the role, and its to-dos and latest news.
+ */
 function PhoneApplicationCard({ app }: { app: ApplicationResponse }) {
   const tag = applicationTag(app);
   const activity = activityLine(app.recentEvent);
@@ -170,22 +173,29 @@ function PhoneApplicationCard({ app }: { app: ApplicationResponse }) {
     <Link
       to="/applications/$id"
       params={{ id: app.id }}
-      className="mb-2.5 flex flex-col gap-1 panel p-3.5 text-text-primary transition-colors duration-70 ease-standard active:bg-layer-accent"
+      className="flex items-center gap-3 px-4 py-[11px] text-text-primary transition-colors duration-450 active:bg-surface-selected active:duration-0"
     >
-      <div className="flex items-start justify-between gap-3">
-        <span className="min-w-0 text-base font-semibold break-words">{app.companyName}</span>
-        <Tag color={tag.color}>{tag.label}</Tag>
-      </div>
-      {role && <span className="text-xs break-words text-text-secondary">{role}</span>}
-      <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-text-secondary">
-        {app.pendingActionCount > 0 && <Tag color="yellow">{app.pendingActionCount} to do</Tag>}
-        {app.archivedAt && <Tag color={ARCHIVED_TAG.color}>{ARCHIVED_TAG.label}</Tag>}
-        {activity && (
-          <span>
-            {activity.what} · {activity.when}
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="flex items-center gap-2">
+          <span className="min-w-0 flex-1 truncate text-[17px] leading-[22px] font-semibold">
+            {app.companyName}
           </span>
+          <Tag color={tag.color}>{tag.label}</Tag>
+        </span>
+        {role && (
+          <span className="text-[15px] leading-5 break-words text-text-secondary">{role}</span>
         )}
-      </div>
+        <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[15px] text-text-secondary">
+          {app.pendingActionCount > 0 && <Tag color="yellow">{app.pendingActionCount} to do</Tag>}
+          {app.archivedAt && <Tag color={ARCHIVED_TAG.color}>{ARCHIVED_TAG.label}</Tag>}
+          {activity && (
+            <span>
+              {activity.what} · {activity.when}
+            </span>
+          )}
+        </span>
+      </span>
+      <ChevronRightIcon size={18} aria-hidden="true" className="shrink-0 text-text-tertiary" />
     </Link>
   );
 }
