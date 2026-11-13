@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { Checkmark } from '@carbon/icons-react';
+import { CheckIcon } from 'lucide-react';
 import type { Conversation } from '../../contracts/conversation';
 import { CATEGORY_LABEL, mailDate, parseSender } from '../../lib/mails';
 import { cn } from '../../lib/utils';
@@ -27,7 +27,7 @@ export function PhoneMailRow({ conversation: c }: { conversation: Conversation }
           aria-hidden="true"
           className="absolute inset-0 flex items-center gap-2 bg-tag-green-bg pl-6 font-semibold text-tag-green"
         >
-          <Checkmark size={20} />
+          <CheckIcon size={20} />
           {action.label}
         </div>
       )}
