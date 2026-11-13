@@ -34,6 +34,33 @@ export function SheetHeader({ title, children }: { title: ReactNode; children?: 
 }
 
 /**
+ * A tall sheet's title row (Reply): Close at the left, the name in the middle, the main action
+ * (Send) at the right.
+ */
+export function SheetCenterHeader({
+  title,
+  closeLabel = 'Close',
+  end,
+}: {
+  title: ReactNode;
+  closeLabel?: string;
+  end?: ReactNode;
+}) {
+  return (
+    <div className="grid min-h-[58px] shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2.5 px-3 py-1">
+      <Drawer.Close
+        aria-label={closeLabel}
+        className="flex size-[38px] cursor-pointer items-center justify-center justify-self-start rounded-full bg-layer-accent text-text-primary transition-transform duration-450 ease-[cubic-bezier(0.25,1.6,0.4,1)] active:scale-110"
+      >
+        <XIcon size={20} aria-hidden="true" />
+      </Drawer.Close>
+      <Drawer.Title className="text-center text-[19px] leading-6 font-[650]">{title}</Drawer.Title>
+      <div className="flex justify-self-end">{end}</div>
+    </div>
+  );
+}
+
+/**
  * A sheet on phones (owner, 13 Nov 2026, approved mock `IOS-LOOK-mock/`): it floats over the page
  * with round corners and springs up; drag it down and it follows the finger, fling it or drag it
  * far enough and it closes. The page behind shrinks a little. `tall` sheets (Reply) reach almost
@@ -47,6 +74,7 @@ export function Sheet({
   header,
   footer,
   className,
+  initialFocus = true,
   children,
 }: {
   open: boolean;
@@ -56,37 +84,48 @@ export function Sheet({
   header?: ReactNode;
   footer?: ReactNode;
   className?: string;
+  /** False: the sheet leaves the focus to its own fields (the reply's text or AI hint). */
+  initialFocus?: boolean;
   children: ReactNode;
 }) {
   useShrinkBehind(open, tall);
   return (
     <Drawer.Root open={open} onOpenChange={onOpenChange}>
-      <Drawer.Portal>
-        <Drawer.Backdrop className="fixed inset-0 z-50 bg-black/25 opacity-[calc(1-var(--drawer-swipe-progress))] transition-opacity duration-450 ease-sheet data-swiping:duration-0 data-starting-style:opacity-0 data-ending-style:opacity-0 data-ending-style:duration-[calc(var(--drawer-swipe-strength)*400ms)] dark:bg-black/50" />
-        <Drawer.Viewport className="fixed inset-0 z-50 flex items-end justify-center">
-          <Drawer.Popup
-            className={cn(
-              POPUP,
-              tall
-                ? 'h-[calc(100dvh-env(safe-area-inset-top)-12px)] w-full rounded-t-[22px]'
-                : 'mb-2 max-h-[calc(100dvh-env(safe-area-inset-top)-46px)] w-[calc(100%-16px)] rounded-[28px] rounded-b-[36px]',
-              className,
-            )}
-          >
-            <span
-              aria-hidden="true"
-              className="mx-auto mt-[7px] h-[5px] w-9 shrink-0 rounded-full bg-border-strong/60"
-            />
-            {header ?? <SheetHeader title={title} />}
-            <Drawer.Content className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-5 pb-[calc(22px+env(safe-area-inset-bottom)*0.4)]">
-              {children}
-            </Drawer.Content>
-            {footer}
-          </Drawer.Popup>
-        </Drawer.Viewport>
-      </Drawer.Portal>
+      {/* The phone's keyboard pushes the sheet up, so fields and the tools stay in view. */}
+      <Drawer.VirtualKeyboardProvider>
+        <Drawer.Portal>
+          <Drawer.Backdrop className="fixed inset-0 z-50 bg-black/25 opacity-[calc(1-var(--drawer-swipe-progress))] transition-opacity duration-450 ease-sheet data-swiping:duration-0 data-starting-style:opacity-0 data-ending-style:opacity-0 data-ending-style:duration-[calc(var(--drawer-swipe-strength)*400ms)] dark:bg-black/50" />
+          <Drawer.Viewport className="fixed inset-0 z-50 flex items-end justify-center">
+            <Drawer.Popup
+              initialFocus={initialFocus}
+              className={cn(
+                POPUP,
+                tall
+                  ? 'mb-[var(--drawer-keyboard-inset,0px)] h-[calc(100dvh-env(safe-area-inset-top)-12px-var(--drawer-keyboard-inset,0px))] w-full rounded-t-[22px]'
+                  : 'mb-[calc(8px+var(--drawer-keyboard-inset,0px))] max-h-[calc(100dvh-env(safe-area-inset-top)-46px-var(--drawer-keyboard-inset,0px))] w-[calc(100%-16px)] rounded-[28px] rounded-b-[36px]',
+                className,
+              )}
+            >
+              <span
+                aria-hidden="true"
+                className="mx-auto mt-[7px] h-[5px] w-9 shrink-0 rounded-full bg-border-strong/60"
+              />
+              {header ?? <SheetHeader title={title} />}
+              <Drawer.Content className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-5 pb-[calc(22px+env(safe-area-inset-bottom)*0.4)]">
+                {children}
+              </Drawer.Content>
+              {footer}
+            </Drawer.Popup>
+          </Drawer.Viewport>
+        </Drawer.Portal>
+      </Drawer.VirtualKeyboardProvider>
     </Drawer.Root>
   );
+}
+
+/** Words and fields in a sheet, spaced as the sheet's own content. */
+export function SheetBody({ className, children }: { className?: string; children: ReactNode }) {
+  return <div className={cn('flex flex-col gap-3', className)}>{children}</div>;
 }
 
 /** Rows on a soft grey group inside a sheet, with thin lines between them. */
@@ -119,7 +158,7 @@ export function SheetAction({
   return (
     <button
       type="button"
-      role={chosen === undefined ? undefined : 'menuitemradio'}
+      role={chosen === undefined ? undefined : 'radio'}
       aria-checked={chosen}
       className={cn(
         'flex min-h-[52px] w-full cursor-pointer items-center gap-3 px-[18px] text-left text-[17px] transition-colors duration-300 active:bg-surface-selected active:duration-0 disabled:cursor-default disabled:opacity-50',
