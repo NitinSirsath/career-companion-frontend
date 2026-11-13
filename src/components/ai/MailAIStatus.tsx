@@ -1,11 +1,11 @@
 import { useEffect, useReducer } from 'react';
 import {
-  ErrorFilled,
-  Information,
-  Renew,
-  WarningAltFilled,
-  type CarbonIconType,
-} from '@carbon/icons-react';
+  CircleXIcon,
+  InfoIcon,
+  RefreshCwIcon,
+  TriangleAlertIcon,
+  type LucideIcon,
+} from 'lucide-react';
 import type { AIModelPause } from '../../contracts/ai';
 import type { EmailMessage } from '../../contracts/gmail';
 import { analyzedBy } from '../../lib/aiLabels';
@@ -14,10 +14,10 @@ import { retryPause } from '../../lib/retryApproval';
 import { Button } from '../ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 
-const TONE_ICON: Record<MailAIView['tone'], { Icon: CarbonIconType; className: string } | null> = {
+const TONE_ICON: Record<MailAIView['tone'], { Icon: LucideIcon; className: string } | null> = {
   neutral: null,
-  warning: { Icon: WarningAltFilled, className: 'text-warning-icon' },
-  error: { Icon: ErrorFilled, className: 'text-danger-text' },
+  warning: { Icon: TriangleAlertIcon, className: 'text-warning-icon' },
+  error: { Icon: CircleXIcon, className: 'text-danger-text' },
 };
 
 /** The (i): what happened, the step, and what happens next. A click or tap keeps it open. */
@@ -36,7 +36,7 @@ function InfoTip({
         aria-label={question}
         className="inline-flex size-6 cursor-help items-center justify-center outline-none focus-visible:outline-2 focus-visible:outline-border-focus"
       >
-        <Information size={16} aria-hidden="true" className="text-text-secondary" />
+        <InfoIcon size={16} aria-hidden="true" className="text-text-secondary" />
       </TooltipTrigger>
       <TooltipContent className="overflow-hidden p-0">
         <div
@@ -134,7 +134,7 @@ export function MailAIStatus({
           disabled={retryDisabled || !!paused}
           onClick={onRetry}
         >
-          <Renew size={16} aria-hidden="true" />
+          <RefreshCwIcon size={16} aria-hidden="true" />
           {paused?.label ?? 'Manual Retry'}
         </Button>
       )}
