@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link } from '@tanstack/react-router';
-import { Launch, Reply } from '@carbon/icons-react';
+import { ExternalLinkIcon, ReplyIcon } from 'lucide-react';
 import { useSandboxMailbox } from '../../api/appMode';
 import { useKeptReply } from '../../lib/keptReply';
 import { cn } from '../../lib/utils';
@@ -34,7 +34,7 @@ function MailboxLink({ threadId, subject }: { threadId: string; subject: string 
       className="inline-flex items-center gap-1.5 text-sm text-link hover:underline"
     >
       Open in the mail sandbox
-      <Launch size={14} aria-hidden="true" />
+      <ExternalLinkIcon size={14} aria-hidden="true" />
     </Link>
   );
 }
@@ -75,7 +75,7 @@ export function MailTitle({
               size={phone ? 'lg' : 'default'}
               className={cn(phone && 'fixed right-4 bottom-20 z-30 shadow-popup')}
             >
-              <Reply size={phone ? 20 : 16} aria-hidden="true" />
+              <ReplyIcon size={phone ? 20 : 16} aria-hidden="true" />
               {phone && kept ? 'Open draft' : 'Reply'}
             </Button>
           )}
