@@ -118,8 +118,10 @@
   --color-notice-error: var(--notice-error);
   --color-warning-icon: var(--warning-icon);
 
-  --font-sans: 'Geist', 'Helvetica Neue', Arial, sans-serif;
-  --font-mono: 'Geist Mono', ui-monospace, monospace;
+  /* The device's own font (owner, 13 Nov 2026): San Francisco on Apple devices, Roboto or the
+     maker's font on Android, the system font on Windows. The product site keeps Geist. */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 
   /* Normal text is 14/20 (owner, 3 Nov 2026; replaces 15/22 of 26 Oct). Controls (buttons, tabs, the
      menu, fields) set their own sizes. */
@@ -132,19 +134,25 @@
 
   /* Menus, dropdowns and dialogs: a flat page has no layers to set them apart. */
   --shadow-popup: var(--popup-shadow);
-  /* Rounded corners (owner, 3 Nov 2026; replaces square): 6px controls, 8px menus and panels, 12px
-     dialogs and the dark page sheet. */
-  --radius: 6px;
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
-  --radius-xl: 12px;
+  /* Rounder corners (owner, 13 Nov 2026; before: 6 / 8 / 12px). Buttons, chips, search fields and
+     floating bars are fully round (rounded-full); other small boxes 10px; groups, cards and menus
+     16px; sheets and dialogs 28px. The laptop's page sheet keeps 12px. */
+  --radius: 10px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 28px;
+  --radius-page: 12px;
   --color-canvas: var(--canvas);
 
   /* Motion: IBM Carbon's productive curves. Times are the Tailwind duration-70 … duration-400 utilities. */
   --ease-standard: cubic-bezier(0.2, 0, 0.38, 0.9);
   --ease-entrance: cubic-bezier(0, 0, 0.38, 0.9);
   --ease-exit: cubic-bezier(0.2, 0, 1, 0.9);
+  /* The new look's spring (owner, 13 Nov 2026): menus and pop-ups grow out of their button and
+     toasts slide in with a small overshoot, as on a phone. */
+  --ease-spring: cubic-bezier(0.25, 1.35, 0.45, 1);
+  --ease-sheet: cubic-bezier(0.32, 0.72, 0, 1);
 
   --animate-page-in: page-in 150ms cubic-bezier(0, 0, 0.38, 0.9);
   --animate-fade-in: fade-in 150ms cubic-bezier(0, 0, 0.38, 0.9);
@@ -350,6 +358,11 @@
     --nav-active-shadow: none;
     --sheet-shadow: none;
     --button-shadow: 0 1px 1px rgb(0 0 0 / 0.04);
+    /* Frosted glass for things that float over the page (owner, 13 Nov 2026): quiet, no shine. */
+    --glass: rgb(250 250 252 / 0.74);
+    --glass-edge: rgb(0 0 0 / 0.08);
+    --glass-shadow: 0 2px 12px rgb(0 0 0 / 0.14);
+    --glass-pill: rgb(0 0 0 / 0.075);
   }
 
   /* Dark: Render's near-black and greys with IBM blue; tags and notices are dark tints with light text. */
@@ -471,6 +484,10 @@
     --nav-active-shadow: 0 0 0 1px rgb(255 255 255 / 0.1), 0 1px 2px rgb(0 0 0 / 0.5);
     --sheet-shadow: 0 0 0 1px rgb(255 255 255 / 0.06), 0 8px 24px rgb(0 0 0 / 0.5);
     --button-shadow: none;
+    --glass: rgb(42 42 47 / 0.64);
+    --glass-edge: rgb(255 255 255 / 0.1);
+    --glass-shadow: 0 2px 12px rgb(0 0 0 / 0.4);
+    --glass-pill: rgb(255 255 255 / 0.11);
   }
 }
 
@@ -494,6 +511,24 @@
 @utility panel {
   background-color: var(--surface-subtle);
   border-radius: var(--radius-lg);
+}
+
+/* Frosted glass (owner, 13 Nov 2026): only on things that float over the page, such as bars,
+   buttons over content, menus, pop-ups and toasts. Quiet: a blur and a hairline edge, no shine. */
+@utility glass {
+  background-color: var(--glass);
+  -webkit-backdrop-filter: blur(18px) saturate(1.7);
+  backdrop-filter: blur(18px) saturate(1.7);
+  box-shadow:
+    inset 0 0 0 0.5px var(--glass-edge),
+    var(--glass-shadow);
+}
+
+/* A menu or pop-up on glass: the menu colour, frosted. */
+@utility glass-menu {
+  background-color: color-mix(in srgb, var(--menu) 76%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(1.7);
+  backdrop-filter: blur(18px) saturate(1.7);
 }
 
 @layer utilities {
