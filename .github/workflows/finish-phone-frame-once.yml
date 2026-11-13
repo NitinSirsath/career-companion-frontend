@@ -1,0 +1,41 @@
+name: Finish phone-frame once (temporary)
+# Commits the deleted files on feat/phone-frame and nothing else.
+# Lives only on the throwaway branch tmp/phone-frame-finish, which is deleted afterwards.
+on:
+  push:
+    branches: [tmp/phone-frame-finish]
+permissions:
+  contents: write
+concurrency:
+  group: finish-phone-frame-once
+  cancel-in-progress: false
+jobs:
+  finish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: feat/phone-frame
+      - name: Check the commits on the branch
+        run: |
+          if [ "$(git rev-parse 'HEAD^{tree}')" != "b622108d3edb9cd73fbfc706880ee6e3b765e06a" ]; then
+            echo "The commits on feat/phone-frame do not match the reviewed files. Nothing was changed."
+            exit 1
+          fi
+      - name: Make the reviewed change
+        run: |
+          git rm -q src/components/layout/MobileNav.tsx
+          git rm -q src/components/layout/PhoneMenu.tsx
+          git add -A
+          if [ "$(git write-tree)" != "e12eb480838ab3ae9b40e0be35ebf1576ca83029" ]; then
+            echo "The result does not match the reviewed tree. Nothing was pushed."
+            git status --short
+            exit 1
+          fi
+      - name: Commit only the reviewed result
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(phone): delete the old phone menu and bottom bar'
+          git push origin HEAD:feat/phone-frame
