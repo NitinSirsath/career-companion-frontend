@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { WarningAlt, WifiOff, type CarbonIconType } from '@carbon/icons-react';
+import { TriangleAlertIcon, WifiOffIcon, type LucideIcon } from 'lucide-react';
 import { waitedLabel, type StartupStage } from '../../lib/startup';
 import { Wordmark } from '../layout/Logo';
 import { Button } from '../ui/button';
@@ -11,7 +11,7 @@ function Message({
   children,
   onRetry,
 }: {
-  icon?: CarbonIconType;
+  icon?: LucideIcon;
   title: string;
   children: ReactNode;
   onRetry?: () => void;
@@ -77,7 +77,7 @@ export function StartupScreen({
           </Message>
         )}
         {stage === 'cannot-reach' && (
-          <Message icon={WarningAlt} title="Can't reach the server" onRetry={onRetry}>
+          <Message icon={TriangleAlertIcon} title="Can't reach the server" onRetry={onRetry}>
             <p>
               It did not answer for 2 minutes. It may still be starting, or it may be down. Try
               again in a moment.
@@ -85,7 +85,7 @@ export function StartupScreen({
           </Message>
         )}
         {stage === 'offline' && (
-          <Message icon={WifiOff} title="You're offline" onRetry={onRetry}>
+          <Message icon={WifiOffIcon} title="You're offline" onRetry={onRetry}>
             <p>Your device has no internet connection. Connect, then try again.</p>
           </Message>
         )}
