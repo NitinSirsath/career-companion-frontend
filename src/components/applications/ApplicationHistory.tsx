@@ -230,7 +230,6 @@ function HistoryRow({ event }: { event: ApplicationEventResponse }) {
   const dot = <RowDot filled={entry.kind === 'mail' && !retired} />;
 
   return (
-  return (
     <li
       className={cn(
         'relative grid grid-cols-[24px_minmax(0,1fr)_auto] gap-x-3 py-3',
