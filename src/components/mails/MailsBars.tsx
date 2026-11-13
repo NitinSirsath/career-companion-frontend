@@ -127,7 +127,7 @@ function SortItem({ value, label }: { value: string; label: string }) {
 }
 
 /**
- * Phones (owner, 13 Nov 2026, approved mock \`IOS-LOOK-mock/\`): refresh, search and filters in one
+ * Phones (owner, 13 Nov 2026, approved mock `IOS-LOOK-mock/`): refresh, search and filters in one
  * round glass capsule at the top right. Under the title: the search row once opened, and the
  * filters in use as small pills. Refresh also asks Gmail for new mail.
  */
