@@ -65,16 +65,8 @@ function MailsPage() {
       <div className="mt-5 empty:hidden max-md:mt-3 md:mb-6">
         <AIAccessNotice compact />
       </div>
-      {phone ? (
-        !search.tab && (
-          <div className="mt-3 mb-3">
-            <PhoneMailChips search={search} onChange={filter} end={<SyncLine look="icon" />} />
-          </div>
-        )
-      ) : (
-        <LaptopBar tab={tab} search={search} onChange={filter} />
-      )}
-      <div className="md:mt-1">
+      <LaptopBar tab={tab} search={search} onChange={change} />
+      <div className="mt-1">
         {search.tab === 'gmail' && <GmailInbox />}
         {search.tab === 'restricted' && <RestrictedList />}
         {!search.tab && <JobMails search={search} onChange={change} />}
