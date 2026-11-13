@@ -31,7 +31,7 @@ export function StepState({ asked, fake }: { asked: ConversationRequest; fake: b
       {asked.state === 'DONE' && asked.closedReason && (
         <span className="text-xs text-text-secondary">
           {CLOSED_REASON_LABEL[asked.closedReason]}
-          {asked.closedAt && \` · ${mailDateTime(asked.closedAt)}\`}
+          {asked.closedAt && ` · ${mailDateTime(asked.closedAt)}`}
         </span>
       )}
     </div>
