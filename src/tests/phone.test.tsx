@@ -130,7 +130,7 @@ describe('phone tab bar and Settings', () => {
       ['Account', '/account'],
       ['Appearance', '/settings/appearance'],
     ])
-      expect(screen.getByRole('link', { name: new RegExp(\`^\${name}\`) })).toHaveAttribute(
+      expect(screen.getByRole('link', { name: new RegExp(`^${name}`) })).toHaveAttribute(
         'href',
         href,
       );
