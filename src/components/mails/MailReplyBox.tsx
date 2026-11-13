@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, useLocation } from '@tanstack/react-router';
 import { ReplyIcon } from 'lucide-react';
 import { useSandboxMailbox } from '../../api/appMode';
@@ -120,14 +120,22 @@ function ClosedReplyBar({
   replyTo,
   kept,
   onOpen,
+  focusOnShow = false,
 }: {
   replyTo: string;
   kept: DraftDoc | null;
   onOpen: () => void;
+  /** After the user closed the box, the focus comes back here. */
+  focusOnShow?: boolean;
 }) {
   const name = parseSender(replyTo).name;
+  const bar = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (focusOnShow) bar.current?.focus();
+  }, [focusOnShow]);
   return (
     <button
+      ref={bar}
       type="button"
       onClick={onOpen}
       className="flex h-12 w-full cursor-text items-center gap-3 rounded-lg border border-border-default bg-field px-4 text-left text-sm text-text-secondary transition-colors duration-70 ease-standard hover:bg-layer-hover"
@@ -144,6 +152,25 @@ function ClosedReplyBar({
       <kbd className="rounded border border-border-default px-1.5 font-mono text-xs">R</kbd>
     </button>
   );
+}
+
+/** The mailbox itself: Gmail in prod, the mail sandbox in dev mode. */
+function Elsewhere({
+  sandbox,
+  threadId,
+  subject,
+}: {
+  sandbox: boolean;
+  threadId: string;
+  subject: string | null;
+}) {
+  if (sandbox)
+    return (
+      <Link to="/sandbox/$threadId" params={{ threadId }} className="text-sm text-link">
+        Open in the mail sandbox
+      </Link>
+    );
+  return <GmailLink threadId={threadId} subject={subject} reply />;
 }
 
 /**
@@ -182,15 +209,14 @@ export function MailReplyBox({
   const canSend = useCanSendMail();
   const mailPath = useLocation({ select: (location) => location.pathname });
   const [open, setOpen] = useReplyOpen(replyAsks, startOpen);
+  const [closedByUser, setClosedByUser] = useState(false);
+  // Laptops: × and Esc close the box; the focus goes back to the closed bar.
+  const close = () => {
+    setOpen(false);
+    setClosedByUser(true);
+  };
   const phone = useIsPhone();
-  // The mailbox itself: Gmail in prod, the mail sandbox in dev mode.
-  const elsewhere = sandbox ? (
-    <Link to="/sandbox/$threadId" params={{ threadId }} className="text-sm text-link">
-      Open in the mail sandbox
-    </Link>
-  ) : (
-    <GmailLink threadId={threadId} subject={subject} reply />
-  );
+  const elsewhere = <Elsewhere sandbox={!!sandbox} threadId={threadId} subject={subject} />;
 
   let box: React.ReactNode;
   if (!replyTo)
@@ -211,7 +237,14 @@ export function MailReplyBox({
   // On phones the floating Reply button opens it: no closed bar under the conversation.
   else if (!open && phone) box = null;
   else if (!open)
-    box = <ClosedReplyBar replyTo={replyTo} kept={kept} onOpen={() => setOpen(true)} />;
+    box = (
+      <ClosedReplyBar
+        replyTo={replyTo}
+        kept={kept}
+        onOpen={() => setOpen(true)}
+        focusOnShow={closedByUser}
+      />
+    );
   else {
     box = (
       <MailReplyForm
@@ -222,6 +255,7 @@ export function MailReplyBox({
         onCheck={onCheck}
         onSending={onSending}
         ai={ai}
+        onClose={phone ? undefined : close}
       >
         {elsewhere}
       </MailReplyForm>
