@@ -1,4 +1,4 @@
-import { WarningAltFilled } from '@carbon/icons-react';
+import { TriangleAlertIcon } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../api/client';
@@ -38,7 +38,7 @@ function CompactNotice({
       aria-label="AI status"
       className="flex animate-open flex-wrap items-center gap-x-4 gap-y-2 rounded-lg bg-notice-warning px-3.5 py-2.5 shadow-[inset_0_0_0_1px_var(--border-subtle)]"
     >
-      <WarningAltFilled size={16} aria-hidden="true" className="shrink-0 text-warning-icon" />
+      <TriangleAlertIcon size={16} aria-hidden="true" className="shrink-0 text-warning-icon" />
       <p className="min-w-0 flex-1 basis-60 text-sm">
         <strong className="font-semibold">{notice.title}.</strong>{' '}
         <Emphasized text={notice.detail} strong={notice.strong} />
@@ -87,7 +87,7 @@ export function AIAccessNotice({ compact = false }: { compact?: boolean }) {
       aria-label="AI status"
       className="flex animate-open flex-wrap items-start justify-between gap-x-6 gap-y-3 bg-notice-warning px-4 py-3"
     >
-      <WarningAltFilled size={16} aria-hidden="true" className="mt-1 shrink-0 text-warning-icon" />
+      <TriangleAlertIcon size={16} aria-hidden="true" className="mt-1 shrink-0 text-warning-icon" />
       <div className="min-w-0 flex-1 basis-80 space-y-1">
         <p className="text-sm font-semibold">{notice.title}</p>
         <p className="text-sm leading-normal">
