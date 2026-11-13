@@ -24,7 +24,7 @@ export function useStepDone(detail: ConversationDetail): {
           { emailId: asked.emailId, state: 'DONE' },
           {
             onSuccess: () =>
-              showToast(\`Done: ${title}\`, {
+              showToast(`Done: ${title}`, {
                 undo: () => change.mutate({ emailId: asked.emailId, state: 'OPEN' }),
               }),
           },
@@ -38,7 +38,7 @@ export function useStepDone(detail: ConversationDetail): {
       run: () =>
         change.mutate(
           { emailId: asked.emailId, state: 'OPEN' },
-          { onSuccess: () => showToast(\`Reopened: ${title}\`) },
+          { onSuccess: () => showToast(`Reopened: ${title}`) },
         ),
     };
   return null;
