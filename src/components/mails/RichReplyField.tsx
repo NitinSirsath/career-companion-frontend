@@ -282,6 +282,8 @@ interface RichReplyFieldProps {
   children?: ReactNode;
   /** The right end of the format row: Send and the other way to answer. Not on a phone. */
   actions?: ReactNode;
+  /** False: the text leaves the focus where it is when it opens. */
+  autofocus?: boolean;
 }
 
 /** Hands the reply form what it can do with the text, from the live editor each time. */
@@ -433,6 +435,7 @@ export default function RichReplyField({
   describedBy,
   children,
   actions,
+  autofocus,
 }: RichReplyFieldProps) {
   const [linking, setLinking] = useState<{ initial: string } | null>(null);
   const formatSlot = useContext(PhoneReplySlots)?.format ?? null;
@@ -441,6 +444,7 @@ export default function RichReplyField({
     onChange,
     onSubmitKey,
     onLinkKey: () => link.open(),
+    autofocus,
   });
   useEditorHandle(editor, current, onReady);
   useInvalidState(editor, invalid, describedBy);
