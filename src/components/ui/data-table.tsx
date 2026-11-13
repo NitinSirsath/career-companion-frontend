@@ -154,7 +154,12 @@ export function DataTable<T>({
         {/* On phones the header row is hidden, so the first row draws the line above itself. */}
         <div
           role="rowgroup"
-          className={cn(!phone && 'border-t border-border-subtle md:border-t-0')}
+          className={cn(
+            phone
+              ? // Phones: the rows sit on one soft grey group, as iPhone lists do (owner, 13 Nov 2026).
+                'grouped-rows overflow-hidden rounded-2xl bg-surface-subtle empty:hidden'
+              : 'border-t border-border-subtle md:border-t-0',
+          )}
         >
           {loading && (
             <span role="status" className="sr-only">
