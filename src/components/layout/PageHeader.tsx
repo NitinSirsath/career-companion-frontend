@@ -2,6 +2,7 @@ import * as React from 'react';
 import { cn } from '../../lib/utils';
 import { usePhoneNav } from '../phone/phoneNav';
 import { PhoneTitle } from '../phone/PhoneTitle';
+import { RefreshButton } from '../ui/refresh-button';
 
 interface PageHeaderProps {
   title: React.ReactNode;
@@ -20,6 +21,8 @@ interface PageHeaderProps {
   phoneCompact?: boolean;
   /** Phones: keep the actions (a single "…") beside the title instead of on a line of their own. */
   actionsBesideTitle?: boolean;
+  /** List pages on laptops: a refresh button before the actions (phones refresh from the top bar). */
+  refresh?: boolean;
   className?: string;
 }
 
@@ -49,9 +52,20 @@ function PhoneHeader({
 
 /**
  * The one page header: title, one line of description, actions on the right, and a line under
- * it across the content.
+ * it across the content. Phones have their own (`PhoneHeader`).
  */
-export function PageHeader({
+export function PageHeader(props: PageHeaderProps) {
+  const phone = !!usePhoneNav();
+  if (!phone || props.phoneCompact) return <LaptopHeader {...props} />;
+  return (
+    <>
+      {props.breadcrumb}
+      <PhoneHeader {...props} />
+    </>
+  );
+}
+
+function LaptopHeader({
   title,
   description,
   breadcrumb,
@@ -59,22 +73,9 @@ export function PageHeader({
   meta,
   phoneCompact = false,
   actionsBesideTitle = false,
+  refresh = false,
   className,
 }: PageHeaderProps) {
-  const phone = !!usePhoneNav();
-  if (phone && !phoneCompact)
-    return (
-      <>
-        {breadcrumb}
-        <PhoneHeader
-          title={title}
-          description={description}
-          actions={actions}
-          meta={meta}
-          className={className}
-        />
-      </>
-    );
   return (
     <header
       className={cn(
@@ -104,7 +105,7 @@ export function PageHeader({
           {description && <p className="max-w-160 text-sm text-text-secondary">{description}</p>}
           {meta}
         </div>
-        {actions && (
+        {(actions || refresh) && (
           <div
             className={cn(
               'flex flex-wrap items-center gap-4',
@@ -112,6 +113,7 @@ export function PageHeader({
               actionsBesideTitle && 'max-md:-mr-2',
             )}
           >
+            {refresh && <RefreshButton />}
             {actions}
           </div>
         )}
