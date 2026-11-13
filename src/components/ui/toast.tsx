@@ -1,5 +1,5 @@
 import { Toast } from '@base-ui/react/toast';
-import { CheckmarkFilled, Close, WifiOff } from '@carbon/icons-react';
+import { CircleCheckIcon, WifiOffIcon, XIcon } from 'lucide-react';
 
 /** One manager for the whole app, so any code can show a toast without a hook. */
 const toastManager = Toast.createToastManager();
@@ -27,12 +27,13 @@ function ToastList() {
     <Toast.Root
       key={toast.id}
       toast={toast}
-      className="flex min-h-12 w-full items-center gap-4 overflow-hidden rounded-lg bg-inverse pl-4 text-[14px] text-inverse-text transition-[opacity,translate] duration-240 ease-entrance data-ending-style:translate-y-4 data-ending-style:opacity-0 data-ending-style:ease-exit data-starting-style:translate-y-4 data-starting-style:opacity-0"
+      // Round and frosted, sliding in with a small spring (owner, 13 Nov 2026).
+      className="flex min-h-12 w-full items-center gap-3 overflow-hidden rounded-3xl bg-inverse/84 pl-5 text-[14px] text-inverse-text shadow-popup backdrop-blur-[18px] backdrop-saturate-160 transition-[opacity,translate] duration-420 ease-spring data-ending-style:translate-y-4 data-ending-style:opacity-0 data-ending-style:duration-240 data-ending-style:ease-exit data-starting-style:translate-y-6 data-starting-style:opacity-0"
     >
       {(toast.data as { offline?: boolean } | undefined)?.offline ? (
-        <WifiOff size={16} aria-hidden="true" className="shrink-0" />
+        <WifiOffIcon size={16} aria-hidden="true" className="shrink-0" />
       ) : (
-        <CheckmarkFilled size={16} aria-hidden="true" className="shrink-0 text-ok" />
+        <CircleCheckIcon size={16} aria-hidden="true" className="shrink-0 text-ok" />
       )}
       <Toast.Title className="flex-1 py-3" />
       <Toast.Action className="h-12 cursor-pointer px-4 text-inverse-link hover:underline" />
@@ -40,7 +41,7 @@ function ToastList() {
         aria-label="Close"
         className="flex size-12 shrink-0 cursor-pointer items-center justify-center"
       >
-        <Close size={16} aria-hidden="true" />
+        <XIcon size={16} aria-hidden="true" />
       </Toast.Close>
     </Toast.Root>
   ));
