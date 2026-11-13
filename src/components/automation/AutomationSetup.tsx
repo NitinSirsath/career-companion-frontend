@@ -1,5 +1,5 @@
 import { useId, useState, type ReactNode } from 'react';
-import { ChevronDown, Launch } from '@carbon/icons-react';
+import { ChevronDownIcon, ExternalLinkIcon } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../api/client';
 import { INTEGRATION_TOKEN_MAX_ACTIVE } from '../../contracts/integrationToken';
@@ -45,7 +45,7 @@ function ByHand({ serverAddress }: { serverAddress: string | null }) {
         onClick={() => setOpen(!open)}
         className="flex cursor-pointer items-center gap-2 text-sm font-medium text-link hover:underline"
       >
-        <ChevronDown
+        <ChevronDownIcon
           size={16}
           aria-hidden="true"
           className={cn('transition-transform duration-150 ease-standard', !open && '-rotate-90')}
@@ -109,10 +109,10 @@ export function AutomationSetup() {
               href={NORTHLIST_APPLY_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex h-8 w-fit items-center gap-2 rounded-md border border-link px-3 text-sm font-medium text-link transition-colors duration-70 ease-standard hover:bg-link hover:text-background"
+              className="inline-flex h-8 w-fit items-center gap-2 rounded-full border border-link px-3.5 text-sm font-medium text-link transition-colors duration-70 ease-standard hover:bg-link hover:text-background"
             >
               NorthList Apply on GitHub
-              <Launch size={16} aria-hidden="true" />
+              <ExternalLinkIcon size={16} aria-hidden="true" />
             </a>
           </Step>
           <Step number={2} title="Create your setup prompt">
