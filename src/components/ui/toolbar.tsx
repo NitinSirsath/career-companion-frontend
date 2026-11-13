@@ -92,7 +92,7 @@ export function ToolbarSearch({
   const ownId = React.useId();
   const id = givenId ?? ownId;
   return (
-    <div className="flex h-9 items-center gap-2.5 rounded-full border border-border-default bg-field px-3.5 text-text-secondary focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-border-focus">
+    <div className="flex h-9 items-center gap-2.5 rounded-full border border-border-default bg-field px-3.5 text-text-secondary focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-border-focus max-md:h-10 max-md:border-transparent max-md:bg-layer-accent">
       <SearchIcon size={16} aria-hidden="true" className="shrink-0" />
       <label htmlFor={id} className="sr-only">
         {label}
@@ -152,6 +152,40 @@ export function FilterChips({
       <Button variant="ghost" size="sm" className="h-6" onClick={onClearAll}>
         Clear all
       </Button>
+    </div>
+  );
+}
+
+/** A search row on phones, opened from the glass capsule: the field and Cancel. */
+export function PhoneSearchRow({
+  value,
+  onChange,
+  onClose,
+  label = 'Search company or job title',
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  onClose: () => void;
+  label?: string;
+}) {
+  return (
+    <div className="flex items-center gap-2.5">
+      <div className="min-w-0 flex-1">
+        <ToolbarSearch
+          label={label}
+          value={value}
+          onChange={onChange}
+          placeholder={label}
+          autoFocus
+        />
+      </div>
+      <button
+        type="button"
+        className="shrink-0 cursor-pointer text-[17px] text-link"
+        onClick={onClose}
+      >
+        Cancel
+      </button>
     </div>
   );
 }
