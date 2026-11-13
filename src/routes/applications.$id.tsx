@@ -3,14 +3,11 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { Building2Icon } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/client';
-import { ApplicationFacts } from '../components/applications/ApplicationFacts';
 import { ApplicationHeader } from '../components/applications/ApplicationHeader';
-import { ApplicationHistory } from '../components/applications/ApplicationHistory';
+import { ApplicationOverview } from '../components/applications/ApplicationOverview';
 import { ApplicationTabs } from '../components/applications/ApplicationTabs';
-import { NextSteps } from '../components/applications/NextSteps';
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
 import { Breadcrumb } from '../components/layout/Breadcrumb';
-import { ApplicationConversations } from '../components/mails/ApplicationConversations';
 import { Button } from '../components/ui/button';
 import { InlineNotification } from '../components/ui/notification';
 import { SectionError } from '../components/ui/section-error';
@@ -49,14 +46,14 @@ function ApplicationDetailPage() {
   );
 
   const overview = (
-    <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-      <div className="flex min-w-0 flex-col gap-6">
-        <NextSteps applicationId={id} archived={!!application?.archivedAt} senders={senders} />
-        <ApplicationConversations applicationId={id} />
-        <ApplicationHistory query={eventsQuery} offset={eventsOffset} onOffset={setEventsOffset} />
-      </div>
-      {application && <ApplicationFacts application={application} events={events ?? []} />}
-    </div>
+    <ApplicationOverview
+      id={id}
+      application={application}
+      senders={senders}
+      eventsQuery={eventsQuery}
+      eventsOffset={eventsOffset}
+      onEventsOffset={setEventsOffset}
+    />
   );
 
   return (
