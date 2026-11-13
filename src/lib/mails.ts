@@ -246,13 +246,14 @@ export interface RequestControl {
 
 /**
  * What the user can change on a request, in the "⋯" menus and the phone swipe. There is no "Mark
- * done": a reply or a newer mail closes a request by itself (owner, 24 Oct 2026).
+ * done": a reply or a newer mail closes a request by itself (owner, 24 Oct 2026). One word,
+ * "Reopen", puts any closed step back on the list, whether a reply or the user closed it (owner,
+ * 13 Nov 2026).
  */
 export function requestControls(asked: ConversationRequest): RequestControl[] {
   if (asked.state === 'OPEN')
     return closesByHand(asked) ? [{ label: 'I did this', state: 'DONE' }] : [];
-  if (asked.state === 'DONE') return [{ label: 'Reopen', state: 'OPEN' }];
-  return [{ label: 'Ask me again', state: 'OPEN' }];
+  return [{ label: 'Reopen', state: 'OPEN' }];
 }
 
 /**
