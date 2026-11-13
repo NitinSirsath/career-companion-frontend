@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
-import { Add } from '@carbon/icons-react';
+import { PlusIcon } from 'lucide-react';
 import { api } from '../api/client';
 import { useGmailStatus } from '../api/gmail';
 import type { ProviderActions } from '../components/ai/ActiveProviderCard';
@@ -63,7 +63,7 @@ function AIProvidersPage() {
           settings &&
           canConnectMore(settings) && (
             <Button onClick={connect}>
-              <Add size={16} aria-hidden="true" />
+              <PlusIcon size={16} aria-hidden="true" />
               Connect a provider
             </Button>
           )
