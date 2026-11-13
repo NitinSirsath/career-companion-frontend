@@ -4,6 +4,8 @@ import { useDashboard } from '../api/dashboard';
 import { useGmailStatus } from '../api/gmail';
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
 import { PageHeader } from '../components/layout/PageHeader';
+import { useIsPhone } from '../components/layout/useIsPhone';
+import { PhoneDashboardTop } from '../components/dashboard/PhoneDashboardTop';
 import { DashSection } from '../components/dashboard/DashCard';
 import { Funnel } from '../components/dashboard/Funnel';
 import { GoneQuiet } from '../components/dashboard/GoneQuiet';
@@ -42,6 +44,7 @@ function DashboardPage() {
   const period = Route.useSearch().period ?? DEFAULT_PERIOD;
   const navigate = useNavigate({ from: Route.fullPath });
   const { user } = Route.useRouteContext();
+  const phone = useIsPhone();
   const dashboard = useDashboard(period);
   const gmail = useGmailStatus();
   const reading = useAIReading();
@@ -54,10 +57,17 @@ function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={greeting(user?.name)}
-        description={todayLine(numbers?.dataStartsAt ?? null)}
-      />
+      {phone ? (
+        <PhoneDashboardTop
+          greeting={greeting(user?.name)}
+          today={todayLine(numbers?.dataStartsAt ?? null)}
+        />
+      ) : (
+        <PageHeader
+          title={greeting(user?.name)}
+          description={todayLine(numbers?.dataStartsAt ?? null)}
+        />
+      )}
       {noGmail && <NoGmailYet status={gmail.data?.status} />}
       {!noGmail && firstRead && reading.data && <ReadingFirstMails reading={reading.data} />}
       {!noGmail && !firstRead && dashboard.isPending && <DashboardSkeleton />}
