@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { cn } from '../../lib/utils';
+import { usePhoneNav } from '../phone/phoneNav';
+import { PhoneTitle } from '../phone/PhoneTitle';
 
 interface PageHeaderProps {
   title: React.ReactNode;
@@ -22,6 +24,30 @@ interface PageHeaderProps {
 }
 
 /**
+ * Phones (owner, 13 Nov 2026): the big title (34px on a tab's first page, 28px on a page opened
+ * from it), the description under it, then the actions.
+ */
+function PhoneHeader({
+  title,
+  description,
+  actions,
+  meta,
+  className,
+}: Pick<PageHeaderProps, 'title' | 'description' | 'actions' | 'meta' | 'className'>) {
+  const nav = usePhoneNav();
+  return (
+    <header className={cn('flex flex-col gap-1.5 px-1 pt-0.5 pb-4', className)}>
+      <PhoneTitle size={nav?.isRoot ? 'list' : 'detail'}>{title}</PhoneTitle>
+      {description && (
+        <div className="text-[15px] leading-5 text-text-secondary">{description}</div>
+      )}
+      {meta}
+      {actions && <div className="flex flex-wrap items-center gap-3 pt-2">{actions}</div>}
+    </header>
+  );
+}
+
+/**
  * The one page header: title, one line of description, actions on the right, and a line under
  * it across the content.
  */
@@ -35,6 +61,20 @@ export function PageHeader({
   actionsBesideTitle = false,
   className,
 }: PageHeaderProps) {
+  const phone = !!usePhoneNav();
+  if (phone && !phoneCompact)
+    return (
+      <>
+        {breadcrumb}
+        <PhoneHeader
+          title={title}
+          description={description}
+          actions={actions}
+          meta={meta}
+          className={className}
+        />
+      </>
+    );
   return (
     <header
       className={cn(
