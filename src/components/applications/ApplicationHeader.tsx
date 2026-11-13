@@ -1,12 +1,14 @@
-import { useRef, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { ApplicationResponse } from '../../contracts/application';
-import { focusLater, type DialogHandle } from '../../lib/dialogs';
-import { ArchiveControl } from '../ArchiveControl';
-import { DeleteApplicationDialog } from './DeleteApplicationDialog';
 import { PageHeader } from '../layout/PageHeader';
+import { useIsPhone } from '../layout/useIsPhone';
+import { PhoneTitle } from '../phone/PhoneTitle';
 import { Button } from '../ui/button';
 import { OverflowMenu } from '../ui/menu';
 import { InlineNotification } from '../ui/notification';
+import { PhoneApplicationBar } from './PhoneApplicationBar';
+import { StatusPickerContext } from './statusPicker';
+import { useApplicationMenu } from './useApplicationMenu';
 import { useStatusControl } from './useStatusControl';
 
 function ArchivedNotice({ canRestore, onRestore }: { canRestore: boolean; onRestore: () => void }) {
@@ -26,6 +28,51 @@ function ArchivedNotice({ canRestore, onRestore }: { canRestore: boolean; onRest
 }
 
 /**
+ * The top of an application on a phone (owner, 13 Nov 2026, approved mock `IOS-LOOK-mock/`): the
+ * big company name that scrolls under the top bar, the role and the status, and a floating action
+ * bar with Reply, Status and More. The status picks from a sheet.
+ */
+function PhoneApplicationHeader({
+  application,
+  canEdit,
+  breadcrumb,
+  role,
+  status,
+  notices,
+  menu,
+}: {
+  application: ApplicationResponse;
+  canEdit: boolean;
+  breadcrumb: ReactNode;
+  role: string;
+  status: ReactNode;
+  notices: ReactNode;
+  menu: ReturnType<typeof useApplicationMenu>;
+}) {
+  const [picking, setPicking] = useState(false);
+  return (
+    <div className="flex flex-col gap-4">
+      {breadcrumb}
+      <header className="flex flex-col gap-[9px] px-1 pt-0.5">
+        <PhoneTitle size="detail">{application.companyName}</PhoneTitle>
+        {role && <p className="text-[15px] text-text-secondary">{role}</p>}
+        <StatusPickerContext.Provider value={{ open: picking, onOpenChange: setPicking }}>
+          {status}
+        </StatusPickerContext.Provider>
+      </header>
+      {notices}
+      {menu.dialogs}
+      <PhoneApplicationBar
+        applicationId={application.id}
+        onStatus={() => setPicking(true)}
+        canPick={canEdit && !application.archivedAt}
+        actions={menu.actions}
+      />
+    </div>
+  );
+}
+
+/**
  * Title, role, the status dropdown, and a "…" menu with Archive or Restore and Delete. Notices
  * about the status and the archive sit under it.
  */
@@ -39,11 +86,28 @@ export function ApplicationHeader({
   breadcrumb: ReactNode;
 }) {
   const status = useStatusControl(application, canEdit);
-  const archive = useRef<DialogHandle>(null);
-  const more = useRef<HTMLButtonElement>(null);
-  const [deleting, setDeleting] = useState(false);
+  const menu = useApplicationMenu(application, canEdit);
+  const phone = useIsPhone();
   const archived = !!application.archivedAt;
   const role = [application.jobTitle, application.location].filter(Boolean).join(' · ');
+  const notices = (
+    <>
+      {status.notice}
+      {archived && <ArchivedNotice canRestore={canEdit} onRestore={menu.openArchive} />}
+    </>
+  );
+  if (phone)
+    return (
+      <PhoneApplicationHeader
+        application={application}
+        canEdit={canEdit}
+        breadcrumb={breadcrumb}
+        role={role}
+        status={status.control}
+        notices={notices}
+        menu={menu}
+      />
+    );
   return (
     <div className="flex flex-col gap-4">
       <PageHeader
@@ -66,40 +130,15 @@ export function ApplicationHeader({
               <OverflowMenu
                 label="More actions"
                 size="icon"
-                triggerRef={more}
-                actions={[
-                  archived
-                    ? { label: 'Restore application…', onSelect: () => archive.current?.open() }
-                    : {
-                        label: 'Archive application…',
-                        danger: true,
-                        onSelect: () => archive.current?.open(),
-                      },
-                  { label: 'Delete application…', danger: true, onSelect: () => setDeleting(true) },
-                ]}
+                triggerRef={menu.more}
+                actions={menu.actions}
               />
             )}
-            <ArchiveControl
-              application={application}
-              trigger={false}
-              ref={archive}
-              returnFocus={more}
-            />
-            <DeleteApplicationDialog
-              application={application}
-              open={deleting}
-              onClose={() => {
-                setDeleting(false);
-                focusLater(more);
-              }}
-            />
+            {menu.dialogs}
           </>
         }
       />
-      {status.notice}
-      {archived && (
-        <ArchivedNotice canRestore={canEdit} onRestore={() => archive.current?.open()} />
-      )}
+      {notices}
     </div>
   );
 }
