@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { useState } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
-import { ChevronLeft, ChevronRight } from '@carbon/icons-react';
+import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { useGmailAddress, useMailboxThreads } from '../../api/mailbox';
 import type { MailboxThread } from '../../contracts/mailbox';
 import { mailDate, parseSender, snippetText } from '../../lib/mails';
@@ -126,7 +126,7 @@ export function GmailInbox() {
                   disabled={tokens.length === 0 || isFetching}
                   onClick={() => setTokens(tokens.slice(0, -1))}
                 >
-                  <ChevronLeft size={16} aria-hidden="true" />
+                  <ChevronLeftIcon size={16} aria-hidden="true" />
                 </button>
                 <button
                   type="button"
@@ -135,7 +135,7 @@ export function GmailInbox() {
                   disabled={!older || isFetching}
                   onClick={() => older && setTokens([...tokens, older])}
                 >
-                  <ChevronRight size={16} aria-hidden="true" />
+                  <ChevronRightIcon size={16} aria-hidden="true" />
                 </button>
               </div>
             </div>
