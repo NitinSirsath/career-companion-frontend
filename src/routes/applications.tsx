@@ -1,7 +1,7 @@
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
-import { TopBarActions } from '../components/layout/Breadcrumb';
 import { PageHeader } from '../components/layout/PageHeader';
-import { TopBarSearch } from '../components/layout/TopBarButtons';
+import { PhoneApplicationsTools } from '../components/applications/PhoneApplicationsTools';
+import { PhoneSearchRow } from '../components/ui/toolbar';
 import { useIsPhone } from '../components/layout/useIsPhone';
 import { RefreshCwIcon } from 'lucide-react';
 import { useCallback, useEffect, useRef, type Dispatch, type SetStateAction } from 'react';
@@ -97,109 +97,127 @@ function ApplicationsDashboard({
     }
   }, [applicationsResponse, isFetching, error, offset, setView]);
 
+  const chips = (
+    <FilterChips
+      chips={[
+        ...(search.trim()
+          ? [
+              {
+                label: `Search: ${search.trim()}`,
+                onRemove: () => changeFilters({ search: '' }),
+              },
+            ]
+          : []),
+        ...(tab !== 'ALL'
+          ? [
+              {
+                label: `Status: ${STATUS_TABS.find((t) => t.value === tab)?.label}`,
+                onRemove: () => changeFilters({ tab: 'ALL' }),
+              },
+            ]
+          : []),
+        ...(reply !== 'ALL'
+          ? [
+              {
+                label: `Replies: ${REPLY_TABS.find((t) => t.value === reply)?.label}`,
+                onRemove: () => changeFilters({ reply: 'ALL' }),
+              },
+            ]
+          : []),
+        ...(archive !== 'active'
+          ? [
+              {
+                label: `Show: ${ARCHIVE_OPTIONS.find((o) => o.value === archive)?.label}`,
+                onRemove: () => changeFilters({ archive: 'active' }),
+              },
+            ]
+          : []),
+      ]}
+      onClearAll={() => setView({ ...INITIAL_VIEW, list })}
+    />
+  );
   return (
     <div className="space-y-8 max-md:space-y-4">
-      {phone && (
-        <TopBarActions>
-          <TopBarSearch targetId={APPLICATION_SEARCH_ID} label="Search applications" />
-        </TopBarActions>
+      {phone ? (
+        <PhoneApplicationsTools
+          view={view}
+          onChange={changeFilters}
+          chips={chips}
+          search={(onClose) => (
+            <PhoneSearchRow
+              value={searchText}
+              onChange={setSearchText}
+              onClose={() => {
+                setSearchText('');
+                onClose();
+              }}
+            />
+          )}
+        />
+      ) : (
+        <PageHeader
+          phoneCompact
+          title="Applications"
+          description="Every job you applied for, where it stands, and what is next."
+          actions={
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label={isFetching ? 'Refreshing…' : 'Refresh applications'}
+                title="Refresh applications"
+                loading={isFetching}
+                onClick={() => void refetch()}
+              >
+                {!isFetching && <RefreshCwIcon size={16} aria-hidden="true" />}
+              </Button>
+            </>
+          }
+        />
       )}
-      <PageHeader
-        phoneCompact
-        title="Applications"
-        description="Every job you applied for, where it stands, and what is next."
-        actions={
-          <>
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label={isFetching ? 'Refreshing…' : 'Refresh applications'}
-              title="Refresh applications"
-              loading={isFetching}
-              onClick={() => void refetch()}
-            >
-              {!isFetching && <RefreshCwIcon size={16} aria-hidden="true" />}
-            </Button>
-          </>
-        }
-      />
 
       <ApplicationListTabs view={view} onChange={changeFilters} />
       <ApplicationsTable
         applications={error ? [] : applications}
         loading={isLoading}
         toolbar={
-          <div>
-            <Toolbar
-              filterCount={(archive !== 'active' ? 1 : 0) + (search.trim() ? 1 : 0)}
-              search={
-                <ToolbarSearch
-                  id={APPLICATION_SEARCH_ID}
-                  label="Search company or job title"
-                  value={searchText}
-                  onChange={setSearchText}
-                  placeholder="Search company or job title"
-                />
-              }
-              filters={(layout) => (
-                <Select<DiscoveryView['archive']>
-                  id={`application-archive-filter-${layout}`}
-                  label="Application visibility"
-                  appearance={layout === 'inline' ? 'inline' : 'field'}
-                  value={archive}
-                  options={ARCHIVE_OPTIONS}
-                  onValueChange={(next) => changeFilters({ archive: next })}
-                />
-              )}
-              end={(layout) => (
-                <Select<DiscoveryView['sort']>
-                  id={`application-sort-${layout}`}
-                  label="Sort applications"
-                  appearance={layout === 'inline' ? 'inline' : 'field'}
-                  value={sort}
-                  options={SORT_OPTIONS}
-                  onValueChange={(next) => changeFilters({ sort: next })}
-                />
-              )}
-            />
-            <FilterChips
-              chips={[
-                ...(search.trim()
-                  ? [
-                      {
-                        label: `Search: ${search.trim()}`,
-                        onRemove: () => changeFilters({ search: '' }),
-                      },
-                    ]
-                  : []),
-                ...(tab !== 'ALL'
-                  ? [
-                      {
-                        label: `Status: ${STATUS_TABS.find((t) => t.value === tab)?.label}`,
-                        onRemove: () => changeFilters({ tab: 'ALL' }),
-                      },
-                    ]
-                  : []),
-                ...(reply !== 'ALL'
-                  ? [
-                      {
-                        label: `Replies: ${REPLY_TABS.find((t) => t.value === reply)?.label}`,
-                        onRemove: () => changeFilters({ reply: 'ALL' }),
-                      },
-                    ]
-                  : []),
-                ...(archive !== 'active'
-                  ? [
-                      {
-                        label: `Show: ${ARCHIVE_OPTIONS.find((o) => o.value === archive)?.label}`,
-                        onRemove: () => changeFilters({ archive: 'active' }),
-                      },
-                    ]
-                  : []),
-              ]}
-              onClearAll={() => setView({ ...INITIAL_VIEW, list })}
-            />
-          </div>
+          !phone && (
+            <div>
+              <Toolbar
+                filterCount={(archive !== 'active' ? 1 : 0) + (search.trim() ? 1 : 0)}
+                search={
+                  <ToolbarSearch
+                    id={APPLICATION_SEARCH_ID}
+                    label="Search company or job title"
+                    value={searchText}
+                    onChange={setSearchText}
+                    placeholder="Search company or job title"
+                  />
+                }
+                filters={(layout) => (
+                  <Select<DiscoveryView['archive']>
+                    id={`application-archive-filter-${layout}`}
+                    label="Application visibility"
+                    appearance={layout === 'inline' ? 'inline' : 'field'}
+                    value={archive}
+                    options={ARCHIVE_OPTIONS}
+                    onValueChange={(next) => changeFilters({ archive: next })}
+                  />
+                )}
+                end={(layout) => (
+                  <Select<DiscoveryView['sort']>
+                    id={`application-sort-${layout}`}
+                    label="Sort applications"
+                    appearance={layout === 'inline' ? 'inline' : 'field'}
+                    value={sort}
+                    options={SORT_OPTIONS}
+                    onValueChange={(next) => changeFilters({ sort: next })}
+                  />
+                )}
+              />
+              {chips}
+            </div>
+          )
         }
         empty={
           error ? (
@@ -229,6 +247,11 @@ function ApplicationsDashboard({
           )
         }
       />
+      {phone && (
+        <p className="px-1 text-[13px] leading-[18px] text-text-tertiary">
+          Every job you applied for, where it stands, and what is next.
+        </p>
+      )}
     </div>
   );
 }
