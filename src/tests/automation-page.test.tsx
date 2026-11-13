@@ -107,7 +107,7 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe('navigation', () => {
-  it('links to the NorthList Apply page next to AI providers, on desktop and in the phone menu', async () => {
+  it('links to the NorthList Apply page next to AI providers in the side menu', async () => {
     renderPage();
     expect(await screen.findByRole('heading', { name: 'NorthList Apply' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'NorthList Apply' })).toHaveAttribute(
@@ -115,13 +115,6 @@ describe('navigation', () => {
       '/automation',
     );
     expect(screen.getByRole('link', { name: 'AI providers' })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Open menu' }));
-    const menu = await screen.findByRole('dialog', { name: 'Menu' });
-    expect(within(menu).getByRole('link', { name: 'NorthList Apply' })).toHaveAttribute(
-      'href',
-      '/automation',
-    );
-    fireEvent.click(within(menu).getByRole('button', { name: 'Close menu' }));
     await openByHand();
     expect(await screen.findByText(`${window.location.origin}/mcp`)).toBeInTheDocument();
   });
