@@ -8,7 +8,6 @@ import { Pagination } from '../ui/pagination';
 import { SectionError } from '../ui/section-error';
 import { MailRow } from './MailRow';
 import { PhoneMailRow } from './PhoneMailRow';
-import { SyncLine } from './SyncLine';
 
 /** The empty list: nothing matches the view, or no job mail has arrived yet. */
 function NoJobMails({ narrowed, onClear }: { narrowed: boolean; onClear: () => void }) {
@@ -94,7 +93,7 @@ export function JobMails({ search, onChange }: JobMailsProps) {
   return (
     <div>
       {phone ? (
-        <div aria-label="Job mails" role="list" className="-mx-4 border-t border-border-subtle">
+        <div aria-label="Job mails" role="list">
           {items.map((conversation) => (
             <div role="listitem" key={conversation.key}>
               <PhoneMailRow conversation={conversation} />
@@ -117,7 +116,6 @@ export function JobMails({ search, onChange }: JobMailsProps) {
           onNext={() => nextOffset !== null && goTo(nextOffset)}
         />
       )}
-      {phone && <SyncLine look="note" />}
     </div>
   );
 }
