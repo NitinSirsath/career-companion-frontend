@@ -1,21 +1,21 @@
 import * as React from 'react';
 import {
-  CheckmarkFilled,
-  ErrorFilled,
-  InformationFilled,
-  WarningAltFilled,
-  type CarbonIconType,
-} from '@carbon/icons-react';
+  CircleCheckIcon,
+  CircleXIcon,
+  InfoIcon,
+  TriangleAlertIcon,
+  type LucideIcon,
+} from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Reveal } from './reveal';
 
 type Kind = 'info' | 'success' | 'warning' | 'error';
 
-const LOOK: Record<Kind, { box: string; icon: string; Icon: CarbonIconType }> = {
-  info: { box: 'bg-notice-info', icon: 'text-link', Icon: InformationFilled },
-  success: { box: 'bg-notice-success', icon: 'text-ok', Icon: CheckmarkFilled },
-  warning: { box: 'bg-notice-warning', icon: 'text-warning-icon', Icon: WarningAltFilled },
-  error: { box: 'bg-notice-error', icon: 'text-danger-text', Icon: ErrorFilled },
+const LOOK: Record<Kind, { box: string; icon: string; Icon: LucideIcon }> = {
+  info: { box: 'bg-notice-info', icon: 'text-link', Icon: InfoIcon },
+  success: { box: 'bg-notice-success', icon: 'text-ok', Icon: CircleCheckIcon },
+  warning: { box: 'bg-notice-warning', icon: 'text-warning-icon', Icon: TriangleAlertIcon },
+  error: { box: 'bg-notice-error', icon: 'text-danger-text', Icon: CircleXIcon },
 };
 
 interface InlineNotificationProps {
