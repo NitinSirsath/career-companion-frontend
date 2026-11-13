@@ -333,15 +333,20 @@ describe('on a phone (owner, 7 Nov 2026)', () => {
   });
   afterEach(() => setWidth(desktopWidth));
 
-  it('puts the date in the history line under the title, with the AI note beside it', async () => {
+  it('opens a History row in a sheet with its AI note and actions (owner, 12 Nov 2026)', async () => {
     show();
-    const note = await screen.findByRole('button', { name: 'Show the AI note' });
-    const time = document.querySelector('ol time');
-    expect(time?.parentElement).toHaveTextContent(
-      /· The AI moved the status from Assessment to Interview/,
-    );
-    // The date line and the note share one block under the title, across the row.
-    expect(time?.parentElement?.parentElement).toContainElement(note);
+    const row = await screen.findByRole('button', {
+      name: /The AI moved the status from Assessment to Interview/,
+    });
+    // No "Show the AI note" in the row: the note is in the sheet.
+    expect(screen.queryByRole('button', { name: 'Show the AI note' })).not.toBeInTheDocument();
+    fireEvent.click(row);
+    const sheet = within(await screen.findByRole('dialog', { name: 'History entry' }));
+    expect(
+      sheet.getByText("This is the AI's reading, not the mail's own words."),
+    ).toBeInTheDocument();
+    expect(sheet.getByRole('button', { name: 'Open the mail' })).toBeInTheDocument();
+    expect(sheet.getByRole('button', { name: 'Wrong application?' })).toBeInTheDocument();
   });
 
   it('keeps the date in its own column on wider screens', async () => {
@@ -353,7 +358,7 @@ describe('on a phone (owner, 7 Nov 2026)', () => {
     expect(time?.parentElement).not.toContainElement(note);
   });
 
-  it('keeps the page and step menus, and Complete on the user own step', async () => {
+  it('opens each step in a sheet, with Complete only on the user own step', async () => {
     vi.mocked(api.getApplicationActions).mockResolvedValue(
       page([
         step(),
@@ -361,11 +366,36 @@ describe('on a phone (owner, 7 Nov 2026)', () => {
       ]),
     );
     show();
-    expect(await screen.findByRole('button', { name: 'More for Thank Arjun' })).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'More for Confirm the interview time' }),
-    ).toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: 'Complete' })).toHaveLength(1);
-    expect(screen.getByRole('button', { name: 'More actions' })).toBeInTheDocument();
+    fireEvent.click(await screen.findByRole('button', { name: /^Thank Arjun/ }));
+    const own = within(await screen.findByRole('dialog', { name: 'Next step' }));
+    expect(own.getByRole('button', { name: 'Complete' })).toBeInTheDocument();
+    expect(own.getByRole('button', { name: 'Snooze…' })).toBeInTheDocument();
+    expect(own.getByRole('button', { name: 'Dismiss' })).toBeInTheDocument();
+    fireEvent.click(own.getByRole('button', { name: 'Close' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole('button', { name: /^Confirm the interview time/ }));
+    const fromMail = within(await screen.findByRole('dialog', { name: 'Next step' }));
+    expect(fromMail.queryByRole('button', { name: 'Complete' })).not.toBeInTheDocument();
+    expect(fromMail.getByRole('button', { name: 'Open the mail' })).toBeInTheDocument();
+  });
+
+  it('has Status and More in the action bar, each opening a sheet', async () => {
+    show();
+    const bar = within(await screen.findByRole('navigation', { name: 'Application actions' }));
+    fireEvent.click(bar.getByRole('button', { name: 'More' }));
+    const more = within(await screen.findByRole('dialog', { name: 'This application' }));
+    expect(more.getByRole('button', { name: 'Archive application…' })).toBeInTheDocument();
+    expect(more.getByRole('button', { name: 'Delete application…' })).toBeInTheDocument();
+    fireEvent.click(more.getByRole('button', { name: 'Close' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+
+    fireEvent.click(bar.getByRole('button', { name: 'Status' }));
+    const status = within(await screen.findByRole('dialog', { name: 'Status' }));
+    expect(status.getAllByRole('radio')).toHaveLength(8);
+    expect(status.getByRole('radio', { name: /Use the AI's status/ })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
   });
 });
