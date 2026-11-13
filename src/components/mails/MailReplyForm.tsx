@@ -1,3 +1,4 @@
+import { XIcon } from 'lucide-react';
 import {
   Suspense,
   lazy,
@@ -20,6 +21,7 @@ import {
   type ReplyProblem,
 } from '../../lib/mailReply';
 import { parseSender } from '../../lib/mails';
+import { cn } from '../../lib/utils';
 import { useIsPhone } from '../layout/useIsPhone';
 import { Button } from '../ui/button';
 import { InlineNotification } from '../ui/notification';
@@ -215,6 +217,28 @@ interface MailReplyFormProps {
   onSending?: (doc: DraftDoc | null) => void;
   /** AI help for a job mail: reply choices and "Write with AI". */
   ai?: ReplyAi;
+  /** Laptops: closes the box. The text stays kept on this device, as on phones. */
+  onClose?: () => void;
+}
+
+/** Esc closes the box, unless a menu inside it took the key first. */
+function closeOnEscape(event: React.KeyboardEvent, onClose?: () => void) {
+  if (onClose && event.key === 'Escape' && !event.defaultPrevented) onClose();
+}
+
+/** The round × at the top right of the box on laptops (owner, 13 Nov 2026). */
+function CloseReply({ onClose }: { onClose: () => void }) {
+  return (
+    <button
+      type="button"
+      aria-label="Close reply"
+      title="Close (Esc). Your text is kept."
+      onClick={onClose}
+      className="absolute top-2 right-2 z-10 flex size-8 cursor-pointer items-center justify-center rounded-full text-text-secondary transition-colors duration-70 ease-standard hover:bg-layer-hover hover:text-text-primary"
+    >
+      <XIcon size={18} aria-hidden="true" />
+    </button>
+  );
 }
 
 /** "Not sent yet. Kept on this device only." with Discard, when the box opened with kept text. */
@@ -406,6 +430,7 @@ export function MailReplyForm({
   children,
   onSending,
   ai,
+  onClose,
 }: MailReplyFormProps) {
   const formId = useId();
   const phone = useIsPhone();
@@ -451,9 +476,11 @@ export function MailReplyForm({
         }}
         noValidate
         aria-label="Reply"
-        className="flex animate-open flex-col overflow-hidden rounded-lg border border-border-default bg-surface transition-colors duration-70 ease-standard focus-within:border-border-focus"
+        onKeyDown={(event) => closeOnEscape(event, onClose)}
+        className="relative flex animate-open flex-col overflow-hidden rounded-lg border border-border-default bg-surface transition-colors duration-70 ease-standard focus-within:border-border-focus"
       >
-        <div className="flex flex-col gap-3 px-4 pt-3 empty:hidden">
+        {onClose && <CloseReply onClose={onClose} />}
+        <div className={cn('flex flex-col gap-3 px-4 pt-3 empty:hidden', onClose && 'pr-12')}>
           <ReplyOutcome sentNote={reply.sentNote} problem={reply.problem} />
           <ReplyReceivers replyTo={replyTo} others={replyCc} toAll={toAll} onToAll={setAll} />
         </div>
