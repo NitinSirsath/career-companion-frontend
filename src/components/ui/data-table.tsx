@@ -7,7 +7,7 @@ import {
   type Row,
   type RowData,
 } from '@tanstack/react-table';
-import { ArrowDown } from '@carbon/icons-react';
+import { ArrowDownIcon } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useIsPhone } from '../layout/useIsPhone';
 import { Skeleton } from './skeleton';
@@ -132,7 +132,7 @@ export function DataTable<T>({
                         className="group inline-flex h-12 cursor-pointer items-center gap-2"
                       >
                         {content}
-                        <ArrowDown
+                        <ArrowDownIcon
                           size={14}
                           aria-hidden="true"
                           className={cn(
