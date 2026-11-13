@@ -64,6 +64,7 @@ function DashboardPage() {
         />
       ) : (
         <PageHeader
+          refresh
           title={greeting(user?.name)}
           description={todayLine(numbers?.dataStartsAt ?? null)}
         />
