@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Checkmark, ChevronRight } from '@carbon/icons-react';
+import { CheckIcon, ChevronRightIcon } from 'lucide-react';
 import { api } from '../../api/client';
 import type { ApplicationActionListItem } from '../../contracts/application';
 import { dateAndTime, stepSource, stepText } from '../../lib/applicationDetail';
@@ -154,7 +154,7 @@ function StepRow({
               disabled={update.isPending}
               onClick={() => change('COMPLETED')}
             >
-              <Checkmark size={16} aria-hidden="true" />
+              <CheckIcon size={16} aria-hidden="true" />
               Complete
             </Button>
           )}
@@ -197,7 +197,7 @@ function DoneSteps({ actions }: { actions: ApplicationActionListItem[] }) {
         onClick={() => setOpen(!open)}
         className="flex min-h-10 w-full cursor-pointer items-center gap-2 pt-3 text-sm text-text-secondary transition-colors duration-70 ease-standard hover:text-text-primary"
       >
-        <ChevronRight
+        <ChevronRightIcon
           size={16}
           aria-hidden="true"
           className={cn('transition-transform duration-150 ease-standard', open && 'rotate-90')}
@@ -212,7 +212,7 @@ function DoneSteps({ actions }: { actions: ApplicationActionListItem[] }) {
               className="flex items-center justify-between gap-4 py-2.5 text-sm text-text-secondary"
             >
               <span className="flex min-w-0 items-center gap-2">
-                <Checkmark size={16} aria-hidden="true" className="shrink-0" />
+                <CheckIcon size={16} aria-hidden="true" className="shrink-0" />
                 <span className="break-words">{stepText(action)}</span>
               </span>
               <span className="shrink-0 text-xs">{doneLabel(action)}</span>

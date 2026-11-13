@@ -1,5 +1,5 @@
 import { Menu } from '@base-ui/react/menu';
-import { Checkmark } from '@carbon/icons-react';
+import { CheckIcon } from 'lucide-react';
 import { onlineManager } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { logout, type User } from '../../api/auth';
@@ -68,7 +68,7 @@ export function AccountMenu({ user }: { user: User | null }) {
                   >
                     {choice.label}
                     <Menu.RadioItemIndicator className="flex text-link">
-                      <Checkmark size={16} aria-hidden="true" />
+                      <CheckIcon size={16} aria-hidden="true" />
                     </Menu.RadioItemIndicator>
                   </Menu.RadioItem>
                 ))}

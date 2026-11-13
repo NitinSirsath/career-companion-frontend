@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Checkmark, Copy } from '@carbon/icons-react';
+import { CheckIcon, CopyIcon } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 /** One line of code to copy, such as a server address, with a copy button that says it worked. */
@@ -33,9 +33,9 @@ export function CodeSnippet({
           className="flex size-10 shrink-0 cursor-pointer items-center justify-center text-text-primary transition-colors duration-70 ease-standard hover:bg-layer-hover"
         >
           {copied === 'yes' ? (
-            <Checkmark size={16} aria-hidden="true" className="text-ok" />
+            <CheckIcon size={16} aria-hidden="true" className="text-ok" />
           ) : (
-            <Copy size={16} aria-hidden="true" />
+            <CopyIcon size={16} aria-hidden="true" />
           )}
         </button>
       </div>

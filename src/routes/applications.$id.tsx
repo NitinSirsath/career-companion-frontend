@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Building } from '@carbon/icons-react';
+import { Building2Icon } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/client';
 import { ApplicationFacts } from '../components/applications/ApplicationFacts';
@@ -41,7 +41,7 @@ function ApplicationDetailPage() {
   const canEdit = !!application && !applicationQuery.isError;
 
   const breadcrumb = (
-    <Breadcrumb current={application?.companyName} currentIcon={Building}>
+    <Breadcrumb current={application?.companyName} currentIcon={Building2Icon}>
       <Link to="/applications" search={listSearch<ApplicationsSearch>('/applications')}>
         Applications
       </Link>

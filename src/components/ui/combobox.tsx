@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Combobox as BaseCombobox } from '@base-ui/react/combobox';
-import { Checkmark, ChevronDown } from '@carbon/icons-react';
+import { CheckIcon, ChevronDownIcon } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { AutoHeight } from './auto-height';
 import { ITEM_CLASS, POPUP_CLASS } from './select';
@@ -76,7 +76,7 @@ export function Combobox<T>({
         >
           {label}
         </label>
-        <BaseCombobox.InputGroup className="relative flex h-9 items-center rounded-md border border-border-default bg-field focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-border-focus">
+        <BaseCombobox.InputGroup className="relative flex h-9 items-center rounded-full border border-border-default bg-field focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-border-focus">
           {/* Named twice on purpose: while the list is open the page around it, label included, is
               hidden from screen readers, and the box must keep its name. */}
           <BaseCombobox.Input
@@ -89,7 +89,7 @@ export function Combobox<T>({
             aria-label={`Open ${label}`}
             className="group absolute right-0 flex h-full w-10 cursor-pointer items-center justify-center text-text-primary"
           >
-            <ChevronDown
+            <ChevronDownIcon
               size={16}
               aria-hidden="true"
               className="transition-transform duration-110 ease-standard group-data-popup-open:rotate-180"
@@ -128,7 +128,7 @@ export function Combobox<T>({
                       {renderItem ? renderItem(item) : itemToString(item)}
                     </span>
                     <BaseCombobox.ItemIndicator className="flex text-link">
-                      <Checkmark size={16} aria-hidden="true" />
+                      <CheckIcon size={16} aria-hidden="true" />
                     </BaseCombobox.ItemIndicator>
                   </BaseCombobox.Item>
                 )}

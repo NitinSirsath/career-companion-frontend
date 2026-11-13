@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Link } from '@tanstack/react-router';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Launch } from '@carbon/icons-react';
+import { ExternalLinkIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import type { EmailMessage } from '../../contracts/gmail';
 import { CATEGORY_LABEL, parseSender } from '../../lib/mails';
@@ -77,7 +77,7 @@ export function processedColumns({
             aria-label={`Open email "${subject}" in Gmail`}
           >
             {subject}
-            <Launch size={12} className="shrink-0" aria-hidden="true" />
+            <ExternalLinkIcon size={12} className="shrink-0" aria-hidden="true" />
           </a>
         );
       },

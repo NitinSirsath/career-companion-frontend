@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Close, Filter, Search } from '@carbon/icons-react';
+import { SearchIcon, SlidersHorizontalIcon, XIcon } from 'lucide-react';
 import { Dialog } from '@base-ui/react/dialog';
 import { cn } from '../../lib/utils';
 import { Button } from './button';
@@ -33,8 +33,8 @@ export function Toolbar({
       )}
       {filters && (
         <Dialog.Root open={open} onOpenChange={setOpen}>
-          <Dialog.Trigger className="flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-md border border-border-default bg-field px-3 text-[14px] leading-5 transition-colors duration-70 ease-standard hover:bg-layer-hover md:hidden">
-            <Filter size={16} aria-hidden="true" />
+          <Dialog.Trigger className="flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-full border border-border-default bg-field px-3 text-[14px] leading-5 transition-colors duration-70 ease-standard hover:bg-layer-hover md:hidden">
+            <SlidersHorizontalIcon size={16} aria-hidden="true" />
             Filters
             {filterCount > 0 && (
               <span className="rounded-full bg-tag-blue-bg px-1.5 text-xs text-tag-blue">
@@ -51,7 +51,7 @@ export function Toolbar({
                   aria-label="Close filters"
                   className="flex size-11 cursor-pointer items-center justify-center"
                 >
-                  <Close size={20} aria-hidden="true" />
+                  <XIcon size={20} aria-hidden="true" />
                 </Dialog.Close>
               </div>
               <div className="flex flex-col gap-5">
@@ -92,8 +92,8 @@ export function ToolbarSearch({
   const ownId = React.useId();
   const id = givenId ?? ownId;
   return (
-    <div className="flex h-9 items-center gap-2.5 rounded-md border border-border-default bg-field px-3 text-text-secondary focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-border-focus">
-      <Search size={16} aria-hidden="true" className="shrink-0" />
+    <div className="flex h-9 items-center gap-2.5 rounded-full border border-border-default bg-field px-3.5 text-text-secondary focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-border-focus">
+      <SearchIcon size={16} aria-hidden="true" className="shrink-0" />
       <label htmlFor={id} className="sr-only">
         {label}
       </label>
@@ -134,7 +134,7 @@ export function FilterChips({
       {chips.map((chip) => (
         <span
           key={chip.label}
-          className="inline-flex h-6 animate-open items-center rounded-md bg-tag-gray-bg pl-2 text-xs text-tag-gray"
+          className="inline-flex h-6 animate-open items-center rounded-full bg-tag-gray-bg pl-2.5 text-xs text-tag-gray"
         >
           {chip.label}
           <button
@@ -145,7 +145,7 @@ export function FilterChips({
               'flex size-6 cursor-pointer items-center justify-center transition-colors duration-70 ease-standard hover:bg-layer-hover',
             )}
           >
-            <Close size={12} aria-hidden="true" />
+            <XIcon size={12} aria-hidden="true" />
           </button>
         </span>
       ))}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Building } from '@carbon/icons-react';
+import { Building2Icon } from 'lucide-react';
 import { useConversation, useMarkSeenOnOpen } from '../api/conversations';
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
 import { FakeOfferNotice } from '../components/mails/FakeOffer';
@@ -37,7 +37,7 @@ function JobMailPage() {
   const breadcrumb = (
     <Breadcrumb
       current={company ?? (conversation && (conversation.subject || '(No subject)'))}
-      currentIcon={company ? Building : undefined}
+      currentIcon={company ? Building2Icon : undefined}
     >
       <Link to="/mails" search={listSearch<MailsSearch>('/mails')}>
         Mails

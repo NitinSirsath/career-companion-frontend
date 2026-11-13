@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { ArrowDown, Calendar, ChevronDown } from '@carbon/icons-react';
+import { ArrowDownIcon, CalendarIcon, ChevronDownIcon } from 'lucide-react';
 import { useSetRequestState } from '../../api/conversations';
 import type {
   ConversationDetail,
@@ -45,7 +45,7 @@ function FoldedSection({ title, children }: { title: string; children: ReactNode
           className="flex min-h-13 w-full cursor-pointer items-center justify-between gap-3 px-4 text-left text-sm font-semibold"
         >
           {title}
-          <ChevronDown
+          <ChevronDownIcon
             size={16}
             aria-hidden="true"
             className={cn('transition-transform duration-150 ease-standard', open && 'rotate-180')}
@@ -103,7 +103,7 @@ function AskingMailLink({ mail, messageId }: { mail: ConversationMail; messageId
       onClick={() => showMail(messageId)}
       className="flex cursor-pointer items-center gap-1.5 border-t border-border-subtle pt-3 text-left text-sm text-link"
     >
-      <ArrowDown size={16} aria-hidden="true" />
+      <ArrowDownIcon size={16} aria-hidden="true" />
       From {mail.sender ? `${parseSender(mail.sender).name}'s` : 'this'} mail,{' '}
       {mailDateTime(mail.receivedAt)}
     </button>
@@ -120,7 +120,7 @@ function ClosedByLink({ asked }: { asked: ConversationRequest }) {
       onClick={() => showMail(messageId)}
       className="flex cursor-pointer items-center gap-1.5 border-t border-border-subtle pt-3 text-left text-sm text-link"
     >
-      <ArrowDown size={16} aria-hidden="true" />
+      <ArrowDownIcon size={16} aria-hidden="true" />
       {asked.closedReason === 'YOUR_REPLY' ? 'Show your reply' : 'Show that mail'}
     </button>
   );
@@ -152,7 +152,7 @@ function StepDue({ asked }: { asked: ConversationRequest }) {
   const pastDue = requestPastDue(asked);
   return (
     <p className={cn('flex items-center gap-2 text-sm', pastDue && 'text-danger-text')}>
-      <Calendar size={16} aria-hidden="true" />
+      <CalendarIcon size={16} aria-hidden="true" />
       {requestDetail(asked)}
       <span className={cn('text-xs', !pastDue && 'text-text-secondary')}>
         {dueIn(asked.deadline, new Date())}
@@ -233,7 +233,6 @@ function NextStep({ detail }: { detail: ConversationDetail }) {
         ]}
       />
     ) : undefined;
-  const again = asked.state === 'DONE' ? 'Reopen' : 'Ask me again';
   return (
     <PanelSection title="Next step" menu={menu}>
       <p className={cn('text-base break-words', asked.state === 'DONE' && 'text-text-secondary')}>
@@ -248,11 +247,11 @@ function NextStep({ detail }: { detail: ConversationDetail }) {
           <Button
             size="sm"
             variant="ghost"
-            aria-label={`${again}: ${title}`}
+            aria-label={`Reopen: ${title}`}
             loading={change.isPending}
-            onClick={() => setState('OPEN', asked.state === 'DONE' ? 'Reopened' : 'Asked again')}
+            onClick={() => setState('OPEN', `Reopened: ${title}`)}
           >
-            {again}
+            Reopen
           </Button>
         </div>
       )}

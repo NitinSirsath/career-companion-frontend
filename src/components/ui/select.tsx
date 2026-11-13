@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Select as BaseSelect } from '@base-ui/react/select';
-import { Checkmark, ChevronDown } from '@carbon/icons-react';
+import { CheckIcon, ChevronDownIcon } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 export interface SelectOption<V extends string> {
@@ -29,11 +29,14 @@ interface SelectProps<V extends string> {
 }
 
 /**
- * Shared popup look for every dropdown: the menu colour, a thin border, a soft shadow, and an open
- * that fades and grows out of the side next to its field (150ms); it closes in 110ms.
+ * Shared popup look for every dropdown and menu (owner, 13 Nov 2026): frosted menu colour, a thin
+ * border and a soft shadow. It grows out of its button with a spring (320ms) and shrinks away in
+ * 160ms.
  */
-export const POPUP_CLASS =
-  'rounded-lg border border-border-subtle bg-menu py-1 text-text-primary shadow-popup outline-none origin-[var(--transform-origin)] transition-[opacity,scale] duration-150 ease-entrance data-ending-style:scale-[0.98] data-ending-style:opacity-0 data-ending-style:duration-110 data-ending-style:ease-exit data-starting-style:scale-[0.96] data-starting-style:opacity-0';
+export const POPUP_MOTION =
+  'origin-[var(--transform-origin)] transition-[opacity,scale] duration-320 ease-spring data-ending-style:scale-90 data-ending-style:opacity-0 data-ending-style:duration-160 data-ending-style:ease-exit data-starting-style:scale-60 data-starting-style:opacity-0';
+
+export const POPUP_CLASS = `rounded-lg border border-border-subtle glass-menu py-1 text-text-primary shadow-popup outline-none ${POPUP_MOTION}`;
 
 export const ITEM_CLASS =
   'flex min-h-10 cursor-pointer items-center justify-between gap-4 px-4 py-2 text-[14px] leading-5 text-text-primary outline-none select-none transition-colors duration-70 ease-standard data-highlighted:bg-menu-hover data-disabled:cursor-not-allowed data-disabled:text-text-disabled';
@@ -81,8 +84,8 @@ export function Select<V extends string>({
           className={cn(
             'group flex cursor-pointer items-center justify-between gap-2 text-left text-[14px] leading-5 text-text-primary transition-colors duration-70 ease-standard outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-border-focus data-disabled:cursor-not-allowed data-disabled:text-text-disabled',
             inline
-              ? 'h-9 rounded-md border border-border-default bg-field px-3 whitespace-nowrap hover:bg-layer-hover'
-              : 'h-9 w-full rounded-md border border-border-default bg-field px-3 hover:bg-layer-hover',
+              ? 'h-9 rounded-full border border-border-default bg-field px-3.5 whitespace-nowrap hover:bg-layer-hover'
+              : 'h-9 w-full rounded-full border border-border-default bg-field px-3.5 hover:bg-layer-hover',
           )}
         >
           <span className="min-w-0 truncate">
@@ -94,7 +97,7 @@ export function Select<V extends string>({
             <BaseSelect.Value />
           </span>
           <BaseSelect.Icon className="flex transition-transform duration-110 ease-standard group-data-popup-open:rotate-180">
-            <ChevronDown size={16} aria-hidden="true" />
+            <ChevronDownIcon size={16} aria-hidden="true" />
           </BaseSelect.Icon>
         </BaseSelect.Trigger>
         {helperText && <p className="mt-2 text-xs text-text-secondary">{helperText}</p>}
@@ -115,7 +118,7 @@ export function Select<V extends string>({
                 >
                   <BaseSelect.ItemText>{option.label}</BaseSelect.ItemText>
                   <BaseSelect.ItemIndicator className="flex text-link">
-                    <Checkmark size={16} aria-hidden="true" />
+                    <CheckIcon size={16} aria-hidden="true" />
                   </BaseSelect.ItemIndicator>
                 </BaseSelect.Item>
               ))}

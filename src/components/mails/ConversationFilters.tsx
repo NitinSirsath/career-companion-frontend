@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Close, Filter } from '@carbon/icons-react';
+import { SlidersHorizontalIcon, XIcon } from 'lucide-react';
 import { Dialog } from '@base-ui/react/dialog';
 import { Popover } from '@base-ui/react/popover';
 import {
@@ -12,7 +12,7 @@ import {
 } from '../../lib/mails';
 import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
-import { Select } from '../ui/select';
+import { POPUP_MOTION, Select } from '../ui/select';
 import { FilterChips, ToolbarSearch, type FilterChip } from '../ui/toolbar';
 import { useSearchText } from '../useSearchText';
 
@@ -153,7 +153,7 @@ function SortSelect({ search, onChange, layout }: FiltersProps & { layout: 'inli
 }
 
 const FILTERS_BUTTON =
-  'flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-md px-2.5 text-[13px] font-medium text-text-secondary transition-colors duration-70 ease-standard hover:bg-layer-hover hover:text-text-primary data-popup-open:bg-layer-accent data-popup-open:text-text-primary';
+  'flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-full px-3 text-[13px] font-medium text-text-secondary transition-colors duration-70 ease-standard hover:bg-layer-hover hover:text-text-primary data-popup-open:bg-layer-accent data-popup-open:text-text-primary';
 
 function CountBadge({ count }: { count: number }) {
   if (count === 0) return null;
@@ -186,13 +186,15 @@ export function MailTools({ search, onChange }: FiltersProps) {
       </div>
       <Popover.Root>
         <Popover.Trigger className={FILTERS_BUTTON}>
-          <Filter size={16} aria-hidden="true" />
+          <SlidersHorizontalIcon size={16} aria-hidden="true" />
           Filters
           <CountBadge count={filterCount(search)} />
         </Popover.Trigger>
         <Popover.Portal>
           <Popover.Positioner align="end" sideOffset={6} className="z-40 outline-none">
-            <Popover.Popup className="flex w-[300px] origin-[var(--transform-origin)] flex-col gap-4 rounded-lg border border-border-subtle bg-menu p-4 text-text-primary shadow-popup outline-none transition-[opacity,scale] duration-150 ease-entrance data-ending-style:scale-[0.98] data-ending-style:opacity-0 data-starting-style:scale-[0.96] data-starting-style:opacity-0">
+            <Popover.Popup
+              className={`flex w-[300px] flex-col gap-4 rounded-lg border border-border-subtle glass-menu p-4 text-text-primary shadow-popup outline-none ${POPUP_MOTION}`}
+            >
               <Popover.Title className="sr-only">Filters</Popover.Title>
               <FilterFields search={search} onChange={onChange} layout="menu" />
               <div className="-mx-4 -mb-4 flex items-center justify-between border-t border-border-subtle py-2 pr-2 pl-4">
@@ -222,7 +224,7 @@ export function MailFilterChips({ search, onChange }: FiltersProps) {
 }
 
 const QUICK_CHIP =
-  'flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-border-default px-3 text-[13px] font-medium whitespace-nowrap text-text-primary transition-colors duration-70 ease-standard aria-pressed:border-transparent aria-pressed:bg-tint aria-pressed:text-tint-text';
+  'flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-border-default px-3 text-[13px] font-medium whitespace-nowrap text-text-primary transition-colors duration-70 ease-standard aria-pressed:border-transparent aria-pressed:bg-tint aria-pressed:text-tint-text';
 
 /**
  * On phones, one row under the AI notice: Needs action and New only, one tap each; Filters opens a
@@ -257,7 +259,7 @@ export function PhoneMailChips({
         </button>
         <Dialog.Root open={open} onOpenChange={setOpen}>
           <Dialog.Trigger className={QUICK_CHIP}>
-            <Filter size={16} aria-hidden="true" />
+            <SlidersHorizontalIcon size={16} aria-hidden="true" />
             Filters
             <CountBadge count={filterCount(search)} />
           </Dialog.Trigger>
@@ -270,7 +272,7 @@ export function PhoneMailChips({
                   aria-label="Close filters"
                   className="flex size-11 cursor-pointer items-center justify-center"
                 >
-                  <Close size={20} aria-hidden="true" />
+                  <XIcon size={20} aria-hidden="true" />
                 </Dialog.Close>
               </div>
               <FilterFields search={search} onChange={onChange} layout="sheet" />

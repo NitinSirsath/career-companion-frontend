@@ -4,7 +4,7 @@ import { cn } from '../../lib/utils';
 export type InputProps = React.InputHTMLAttributes<HTMLInputElement>;
 
 export const FIELD_CLASS =
-  'w-full rounded-md border border-border-default bg-field text-[14px] text-text-primary transition-colors duration-70 ease-standard placeholder:text-text-tertiary focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-border-focus aria-invalid:outline-2 aria-invalid:-outline-offset-2 aria-invalid:outline-danger-text disabled:cursor-not-allowed disabled:border-border-subtle disabled:text-text-disabled';
+  'w-full rounded-full border border-border-default bg-field text-[14px] text-text-primary transition-colors duration-70 ease-standard placeholder:text-text-tertiary focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-border-focus aria-invalid:outline-2 aria-invalid:-outline-offset-2 aria-invalid:outline-danger-text disabled:cursor-not-allowed disabled:border-border-subtle disabled:text-text-disabled';
 
 /** A text field: a box with a thin border on the page colour. */
 const Input = React.forwardRef<HTMLInputElement, InputProps>(

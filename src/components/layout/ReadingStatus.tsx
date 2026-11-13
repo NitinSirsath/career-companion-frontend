@@ -2,14 +2,14 @@ import { useId } from 'react';
 import { Popover } from '@base-ui/react/popover';
 import { Link } from '@tanstack/react-router';
 import {
-  CheckmarkFilled,
-  ChevronDown,
-  ChevronUp,
-  Email,
-  InformationFilled,
-  PauseFilled,
-  WarningFilled,
-} from '@carbon/icons-react';
+  ChevronDownIcon,
+  ChevronUpIcon,
+  CircleAlertIcon,
+  CircleCheckIcon,
+  CirclePauseIcon,
+  InfoIcon,
+  MailIcon,
+} from 'lucide-react';
 import type { AIReadingStatusResponse } from '../../contracts/ai';
 import { jobLabel, type ReadingIcon } from '../../lib/aiReading';
 import { cn } from '../../lib/utils';
@@ -51,10 +51,10 @@ export function ProgressRing({ share, size }: { share: number; size: number }) {
 }
 
 const ICONS = {
-  paused: { Icon: PauseFilled, className: 'text-warning-icon' },
-  problem: { Icon: WarningFilled, className: 'text-destructive' },
-  setup: { Icon: InformationFilled, className: 'text-link' },
-  done: { Icon: CheckmarkFilled, className: 'text-success' },
+  paused: { Icon: CirclePauseIcon, className: 'text-warning-icon' },
+  problem: { Icon: CircleAlertIcon, className: 'text-destructive' },
+  setup: { Icon: InfoIcon, className: 'text-link' },
+  done: { Icon: CircleCheckIcon, className: 'text-success' },
 };
 
 function StatusIcon({ icon, share, size }: { icon: ReadingIcon; share: number; size: number }) {
@@ -94,7 +94,7 @@ function JobMails({ status, phone }: { status: AIReadingStatusResponse; phone: b
     <div className="flex min-w-0 flex-col gap-0.5">
       <p className="mb-1 text-xs text-text-secondary">Job mails found · {count}</p>
       {newest.map((job) => {
-        const Icon = job.category ? MAIL_TYPE_ICON[job.category] : Email;
+        const Icon = job.category ? MAIL_TYPE_ICON[job.category] : MailIcon;
         return (
           <Link
             key={job.emailId}
@@ -178,9 +178,9 @@ function TitleRow({
           className="-mt-0.5 -mr-1.5 flex size-6 shrink-0 cursor-pointer items-center justify-center text-text-secondary transition-colors duration-70 ease-standard hover:bg-layer-hover hover:text-text-primary"
         >
           {feedOpen ? (
-            <ChevronDown size={16} aria-hidden="true" />
+            <ChevronDownIcon size={16} aria-hidden="true" />
           ) : (
-            <ChevronUp size={16} aria-hidden="true" />
+            <ChevronUpIcon size={16} aria-hidden="true" />
           )}
         </button>
       )}

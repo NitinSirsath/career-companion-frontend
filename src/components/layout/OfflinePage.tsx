@@ -1,5 +1,5 @@
 import { useSyncExternalStore, type ReactNode } from 'react';
-import { WifiOff } from '@carbon/icons-react';
+import { WifiOffIcon } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { pageHasNoCopy, shownSince, shownSinceText, useOnline } from '../../lib/offline';
 import { Button } from '../ui/button';
@@ -27,7 +27,7 @@ export function OfflineLine() {
       role="status"
       className="flex items-start gap-2 border-b border-border-subtle bg-surface-subtle px-4 py-2 text-[13px] leading-[18px] md:px-12"
     >
-      <WifiOff size={16} aria-hidden="true" className="mt-px shrink-0" />
+      <WifiOffIcon size={16} aria-hidden="true" className="mt-px shrink-0" />
       <span>
         You're offline.
         {!missing && since !== null && (
@@ -52,7 +52,7 @@ export function OfflinePage({ children }: { children: ReactNode }) {
       <div hidden={noCopy}>{children}</div>
       {noCopy && (
         <div className="flex animate-fade-in flex-col items-center gap-2 py-16 text-center">
-          <WifiOff size={32} aria-hidden="true" />
+          <WifiOffIcon size={32} aria-hidden="true" />
           <p className="text-base font-semibold">No copy of this page yet</p>
           <p className="max-w-95 text-sm text-text-secondary">
             There is no copy of this page on this device. It opens when you're back online.

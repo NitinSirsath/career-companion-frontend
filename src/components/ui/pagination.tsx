@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight } from '@carbon/icons-react';
+import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 
 interface PaginationProps {
   offset: number;
@@ -12,7 +12,7 @@ interface PaginationProps {
 
 /** A small bordered square with an arrow, for the page before or after. */
 export const PAGE_BUTTON =
-  'flex size-8 cursor-pointer items-center justify-center rounded-md border border-border-default bg-background text-text-primary transition-colors duration-70 ease-standard hover:bg-layer-hover disabled:cursor-not-allowed disabled:border-border-subtle disabled:text-text-disabled disabled:hover:bg-transparent';
+  'flex size-8 cursor-pointer items-center justify-center rounded-full border border-border-default bg-background text-text-primary transition-colors duration-70 ease-standard hover:bg-layer-hover disabled:cursor-not-allowed disabled:border-border-subtle disabled:text-text-disabled disabled:hover:bg-transparent';
 
 /** The line under a list, with no frame: the page number, and buttons for the page before and after. */
 export function Pagination({
@@ -39,7 +39,7 @@ export function Pagination({
           onClick={onPrevious}
           disabled={isFirstPage}
         >
-          <ChevronLeft size={16} aria-hidden="true" />
+          <ChevronLeftIcon size={16} aria-hidden="true" />
         </button>
         <button
           type="button"
@@ -48,7 +48,7 @@ export function Pagination({
           onClick={onNext}
           disabled={!hasNext}
         >
-          <ChevronRight size={16} aria-hidden="true" />
+          <ChevronRightIcon size={16} aria-hidden="true" />
         </button>
       </div>
     </div>

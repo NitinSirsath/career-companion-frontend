@@ -2,16 +2,16 @@ import { useContext, useEffect, useRef, useState, type ReactNode, type RefObject
 import { createPortal } from 'react-dom';
 import { Tooltip as BaseTooltip } from '@base-ui/react/tooltip';
 import {
-  Edit,
-  Launch,
-  Link as LinkIcon,
-  ListBulleted,
-  ListNumbered,
-  TextBold,
-  TextItalic,
-  TextUnderline,
-  Unlink,
-} from '@carbon/icons-react';
+  BoldIcon,
+  ExternalLinkIcon,
+  ItalicIcon,
+  LinkIcon,
+  ListIcon,
+  ListOrderedIcon,
+  PencilIcon,
+  UnderlineIcon,
+  UnlinkIcon,
+} from 'lucide-react';
 import type { Editor } from '@tiptap/core';
 import { EditorContent, useEditorState } from '@tiptap/react';
 import { BubbleMenu } from '@tiptap/react/menus';
@@ -45,12 +45,12 @@ const MAC = typeof navigator !== 'undefined' && /mac|iphone|ipad/i.test(navigato
 const key = (mac: string, other: string) => (MAC ? mac : other);
 
 type Format = 'bold' | 'italic' | 'underline' | 'bulletList' | 'orderedList' | 'link';
-const FORMATS: { format: Format; label: string; keys: string; Icon: typeof TextBold }[] = [
-  { format: 'bold', label: 'Bold', keys: key('⌘B', 'Ctrl+B'), Icon: TextBold },
-  { format: 'italic', label: 'Italic', keys: key('⌘I', 'Ctrl+I'), Icon: TextItalic },
-  { format: 'underline', label: 'Underline', keys: key('⌘U', 'Ctrl+U'), Icon: TextUnderline },
-  { format: 'bulletList', label: 'Bulleted list', keys: '- then space', Icon: ListBulleted },
-  { format: 'orderedList', label: 'Numbered list', keys: '1. then space', Icon: ListNumbered },
+const FORMATS: { format: Format; label: string; keys: string; Icon: typeof BoldIcon }[] = [
+  { format: 'bold', label: 'Bold', keys: key('⌘B', 'Ctrl+B'), Icon: BoldIcon },
+  { format: 'italic', label: 'Italic', keys: key('⌘I', 'Ctrl+I'), Icon: ItalicIcon },
+  { format: 'underline', label: 'Underline', keys: key('⌘U', 'Ctrl+U'), Icon: UnderlineIcon },
+  { format: 'bulletList', label: 'Bulleted list', keys: '- then space', Icon: ListIcon },
+  { format: 'orderedList', label: 'Numbered list', keys: '1. then space', Icon: ListOrderedIcon },
   { format: 'link', label: 'Link', keys: key('⌘K', 'Ctrl+K'), Icon: LinkIcon },
 ];
 
@@ -241,7 +241,7 @@ function LinkCard({ editor, onEdit }: { editor: Editor; onEdit: () => void }) {
         onMouseDown={(e) => e.preventDefault()}
         onClick={onEdit}
       >
-        <Edit size={14} aria-hidden="true" />
+        <PencilIcon size={14} aria-hidden="true" />
       </button>
       <button
         type="button"
@@ -250,7 +250,7 @@ function LinkCard({ editor, onEdit }: { editor: Editor; onEdit: () => void }) {
         onMouseDown={(e) => e.preventDefault()}
         onClick={() => editor.chain().focus().extendMarkRange('link').unsetLink().run()}
       >
-        <Unlink size={14} aria-hidden="true" />
+        <UnlinkIcon size={14} aria-hidden="true" />
       </button>
       <a
         href={href}
@@ -259,7 +259,7 @@ function LinkCard({ editor, onEdit }: { editor: Editor; onEdit: () => void }) {
         aria-label="Open link in a new tab"
         className={icon}
       >
-        <Launch size={14} aria-hidden="true" />
+        <ExternalLinkIcon size={14} aria-hidden="true" />
       </a>
     </div>
   );

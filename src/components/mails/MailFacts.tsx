@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Building, Portfolio, type CarbonIconType } from '@carbon/icons-react';
+import { BriefcaseBusinessIcon, Building2Icon, type LucideIcon } from 'lucide-react';
 import { useMailThread } from '../../api/mailbox';
 import type { Conversation } from '../../contracts/conversation';
 import { mailCounts } from '../../lib/mails';
@@ -17,7 +17,7 @@ function LiveMailCount({ threadId }: { threadId: string }) {
 }
 
 /** One fact with its icon. */
-function Fact({ icon: Icon, children }: { icon: CarbonIconType; children: ReactNode }) {
+function Fact({ icon: Icon, children }: { icon: LucideIcon; children: ReactNode }) {
   return (
     <span className="inline-flex min-w-0 items-center gap-2">
       <Icon size={16} aria-hidden="true" className="shrink-0" />
@@ -33,8 +33,8 @@ function Fact({ icon: Icon, children }: { icon: CarbonIconType; children: ReactN
 export function MailFacts({ conversation }: { conversation: Conversation }) {
   return (
     <>
-      {conversation.company && <Fact icon={Building}>{conversation.company}</Fact>}
-      {conversation.role && <Fact icon={Portfolio}>{conversation.role}</Fact>}
+      {conversation.company && <Fact icon={Building2Icon}>{conversation.company}</Fact>}
+      {conversation.role && <Fact icon={BriefcaseBusinessIcon}>{conversation.role}</Fact>}
       {conversation.application ? (
         <StatusBadge status={conversation.application.effectiveStatus} />
       ) : (

@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, Download, MachineLearningModel } from '@carbon/icons-react';
+import { ChevronDownIcon, ChevronUpIcon, DownloadIcon } from 'lucide-react';
+import { AiIcon } from '../ui/ai-icon';
 import { attachmentUrl } from '../../api/mailbox';
 import type { ConversationMail } from '../../contracts/conversation';
 import type { MailMessage } from '../../contracts/mailbox';
@@ -32,7 +33,7 @@ function Attachments({ message }: { message: MailMessage }) {
           >
             <span className="max-w-64 truncate">{attachment.filename}</span>
             <span className="text-xs text-text-secondary">{attachmentInfo(attachment)}</span>
-            <Download size={16} aria-hidden="true" />
+            <DownloadIcon size={16} aria-hidden="true" />
           </a>
         </li>
       ))}
@@ -53,12 +54,12 @@ function AiReadingStrip({ mail }: { mail: ConversationMail }) {
         onClick={() => setOpen(!open)}
         className="flex min-h-10 w-full cursor-pointer items-start gap-2 px-4 py-2.5 text-left text-sm text-text-secondary transition-colors duration-70 ease-standard hover:bg-layer-hover"
       >
-        <MachineLearningModel size={16} aria-hidden="true" className="mt-0.5 shrink-0" />
+        <AiIcon size={16} aria-hidden="true" className="mt-0.5 shrink-0" />
         <span className="min-w-0 flex-1">
           <span className="font-semibold text-text-primary">AI read:</span>{' '}
           {summary || 'nothing more than the type'}
         </span>
-        <ChevronDown
+        <ChevronDownIcon
           size={16}
           aria-hidden="true"
           className={cn(
@@ -171,7 +172,7 @@ function MailHeader({
           onClick={onFold}
           className="flex size-8 shrink-0 cursor-pointer items-center justify-center text-text-primary transition-colors duration-70 ease-standard hover:bg-layer-hover"
         >
-          <ChevronUp size={16} aria-hidden="true" />
+          <ChevronUpIcon size={16} aria-hidden="true" />
         </button>
       )}
     </header>

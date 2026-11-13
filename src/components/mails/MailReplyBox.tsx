@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useLocation } from '@tanstack/react-router';
-import { Close, Reply } from '@carbon/icons-react';
+import { ReplyIcon, XIcon } from 'lucide-react';
 import { useSandboxMailbox } from '../../api/appMode';
 import { useCanSendMail } from '../../api/mailbox';
 import type { DraftDoc } from '../../contracts/conversation';
@@ -123,7 +123,7 @@ function PhoneReplyScreen({ replyAsks, children }: { replyAsks: number; children
           onClick={() => setShown(false)}
           className="flex w-14 shrink-0 cursor-pointer items-center justify-center border-r border-border-subtle hover:bg-layer-hover"
         >
-          <Close size={20} aria-hidden="true" />
+          <XIcon size={20} aria-hidden="true" />
         </button>
         <p className="flex flex-1 items-center px-4 text-base font-semibold">Reply</p>
         <div ref={setSend} className="flex items-center px-3" />
@@ -156,7 +156,7 @@ function ClosedReplyBar({
       onClick={onOpen}
       className="flex h-12 w-full cursor-text items-center gap-3 rounded-lg border border-border-default bg-field px-4 text-left text-sm text-text-secondary transition-colors duration-70 ease-standard hover:bg-layer-hover"
     >
-      <Reply size={16} aria-hidden="true" />
+      <ReplyIcon size={16} aria-hidden="true" />
       {kept ? (
         // Unsent text kept on this device: the bar says so, with its first words.
         <span className="min-w-0 flex-1 truncate">

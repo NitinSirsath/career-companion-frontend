@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Flow, MachineLearningModel, User } from '@carbon/icons-react';
+import { UserIcon, WorkflowIcon } from 'lucide-react';
+import { AiIcon } from '../ui/ai-icon';
 import { format } from 'date-fns';
 import type { ApplicationResponse } from '../../contracts/application';
 import { activityLine } from '../../lib/applicationsView';
@@ -13,12 +14,15 @@ import { OverflowMenu } from '../ui/menu';
 import { Tag } from '../ui/tag';
 
 const SOURCE: Record<'USER' | 'AI' | 'AUTOMATION', { icon: ReactNode; label: string }> = {
-  USER: { icon: <User size={16} aria-hidden="true" />, label: 'Status set by you' },
+  USER: { icon: <UserIcon size={16} aria-hidden="true" />, label: 'Status set by you' },
   AI: {
-    icon: <MachineLearningModel size={16} aria-hidden="true" />,
+    icon: <AiIcon size={16} aria-hidden="true" />,
     label: 'Status set by the AI from a mail',
   },
-  AUTOMATION: { icon: <Flow size={16} aria-hidden="true" />, label: 'From NorthList Apply' },
+  AUTOMATION: {
+    icon: <WorkflowIcon size={16} aria-hidden="true" />,
+    label: 'From NorthList Apply',
+  },
 };
 
 function sourceOf(app: ApplicationResponse): keyof typeof SOURCE | null {

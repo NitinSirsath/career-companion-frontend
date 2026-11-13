@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Search } from '@carbon/icons-react';
+import { SearchIcon } from 'lucide-react';
 
 /** One cell of the phone top bar with an icon button, as the page puts there with `TopBarActions`. */
 export function TopBarButton({
@@ -27,7 +27,7 @@ export function TopBarButton({
 export function TopBarSearch({ targetId, label }: { targetId: string; label: string }) {
   return (
     <TopBarButton label={label} onClick={() => document.getElementById(targetId)?.focus()}>
-      <Search size={20} aria-hidden="true" />
+      <SearchIcon size={20} aria-hidden="true" />
     </TopBarButton>
   );
 }

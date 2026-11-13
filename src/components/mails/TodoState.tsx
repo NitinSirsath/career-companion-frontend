@@ -1,4 +1,4 @@
-import { Checkmark, Reply } from '@carbon/icons-react';
+import { CheckIcon, ReplyIcon } from 'lucide-react';
 import type { RequestState } from '../../contracts/conversation';
 import { REQUEST_STATE_LABEL } from '../../lib/mails';
 import { Tag } from '../ui/tag';
@@ -18,7 +18,7 @@ export function TodoState({
 }) {
   if (state === 'OPEN' && fakeOffer) return <FakeOfferTag />;
   if (state === 'OPEN') return <Tag color="yellow">{REQUEST_STATE_LABEL.OPEN}</Tag>;
-  const Icon = state === 'REPLIED' ? Reply : Checkmark;
+  const Icon = state === 'REPLIED' ? ReplyIcon : CheckIcon;
   return (
     <span className="inline-flex items-center gap-1.5 text-xs text-text-primary">
       <Icon size={16} aria-hidden="true" />

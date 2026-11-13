@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronLeft, ChevronRight, type CarbonIconType } from '@carbon/icons-react';
+import { ChevronLeftIcon, ChevronRightIcon, type LucideIcon } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { BreadcrumbSlotContext, useBreadcrumbSlot } from './breadcrumbSlot';
 import { sectionOf } from './navItems';
@@ -33,7 +33,7 @@ const LEVEL_CLASS =
   'flex min-w-0 items-center gap-2 text-[14px] leading-5 whitespace-nowrap [&_a]:text-text-secondary [&_a]:transition-colors [&_a]:duration-70 [&_a]:ease-standard [&_a:hover]:text-text-primary';
 
 /** The section icon for a link to a section's page, such as Mails for a link to /mails. */
-function iconOf(link: ReactNode): CarbonIconType | undefined {
+function iconOf(link: ReactNode): LucideIcon | undefined {
   if (!isValidElement(link)) return undefined;
   const to = (link.props as { to?: unknown }).to;
   return typeof to === 'string' ? sectionOf(to)?.icon : undefined;
@@ -46,7 +46,7 @@ function Trail({
 }: {
   links: ReactNode[];
   current?: string;
-  CurrentIcon?: CarbonIconType;
+  CurrentIcon?: LucideIcon;
 }) {
   return (
     <nav aria-label="Breadcrumb" className="flex min-w-0">
@@ -57,11 +57,11 @@ function Trail({
           return (
             <li key={index} className={cn(LEVEL_CLASS, !last && 'hidden md:flex')}>
               {/* On phones only the level above shows, as a way back. */}
-              {last && <ChevronLeft size={16} aria-hidden="true" className="md:hidden" />}
+              {last && <ChevronLeftIcon size={16} aria-hidden="true" className="md:hidden" />}
               {Icon && <Icon size={16} aria-hidden="true" className="hidden md:block" />}
               {link}
               {(current || !last) && (
-                <ChevronRight
+                <ChevronRightIcon
                   size={16}
                   aria-hidden="true"
                   className="ml-0.5 hidden text-text-tertiary md:block"
@@ -92,7 +92,7 @@ export function Breadcrumb({
 }: {
   children: ReactNode;
   current?: string;
-  currentIcon?: CarbonIconType;
+  currentIcon?: LucideIcon;
 }) {
   const slot = useBreadcrumbSlot();
   const claim = slot?.claim;

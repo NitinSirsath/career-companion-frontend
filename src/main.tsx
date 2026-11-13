@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import './index.css';
 import { RouterProvider, createRouter } from '@tanstack/react-router';
 import { QueryClientProvider } from '@tanstack/react-query';
+import { LucideProvider } from 'lucide-react';
 import { routeTree } from './routeTree.gen';
 import { ThemeProvider } from './components/ThemeProvider';
 import { AppErrorBoundary } from './components/errors/AppErrorBoundary';
@@ -45,14 +46,17 @@ function App() {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider storageKey="career-companion-theme">
-        <ToastProvider>
-          <AppErrorBoundary>
-            <App />
-          </AppErrorBoundary>
-        </ToastProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    {/* Lucide icons with thin lines (owner, 13 Nov 2026), 16px unless a size is given. */}
+    <LucideProvider size={16} strokeWidth={1.75}>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider storageKey="career-companion-theme">
+          <ToastProvider>
+            <AppErrorBoundary>
+              <App />
+            </AppErrorBoundary>
+          </ToastProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </LucideProvider>
   </StrictMode>,
 );

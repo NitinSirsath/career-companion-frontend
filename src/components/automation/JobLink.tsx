@@ -1,4 +1,4 @@
-import { Launch } from '@carbon/icons-react';
+import { ExternalLinkIcon } from 'lucide-react';
 import { safeHttpUrl } from '../../lib/safeUrl';
 
 /**
@@ -17,7 +17,7 @@ export function JobLink({ url, label }: { url: string | null; label: string }) {
       title={label}
       className="relative z-10 inline-flex size-6 items-center justify-center text-link hover:bg-layer-hover focus-visible:outline-2 focus-visible:outline-border-focus"
     >
-      <Launch size={16} aria-hidden="true" />
+      <ExternalLinkIcon size={16} aria-hidden="true" />
     </a>
   );
 }

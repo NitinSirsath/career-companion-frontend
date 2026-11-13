@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown } from '@carbon/icons-react';
+import { ChevronDownIcon } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
 import { Collapse } from '../ui/collapse';
@@ -39,7 +39,7 @@ export function ErrorState({
 
   return (
     <section role="alert" className="flex min-h-[280px] items-center justify-center p-6">
-      <div className="w-full max-w-xl rounded-xl border border-border-default bg-surface p-8 text-center">
+      <div className="w-full max-w-xl rounded-lg border border-border-default bg-surface p-8 text-center">
         <h1 className="text-2xl font-semibold tracking-tight text-text-primary">{title}</h1>
         <p className="mt-3 text-sm text-text-secondary">{message}</p>
 
@@ -81,7 +81,7 @@ function ErrorDetails({ details }: { details: ReturnType<typeof errorDetails> })
         className="flex w-full cursor-pointer items-center justify-between px-4 py-3 text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-border-focus"
       >
         Details
-        <ChevronDown
+        <ChevronDownIcon
           size={16}
           aria-hidden="true"
           className={cn('transition-transform duration-150 ease-standard', open && 'rotate-180')}

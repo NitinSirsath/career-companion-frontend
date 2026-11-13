@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { SidePanelClose, SidePanelOpen } from '@carbon/icons-react';
+import { PanelLeftCloseIcon, PanelLeftOpenIcon } from 'lucide-react';
 import { useDevMode, useSandboxMailbox } from '../../api/appMode';
 import { cn } from '../../lib/utils';
 import { ReadingStatus } from './ReadingStatus';
@@ -54,7 +54,7 @@ export function Sidebar({
 }) {
   const devMode = useDevMode();
   const sandbox = useSandboxMailbox();
-  const ToggleIcon = collapsed ? SidePanelOpen : SidePanelClose;
+  const ToggleIcon = collapsed ? PanelLeftOpenIcon : PanelLeftCloseIcon;
   // Phones show the reading status in the top bar instead.
   const phone = useIsPhone();
   return (

@@ -1,4 +1,4 @@
-import { ArrowRight, Dashboard, Document, Email } from '@carbon/icons-react';
+import { ArrowRightIcon, FileTextIcon, LayoutGridIcon, MailIcon } from 'lucide-react';
 import { pictureAt, type PictureMail, type PictureRow } from '../../lib/signInPicture';
 import { cn } from '../../lib/utils';
 import { Wordmark } from '../layout/Logo';
@@ -6,9 +6,9 @@ import { Avatar } from '../ui/avatar';
 import { Tag } from '../ui/tag';
 
 const NAV = [
-  { label: 'Dashboard', Icon: Dashboard },
-  { label: 'Mails', Icon: Email, open: true },
-  { label: 'Applications', Icon: Document },
+  { label: 'Dashboard', Icon: LayoutGridIcon },
+  { label: 'Mails', Icon: MailIcon, open: true },
+  { label: 'Applications', Icon: FileTextIcon },
 ];
 
 /** A count that changes: the new number rises in, after the first step. */
@@ -44,7 +44,7 @@ function Step({
     );
   return (
     <p className={cn('mt-0.5 flex items-center gap-1.5', fadeIn && 'animate-fade-in')}>
-      <ArrowRight size={14} className="shrink-0 text-link" />
+      <ArrowRightIcon size={14} className="shrink-0 text-link" />
       <span className="truncate">{mail.step}</span>
       {withDue && mail.due && (
         <span
@@ -149,7 +149,7 @@ export function SignInPicture({ step, compact = false }: { step: number; compact
       <div
         aria-hidden="true"
         inert
-        className="h-[260px] overflow-hidden rounded-xl bg-background px-4 pt-3.5 text-[12px] leading-4 text-text-primary shadow-[0_0_0_1px_rgb(255_255_255/0.25),0_16px_40px_rgb(0_0_0/0.25)] select-none"
+        className="h-[260px] overflow-hidden rounded-page bg-background px-4 pt-3.5 text-[12px] leading-4 text-text-primary shadow-[0_0_0_1px_rgb(255_255_255/0.25),0_16px_40px_rgb(0_0_0/0.25)] select-none"
       >
         <p className="text-[15px] leading-5 font-semibold tracking-[-0.02em]">Mails</p>
         <p className="mt-0.5 mb-1.5 text-text-secondary">
@@ -163,14 +163,14 @@ export function SignInPicture({ step, compact = false }: { step: number; compact
     <div
       aria-hidden="true"
       inert
-      className="grid min-h-[calc(100%+24px)] w-[980px] grid-cols-[200px_minmax(0,1fr)] overflow-hidden rounded-xl bg-background text-[13px] leading-[18px] text-text-primary shadow-[0_0_0_1px_rgb(255_255_255/0.25),0_24px_60px_rgb(0_0_0/0.28)] select-none"
+      className="grid min-h-[calc(100%+24px)] w-[980px] grid-cols-[200px_minmax(0,1fr)] overflow-hidden rounded-page bg-background text-[13px] leading-[18px] text-text-primary shadow-[0_0_0_1px_rgb(255_255_255/0.25),0_24px_60px_rgb(0_0_0/0.28)] select-none"
     >
       <div className="flex flex-col gap-1 border-r border-border-subtle p-3">
         <Wordmark size={18} className="mb-4 px-2 pt-1" />
         {NAV.map(({ label, Icon, open }) => (
           <span
             key={label}
-            className={`flex h-8 items-center gap-2 rounded-md px-2 ${open ? 'bg-[var(--nav-active)] font-medium' : 'text-text-secondary'}`}
+            className={`flex h-8 items-center gap-2 rounded-full px-2.5 ${open ? 'bg-[var(--nav-active)] font-medium' : 'text-text-secondary'}`}
           >
             <Icon size={14} className={open ? '' : 'text-text-tertiary'} />
             {label}

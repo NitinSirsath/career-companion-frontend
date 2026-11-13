@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { ArrowRight, Checkmark, Reply } from '@carbon/icons-react';
+import { ArrowRightIcon, CheckIcon, ReplyIcon } from 'lucide-react';
 import { useSandboxMailbox } from '../../api/appMode';
 import type { Conversation } from '../../contracts/conversation';
 import {
@@ -48,9 +48,9 @@ export function RowMenu({ conversation }: { conversation: Conversation }) {
 
 /** The mark before a step: an arrow while it is open, a reply mark once replied, a check when done. */
 const STEP_MARK = {
-  OPEN: { Icon: ArrowRight, color: 'text-link' },
-  REPLIED: { Icon: Reply, color: 'text-text-secondary' },
-  DONE: { Icon: Checkmark, color: 'text-ok' },
+  OPEN: { Icon: ArrowRightIcon, color: 'text-link' },
+  REPLIED: { Icon: ReplyIcon, color: 'text-text-secondary' },
+  DONE: { Icon: CheckIcon, color: 'text-ok' },
 } as const;
 
 /** A mail that asks for nothing: its interview or test date, else "Nothing needed". */

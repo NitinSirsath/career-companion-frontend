@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search } from '@carbon/icons-react';
+import { SearchIcon } from 'lucide-react';
 import type { MailsSearch } from '../../lib/mails';
 import { TopBarActions } from '../layout/Breadcrumb';
 import { TopBarButton } from '../layout/TopBarButtons';
@@ -40,7 +40,7 @@ export function PhoneSearch({ search, onChange }: BarProps) {
   return (
     <TopBarActions>
       <TopBarButton label="Search mails" onClick={() => setSearching(true)}>
-        <Search size={20} aria-hidden="true" />
+        <SearchIcon size={20} aria-hidden="true" />
       </TopBarButton>
     </TopBarActions>
   );

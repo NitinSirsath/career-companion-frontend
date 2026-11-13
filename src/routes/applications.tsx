@@ -3,7 +3,7 @@ import { TopBarActions } from '../components/layout/Breadcrumb';
 import { PageHeader } from '../components/layout/PageHeader';
 import { TopBarSearch } from '../components/layout/TopBarButtons';
 import { useIsPhone } from '../components/layout/useIsPhone';
-import { Renew } from '@carbon/icons-react';
+import { RefreshCwIcon } from 'lucide-react';
 import { useCallback, useEffect, useRef, type Dispatch, type SetStateAction } from 'react';
 
 import { createFileRoute, Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
@@ -118,7 +118,7 @@ function ApplicationsDashboard({
               loading={isFetching}
               onClick={() => void refetch()}
             >
-              {!isFetching && <Renew size={16} aria-hidden="true" />}
+              {!isFetching && <RefreshCwIcon size={16} aria-hidden="true" />}
             </Button>
           </>
         }

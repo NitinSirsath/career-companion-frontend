@@ -1,6 +1,12 @@
 import type { ReactNode } from 'react';
 import { Link } from '@tanstack/react-router';
-import { ArrowRight, Calendar, Email, Task, type CarbonIconType } from '@carbon/icons-react';
+import {
+  ArrowRightIcon,
+  CalendarIcon,
+  MailIcon,
+  SquareCheckBigIcon,
+  type LucideIcon,
+} from 'lucide-react';
 import type { DashboardResponse } from '../../contracts/dashboard';
 import { interviewWhen } from '../../lib/dashboard';
 import { cn } from '../../lib/utils';
@@ -21,7 +27,7 @@ function Tile({
   line,
   to,
 }: {
-  icon: CarbonIconType;
+  icon: LucideIcon;
   label: string;
   count: number;
   line: ReactNode;
@@ -48,7 +54,7 @@ function Tile({
         {line}
       </span>
       {to && (
-        <ArrowRight
+        <ArrowRightIcon
           size={16}
           aria-hidden
           className="col-start-3 row-span-2 row-start-1 text-text-secondary @min-[600px]:col-start-2 @min-[600px]:row-span-1 @min-[600px]:mt-0.5"
@@ -106,7 +112,7 @@ export function NeedsYouNow({ now }: { now: Now }) {
   return (
     <div className="grid gap-2 @min-[600px]:grid-cols-3 @min-[600px]:grid-rows-[auto_auto_auto] @min-[600px]:gap-y-0">
       <Tile
-        icon={Email}
+        icon={MailIcon}
         label="New job mails"
         count={now.newJobMails.count}
         line={newMailsLine(now.newJobMails)}
@@ -117,7 +123,7 @@ export function NeedsYouNow({ now }: { now: Now }) {
         )}
       />
       <Tile
-        icon={Task}
+        icon={SquareCheckBigIcon}
         label="Needs action"
         count={now.needsAction.count}
         line={needsActionLine(now.needsAction)}
@@ -128,7 +134,7 @@ export function NeedsYouNow({ now }: { now: Now }) {
         )}
       />
       <Tile
-        icon={Calendar}
+        icon={CalendarIcon}
         label="Interviews coming up"
         count={now.interviews.count}
         line={interviewLine(now.interviews)}
