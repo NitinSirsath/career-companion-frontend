@@ -42,7 +42,7 @@ function PhoneStatusSelect({
     <>
       <button
         type="button"
-        aria-label={`Status: \${shown.label}. Change status`}
+        aria-label={`Status: ${shown.label}. Change status`}
         disabled={disabled}
         onClick={() => picker.onOpenChange(true)}
         className="inline-flex min-h-11 cursor-pointer items-center gap-1 pr-1 disabled:cursor-not-allowed disabled:opacity-60"
