@@ -78,7 +78,7 @@ function StepMeta({
     );
   if (source)
     parts.push(
-      source.mailId && !plain ?
+      source.mailId && !plain ? (
         <Link key="source" to="/mails/$key" params={{ key: source.mailId }} className="text-link">
           {source.text}
         </Link>
