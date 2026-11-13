@@ -76,7 +76,7 @@ function LoggedInShell({ children }: LoggedInShellProps) {
         <TopBar user={user} collapsed={collapsed} />
         <div className="flex min-w-0 flex-1">
           <Sidebar collapsed={collapsed} onCollapsedChange={setCollapsed} />
-          <div className="flex min-w-0 flex-1 flex-col pb-16 md:mr-2 md:mb-2 md:rounded-xl md:bg-background md:pb-0 md:shadow-[var(--sheet-shadow)]">
+          <div className="flex min-w-0 flex-1 flex-col pb-16 md:mr-2 md:mb-2 md:rounded-page md:bg-background md:pb-0 md:shadow-[var(--sheet-shadow)]">
             <OfflineLine />
             <main className="flex-1 px-4 py-6 md:px-12 md:py-8">
               {/* One width for every page: the full width up to 1584px, centred beyond. */}
