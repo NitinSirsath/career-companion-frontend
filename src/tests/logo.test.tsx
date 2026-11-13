@@ -151,13 +151,11 @@ describe('where the logo shows: the name, or the mark alone, never both', () => 
     expect(home).toHaveAttribute('href', '/dashboard');
   });
 
-  it('shows the name at the top of the phone menu', async () => {
+  it('keeps the phone free of the name, as phone apps are: Gmail sync opens under Settings', async () => {
     setWidth(390);
     showApp();
-    fireEvent.click(await screen.findByRole('button', { name: 'Open menu' }));
-    const menu = await screen.findByRole('dialog', { name: 'Menu' });
-    expect(within(menu).getByRole('img', { name: 'NorthList' })).toBeInTheDocument();
-    expect(within(menu).getByRole('button', { name: 'Close menu' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Back' })).toBeInTheDocument();
+    expect(screen.queryByRole('img', { name: 'NorthList' })).not.toBeInTheDocument();
   });
 
   it('shows the name at the top of the sign-in pages', () => {
