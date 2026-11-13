@@ -2,17 +2,15 @@ import {
   createRootRouteWithContext,
   Outlet,
   redirect,
-  useRouterState,
   type ErrorComponentProps,
 } from '@tanstack/react-router';
 import type { User } from '../api/auth';
 import { safeNextPath, SIGN_IN_PAGES } from '../lib/signIn';
 import { BreadcrumbProvider } from '../components/layout/Breadcrumb';
-import { Sidebar } from '../components/layout/Sidebar';
-import { MobileNav } from '../components/layout/MobileNav';
-import { OfflineLine, OfflinePage } from '../components/layout/OfflinePage';
-import { TopBar } from '../components/layout/TopBar';
-import { useMenuCollapsed } from '../components/layout/useMenuCollapsed';
+import { LaptopShell } from '../components/layout/LaptopShell';
+import { OfflinePage } from '../components/layout/OfflinePage';
+import { useIsPhone } from '../components/layout/useIsPhone';
+import { PhoneShell } from '../components/phone/PhoneShell';
 import { ProcessingRefreshObserver } from '../components/ProcessingRefreshObserver';
 import { DevErrorTrigger } from '../components/errors/DevErrorTrigger';
 import { NotFoundPage } from '../components/errors/NotFoundPage';
@@ -62,33 +60,17 @@ function RootRouteError(props: ErrorComponentProps) {
 }
 
 function LoggedInShell({ children }: LoggedInShellProps) {
-  const { user } = Route.useRouteContext();
-  const [collapsed, setCollapsed] = useMenuCollapsed();
-  // The first part of the path: a new section fades in, while a list and its detail pages (one
-  // route tree that keeps the list's filters) stay mounted.
-  const section = useRouterState({
-    select: (state) => state.location.pathname.split('/')[1] ?? '',
-  });
+  const phone = useIsPhone();
   return (
     <BreadcrumbProvider>
-      <div className="flex min-h-screen flex-col bg-background font-sans text-text-primary md:bg-canvas">
-        <ProcessingRefreshObserver />
-        <TopBar user={user} collapsed={collapsed} />
-        <div className="flex min-w-0 flex-1">
-          <Sidebar collapsed={collapsed} onCollapsedChange={setCollapsed} />
-          <div className="flex min-w-0 flex-1 flex-col pb-16 md:mr-2 md:mb-2 md:rounded-page md:bg-background md:pb-0 md:shadow-[var(--sheet-shadow)]">
-            <OfflineLine />
-            <main className="flex-1 px-4 py-6 md:px-12 md:py-8">
-              {/* One width for every page: the full width up to 1584px, centred beyond. */}
-              <div key={section} className="mx-auto w-full max-w-[1584px] animate-page-in">
-                <OfflinePage>{children}</OfflinePage>
-              </div>
-            </main>
-
-            <MobileNav />
-          </div>
-        </div>
-      </div>
+      <ProcessingRefreshObserver />
+      {phone ? (
+        <PhoneShell>
+          <OfflinePage>{children}</OfflinePage>
+        </PhoneShell>
+      ) : (
+        <LaptopShell>{children}</LaptopShell>
+      )}
     </BreadcrumbProvider>
   );
 }

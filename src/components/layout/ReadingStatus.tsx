@@ -1,5 +1,4 @@
 import { useId } from 'react';
-import { Popover } from '@base-ui/react/popover';
 import { Link } from '@tanstack/react-router';
 import {
   ChevronDownIcon,
@@ -277,36 +276,7 @@ export function ReadingStatus({ collapsed }: { collapsed: boolean }) {
   );
 }
 
-/** On phones: one cell in the top bar; a tap opens the same status under the top bar. */
-export function ReadingStatusCell() {
-  const view = useReadingView();
-  if (!view) return null;
-  const { words, status } = view;
-  return (
-    <Popover.Root>
-      <Popover.Trigger
-        aria-label={`AI reading status: ${words.title}`}
-        className="flex w-12 shrink-0 cursor-pointer items-center justify-center border-l border-border-subtle text-text-primary transition-colors duration-70 ease-standard hover:bg-layer-hover data-popup-open:bg-layer-hover"
-      >
-        <StatusIcon icon={words.icon} share={doneShare(status)} size={20} />
-        <span aria-live="polite" className="sr-only">
-          {words.title}
-        </span>
-      </Popover.Trigger>
-      <Popover.Portal>
-        <Popover.Positioner
-          side="bottom"
-          align="end"
-          sideOffset={0}
-          collisionPadding={0}
-          className="z-50 outline-none"
-        >
-          <Popover.Popup className="w-screen border-b border-border-subtle bg-menu p-4 text-text-primary shadow-popup outline-none transition-opacity duration-150 ease-entrance data-ending-style:opacity-0 data-starting-style:opacity-0">
-            <Popover.Title className="sr-only">AI reading status</Popover.Title>
-            <StatusBody view={view} phone feedOpen />
-          </Popover.Popup>
-        </Popover.Positioner>
-      </Popover.Portal>
-    </Popover.Root>
-  );
+/** On phones: the same status, in the sheet the Mails page's status line opens. */
+export function ReadingStatusPanel({ view }: { view: ReadingView }) {
+  return <StatusBody view={view} phone feedOpen />;
 }

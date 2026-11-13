@@ -108,10 +108,9 @@ describe('home and navigation', () => {
       await screen.findByRole('heading', { level: 1, name: /^Good (morning|afternoon|evening)/ }),
     ).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/dashboard');
-    // The desktop sidebar and the phone bar: both are in the page, one is shown. Agenda is not in
-    // the menu until it works; settings sit in their own group after the daily pages. On phones
-    // the bar holds the three daily pages only: the rest are in the top bar's menu.
-    const [sidebar, phoneBar] = screen.getAllByRole('navigation', { name: 'Main' });
+    // Agenda is not in the menu until it works; settings sit in their own group after the daily
+    // pages. Phones have a tab bar of their own (see phone.test.tsx).
+    const sidebar = screen.getByRole('navigation', { name: 'Main' });
     expect(
       within(sidebar)
         .getAllByRole('link')
@@ -125,13 +124,6 @@ describe('home and navigation', () => {
       'NorthList Apply',
     ]);
     expect(within(sidebar).getByText('Settings')).toBeInTheDocument();
-    expect(
-      within(phoneBar)
-        .getAllByRole('link')
-        .map((link) => link.textContent),
-    ).toEqual(['Dashboard', 'Mails', 'Applications']);
-    expect(within(phoneBar).queryByRole('button')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Open menu' })).toBeInTheDocument();
   });
 
   it('names the page in the top bar, with the logo and the account button', async () => {

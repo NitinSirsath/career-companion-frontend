@@ -95,11 +95,11 @@ let desktopWidth: number;
 const setWidth = (width: number) =>
   Object.defineProperty(window, 'innerWidth', { configurable: true, writable: true, value: width });
 
-function show(status: AIReadingStatusResponse) {
+function show(status: AIReadingStatusResponse, path = '/gmail') {
   vi.mocked(api.getAIReading).mockResolvedValue(status);
   const router = createRouter({
     routeTree,
-    history: createMemoryHistory({ initialEntries: ['/gmail'] }),
+    history: createMemoryHistory({ initialEntries: [path] }),
     context: { user: { id: 'u', email: 'u@test.local', name: 'U' } },
   });
   render(
@@ -238,14 +238,15 @@ describe('the AI reading status in the side menu', () => {
 });
 
 describe('the AI reading status on phones', () => {
-  it('is one cell in the top bar that opens the status under it', async () => {
+  it('is one line under the Mails title that opens the status in a sheet', async () => {
     setWidth(375);
-    show(reading);
-    const cell = await screen.findByRole('button', {
+    show(reading, '/mails');
+    const line = await screen.findByRole('button', {
       name: 'AI reading status: Reading your new mails',
     });
+    expect(line).toHaveTextContent('Reading your new mails · 12 of 50');
     expect(screen.queryByRole('region', { name: 'AI reading status' })).not.toBeInTheDocument();
-    fireEvent.click(cell);
+    fireEvent.click(line);
     const panel = await screen.findByRole('dialog', { name: 'AI reading status' });
     expect(within(panel).getByText('12 of 50 done · about 4 min left')).toBeVisible();
     expect(within(panel).getByText('Job mails found · 1')).toBeVisible();

@@ -25,6 +25,8 @@ import { Route as MailsKeyRouteImport } from './routes/mails.$key'
 import { Route as SandboxIndexRouteImport } from './routes/sandbox.index'
 import { Route as SandboxThreadIdRouteImport } from './routes/sandbox.$threadId'
 import { Route as SandboxComposeRouteImport } from './routes/sandbox.compose'
+import { Route as SettingsIndexRouteImport } from './routes/settings.index'
+import { Route as SettingsAppearanceRouteImport } from './routes/settings.appearance'
 import { Route as MailsGmailThreadIdRouteImport } from './routes/mails.gmail.$threadId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -107,6 +109,16 @@ const SandboxComposeRoute = SandboxComposeRouteImport.update({
   path: '/sandbox/compose',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsIndexRoute = SettingsIndexRouteImport.update({
+  id: '/settings/',
+  path: '/settings/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsAppearanceRoute = SettingsAppearanceRouteImport.update({
+  id: '/settings/appearance',
+  path: '/settings/appearance',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MailsGmailThreadIdRoute = MailsGmailThreadIdRouteImport.update({
   id: '/mails/gmail/$threadId',
   path: '/mails/gmail/$threadId',
@@ -128,8 +140,10 @@ export interface FileRoutesByFullPath {
   '/mails/$key': typeof MailsKeyRoute
   '/sandbox/$threadId': typeof SandboxThreadIdRoute
   '/sandbox/compose': typeof SandboxComposeRoute
+  '/settings/appearance': typeof SettingsAppearanceRoute
   '/mails/': typeof MailsIndexRoute
   '/sandbox/': typeof SandboxIndexRoute
+  '/settings/': typeof SettingsIndexRoute
   '/mails/gmail/$threadId': typeof MailsGmailThreadIdRoute
 }
 export interface FileRoutesByTo {
@@ -147,8 +161,10 @@ export interface FileRoutesByTo {
   '/mails/$key': typeof MailsKeyRoute
   '/sandbox/$threadId': typeof SandboxThreadIdRoute
   '/sandbox/compose': typeof SandboxComposeRoute
+  '/settings/appearance': typeof SettingsAppearanceRoute
   '/mails': typeof MailsIndexRoute
   '/sandbox': typeof SandboxIndexRoute
+  '/settings': typeof SettingsIndexRoute
   '/mails/gmail/$threadId': typeof MailsGmailThreadIdRoute
 }
 export interface FileRoutesById {
@@ -167,8 +183,10 @@ export interface FileRoutesById {
   '/mails/$key': typeof MailsKeyRoute
   '/sandbox/$threadId': typeof SandboxThreadIdRoute
   '/sandbox/compose': typeof SandboxComposeRoute
+  '/settings/appearance': typeof SettingsAppearanceRoute
   '/mails/': typeof MailsIndexRoute
   '/sandbox/': typeof SandboxIndexRoute
+  '/settings/': typeof SettingsIndexRoute
   '/mails/gmail/$threadId': typeof MailsGmailThreadIdRoute
 }
 export interface FileRouteTypes {
@@ -188,8 +206,10 @@ export interface FileRouteTypes {
     | '/mails/$key'
     | '/sandbox/$threadId'
     | '/sandbox/compose'
+    | '/settings/appearance'
     | '/mails/'
     | '/sandbox/'
+    | '/settings/'
     | '/mails/gmail/$threadId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -207,8 +227,10 @@ export interface FileRouteTypes {
     | '/mails/$key'
     | '/sandbox/$threadId'
     | '/sandbox/compose'
+    | '/settings/appearance'
     | '/mails'
     | '/sandbox'
+    | '/settings'
     | '/mails/gmail/$threadId'
   id:
     | '__root__'
@@ -226,8 +248,10 @@ export interface FileRouteTypes {
     | '/mails/$key'
     | '/sandbox/$threadId'
     | '/sandbox/compose'
+    | '/settings/appearance'
     | '/mails/'
     | '/sandbox/'
+    | '/settings/'
     | '/mails/gmail/$threadId'
   fileRoutesById: FileRoutesById
 }
@@ -245,8 +269,10 @@ export interface RootRouteChildren {
   MailsKeyRoute: typeof MailsKeyRoute
   SandboxThreadIdRoute: typeof SandboxThreadIdRoute
   SandboxComposeRoute: typeof SandboxComposeRoute
+  SettingsAppearanceRoute: typeof SettingsAppearanceRoute
   MailsIndexRoute: typeof MailsIndexRoute
   SandboxIndexRoute: typeof SandboxIndexRoute
+  SettingsIndexRoute: typeof SettingsIndexRoute
   MailsGmailThreadIdRoute: typeof MailsGmailThreadIdRoute
 }
 
@@ -364,6 +390,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SandboxComposeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings/': {
+      id: '/settings/'
+      path: '/settings'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof SettingsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/appearance': {
+      id: '/settings/appearance'
+      path: '/settings/appearance'
+      fullPath: '/settings/appearance'
+      preLoaderRoute: typeof SettingsAppearanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/mails/gmail/$threadId': {
       id: '/mails/gmail/$threadId'
       path: '/mails/gmail/$threadId'
@@ -400,8 +440,10 @@ const rootRouteChildren: RootRouteChildren = {
   MailsKeyRoute: MailsKeyRoute,
   SandboxThreadIdRoute: SandboxThreadIdRoute,
   SandboxComposeRoute: SandboxComposeRoute,
+  SettingsAppearanceRoute: SettingsAppearanceRoute,
   MailsIndexRoute: MailsIndexRoute,
   SandboxIndexRoute: SandboxIndexRoute,
+  SettingsIndexRoute: SettingsIndexRoute,
   MailsGmailThreadIdRoute: MailsGmailThreadIdRoute,
 }
 export const routeTree = rootRouteImport

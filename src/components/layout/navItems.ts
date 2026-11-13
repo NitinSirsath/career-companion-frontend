@@ -28,7 +28,7 @@ export interface NavItem {
 
 /**
  * A menu link: dark text with a grey icon; the chosen page has a light blue tint with blue text.
- * Used by the side menu and the phone menu.
+ * Used by the side menu.
  */
 export const NAV_LINK_CLASS =
   'flex h-[34px] shrink-0 items-center gap-2.5 overflow-hidden rounded-full px-3 text-[14px] leading-5 whitespace-nowrap text-text-secondary transition-colors duration-70 ease-standard hover:bg-[var(--canvas-hover)] hover:text-text-primary [&_svg]:text-text-tertiary [&.active]:bg-[var(--nav-active)] [&.active]:shadow-[var(--nav-active-shadow)] [&.active]:font-medium [&.active]:text-text-primary [&.active_svg]:text-text-primary';

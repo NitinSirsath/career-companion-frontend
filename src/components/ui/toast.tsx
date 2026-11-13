@@ -53,8 +53,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <Toast.Provider toastManager={toastManager}>
       {children}
       <Toast.Portal>
-        {/* On phones it sits above the bottom bar, so the bar stays in reach. */}
-        <Toast.Viewport className="fixed right-4 bottom-20 z-[60] flex w-[calc(100vw-2rem)] flex-col gap-2 sm:right-6 sm:w-[24rem] md:bottom-6">
+        {/* On phones it floats just above the tab bar, so the bar stays in reach. */}
+        <Toast.Viewport className="fixed right-[18px] bottom-[calc(max(calc(env(safe-area-inset-bottom)-12px),10px)+74px)] z-[60] flex w-[calc(100vw-36px)] flex-col gap-2 md:right-6 md:bottom-6 md:w-[24rem]">
           <ToastList />
         </Toast.Viewport>
       </Toast.Portal>
