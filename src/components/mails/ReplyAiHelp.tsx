@@ -152,7 +152,7 @@ function ChoiceButtons({
         >
           {choice}
         </Button>
-      ))
+      ))}
     </div>
   );
 }
