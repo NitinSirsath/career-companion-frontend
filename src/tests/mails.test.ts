@@ -180,7 +180,7 @@ describe('the action', () => {
     // A mail read before the AI said how its ask is done may still be closed by hand.
     expect(labels('OPEN', null)).toEqual(['I did this>DONE']);
     expect(labels('DONE')).toEqual(['Reopen>OPEN']);
-    expect(labels('REPLIED')).toEqual(['Ask me again>OPEN']);
+    expect(labels('REPLIED')).toEqual(['Reopen>OPEN']);
   });
 
   it('says when an open request is past due, and why a closed one closed', () => {
