@@ -24,7 +24,7 @@ interface MailTitleProps {
 }
 
 /** Where the conversation lives: Gmail in prod, the mail sandbox in dev mode. */
-function MailboxLink({ threadId, subject }: { threadId: string; subject: string }) {
+export function MailboxLink({ threadId, subject }: { threadId: string; subject: string }) {
   const sandbox = useSandboxMailbox();
   if (!sandbox) return <GmailLink threadId={threadId} subject={subject} className="text-sm" />;
   return (
