@@ -9,6 +9,8 @@ import { useSyncExternalStore } from 'react';
 
 /** What a change pressed offline says. */
 export const OFFLINE_CHANGE = "You're offline. Nothing was changed.";
+/** What a refresh says offline: the page keeps what it shows. */
+export const OFFLINE_REFRESH = "You're offline. This page shows what was loaded before.";
 /** What a reply sent offline says. The text stays in the reply box, as an unsent draft. */
 export const OFFLINE_REPLY =
   "You're offline. Your reply was not sent. It stays here; send it when you're back online.";
