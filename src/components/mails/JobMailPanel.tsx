@@ -110,6 +110,8 @@ function ClosedByLink({ asked }: { asked: ConversationRequest }) {
       <ArrowDownIcon size={16} aria-hidden="true" />
       {asked.closedReason === 'YOUR_REPLY' ? 'Show your reply' : 'Show that mail'}
     </button>
+  );
+}
 
 /** The mail a link under the step jumps to: the one that closed it, or the one that asks. */
 function StepSourceLink({ detail }: { detail: ConversationDetail }) {
