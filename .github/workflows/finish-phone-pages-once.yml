@@ -1,0 +1,40 @@
+name: Finish phone-pages once (temporary)
+# Commits the deleted files on feat/phone-pages and nothing else.
+# Lives only on the throwaway branch tmp/phone-pages-finish, which is deleted afterwards.
+on:
+  push:
+    branches: [tmp/phone-pages-finish]
+permissions:
+  contents: write
+concurrency:
+  group: finish-phone-pages-once
+  cancel-in-progress: false
+jobs:
+  finish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: feat/phone-pages
+      - name: Check the commits on the branch
+        run: |
+          if [ "$(git rev-parse 'HEAD^{tree}')" != "dc09b92b7b5a8136c406f2788e5df78644be6145" ]; then
+            echo "The commits on feat/phone-pages do not match the reviewed files. Nothing was changed."
+            exit 1
+          fi
+      - name: Make the reviewed change
+        run: |
+          git rm -q src/components/layout/TopBarButtons.tsx
+          git add -A
+          if [ "$(git write-tree)" != "aa43871f68e5ed4235f61065d267459bbbf15a7b" ]; then
+            echo "The result does not match the reviewed tree. Nothing was pushed."
+            git status --short
+            exit 1
+          fi
+      - name: Commit only the reviewed result
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(phone): delete the old phone top bar buttons'
+          git push origin HEAD:feat/phone-pages
