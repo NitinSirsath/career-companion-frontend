@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useLocation } from '@tanstack/react-router';
-import { ReplyIcon, XIcon } from 'lucide-react';
+import { ReplyIcon } from 'lucide-react';
 import { useSandboxMailbox } from '../../api/appMode';
 import { useCanSendMail } from '../../api/mailbox';
 import type { DraftDoc } from '../../contracts/conversation';
@@ -12,6 +12,7 @@ import { useIsPhone } from '../layout/useIsPhone';
 import { Button } from '../ui/button';
 import { GmailLink } from '../ui/GmailLink';
 import { MailReplyForm } from './MailReplyForm';
+import { Sheet, SheetCenterHeader } from '../ui/sheet';
 import { PhoneReplySlots } from './phoneReplySlots';
 import type { ReplyAi } from './ReplyAiHelp';
 
@@ -59,8 +60,8 @@ function useReplyKey(onReply: () => void) {
  * Whether the reply box is open. "R" opens it, and so does each click on the page's Reply button,
  * counted in `replyAsks`.
  */
-function useReplyOpen(replyAsks: number): [boolean, (open: boolean) => void] {
-  const [open, setOpen] = useState(false);
+function useReplyOpen(replyAsks: number, startOpen: boolean): [boolean, (open: boolean) => void] {
+  const [open, setOpen] = useState(startOpen);
   useReplyKey(() => setOpen(true));
   const [askedFor, setAskedFor] = useState(replyAsks);
   if (askedFor !== replyAsks) {
@@ -76,66 +77,41 @@ function useReplyOpen(replyAsks: number): [boolean, (open: boolean) => void] {
 }
 
 /**
- * The part of the screen the phone's keyboard leaves free, so the format row sits just above the
- * keyboard. Null where the browser does not tell (the whole screen is used).
- */
-function useVisibleScreen(): { top: number; height: number } | null {
-  const [area, setArea] = useState<{ top: number; height: number } | null>(null);
-  useEffect(() => {
-    const view = window.visualViewport;
-    if (!view) return;
-    const update = () => setArea({ top: view.offsetTop, height: view.height });
-    update();
-    view.addEventListener('resize', update);
-    view.addEventListener('scroll', update);
-    return () => {
-      view.removeEventListener('resize', update);
-      view.removeEventListener('scroll', update);
-    };
-  }, []);
-  return area;
-}
-
-/**
- * On phones the open reply covers the screen, like a mail app's reply, with Send in its top bar.
- * Closing it only hides it: the text stays (also on this device), and Reply shows it again.
+ * On phones the open reply is a tall sheet (owner, 13 Nov 2026, approved mock `IOS-LOOK-mock/`):
+ * Close at its top left, Send at its top right, the AI help and the text, and the text tools at
+ * its bottom, above the keyboard. Closing it only hides it: the text stays (also on this device),
+ * and Reply shows it again.
  */
 function PhoneReplyScreen({ replyAsks, children }: { replyAsks: number; children: ReactNode }) {
   const [shown, setShown] = useState(true);
   const [askedFor, setAskedFor] = useState(replyAsks);
   const [send, setSend] = useState<HTMLElement | null>(null);
   const [format, setFormat] = useState<HTMLElement | null>(null);
-  const area = useVisibleScreen();
   if (askedFor !== replyAsks) {
     setAskedFor(replyAsks);
     setShown(true);
   }
   return (
-    <div
-      hidden={!shown}
-      style={area ? { top: area.top, height: area.height, bottom: 'auto' } : undefined}
-      className="fixed inset-0 z-50 flex animate-open flex-col bg-background"
+    <Sheet
+      tall
+      initialFocus={false}
+      open={shown}
+      onOpenChange={setShown}
+      title="Reply"
+      header={
+        <SheetCenterHeader title="Reply" closeLabel="Close reply" end={<div ref={setSend} />} />
+      }
+      footer={
+        <div
+          ref={setFormat}
+          className="shrink-0 border-t border-border-subtle pb-[calc(env(safe-area-inset-bottom)*0.6)] empty:hidden"
+        />
+      }
     >
-      <div className="flex h-14 shrink-0 items-stretch border-b border-border-subtle">
-        <button
-          type="button"
-          aria-label="Close reply"
-          onClick={() => setShown(false)}
-          className="flex w-14 shrink-0 cursor-pointer items-center justify-center border-r border-border-subtle hover:bg-layer-hover"
-        >
-          <XIcon size={20} aria-hidden="true" />
-        </button>
-        <p className="flex flex-1 items-center px-4 text-base font-semibold">Reply</p>
-        <div ref={setSend} className="flex items-center px-3" />
-      </div>
-      <div className="min-h-0 flex-1 overflow-y-auto p-4 [&>form]:border-0">
+      <div className="[&>form]:rounded-none [&>form]:border-0 [&>form]:bg-transparent">
         <PhoneReplySlots.Provider value={{ send, format }}>{children}</PhoneReplySlots.Provider>
       </div>
-      <div
-        ref={setFormat}
-        className="shrink-0 border-t border-border-subtle bg-background empty:hidden"
-      />
-    </div>
+    </Sheet>
   );
 }
 
@@ -185,6 +161,7 @@ export function MailReplyBox({
   onSending,
   replyAsks = 0,
   ai,
+  startOpen = false,
 }: {
   threadId: string;
   subject: string | null;
@@ -197,12 +174,14 @@ export function MailReplyBox({
   replyAsks?: number;
   /** AI help in the box, for a job mail. */
   ai?: ReplyAi;
+  /** Open from the start, as when a phone's application page asked to reply. */
+  startOpen?: boolean;
 }) {
   const kept = useKeptReply(threadId);
   const sandbox = useSandboxMailbox();
   const canSend = useCanSendMail();
   const mailPath = useLocation({ select: (location) => location.pathname });
-  const [open, setOpen] = useReplyOpen(replyAsks);
+  const [open, setOpen] = useReplyOpen(replyAsks, startOpen);
   const phone = useIsPhone();
   // The mailbox itself: Gmail in prod, the mail sandbox in dev mode.
   const elsewhere = sandbox ? (
@@ -249,7 +228,7 @@ export function MailReplyBox({
     );
     if (phone) box = <PhoneReplyScreen replyAsks={replyAsks}>{box}</PhoneReplyScreen>;
   }
-  // On phones nothing sticks to the bottom: the room there is the floating Reply button's.
-  if (phone) return <div className="pt-2 pb-16">{box}</div>;
+  // On phones nothing sticks to the bottom: the room there is the action bar's.
+  if (phone) return box ? <div className="px-4 pt-3">{box}</div> : null;
   return <div className="sticky bottom-0 z-10 bg-background py-2">{box}</div>;
 }

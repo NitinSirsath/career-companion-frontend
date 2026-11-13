@@ -70,7 +70,7 @@ export function MailBody({
   const { html, own, quoted } = mailText(message);
   if (!html) {
     return (
-      <div className="max-w-[75ch] text-sm leading-[22px] break-words whitespace-pre-wrap">
+      <div className="max-w-[75ch] text-sm leading-[22px] break-words whitespace-pre-wrap max-md:text-[17px] max-md:leading-[25px]">
         <p>{own || 'This mail has no text.'}</p>
         {quoted && (
           <Collapse open={showQuote}>

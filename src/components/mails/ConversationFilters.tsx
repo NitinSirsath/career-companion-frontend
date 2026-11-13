@@ -1,6 +1,4 @@
-import { useState } from 'react';
 import { SlidersHorizontalIcon, XIcon } from 'lucide-react';
-import { Dialog } from '@base-ui/react/dialog';
 import { Popover } from '@base-ui/react/popover';
 import {
   ACTION_FILTERS,
@@ -12,6 +10,7 @@ import {
 } from '../../lib/mails';
 import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
+import { Sheet } from '../ui/sheet';
 import { POPUP_MOTION, Select } from '../ui/select';
 import { FilterChips, ToolbarSearch, type FilterChip } from '../ui/toolbar';
 import { useSearchText } from '../useSearchText';
@@ -223,78 +222,52 @@ export function MailFilterChips({ search, onChange }: FiltersProps) {
   );
 }
 
-const QUICK_CHIP =
-  'flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-border-default px-3 text-[13px] font-medium whitespace-nowrap text-text-primary transition-colors duration-70 ease-standard aria-pressed:border-transparent aria-pressed:bg-tint aria-pressed:text-tint-text';
+/** The filters in use under the phone's Mails title, as small pills that remove themselves. */
+export function MailFilterPills({ search, onChange }: FiltersProps) {
+  const chips = activeChips(search, onChange);
+  if (!chips.length) return null;
+  return (
+    <div className="flex flex-wrap gap-2 pt-2">
+      {chips.map((chip) => (
+        <button
+          key={chip.label}
+          type="button"
+          aria-label={`Remove filter ${chip.label}`}
+          onClick={chip.onRemove}
+          className="flex h-[30px] max-w-full cursor-pointer items-center gap-1 rounded-full bg-layer-accent pr-2 pl-3 text-[15px] text-text-primary active:opacity-60"
+        >
+          <span className="truncate">{chip.label}</span>
+          <XIcon size={14} aria-hidden="true" className="shrink-0 text-text-tertiary" />
+        </button>
+      ))}
+    </div>
+  );
+}
 
-/**
- * On phones, one row under the AI notice: Needs action and New only, one tap each; Filters opens a
- * sheet with every filter and the sort; `end` (the sync button) sits at the right.
- */
-export function PhoneMailChips({
+/** Every filter and the sort, in a sheet: the phone's "All filters". */
+export function MailFiltersSheet({
   search,
   onChange,
-  end,
-}: FiltersProps & { end?: React.ReactNode }) {
-  const [open, setOpen] = useState(false);
-  const needs = search.request === 'open';
-  const unseen = search.unseen === true;
+  open,
+  onOpenChange,
+}: FiltersProps & { open: boolean; onOpenChange: (open: boolean) => void }) {
   return (
-    <div className="-mx-4 flex items-center gap-2 px-4">
-      <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto [scrollbar-width:none]">
+    <Sheet open={open} onOpenChange={onOpenChange} title="Filters">
+      <FilterFields search={search} onChange={onChange} layout="sheet" />
+      <SortSelect search={search} onChange={onChange} layout="sheet" />
+      <div className="mt-2 flex items-center justify-between">
         <button
           type="button"
-          aria-pressed={needs}
-          className={QUICK_CHIP}
-          onClick={() => onChange({ request: needs ? undefined : 'open' })}
+          className="cursor-pointer text-[17px] text-link"
+          onClick={() => onChange(NO_FILTERS)}
         >
-          Needs action
+          Clear filters
         </button>
-        <button
-          type="button"
-          aria-pressed={unseen}
-          className={QUICK_CHIP}
-          onClick={() => onChange({ unseen: unseen ? undefined : true })}
-        >
-          New only
-        </button>
-        <Dialog.Root open={open} onOpenChange={setOpen}>
-          <Dialog.Trigger className={QUICK_CHIP}>
-            <SlidersHorizontalIcon size={16} aria-hidden="true" />
-            Filters
-            <CountBadge count={filterCount(search)} />
-          </Dialog.Trigger>
-          <Dialog.Portal>
-            <Dialog.Backdrop className="fixed inset-0 z-50 bg-overlay transition-opacity duration-240 ease-entrance data-ending-style:opacity-0 data-starting-style:opacity-0" />
-            <Dialog.Popup className="fixed right-0 bottom-0 left-0 z-50 flex max-h-[85vh] flex-col gap-4 overflow-y-auto rounded-t-xl bg-surface p-4 pt-3 text-text-primary outline-none transition-transform duration-240 ease-entrance data-ending-style:translate-y-full data-ending-style:ease-exit data-starting-style:translate-y-full">
-              <div className="flex items-center justify-between">
-                <Dialog.Title className="text-lg font-semibold">Filters</Dialog.Title>
-                <Dialog.Close
-                  aria-label="Close filters"
-                  className="flex size-11 cursor-pointer items-center justify-center"
-                >
-                  <XIcon size={20} aria-hidden="true" />
-                </Dialog.Close>
-              </div>
-              <FilterFields search={search} onChange={onChange} layout="sheet" />
-              <SortSelect search={search} onChange={onChange} layout="sheet" />
-              <div className="mt-2 flex items-center justify-between">
-                <button
-                  type="button"
-                  className="cursor-pointer text-sm text-link hover:underline"
-                  onClick={() => onChange(NO_FILTERS)}
-                >
-                  Clear filters
-                </button>
-                <Button variant="secondary" onClick={() => setOpen(false)}>
-                  Done
-                </Button>
-              </div>
-            </Dialog.Popup>
-          </Dialog.Portal>
-        </Dialog.Root>
+        <Button variant="secondary" size="lg" onClick={() => onOpenChange(false)}>
+          Done
+        </Button>
       </div>
-      {end}
-    </div>
+    </Sheet>
   );
 }
 

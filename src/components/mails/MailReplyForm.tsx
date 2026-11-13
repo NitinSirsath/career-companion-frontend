@@ -360,11 +360,13 @@ function ReplyText({
   phone,
   onSubmitKey,
   actions,
+  autofocus,
 }: {
   text: ReturnType<typeof useReplyText>;
   phone: boolean;
   onSubmitKey: () => void;
   actions?: React.ReactNode;
+  autofocus: boolean;
 }) {
   const problemId = useId();
   return (
@@ -378,6 +380,7 @@ function ReplyText({
         invalid={!!text.problem}
         describedBy={text.problem ? problemId : undefined}
         actions={actions}
+        autofocus={autofocus}
       >
         {text.problem && (
           <p id={problemId} className="px-4 pb-1 text-sm text-danger-text">
@@ -407,6 +410,8 @@ export function MailReplyForm({
   const formId = useId();
   const phone = useIsPhone();
   const sendSlot = useContext(PhoneReplySlots)?.send ?? null;
+  // Opened by "AI reply": the AI's hint box gets the focus, not the text (owner, 13 Nov 2026).
+  const [hintFirst] = useState(() => !!ai?.start && !ai.start.choice);
   const [all, setAll] = useState(true);
   const toAll = all && replyCc.length > 0;
   const text = useReplyText(threadId);
@@ -458,6 +463,7 @@ export function MailReplyForm({
             phone={phone}
             onSubmitKey={reply.submit}
             actions={phone ? undefined : desktopActions}
+            autofocus={!hintFirst}
           />
         </ReplyWriting>
       </form>

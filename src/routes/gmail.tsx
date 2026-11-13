@@ -11,6 +11,7 @@ import { GmailConnection } from '../components/gmail/GmailConnection';
 import { GmailSyncNotices, GmailSyncNow } from '../components/gmail/GmailSyncSettings';
 import { ProcessedMails } from '../components/gmail/ProcessedMails';
 import { PageHeader } from '../components/layout/PageHeader';
+import { PhoneRefreshCapsule } from '../components/phone/PhoneRefresh';
 import { InlineNotification } from '../components/ui/notification';
 import { TooltipProvider } from '../components/ui/tooltip';
 import { takeGmailConnectStarted } from '../lib/afterGmailConnect';
@@ -75,6 +76,8 @@ function GmailPage() {
   return (
     <TooltipProvider>
       <div className="flex flex-col gap-4">
+        {/* Phones: refresh in the top bar also asks Gmail for new mail (owner, 13 Nov 2026). */}
+        <PhoneRefreshCapsule also={() => connected && sync.mutate()} />
         <PageHeader
           className="mb-2"
           title="Gmail sync"

@@ -1,22 +1,13 @@
-import { useState } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Building2Icon } from 'lucide-react';
 import { useConversation, useMarkSeenOnOpen } from '../api/conversations';
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
-import { FakeOfferNotice } from '../components/mails/FakeOffer';
-import { JobMailPanel } from '../components/mails/JobMailPanel';
-import { MailFacts } from '../components/mails/MailFacts';
-import { MailThreadView } from '../components/mails/MailThreadView';
-import { ConversationMenu } from '../components/mails/ConversationMenu';
-import { MailTitle } from '../components/mails/MailTitle';
+import { LoadedMail } from '../components/mails/LoadedMail';
 import { Breadcrumb } from '../components/layout/Breadcrumb';
 import { SectionError } from '../components/ui/section-error';
 import { SkeletonList } from '../components/ui/skeleton';
 import { listSearch } from '../lib/listMemory';
-import { askingMessageId } from '../lib/mailThread';
-import { InlineNotification } from '../components/ui/notification';
 import type { MailsSearch } from '../lib/mails';
-import { modelName } from '../lib/aiLabels';
 
 export const Route = createFileRoute('/mails/$key')({
   errorComponent: RouteErrorPage,
@@ -29,8 +20,6 @@ function JobMailPage() {
   const { data, error, isLoading, refetch } = useConversation(key);
   const conversation = data?.conversation;
   useMarkSeenOnOpen(conversation);
-  // Counts the header's Reply clicks; each one opens the reply box under the conversation.
-  const [replyAsks, setReplyAsks] = useState(0);
 
   // The company (read from the mail, or its application's), else the subject: the page always has a name.
   const company = conversation?.company ?? conversation?.application?.companyName ?? undefined;
@@ -59,49 +48,7 @@ function JobMailPage() {
           <SectionError title="Could not load this mail" onRetry={() => void refetch()} />
         </>
       )}
-      {data && conversation && (
-        <>
-          <MailTitle
-            title={conversation.subject || '(No subject)'}
-            threadId={conversation.threadId}
-            breadcrumb={breadcrumb}
-            onReply={() => setReplyAsks((asks) => asks + 1)}
-            more={<ConversationMenu conversation={conversation} />}
-          >
-            <MailFacts conversation={conversation} />
-          </MailTitle>
-          {conversation.fakeOfferWarning && (
-            <FakeOfferNotice reason={conversation.fakeOfferWarning} />
-          )}
-          <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-            <div className="min-w-0">
-              {conversation.threadId ? (
-                <MailThreadView
-                  threadId={conversation.threadId}
-                  job={{
-                    mails: data.mails,
-                    askingMessageId: askingMessageId(data),
-                    ai: {
-                      conversationKey: conversation.key,
-                      // A mail that asks for money never gets reply choices.
-                      choices: conversation.fakeOfferWarning ? [] : data.replyChoices,
-                      model: conversation.analyzedBy
-                        ? modelName(conversation.analyzedBy.provider, conversation.analyzedBy.model)
-                        : null,
-                    },
-                  }}
-                  replyAsks={replyAsks}
-                />
-              ) : (
-                <InlineNotification>
-                  Gmail gave this mail no conversation, so its text cannot be shown here.
-                </InlineNotification>
-              )}
-            </div>
-            <JobMailPanel detail={data} />
-          </div>
-        </>
-      )}
+      {data && <LoadedMail detail={data} breadcrumb={breadcrumb} />}
     </div>
   );
 }

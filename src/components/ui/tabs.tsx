@@ -57,12 +57,17 @@ export function Tabs<V extends string>({
         onValueChange={(next) => onValueChange(next as V)}
         className={className}
       >
-        <BaseTabs.List aria-label={label} className="flex max-w-full gap-7 overflow-x-auto">
+        {/* Phones: a segmented control whose thumb slides to the chosen one (owner, 13 Nov 2026). */}
+        <BaseTabs.List
+          aria-label={label}
+          className="flex max-w-full gap-7 overflow-x-auto max-md:relative max-md:grid max-md:h-[42px] max-md:auto-cols-fr max-md:grid-flow-col max-md:gap-0 max-md:overflow-visible max-md:rounded-full max-md:bg-layer-accent max-md:p-[3px]"
+        >
+          <BaseTabs.Indicator className="absolute top-[3px] bottom-[3px] left-0 hidden w-(--active-tab-width) translate-x-(--active-tab-left) rounded-full bg-surface-raised shadow-[0_2px_8px_rgb(0_0_0/0.14)] transition-[translate,width] dark:bg-[#3a3a40] duration-320 ease-spring max-md:block" />
           {items.map((item) => (
             <BaseTabs.Tab
               key={item.value}
               value={item.value}
-              className="flex shrink-0 cursor-pointer items-center gap-1.5 pb-2.5 text-[14px] leading-5 whitespace-nowrap text-text-secondary shadow-[inset_0_-2px_0_transparent] transition-[color,box-shadow] duration-70 ease-standard outline-none hover:text-text-primary focus-visible:outline-2 focus-visible:outline-border-focus data-active:font-medium data-active:text-text-primary data-active:shadow-[inset_0_-2px_0_var(--border-interactive)]"
+              className="flex shrink-0 cursor-pointer items-center gap-1.5 pb-2.5 text-[14px] leading-5 whitespace-nowrap text-text-secondary shadow-[inset_0_-2px_0_transparent] transition-[color,box-shadow] duration-70 ease-standard outline-none hover:text-text-primary focus-visible:outline-2 focus-visible:outline-border-focus data-active:font-medium data-active:text-text-primary data-active:shadow-[inset_0_-2px_0_var(--border-interactive)] max-md:relative max-md:z-10 max-md:justify-center max-md:rounded-full max-md:pb-0 max-md:text-[15px] max-md:text-text-primary max-md:shadow-none max-md:data-active:shadow-none"
             >
               {item.label}
               {item.count !== undefined && (

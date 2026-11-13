@@ -11,6 +11,7 @@ import {
   type ReplyTab,
   type StatusTab,
 } from '../../lib/applicationsView';
+import { useIsPhone } from '../layout/useIsPhone';
 import { Button } from '../ui/button';
 import { EmptyState } from '../ui/empty-state';
 import { Tabs } from '../ui/tabs';
@@ -28,6 +29,7 @@ export function ApplicationListTabs({
   view: Pick<DiscoveryView, 'list' | 'reply' | 'tab' | 'archive'>;
   onChange: (changes: Partial<DiscoveryView>) => void;
 }) {
+  const phone = useIsPhone();
   const { data: groups } = useQuery({
     queryKey: applicationGroupsKey(view.archive),
     queryFn: ({ signal }) => api.getApplicationGroups(view.archive, { signal }),
@@ -45,13 +47,16 @@ export function ApplicationListTabs({
         }))}
       />
       {view.list === 'progress' ? (
-        <Tabs<StatusTab>
-          label="Status"
-          value={view.tab}
-          onValueChange={(next) => onChange({ tab: next })}
-          items={STATUS_TABS}
-          phoneLook="chips"
-        />
+        // Phones pick the status in the top bar's filter menu (owner, 13 Nov 2026).
+        !phone && (
+          <Tabs<StatusTab>
+            label="Status"
+            value={view.tab}
+            onValueChange={(next) => onChange({ tab: next })}
+            items={STATUS_TABS}
+            phoneLook="chips"
+          />
+        )
       ) : (
         <div className="space-y-6 max-md:space-y-4">
           {groups && <ReplyBar replied={groups.apply.replied} total={groups.apply.total} />}

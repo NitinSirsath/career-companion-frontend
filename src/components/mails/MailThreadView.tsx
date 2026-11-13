@@ -3,6 +3,7 @@ import { useGmailAddress, useMailThread } from '../../api/mailbox';
 import type { ConversationMail, DraftDoc } from '../../contracts/conversation';
 import type { MailMessage } from '../../contracts/mailbox';
 import { dayLabel, initiallyFolded, readingFor } from '../../lib/mailThread';
+import { useIsPhone } from '../layout/useIsPhone';
 import { SkeletonList } from '../ui/skeleton';
 import { Spinner } from '../ui/spinner';
 import { MailboxProblem } from './MailboxProblem';
@@ -63,7 +64,7 @@ function Messages({
     return (
       <Fragment key={message.id}>
         {newDay && (
-          <div className="flex min-h-8 items-center gap-4 text-xs text-text-secondary before:h-px before:flex-1 before:bg-border-subtle after:h-px after:flex-1 after:bg-border-subtle">
+          <div className="flex min-h-8 items-center gap-4 text-xs text-text-secondary before:h-px before:flex-1 before:bg-border-subtle after:h-px after:flex-1 after:bg-border-subtle max-md:min-h-10 max-md:px-4 max-md:pt-2">
             {day}
           </div>
         )}
@@ -89,24 +90,33 @@ export function MailThreadView({
   threadId,
   job,
   replyAsks = 0,
+  startReply = false,
 }: {
   threadId: string;
   job?: ThreadJobContext;
   /** Goes up each time the page's Reply button is clicked. */
   replyAsks?: number;
+  /** The reply box opens with the page. */
+  startReply?: boolean;
 }) {
   const { data, error, isLoading, refetch } = useMailThread(threadId);
   const mailbox = useGmailAddress();
   const [sending, setSending] = useState<DraftDoc | null>(null);
   const end = useRef<HTMLDivElement>(null);
   const loaded = !!data;
-  // A long conversation opens at its newest mail, beside the reply box.
+  const phone = useIsPhone();
+  // A long conversation opens at its newest mail, beside the reply box. A phone opens at the top:
+  // the older mails are one line each there (owner, 12 Nov 2026).
   useEffect(() => {
+    if (phone) return;
     if (loaded && end.current?.scrollIntoView) end.current.scrollIntoView({ block: 'nearest' });
-  }, [loaded]);
+  }, [loaded, phone]);
 
   return (
-    <section aria-label="Conversation" className="flex flex-col gap-2">
+    <section
+      aria-label="Conversation"
+      className="flex flex-col gap-2 max-md:gap-0 max-md:border-b max-md:border-border-subtle"
+    >
       {isLoading && <SkeletonList rows={3} label="Reading this mail from Gmail" />}
       {error && <MailboxProblem error={error} onRetry={() => void refetch()} />}
       {data && (
@@ -123,6 +133,7 @@ export function MailThreadView({
             onSending={setSending}
             replyAsks={replyAsks}
             ai={job?.ai}
+            startOpen={startReply}
           />
         </>
       )}

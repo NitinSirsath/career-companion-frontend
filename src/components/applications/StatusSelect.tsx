@@ -1,3 +1,4 @@
+import { useContext } from 'react';
 import { Select as BaseSelect } from '@base-ui/react/select';
 import { CheckIcon, ChevronDownIcon } from 'lucide-react';
 import { ApplicationStatusSchema, type ApplicationResponse } from '../../contracts/application';
@@ -9,7 +10,68 @@ import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
 import { InlineNotification } from '../ui/notification';
 import { ITEM_CLASS, POPUP_CLASS } from '../ui/select';
+import { Sheet, SheetAction, SheetGroup } from '../ui/sheet';
 import { Tag } from '../ui/tag';
+import { StatusPickerContext, type StatusPicker } from './statusPicker';
+
+/**
+ * The status on a phone (owner, 12 Nov 2026): the tag with a small arrow opens a sheet with the
+ * seven statuses, a tick on the chosen one, and "Use the AI's status".
+ */
+function PhoneStatusSelect({
+  application,
+  value,
+  shown,
+  disabled,
+  onChoose,
+  picker,
+}: {
+  application: ApplicationResponse;
+  value: Choice;
+  shown: TagLook;
+  disabled: boolean;
+  onChoose: (choice: Choice) => void;
+  picker: StatusPicker;
+}) {
+  const ai = application.aiStatus;
+  const choose = (choice: Choice) => {
+    picker.onOpenChange(false);
+    onChoose(choice);
+  };
+  return (
+    <>
+      <button
+        type="button"
+        aria-label={`Status: ${shown.label}. Change status`}
+        disabled={disabled}
+        onClick={() => picker.onOpenChange(true)}
+        className="inline-flex min-h-11 cursor-pointer items-center gap-1 pr-1 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        <Tag color={shown.color}>{shown.label}</Tag>
+        <ChevronDownIcon size={16} aria-hidden="true" className="text-text-secondary" />
+      </button>
+      <Sheet open={picker.open} onOpenChange={picker.onOpenChange} title="Status">
+        <div role="radiogroup" aria-label="Status" className="flex flex-col gap-3">
+          <SheetGroup>
+            {ApplicationStatusSchema.options.map((status) => (
+              <SheetAction key={status} chosen={value === status} onClick={() => choose(status)}>
+                <Tag color={statusTag(status).color}>{STATUS_LABEL[status]}</Tag>
+              </SheetAction>
+            ))}
+          </SheetGroup>
+          <SheetGroup>
+            <SheetAction chosen={value === USE_AI} onClick={() => choose(USE_AI)}>
+              Use the AI's status ({ai ? STATUS_LABEL[ai] : 'none yet'})
+            </SheetAction>
+          </SheetGroup>
+        </div>
+        <p className="text-[13px] leading-[18px] text-text-tertiary">
+          Changing the status does not finish to-dos, ask the AI again or send anything.
+        </p>
+      </Sheet>
+    </>
+  );
+}
 
 /** The status as a dropdown, the way it looks in lists: a coloured tag with a chevron. */
 function StatusSelect({
@@ -100,11 +162,22 @@ export function StatusLine({
   announcement: string;
   onChoose: (choice: Choice) => void;
 }) {
+  // Phones: the status picks from a sheet.
+  const picker = useContext(StatusPickerContext);
   return (
     <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
-      {application.archivedAt ? (
-        <Tag color={shown.color}>{shown.label}</Tag>
-      ) : (
+      {application.archivedAt && <Tag color={shown.color}>{shown.label}</Tag>}
+      {!application.archivedAt && picker && (
+        <PhoneStatusSelect
+          application={application}
+          value={value}
+          shown={shown}
+          disabled={disabled}
+          onChoose={onChoose}
+          picker={picker}
+        />
+      )}
+      {!application.archivedAt && !picker && (
         <StatusSelect
           application={application}
           value={value}

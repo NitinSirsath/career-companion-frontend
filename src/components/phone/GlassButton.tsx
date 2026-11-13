@@ -46,7 +46,7 @@ export function CapsuleButton({
   className,
   children,
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { label: string; children: ReactNode }) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & { label: string; children?: ReactNode }) {
   return (
     <button
       type="button"

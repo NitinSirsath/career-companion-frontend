@@ -6,6 +6,7 @@ import { SubmittedApplications } from '../components/automation/SubmittedApplica
 import { SubmissionReview } from '../components/automation/SubmissionReview';
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
 import { PageHeader } from '../components/layout/PageHeader';
+import { PhoneRefreshCapsule } from '../components/phone/PhoneRefresh';
 import { TabPanel, Tabs } from '../components/ui/tabs';
 
 export const Route = createFileRoute('/automation')({
@@ -35,6 +36,7 @@ function AutomationPage() {
     void navigate({ search: next === 'submitted' ? {} : { tab: next }, replace: true });
   return (
     <div className="flex flex-col">
+      <PhoneRefreshCapsule />
       <PageHeader
         title="NorthList Apply"
         description="Let your own job-application automation tell NorthList about each application it sends. NorthList never applies to jobs itself."

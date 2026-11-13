@@ -47,11 +47,12 @@ export function DialogContent({
   return (
     <BaseDialog.Portal>
       <BaseDialog.Backdrop className="fixed inset-0 z-50 bg-overlay transition-opacity duration-240 ease-entrance data-ending-style:opacity-0 data-ending-style:ease-exit data-starting-style:opacity-0" />
-      {/* On phones a dialog takes the whole screen, as phone apps do. */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 max-md:p-0">
+      {/* On phones a dialog is a tall sheet that rises from the bottom (owner, 13 Nov 2026); its
+          fields stay near the top, clear of the keyboard. */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 max-md:items-end max-md:p-0 max-md:pt-[calc(env(safe-area-inset-top)+12px)]">
         <BaseDialog.Popup
           className={cn(
-            'relative flex max-h-[90vh] w-full max-w-[560px] flex-col overflow-y-auto rounded-xl border border-border-subtle bg-surface text-text-primary shadow-popup outline-none max-md:h-full max-md:max-h-none max-md:max-w-none max-md:rounded-none max-md:border-0 max-md:shadow-none transition-[opacity,translate] duration-240 ease-entrance data-ending-style:translate-y-6 data-ending-style:opacity-0 data-ending-style:ease-exit data-starting-style:translate-y-6 data-starting-style:opacity-0',
+            'relative flex max-h-[90vh] w-full max-w-[560px] flex-col overflow-y-auto rounded-xl border border-border-subtle bg-surface text-text-primary shadow-popup outline-none max-md:phone-type max-md:h-full max-md:max-h-none max-md:max-w-none max-md:rounded-t-[22px] max-md:rounded-b-none max-md:border-0 max-md:bg-surface-raised transition-[opacity,translate] duration-240 ease-entrance data-ending-style:translate-y-6 data-ending-style:opacity-0 data-ending-style:ease-exit data-starting-style:translate-y-6 data-starting-style:opacity-0 max-md:duration-450 max-md:ease-sheet max-md:data-ending-style:translate-y-full max-md:data-ending-style:opacity-100 max-md:data-starting-style:translate-y-full max-md:data-starting-style:opacity-100',
             className,
           )}
           {...props}

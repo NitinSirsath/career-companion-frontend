@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDownIcon, ChevronUpIcon, DownloadIcon } from 'lucide-react';
+import { ChevronDownIcon, ChevronRightIcon, ChevronUpIcon, DownloadIcon } from 'lucide-react';
 import { AiIcon } from '../ui/ai-icon';
 import { attachmentUrl } from '../../api/mailbox';
 import type { ConversationMail } from '../../contracts/conversation';
@@ -14,6 +14,7 @@ import {
 } from '../../lib/mails';
 import { cn } from '../../lib/utils';
 import { AnalyzedBy } from '../ai/AnalyzedBy';
+import { useIsPhone } from '../layout/useIsPhone';
 import { Avatar } from '../ui/avatar';
 import { Collapse } from '../ui/collapse';
 import { Tag } from '../ui/tag';
@@ -44,29 +45,42 @@ function Attachments({ message }: { message: MailMessage }) {
 /** The AI's reading of this mail, under the mail: one quiet line that opens to every field. */
 function AiReadingStrip({ mail }: { mail: ConversationMail }) {
   const [open, setOpen] = useState(false);
+  const phone = useIsPhone();
   const summary = readingSummary(mail);
   const rows = aiReading(mail);
   return (
-    <div className="border-t border-border-subtle">
+    <div className="border-t border-border-subtle max-md:border-dashed">
       <button
         type="button"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
-        className="flex min-h-10 w-full cursor-pointer items-start gap-2 px-4 py-2.5 text-left text-sm text-text-secondary transition-colors duration-70 ease-standard hover:bg-layer-hover"
+        className="flex min-h-10 w-full cursor-pointer items-start gap-2 px-4 py-2.5 text-left text-sm text-text-secondary transition-colors duration-70 ease-standard hover:bg-layer-hover max-md:min-h-11"
       >
         <AiIcon size={16} aria-hidden="true" className="mt-0.5 shrink-0" />
-        <span className="min-w-0 flex-1">
+        {/* On phones it is one line until opened (owner, 12 Nov 2026). */}
+        <span className={cn('min-w-0 flex-1', phone && !open && 'truncate')}>
           <span className="font-semibold text-text-primary">AI read:</span>{' '}
           {summary || 'nothing more than the type'}
         </span>
-        <ChevronDownIcon
-          size={16}
-          aria-hidden="true"
-          className={cn(
-            'mt-0.5 shrink-0 transition-transform duration-150 ease-standard',
-            open && 'rotate-180',
-          )}
-        />
+        {phone ? (
+          <ChevronRightIcon
+            size={16}
+            aria-hidden="true"
+            className={cn(
+              'mt-0.5 shrink-0 transition-transform duration-150 ease-standard',
+              open && 'rotate-90',
+            )}
+          />
+        ) : (
+          <ChevronDownIcon
+            size={16}
+            aria-hidden="true"
+            className={cn(
+              'mt-0.5 shrink-0 transition-transform duration-150 ease-standard',
+              open && 'rotate-180',
+            )}
+          />
+        )}
       </button>
       <Collapse open={open}>
         <div className="flex flex-col gap-3 px-4 pb-4 pl-10">
@@ -99,7 +113,7 @@ function QuoteToggle({ open, onToggle }: { open: boolean; onToggle: () => void }
         onClick={onToggle}
         title={label}
         aria-label={label}
-        className="inline-flex h-5 w-8 cursor-pointer items-center justify-center bg-surface-selected text-text-primary transition-colors duration-70 ease-standard hover:bg-border-default"
+        className="inline-flex h-5 w-8 cursor-pointer items-center justify-center bg-surface-selected text-text-primary transition-colors duration-70 ease-standard hover:bg-border-default max-md:h-8 max-md:w-11 max-md:rounded-md"
       >
         <span aria-hidden="true" className="tracking-[2px]">
           ···
@@ -113,6 +127,26 @@ function QuoteToggle({ open, onToggle }: { open: boolean; onToggle: () => void }
 function FoldedMail({ message, onOpen }: { message: MailMessage; onOpen: () => void }) {
   const mine = message.sentByUser;
   const name = mine ? 'You' : parseSender(message.from).name;
+  const phone = useIsPhone();
+  // Phones: a row edge to edge, the name over the first words, as a phone mail app lists mails.
+  if (phone)
+    return (
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-label={`Open the mail from ${name}, ${mailDateTime(message.date)}`}
+        className="flex min-h-15 w-full cursor-pointer items-center gap-3 border-t border-border-subtle px-4 py-2.5 text-left active:bg-layer-hover"
+      >
+        <Avatar name={name} me={mine} />
+        <span className="flex min-w-0 flex-1 flex-col">
+          <span className="truncate text-[15px] font-semibold">{name}</span>
+          <span className="truncate text-[13.5px] text-text-secondary">{mailPreview(message)}</span>
+        </span>
+        <span className="shrink-0 self-start pt-0.5 text-xs text-text-secondary">
+          {mailDateTime(message.date)}
+        </span>
+      </button>
+    );
   return (
     <button
       type="button"
@@ -170,7 +204,7 @@ function MailHeader({
           type="button"
           aria-label="Fold this mail"
           onClick={onFold}
-          className="flex size-8 shrink-0 cursor-pointer items-center justify-center text-text-primary transition-colors duration-70 ease-standard hover:bg-layer-hover"
+          className="flex size-8 shrink-0 cursor-pointer items-center justify-center text-text-primary transition-colors duration-70 ease-standard hover:bg-layer-hover max-md:-my-1.5 max-md:-mr-2 max-md:size-11"
         >
           <ChevronUpIcon size={16} aria-hidden="true" />
         </button>
@@ -205,6 +239,7 @@ export function MailMessageCard({
   onFold,
 }: MailMessageCardProps) {
   const [quoteOpen, setQuoteOpen] = useState(false);
+  const phone = useIsPhone();
   const mine = message.sentByUser;
   const name = mine ? 'You' : parseSender(message.from).name;
 
@@ -217,7 +252,12 @@ export function MailMessageCard({
         <article
           id={`mail-${message.id}`}
           aria-label={`Mail from ${name}, ${mailDateTime(message.date)}`}
-          className="rounded-lg border border-border-subtle bg-surface"
+          className={cn(
+            // Phones: no card, the mail runs edge to edge under a thin line (owner, 12 Nov 2026).
+            phone
+              ? 'border-t border-border-subtle'
+              : 'rounded-lg border border-border-subtle bg-surface',
+          )}
         >
           <MailHeader
             message={message}

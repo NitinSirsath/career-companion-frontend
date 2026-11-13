@@ -22,6 +22,8 @@ interface ReplyEditorOptions {
   onSubmitKey: () => void;
   /** ⌘K or Ctrl+K. */
   onLinkKey: () => void;
+  /** False: the text does not take the focus when it opens (the AI hint has it). */
+  autofocus?: boolean;
 }
 
 /**
@@ -30,13 +32,19 @@ interface ReplyEditorOptions {
  * "- ". A link must be https, http or mailto. Pasted text keeps only these formats; pasted
  * Markdown turns into them.
  */
-export function useReplyEditor({ initial, onChange, onSubmitKey, onLinkKey }: ReplyEditorOptions) {
+export function useReplyEditor({
+  initial,
+  onChange,
+  onSubmitKey,
+  onLinkKey,
+  autofocus = true,
+}: ReplyEditorOptions) {
   // The newest callbacks, for the editor's own handlers, which are made once.
   const latest = useRef({ onChange, onSubmitKey, onLinkKey });
   const current = useRef<Editor | null>(null);
   const editor = useEditor({
     immediatelyRender: true,
-    autofocus: 'end',
+    autofocus: autofocus ? 'end' : false,
     extensions: [
       Document,
       Paragraph,
