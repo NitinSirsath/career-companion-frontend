@@ -4,7 +4,7 @@ import { ChevronRightIcon } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 /** A row's look: at least 50px, 17px text, darker while pressed. */
-export const ROW_CLASS =
+export const PHONE_ROW =
   'flex min-h-[50px] w-full items-center gap-3 px-4 py-[11px] text-left text-[17px] leading-[22px] text-text-primary transition-colors duration-450 active:bg-surface-selected active:duration-0';
 
 /**
@@ -73,6 +73,27 @@ export function PhoneSection({
   );
 }
 
+/** A section whose rows sit on one group: the title, the rows, the note. */
+export function PhoneGroupSection({
+  title,
+  count,
+  note,
+  className,
+  children,
+}: {
+  title: string;
+  count?: ReactNode;
+  note?: ReactNode;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <PhoneSection title={title} count={count} note={note} className={className}>
+      <PhoneGroup>{children}</PhoneGroup>
+    </PhoneSection>
+  );
+}
+
 /** A coloured square behind a white icon, as iPhone settings rows have. */
 export function RowIcon({ color, children }: { color: string; children: ReactNode }) {
   return (
@@ -116,7 +137,7 @@ function RowInside({ icon, detail, value, children, chevron }: RowParts & { chev
 /** A row that opens a page: a chevron at the end. */
 export function PhoneLinkRow({ icon, detail, value, children, ...link }: RowParts & LinkProps) {
   return (
-    <Link {...link} className={ROW_CLASS}>
+    <Link {...link} className={PHONE_ROW}>
       <RowInside icon={icon} detail={detail} value={value} chevron>
         {children}
       </RowInside>
@@ -140,9 +161,9 @@ export function PhoneRow({
     </RowInside>
   );
   if (!onClick)
-    return <div className={cn(ROW_CLASS, 'active:bg-transparent', className)}>{inside}</div>;
+    return <div className={cn(PHONE_ROW, 'active:bg-transparent', className)}>{inside}</div>;
   return (
-    <button type="button" onClick={onClick} className={cn(ROW_CLASS, 'cursor-pointer', className)}>
+    <button type="button" onClick={onClick} className={cn(PHONE_ROW, 'cursor-pointer', className)}>
       {inside}
     </button>
   );
