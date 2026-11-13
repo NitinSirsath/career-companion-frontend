@@ -4,7 +4,7 @@ import { requestControls, requestTitle, type RequestControl } from '../../lib/ma
 import { showToast } from '../ui/toast';
 
 /**
- * Changes what a conversation's request needs ("I did this", "Reopen", "Ask me again") and says
+ * Changes what a conversation's request needs ("I did this", "Reopen") and says
  * so in a toast that can undo it. Shared by a row's "…" menu and the phone row's swipe.
  */
 export function useRequestChange(conversation: Conversation) {
@@ -20,7 +20,7 @@ export function useRequestChange(conversation: Conversation) {
       { emailId: asked.emailId, state: control.state },
       {
         onSuccess: () =>
-          showToast(`${control.state === 'DONE' ? 'Done' : 'Updated'}: ${title}`, {
+          showToast(`${control.state === 'DONE' ? 'Done' : 'Reopened'}: ${title}`, {
             undo: before
               ? () => change.mutate({ emailId: asked.emailId, state: before })
               : undefined,
