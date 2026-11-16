@@ -130,6 +130,7 @@ describe('the sign-in picture (owner, 7 Nov 2026)', () => {
     expect(hero?.compareDocumentPosition(screen.getByText('Form'))).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
     );
+  });
 });
 
 describe('the Sign in button', () => {
