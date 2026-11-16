@@ -6,6 +6,7 @@ import { GoogleSignIn, GoogleSignInProblem } from './GoogleSignIn';
 import { PasswordSignInForm } from './PasswordSignInForm';
 import { PhoneSignIn } from './PhoneSignIn';
 import { SignInLayout } from './SignInLayout';
+
 /** "or sign in with email" between Google and the password form. */
 function OrDivider() {
   return (
@@ -73,5 +74,6 @@ export function LoginPage({ error, next = null }: { error?: string; next?: strin
   return (
     <SignInLayout>
       {phone ? <PhoneSignIn error={error} next={next} /> : <WideSignIn error={error} next={next} />}
+    </SignInLayout>
   );
 }
