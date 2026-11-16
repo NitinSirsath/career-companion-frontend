@@ -92,6 +92,7 @@ export function SignInLayout({ children }: { children: ReactNode }) {
           </span>
           <span aria-hidden="true" className="md:hidden">
             ·
+          </span>
           <span>
             <a href={PRIVACY_POLICY_URL} className="text-text-secondary hover:underline">
               Privacy
