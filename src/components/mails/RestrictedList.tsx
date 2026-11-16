@@ -1,4 +1,5 @@
 import type { ColumnDef } from '@tanstack/react-table';
+import { BanIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { useBlockedSenders, useUnblockSender } from '../../api/removal';
 import type { BlockedSender } from '../../contracts/blockedSender';
@@ -62,7 +63,7 @@ export function RestrictedList() {
   const blocked = useBlockedSenders();
   return (
     <section className="flex flex-col gap-4">
-      <p className="text-sm text-text-secondary">
+      <p className="px-5 text-[15px] leading-5 text-text-secondary md:px-0 md:text-sm">
         NorthList does not read new mails from these companies. Unblock to let new mails in again.
         Mails that came while blocked are not fetched.
       </p>
@@ -81,7 +82,7 @@ export function RestrictedList() {
               onRetry={() => void blocked.refetch()}
             />
           ) : (
-            <EmptyState title="No companies blocked">
+            <EmptyState icon={BanIcon} title="No companies blocked">
               Block a company from a mail&apos;s menu, or when you delete a conversation.
             </EmptyState>
           )
