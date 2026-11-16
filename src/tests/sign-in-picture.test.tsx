@@ -99,16 +99,17 @@ describe('the sign-in picture (owner, 7 Nov 2026)', () => {
     expect(needYouLines()[0]).toHaveTextContent('4 mails need you');
   });
 
-  it('puts the headline and a small picture above the form on phones and tablets', () => {
+  it('puts the headline and a small picture above the form on tablets', () => {
     withQuery(
       <SignInLayout>
         <p>Form</p>
       </SignInLayout>,
     );
     const headlines = screen.getAllByText('Your job search, sorted from your Gmail.');
-    expect(headlines).toHaveLength(2);
+    // The tablet band, the phone screen and the laptop panel each have it.
+    expect(headlines).toHaveLength(3);
     const band = headlines[0].parentElement;
-    expect(band).toHaveClass('lg:hidden');
+    expect(band).toHaveClass('hidden', 'md:block', 'lg:hidden');
     expect(band).toHaveAttribute('aria-hidden', 'true');
     // The band comes before the form, and the footer right after it.
     expect(band?.compareDocumentPosition(screen.getByText('Form'))).toBe(
@@ -116,6 +117,19 @@ describe('the sign-in picture (owner, 7 Nov 2026)', () => {
     );
     expect(screen.getByRole('main')).not.toHaveClass('flex-1');
   });
+
+  it('shows only the app icon and the headline above the buttons on phones', () => {
+    withQuery(
+      <SignInLayout>
+        <p>Form</p>
+      </SignInLayout>,
+    );
+    const hero = screen.getAllByText('Your job search, sorted from your Gmail.')[1].parentElement;
+    expect(hero).toHaveClass('md:hidden', 'flex-1');
+    expect(hero?.querySelector('[aria-hidden="true"] svg')).toBeInTheDocument();
+    expect(hero?.compareDocumentPosition(screen.getByText('Form'))).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
 });
 
 describe('the Sign in button', () => {
