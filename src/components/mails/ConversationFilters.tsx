@@ -13,6 +13,7 @@ import { Button } from '../ui/button';
 import { Sheet } from '../ui/sheet';
 import { POPUP_MOTION, Select } from '../ui/select';
 import { FilterChips, ToolbarSearch, type FilterChip } from '../ui/toolbar';
+import { leavingProps, pillPhaseClass, useListMotion } from '../ui/useListMotion';
 import { useSearchText } from '../useSearchText';
 
 interface FilterSelectProps<T extends string> {
@@ -224,17 +225,21 @@ export function MailFilterChips({ search, onChange }: FiltersProps) {
 
 /** The filters in use under the phone's Mails title, as small pills that remove themselves. */
 export function MailFilterPills({ search, onChange }: FiltersProps) {
-  const chips = activeChips(search, onChange);
-  if (!chips.length) return null;
+  const pills = useListMotion(activeChips(search, onChange), (chip) => chip.label, 'pills', true);
+  if (!pills.length) return null;
   return (
     <div className="flex flex-wrap gap-2 pt-2">
-      {chips.map((chip) => (
+      {pills.map(({ key, item: chip, phase }) => (
         <button
-          key={chip.label}
+          key={key}
           type="button"
           aria-label={`Remove filter ${chip.label}`}
           onClick={chip.onRemove}
-          className="flex h-[30px] max-w-full cursor-pointer items-center gap-1 rounded-full bg-layer-accent pr-2 pl-3 text-[15px] text-text-primary active:opacity-60"
+          {...leavingProps(phase)}
+          className={cn(
+            'flex h-[30px] max-w-full cursor-pointer items-center gap-1 rounded-full bg-layer-accent pr-2 pl-3 text-[15px] text-text-primary transition-[opacity,scale] duration-300 active:scale-95 active:opacity-60 active:duration-70',
+            pillPhaseClass(phase),
+          )}
         >
           <span className="truncate">{chip.label}</span>
           <XIcon size={14} aria-hidden="true" className="shrink-0 text-text-tertiary" />
@@ -292,7 +297,9 @@ export function PhoneMailSearch({
       </div>
       <button
         type="button"
-        className={cn('h-9 shrink-0 cursor-pointer px-2 text-sm text-text-secondary')}
+        className={cn(
+          'h-9 shrink-0 cursor-pointer px-2 text-sm text-text-secondary transition-opacity duration-300 active:opacity-40 active:duration-0',
+        )}
         onClick={() => {
           setText('');
           onChange({ q: undefined });
