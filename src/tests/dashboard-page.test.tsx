@@ -6,13 +6,20 @@ import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/rea
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { api } from '../api/client';
 import type { AIReadingStatusResponse } from '../contracts/ai';
+import { FREE_AI_CONSENT } from '../lib/freeAI';
 import { dashboardFixture } from './dashboard-fixture';
+import { makeAISettings } from './fixtures';
 
 vi.mock('../api/client', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../api/client')>();
   return {
     ...actual,
-    api: { getDashboard: vi.fn(), getGmailStatus: vi.fn(), getAIReading: vi.fn() },
+    api: {
+      getDashboard: vi.fn(),
+      getGmailStatus: vi.fn(),
+      getAIReading: vi.fn(),
+      getAISettings: vi.fn(),
+    },
   };
 });
 
@@ -40,6 +47,29 @@ const idle: AIReadingStatusResponse = {
   jobMails: { count: 0, newest: [] },
 };
 
+/** The free AI reads the mail: nothing waits, nothing to set up. */
+const ready = makeAISettings({
+  configured: true,
+  provider: 'career-companion',
+  access: { ...makeAISettings().access, state: 'READY', reason: null, verified: true },
+  waitingEmails: 0,
+  connections: [
+    {
+      provider: 'career-companion',
+      active: true,
+      state: 'READY',
+      reason: null,
+      modelId: null,
+      failure: null,
+      models: null,
+      verified: true,
+      lastCheckedAt: null,
+      consentCurrent: true,
+    },
+  ],
+});
+const noGmail = { ...connected, connected: false, status: null };
+
 function renderPage(path = '/dashboard') {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const router = createRouter({
@@ -59,10 +89,13 @@ beforeEach(() => {
   vi.mocked(api.getGmailStatus).mockResolvedValue(connected);
   vi.mocked(api.getAIReading).mockResolvedValue(idle);
   vi.mocked(api.getDashboard).mockResolvedValue(dashboardFixture());
+  vi.mocked(api.getAISettings).mockResolvedValue(ready);
 });
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  vi.unstubAllGlobals();
+  sessionStorage.clear();
 });
 
 describe('the Dashboard', () => {
@@ -261,5 +294,82 @@ describe('the Dashboard', () => {
     renderPage();
     expect(await screen.findByText('The AI is reading your mails')).toBeInTheDocument();
     expect(screen.getByText(/about 4 min left. The numbers fill in/)).toBeInTheDocument();
+  });
+});
+
+describe('the first run (owner, 15 Nov 2026)', () => {
+  beforeEach(() => {
+    vi.mocked(api.getGmailStatus).mockResolvedValue(noGmail);
+    vi.mocked(api.getDashboard).mockResolvedValue(dashboardFixture({ dataStartsAt: null }));
+    vi.mocked(api.getAISettings).mockResolvedValue(makeAISettings());
+    vi.stubGlobal('location', { href: '' });
+  });
+
+  it('one tap connects Gmail with the free AI, and the line under it says so', async () => {
+    renderPage();
+    expect(
+      await screen.findByText(/Your job mails are read by NorthList's free AI, through OpenRouter/),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Connect Gmail' }));
+    expect(window.location.href).toBe(
+      `/api/gmail/connect?returnTo=%2Fdashboard&freeAI=${encodeURIComponent(FREE_AI_CONSENT)}`,
+    );
+  });
+
+  it('"What is sent" shows the free AI facts, read only', async () => {
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'What is sent' }));
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByText('Who reads it')).toBeInTheDocument();
+    expect(within(dialog).getByText(/OpenRouter, on NorthList's account/)).toBeInTheDocument();
+    expect(within(dialog).queryByRole('checkbox')).not.toBeInTheDocument();
+  });
+
+  it('without the free AI, Gmail comes first and the AI page after it, as before', async () => {
+    vi.mocked(api.getAISettings).mockResolvedValue(
+      makeAISettings({ offeredProviders: ['openrouter'] }),
+    );
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Connect Gmail' }));
+    expect(window.location.href).toBe('/api/gmail/connect');
+    expect(sessionStorage.getItem('career-companion-gmail-connect')).toBe('started');
+    expect(screen.queryByText(/read by NorthList's free AI/)).not.toBeInTheDocument();
+  });
+
+  it('while the first sync gets the mails, it says so instead of empty numbers', async () => {
+    vi.mocked(api.getGmailStatus).mockResolvedValue({ ...connected, syncStatus: 'SYNCING' });
+    vi.mocked(api.getAISettings).mockResolvedValue(ready);
+    renderPage();
+    expect(await screen.findByText('Getting your mails from Gmail')).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Needs you now' })).not.toBeInTheDocument();
+  });
+
+  it('names the free AI while it reads the first mails', async () => {
+    vi.mocked(api.getGmailStatus).mockResolvedValue(connected);
+    vi.mocked(api.getAISettings).mockResolvedValue(ready);
+    vi.mocked(api.getAIReading).mockResolvedValue({
+      ...idle,
+      state: 'READING',
+      provider: 'career-companion',
+      done: 12,
+      total: 40,
+      secondsLeft: 70,
+    });
+    const empty = dashboardFixture({ dataStartsAt: null });
+    empty.mailbox = { ...empty.mailbox, jobMails: { total: 0, inPeriod: 0 } };
+    vi.mocked(api.getDashboard).mockResolvedValue(empty);
+    renderPage();
+    expect(
+      await screen.findByText(/12 of 40 done · about 2 min left · read by NorthList free AI/),
+    ).toBeInTheDocument();
+  });
+
+  it('says on the Dashboard when mails wait because no AI is set up', async () => {
+    vi.mocked(api.getGmailStatus).mockResolvedValue(connected);
+    vi.mocked(api.getDashboard).mockResolvedValue(dashboardFixture());
+    renderPage();
+    const line = await screen.findByRole('status', { name: 'AI status' });
+    expect(within(line).getByText(/AI is not set up/)).toBeInTheDocument();
+    expect(within(line).getByRole('link', { name: 'Set up AI' })).toHaveAttribute('href', '/ai');
   });
 });
