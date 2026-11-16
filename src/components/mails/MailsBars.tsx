@@ -15,6 +15,7 @@ import {
   MailTools,
   PhoneMailSearch,
 } from './ConversationFilters';
+import { Collapse } from '../ui/collapse';
 import { MailsTabs } from './MailsTabs';
 
 type BarProps = { search: MailsSearch; onChange: (changes: Partial<MailsSearch>) => void };
@@ -157,14 +158,17 @@ export function PhoneMailsTools({ search, onChange }: BarProps) {
           )}
         </GlassCapsule>
       </TopBarActions>
-      {job && searching && (
-        <div className="pb-2.5">
-          <PhoneMailSearch
-            search={search}
-            onChange={onChange}
-            onClose={() => setSearching(false)}
-          />
-        </div>
+      {/* The search slides open under the title and closes the same way (15 Nov 2026). */}
+      {job && (
+        <Collapse open={searching}>
+          <div className="pb-2.5">
+            <PhoneMailSearch
+              search={search}
+              onChange={onChange}
+              onClose={() => setSearching(false)}
+            />
+          </div>
+        </Collapse>
       )}
       <MailFilterPills search={search} onChange={onChange} />
       <MailFiltersSheet
