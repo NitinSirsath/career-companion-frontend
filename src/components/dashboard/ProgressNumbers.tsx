@@ -36,7 +36,10 @@ export function ProgressNumbers({ numbers }: { numbers: DashboardResponse }) {
         >
           <dt className="text-xs text-text-secondary">{label}</dt>
           <dd className="flex items-end justify-between gap-2">
-            <span className="text-[28px] leading-9 font-light tracking-[-0.01em] @min-[600px]:text-[32px] @min-[600px]:leading-10">
+            <span
+              key={current[key]}
+              className="animate-count-in text-[28px] leading-9 font-light tracking-[-0.01em] @min-[600px]:text-[32px] @min-[600px]:leading-10"
+            >
               {current[key]}
             </span>
             {/* Twelve empty weeks say nothing: no bars then. */}
