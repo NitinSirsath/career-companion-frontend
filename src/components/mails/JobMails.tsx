@@ -1,32 +1,61 @@
 import { Link } from '@tanstack/react-router';
+import { MailIcon, SearchXIcon } from 'lucide-react';
+import { useSandboxMailbox } from '../../api/appMode';
 import { CONVERSATION_PAGE_SIZE, useConversations } from '../../api/conversations';
+import { useGmailStatus } from '../../api/gmail';
+import { gmailConnectionCopy } from '../../lib/gmailConnection';
 import { filtersFromSearch, type MailsSearch } from '../../lib/mails';
 import { useIsPhone } from '../layout/useIsPhone';
-import { Button } from '../ui/button';
-import { EmptyState } from '../ui/empty-state';
+import { EMPTY_ACTION, EMPTY_ACTION_QUIET, EmptyState } from '../ui/empty-state';
 import { Pagination } from '../ui/pagination';
 import { SectionError } from '../ui/section-error';
+import { leavingProps, listPhaseClass, useListMotion } from '../ui/useListMotion';
 import { MailRow } from './MailRow';
 import { PhoneMailRow } from './PhoneMailRow';
 
 /** The empty list: nothing matches the view, or no job mail has arrived yet. */
-function NoJobMails({ narrowed, onClear }: { narrowed: boolean; onClear: () => void }) {
+function NoJobMails({
+  narrowed,
+  words,
+  onClear,
+}: {
+  narrowed: boolean;
+  words: string | undefined;
+  onClear: () => void;
+}) {
+  const sandbox = useSandboxMailbox();
+  const gmail = useGmailStatus();
   if (narrowed)
     return (
       <EmptyState
-        title="No job mails match this view"
+        icon={SearchXIcon}
+        title={words ? `No results for “${words}”` : 'No job mails match these filters'}
         action={
-          <Button variant="ghost" className="-ml-4" onClick={onClear}>
-            Clear all filters
-          </Button>
+          <button type="button" className={EMPTY_ACTION_QUIET} onClick={onClear}>
+            Clear filters
+          </button>
         }
       >
-        Try changing the search or the filters.
+        Try other words, or clear the filters.
+      </EmptyState>
+    );
+  if (gmail.data?.connected === false)
+    return (
+      <EmptyState
+        icon={MailIcon}
+        title="No job mails yet"
+        action={
+          <Link to="/gmail" className={EMPTY_ACTION}>
+            {gmailConnectionCopy(sandbox, gmail.data.status).connect}
+          </Link>
+        }
+      >
+        Connect Gmail and NorthList finds your job mails, with what each one needs from you.
       </EmptyState>
     );
   return (
-    <EmptyState title="No job mails yet" action={<Link to="/gmail">Open Gmail Sync</Link>}>
-      New job mails from Gmail show here with what they need from you.
+    <EmptyState icon={MailIcon} title="No job mails yet">
+      NorthList checks your Gmail and shows each new job mail here, with what it needs from you.
     </EmptyState>
   );
 }
@@ -59,11 +88,18 @@ export function JobMails({ search, onChange }: JobMailsProps) {
   const phone = useIsPhone();
   const filters = filtersFromSearch(search);
   const offset = search.offset ?? 0;
-  const { data, error, isLoading, isFetching, refetch } = useConversations(filters, offset);
+  const { data, error, isLoading, isFetching, isPlaceholderData, refetch } = useConversations(
+    filters,
+    offset,
+  );
   const nextOffset = data?.metadata.nextOffset ?? null;
   const narrowed = isNarrowed(search);
   const goTo = (target: number) => onChange({ offset: target > 0 ? target : undefined });
   const items = data?.items ?? [];
+  // A row marked done under "Needs action" shrinks away; a new mail grows in. A new filter or page
+  // is drawn at once, and so is the last list while the new one loads.
+  const listKey = `${isPlaceholderData ? 'placeholder:' : ''}${JSON.stringify(filters)}:${offset}`;
+  const rows = useListMotion(items, (conversation) => conversation.key, listKey);
 
   if (error)
     return (
@@ -78,6 +114,7 @@ export function JobMails({ search, onChange }: JobMailsProps) {
     return (
       <NoJobMails
         narrowed={narrowed}
+        words={search.q}
         onClear={() =>
           onChange({
             q: undefined,
@@ -94,16 +131,27 @@ export function JobMails({ search, onChange }: JobMailsProps) {
     <div>
       {phone ? (
         <div aria-label="Job mails" role="list">
-          {items.map((conversation) => (
-            <div role="listitem" key={conversation.key}>
-              <PhoneMailRow conversation={conversation} />
+          {rows.map(({ key, item, phase }) => (
+            <div
+              role="listitem"
+              key={key}
+              className={listPhaseClass(phase)}
+              {...leavingProps(phase)}
+            >
+              <div className={phase === 'stay' ? undefined : 'min-h-0 overflow-clip'}>
+                <PhoneMailRow conversation={item} />
+              </div>
             </div>
           ))}
         </div>
       ) : (
         <ul aria-label="Job mails">
-          {items.map((conversation) => (
-            <MailRow key={conversation.key} conversation={conversation} />
+          {rows.map(({ key, item, phase }) => (
+            <li key={key} className={listPhaseClass(phase)} {...leavingProps(phase)}>
+              <div className={phase === 'stay' ? undefined : 'min-h-0 overflow-clip'}>
+                <MailRow conversation={item} />
+              </div>
+            </li>
           ))}
         </ul>
       )}

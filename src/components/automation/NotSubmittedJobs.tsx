@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ListTodoIcon } from 'lucide-react';
 import type { ColumnDef } from '@tanstack/react-table';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
@@ -103,7 +104,7 @@ export function NotSubmittedJobs() {
               onRetry={() => void refetch()}
             />
           ) : (
-            <EmptyState title="Nothing here yet">
+            <EmptyState icon={ListTodoIcon} title="Nothing here yet">
               Jobs your automation skips or leaves for you appear here after its run.
             </EmptyState>
           )

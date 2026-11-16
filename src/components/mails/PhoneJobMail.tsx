@@ -171,11 +171,13 @@ function PhoneNextStep({ detail }: { detail: ConversationDetail }) {
           <span className="text-[13px] text-text-tertiary">Next step</span>
           <span
             className={cn(
-              'line-clamp-2 text-[17px] leading-[22px] break-words',
-              asked.state === 'DONE' && 'text-text-tertiary line-through',
+              'line-clamp-2 text-[17px] leading-[22px] break-words transition-colors duration-240',
+              asked.state === 'DONE' && 'text-text-tertiary',
             )}
           >
-            {title}
+            <span className="strike-done" data-done={asked.state === 'DONE' ? '' : undefined}>
+              {title}
+            </span>
           </span>
           <StepRowState asked={asked} fake={fakeOfferStep(conversation)} />
         </span>

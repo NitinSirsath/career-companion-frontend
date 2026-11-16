@@ -158,6 +158,8 @@ interface ApplicationsTableProps {
   empty?: ReactNode;
   toolbar?: ReactNode;
   footer?: ReactNode;
+  /** The list's filters and page: rows that leave shrink away, new rows grow in. */
+  motionKey?: string;
 }
 
 /** One row per application: company and role, status, open to-dos, applied date, latest news. */

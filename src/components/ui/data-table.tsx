@@ -11,6 +11,7 @@ import { ArrowDownIcon } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useIsPhone } from '../layout/useIsPhone';
 import { Skeleton } from './skeleton';
+import { leavingProps, listPhaseClass, useListMotion, type ListEntry } from './useListMotion';
 
 declare module '@tanstack/react-table' {
   // TanStack declares these type parameters; this table does not need them.
@@ -50,6 +51,11 @@ interface DataTableProps<T> {
    * apps show lists. Without it the cells stack, each with its `phoneLabel`.
    */
   phoneRow?: (row: T) => React.ReactNode;
+  /**
+   * Names the list on screen (its filters and page). Given, a row that leaves shrinks away where
+   * it was and a new row grows in (15 Nov 2026); a new key draws the new list at once.
+   */
+  motionKey?: string;
 }
 
 const ROW_CLASS =
@@ -82,6 +88,7 @@ export function DataTable<T>({
   footer,
   toolbar,
   phoneRow,
+  motionKey,
 }: DataTableProps<T>) {
   const phone = useIsPhone() && !!phoneRow;
   const table = useReactTable({
@@ -97,6 +104,7 @@ export function DataTable<T>({
   });
   const style = { gridTemplateColumns: gridTemplate } as React.CSSProperties;
   const rows = table.getRowModel().rows;
+  const entries = useListMotion(rows, (row) => row.id, motionKey);
 
   return (
     <div className="flex flex-col">
@@ -177,23 +185,66 @@ export function DataTable<T>({
                 ))}
               </div>
             ))}
-          {!loading &&
-            rows.map((row) =>
-              phone ? (
-                <div key={row.id} role="row" className="animate-fade-in">
-                  <div role="cell">{phoneRow(row.original)}</div>
-                </div>
-              ) : (
-                <TableRow key={row.id} row={row} style={style} />
-              ),
-            )}
+          {!loading && (
+            <BodyRows
+              entries={entries}
+              moving={motionKey !== undefined}
+              phoneRow={phone ? phoneRow : undefined}
+              style={style}
+            />
+          )}
         </div>
       </div>
       {!loading && rows.length === 0 && empty && (
-        <div className="border-b border-border-subtle px-4">{empty}</div>
+        <div className="md:border-b md:border-border-subtle md:px-4">{empty}</div>
       )}
       {footer}
     </div>
+  );
+}
+
+/**
+ * The rows: as they are, or, with `moving` (a motion key was given), with each row that leaves
+ * shrinking away and each new row growing in. `phoneRow`: on phones, how one row is drawn.
+ */
+function BodyRows<T>({
+  entries,
+  moving,
+  phoneRow,
+  style,
+}: {
+  entries: ListEntry<Row<T>>[];
+  moving: boolean;
+  phoneRow?: (row: T) => React.ReactNode;
+  style: React.CSSProperties;
+}) {
+  return (
+    <>
+      {entries.map(({ key, item: row, phase }) => {
+        const inner = phase === 'stay' ? undefined : 'min-h-0 overflow-clip';
+        if (phoneRow)
+          return (
+            <div
+              key={key}
+              role="row"
+              className={listPhaseClass(phase) ?? 'animate-fade-in'}
+              {...leavingProps(phase)}
+            >
+              <div role="cell" className={inner}>
+                {phoneRow(row.original)}
+              </div>
+            </div>
+          );
+        if (!moving) return <TableRow key={key} row={row} style={style} />;
+        return (
+          <div key={key} role="none" className={listPhaseClass(phase)} {...leavingProps(phase)}>
+            <div role="none" className={inner}>
+              <TableRow row={row} style={style} />
+            </div>
+          </div>
+        );
+      })}
+    </>
   );
 }
 

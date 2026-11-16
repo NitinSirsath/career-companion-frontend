@@ -32,7 +32,7 @@ const PHONE_TAB = {
   underline:
     'max-md:h-12 max-md:flex-1 max-md:justify-center max-md:border-l-0 max-md:data-active:bg-transparent max-md:data-active:shadow-[inset_0_-3px_0_var(--border-interactive)]',
   chips:
-    'max-md:h-9 max-md:border max-md:border-border-default max-md:first:border-l max-md:data-active:border-transparent',
+    'max-md:h-9 max-md:rounded-full max-md:border max-md:border-border-default max-md:px-4 max-md:first:border-l max-md:data-active:border-transparent',
 } as const;
 
 /**

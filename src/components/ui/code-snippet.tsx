@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CheckIcon, CopyIcon } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -14,6 +14,12 @@ export function CodeSnippet({
   className?: string;
 }) {
   const [copied, setCopied] = useState<'yes' | 'failed' | null>(null);
+  // "Copied." stays for two seconds, then the button is ready to copy again.
+  useEffect(() => {
+    if (copied !== 'yes') return;
+    const timer = setTimeout(() => setCopied(null), 2000);
+    return () => clearTimeout(timer);
+  }, [copied]);
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(code);
@@ -33,7 +39,7 @@ export function CodeSnippet({
           className="flex size-10 shrink-0 cursor-pointer items-center justify-center text-text-primary transition-colors duration-70 ease-standard hover:bg-layer-hover"
         >
           {copied === 'yes' ? (
-            <CheckIcon size={16} aria-hidden="true" className="text-ok" />
+            <CheckIcon size={16} aria-hidden="true" className="animate-empty-icon text-ok" />
           ) : (
             <CopyIcon size={16} aria-hidden="true" />
           )}

@@ -459,7 +459,7 @@ describe('Job mails tab', () => {
     show();
     expect(await screen.findByText('No job mails yet')).toBeInTheDocument();
     fireEvent.click(within(await openFilters()).getByLabelText('New only'));
-    expect(await screen.findByText('No job mails match this view')).toBeInTheDocument();
+    expect(await screen.findByText('No job mails match these filters')).toBeInTheDocument();
   });
 });
 

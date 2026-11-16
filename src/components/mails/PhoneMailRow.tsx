@@ -40,22 +40,30 @@ function StepLine({ conversation: c }: { conversation: Conversation }) {
       <Icon size={15} aria-hidden="true" className={cn('shrink-0', color)} />
       <span
         className={cn(
-          'min-w-0 truncate',
-          asked?.state === 'DONE' && 'text-text-tertiary line-through',
+          'min-w-0 truncate transition-colors duration-240',
+          asked?.state === 'DONE' && 'text-text-tertiary',
         )}
       >
-        {words}
+        <span className="strike-done" data-done={asked?.state === 'DONE' ? '' : undefined}>
+          {words}
+        </span>
       </span>
     </span>
   );
 }
 
-/** The fourth line: the application's status and company (or the mail's type), and the step's state. */
+/**
+ * The fourth line: the application's status and company (or the mail's type), and the step's
+ * state. The company is a little stronger than the rest of the line (owner, 16 Nov 2026), as on
+ * the product page.
+ */
 function TagLine({ conversation: c }: { conversation: Conversation }) {
   const asked = c.request;
-  const where = c.application
-    ? c.application.companyName
-    : [c.category && CATEGORY_LABEL[c.category], 'Not linked'].filter(Boolean).join(' · ');
+  const where = c.application ? (
+    <span className="font-medium text-text-secondary">{c.application.companyName}</span>
+  ) : (
+    [c.category && CATEGORY_LABEL[c.category], 'Not linked'].filter(Boolean).join(' · ')
+  );
   const state = asked && requestDetail(asked);
   const late = asked && requestPastDue(asked);
   return (
@@ -93,7 +101,7 @@ export function PhoneMailRow({ conversation: c }: { conversation: Conversation }
       {action && (
         <div
           aria-hidden="true"
-          className="absolute inset-0 flex items-center gap-2 bg-tag-green-bg pl-6 font-semibold text-tag-green"
+          className="absolute inset-0 flex items-center gap-2 bg-tag-green-bg pl-5 font-semibold text-tag-green"
         >
           <CheckIcon size={20} />
           {action.label}
@@ -103,21 +111,22 @@ export function PhoneMailRow({ conversation: c }: { conversation: Conversation }
         to="/mails/$key"
         params={{ key: c.key }}
         aria-label={`${subject}, from ${sender}`}
-        className="relative flex touch-pan-y bg-background pt-2.5 pr-5 pb-[11px] pl-8 text-text-primary transition-colors duration-450 select-none after:absolute after:right-0 after:bottom-0 after:left-8 after:h-[0.5px] after:bg-border-strong/55 active:bg-surface-selected active:duration-0"
+        className="relative flex touch-pan-y bg-background pt-2.5 pr-5 pb-[11px] pl-5 text-text-primary transition-colors duration-450 select-none after:absolute after:right-0 after:bottom-0 after:left-5 after:h-[0.5px] after:bg-border-strong/55 active:bg-surface-selected active:duration-0"
         style={{
           translate: `${swipe.offset}px 0`,
           transition: swipe.dragging ? 'none' : 'translate 200ms cubic-bezier(0.2, 0, 0.38, 0.9)',
         }}
         {...swipe.handlers}
       >
-        {/* The new-mail dot sits in its own lane left of the text, never in the side margin. */}
-        {c.isNew && (
-          <span
-            data-new-dot=""
-            aria-hidden="true"
-            className="absolute top-4 left-[11px] size-2.5 rounded-full bg-link"
-          />
-        )}
+        {/* The new-mail dot hangs in the side margin, so every row's words line up with the title. */}
+        <span
+          data-new-dot={c.isNew ? '' : undefined}
+          aria-hidden="true"
+          className={cn(
+            'absolute top-[16px] left-[5px] size-2.5 rounded-full bg-link transition-[scale,opacity] duration-300 ease-standard',
+            c.isNew ? 'scale-100 opacity-100' : 'scale-0 opacity-0 delay-200',
+          )}
+        />
         <span className="flex min-w-0 flex-1 flex-col gap-px">
           <span className="flex items-baseline gap-2">
             <span className="min-w-0 flex-1 truncate text-[17px] leading-[22px] font-semibold">

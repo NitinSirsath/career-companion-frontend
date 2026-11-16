@@ -219,6 +219,7 @@ function ApplicationsDashboard({
             </div>
           )
         }
+        motionKey={JSON.stringify(params)}
         empty={
           error ? (
             <SectionError

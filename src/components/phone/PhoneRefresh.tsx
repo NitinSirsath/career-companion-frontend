@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { RefreshCwIcon } from 'lucide-react';
 import { TopBarActions } from '../layout/Breadcrumb';
 import { useRefresh } from '../ui/useRefresh';
@@ -9,13 +10,23 @@ import { CapsuleButton, GlassCapsule } from './GlassButton';
  */
 export function PhoneRefresh({ also }: { also?: () => unknown }) {
   const { busy, refresh } = useRefresh(also);
+  // Keeps turning after the fetch until the icon is upright again, so it never snaps back.
+  const [turning, setTurning] = useState(false);
   return (
     <CapsuleButton
       label={busy ? 'Refreshing…' : 'Refresh'}
       aria-busy={busy || undefined}
-      onClick={() => void refresh()}
+      onClick={() => {
+        setTurning(true);
+        void refresh();
+      }}
     >
-      <RefreshCwIcon size={22} aria-hidden="true" className={busy ? 'animate-spin' : undefined} />
+      <RefreshCwIcon
+        size={22}
+        aria-hidden="true"
+        className={busy || turning ? 'animate-spin' : undefined}
+        onAnimationIteration={() => !busy && setTurning(false)}
+      />
     </CapsuleButton>
   );
 }

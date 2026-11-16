@@ -12,6 +12,7 @@ import { TopBarActions } from '../layout/Breadcrumb';
 import { CapsuleButton, GlassCapsule } from '../phone/GlassButton';
 import { PhoneRefresh } from '../phone/PhoneRefresh';
 import { PhoneTitle } from '../phone/PhoneTitle';
+import { Collapse } from '../ui/collapse';
 import { ITEM_CLASS, POPUP_CLASS } from '../ui/select';
 
 const ROW = cn(ITEM_CLASS, 'min-h-11 justify-start gap-3 text-[17px]');
@@ -122,7 +123,10 @@ export function PhoneApplicationsTools({
       </TopBarActions>
       <PhoneTitle>Applications</PhoneTitle>
       {chips}
-      {searching && <div className="pt-3">{search(() => setSearching(false))}</div>}
+      {/* The search slides open under the title and closes the same way (15 Nov 2026). */}
+      <Collapse open={searching}>
+        <div className="pt-3">{search(() => setSearching(false))}</div>
+      </Collapse>
     </div>
   );
 }

@@ -168,19 +168,76 @@ describe('phone lists', () => {
     expect(api.patch).not.toHaveBeenCalled();
   });
 
-  it('marks a new mail with a dot in its own lane, and lines up every row at the text', async () => {
+  it('makes the company a little stronger than the rest of the last line', async () => {
+    detail.conversation = makeConversation({
+      link: 'LINKED',
+      application: {
+        id: '7f1c2d3e-4b5a-4c6d-8e9f-0a1b2c3d4e5f',
+        companyName: 'Northwind Robotics',
+        jobTitle: 'Frontend Engineer',
+        effectiveStatus: 'INTERVIEW',
+        archived: false,
+      },
+    });
+    show('/mails');
+    const row = await screen.findByRole('link', { name: ROW_NAME });
+    expect(within(row).getByText('Northwind Robotics')).toHaveClass(
+      'font-medium',
+      'text-text-secondary',
+    );
+  });
+
+  it('marks a new mail with a dot in the side margin, and lines every row up with the title', async () => {
     detail.conversation = makeConversation({ isNew: true });
     show('/mails');
     const row = await screen.findByRole('link', { name: ROW_NAME });
-    // The text starts 32px in on every row; the dot sits in the lane left of it (owner, 13 Nov 2026).
-    expect(row).toHaveClass('pl-8');
-    expect(row.querySelector('[data-new-dot]')).toHaveClass('left-[11px]', 'size-2.5');
+    // The text starts 20px in on every row, under the title's first letter; the dot hangs left of it.
+    expect(row).toHaveClass('pl-5');
+    expect(row.querySelector('[data-new-dot]')).toHaveClass('left-[5px]', 'size-2.5');
     cleanup();
     detail.conversation = makeConversation({ isNew: false });
     show('/mails');
     const seen = await screen.findByRole('link', { name: ROW_NAME });
-    expect(seen).toHaveClass('pl-8');
+    expect(seen).toHaveClass('pl-5');
     expect(seen.querySelector('[data-new-dot]')).toBeNull();
+  });
+
+  it('shows the Whole inbox as rows like Job mails, lined up with the title', async () => {
+    const mail = {
+      threadId: 'gmail-1',
+      subject: 'Security alert',
+      from: 'Google <no-reply@accounts.google.com>',
+      date: '2026-10-11T03:45:00.000Z',
+      snippet: 'A new sign-in on Mac',
+      messageCount: 1,
+      unread: false,
+      conversationKey: null,
+    };
+    const job = {
+      ...mail,
+      threadId: 'gmail-2',
+      subject: 'Interview',
+      from: 'Priya Nair <p@n.example>',
+    };
+    const listed = {
+      items: [{ ...job, unread: true, conversationKey: 'conv-9' }, mail],
+      nextPageToken: null,
+    };
+    const answer = vi.mocked(api.get).getMockImplementation()!;
+    vi.mocked(api.get).mockImplementation(async (path: string, ...rest) =>
+      path === '/api/mailbox/threads' ? listed : answer(path, ...rest),
+    );
+    show('/mails?tab=gmail');
+    const jobRow = await screen.findByRole('link', { name: 'Interview, from Priya Nair, unread' });
+    // One tappable row in a plain list, its words 20px in, under the title's first letter.
+    expect(jobRow).toHaveAttribute('href', '/mails/conv-9');
+    expect(jobRow).toHaveClass('pl-5');
+    expect(within(jobRow).getByText('Job mail')).toBeInTheDocument();
+    expect(jobRow.closest('[role="listitem"]')!.querySelectorAll('[role="cell"]')).toHaveLength(0);
+    const other = screen.getByRole('link', { name: 'Security alert, from Google' });
+    expect(other).toHaveAttribute('href', '/mails/gmail/gmail-1');
+    expect(within(other).queryByText('Job mail')).toBeNull();
+    expect(within(other).getByText('A new sign-in on Mac')).toBeInTheDocument();
   });
 
   it('swipes "I did this" on an ask done outside mail', async () => {

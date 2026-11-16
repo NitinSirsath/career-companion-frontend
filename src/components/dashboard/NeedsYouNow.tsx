@@ -43,8 +43,9 @@ function Tile({
         )}
       </span>
       <span
+        key={count}
         className={cn(
-          'col-start-2 row-span-2 row-start-1 text-[32px] leading-10 font-light tracking-[-0.02em] @min-[600px]:col-span-2 @min-[600px]:col-start-1 @min-[600px]:row-span-1 @min-[600px]:row-start-2 @min-[600px]:mt-4 @min-[600px]:text-[44px] @min-[600px]:leading-[52px] @min-[900px]:text-[60px] @min-[900px]:leading-[68px]',
+          'col-start-2 row-span-2 row-start-1 animate-count-in text-[32px] leading-10 font-light tracking-[-0.02em] @min-[600px]:col-span-2 @min-[600px]:col-start-1 @min-[600px]:row-span-1 @min-[600px]:row-start-2 @min-[600px]:mt-4 @min-[600px]:text-[44px] @min-[600px]:leading-[52px] @min-[900px]:text-[60px] @min-[900px]:leading-[68px]',
           count === 0 && 'text-text-tertiary',
         )}
       >
