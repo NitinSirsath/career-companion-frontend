@@ -1,5 +1,6 @@
 import { useSearch } from '@tanstack/react-router';
 import { openApp, safeNextPath } from '../../lib/signIn';
+import { useIsPhone } from '../layout/useIsPhone';
 import { PasswordSignInForm } from './PasswordSignInForm';
 import { SignInLayout } from './SignInLayout';
 
@@ -8,6 +9,7 @@ import { SignInLayout } from './SignInLayout';
  * account shares its address. Test accounts use the mail sandbox instead of Gmail.
  */
 export function TestLoginPage({ next = null }: { next?: string | null }) {
+  const phone = useIsPhone();
   return (
     <SignInLayout>
       <section aria-labelledby="test-sign-in-title" className="flex flex-col gap-7">
@@ -23,7 +25,7 @@ export function TestLoginPage({ next = null }: { next?: string | null }) {
             provider.
           </p>
         </div>
-        <PasswordSignInForm onSignedIn={() => openApp(next)} testAccount />
+        <PasswordSignInForm onSignedIn={() => openApp(next)} testAccount phone={phone} />
       </section>
     </SignInLayout>
   );
