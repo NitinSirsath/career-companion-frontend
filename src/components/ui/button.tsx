@@ -59,7 +59,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled || loading}
         aria-busy={loading || undefined}
         className={cn(
-          'inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-full whitespace-nowrap border border-transparent text-[13px] leading-[18px] font-medium transition-colors duration-70 ease-standard',
+          'inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-full whitespace-nowrap border border-transparent text-[13px] leading-[18px] font-medium transition-[color,background-color,border-color,scale] duration-200 ease-spring active:scale-[0.96] active:duration-70 disabled:active:scale-100',
           'disabled:cursor-not-allowed disabled:bg-surface-disabled disabled:text-text-disabled',
           variant !== 'secondary' && 'disabled:border-transparent',
           VARIANTS[variant],
