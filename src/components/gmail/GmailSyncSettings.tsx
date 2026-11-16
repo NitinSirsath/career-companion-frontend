@@ -10,8 +10,8 @@ import { InlineNotification } from '../ui/notification';
 import { Select } from '../ui/select';
 
 const LOOKBACK = [
-  { value: '1', label: '1 day (default)' },
-  { value: '7', label: '7 days' },
+  { value: '1', label: '1 day' },
+  { value: '7', label: '7 days (default)' },
   { value: '14', label: '14 days' },
   { value: '30', label: '30 days' },
 ] as const;
