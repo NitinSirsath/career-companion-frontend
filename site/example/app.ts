@@ -1,8 +1,8 @@
-import { icon as I } from '../parts/icons.ts';
+import { appIcon as I } from '../parts/appIcons.ts';
 import { noMotion, whenSeen } from '../runtime/motion.ts';
 import { NEW_MAIL, startState, type Mail, type State, type View } from './data.ts';
 import { laptop } from './laptop.ts';
-import { phone } from './phone.ts';
+import { phone, type Enter } from './phone.ts';
 import { esc } from './pieces.ts';
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, noMotion ? Math.min(ms, 30) : ms));
@@ -32,6 +32,9 @@ export class SampleApp {
   /** Bumped by reset(), so steps of an older run stop. */
   private run = 0;
   private lastView = '';
+  /** What was open at the last drawing, so a new page slides in and a new sheet rises only once. */
+  private lastPage = '';
+  private lastSheet = '';
   private toastTimer = 0;
   /** The build-in (the hero only): the parts wait hidden, then appear one by one. */
   private building = false;
@@ -54,6 +57,8 @@ export class SampleApp {
     root.addEventListener('click', (e) => this.click(e.target as Element));
     root.addEventListener('keydown', (e) => this.key(e));
     root.addEventListener('input', (e) => this.input(e.target as HTMLElement));
+    // Phones: once the big title scrolls under the round buttons, the small title shows in the middle.
+    root.addEventListener('scroll', (e) => this.scrolled(e.target as Element), true);
     this.measure();
     new ResizeObserver(() => {
       if (this.measure()) this.render();
@@ -100,29 +105,49 @@ export class SampleApp {
 
   /* ---------- What the visitor does ---------- */
   private click(target: Element): void {
+    // A tap anywhere outside an open menu closes it, as a phone does.
+    if (this.s.menu && !target.closest('.sa-menu, [data-menu]')) return this.set({ menu: null });
+    const menu = target.closest<HTMLElement>('[data-menu]');
+    if (menu) return this.set({ menu: this.s.menu ? null : 'filters' });
     const go = target.closest<HTMLElement>('[data-go]');
-    if (go) return this.set({ view: go.dataset.go as View, reply: null, mailId: null });
+    if (go) return this.set({ view: go.dataset.go as View, reply: null, mailId: null, sheet: null });
     const open = target.closest<HTMLElement>('[data-open]');
     if (open) return this.open(open.dataset.open ?? '');
-    if (target.closest('[data-soon]')) return this.toast('Settings are in the real app, not in this example');
+    const soon = target.closest<HTMLElement>('[data-soon]');
+    if (soon) return this.toast(soon.dataset.soon || 'Settings are in the real app, not in this example');
     const act = target.closest<HTMLButtonElement>('[data-act]');
     if (act && !act.disabled) this.act(act.dataset.act ?? '');
     if (target.closest('[data-ai]')) void this.write();
   }
 
+  /** What each `data-act` button does. */
+  private readonly actions: Record<string, () => void> = {
+    sync: () => void this.sync(),
+    reply: () => this.startReply(false),
+    aireply: () => this.startReply(true),
+    cancel: () => this.set({ reply: null }),
+    send: () => void this.send(),
+    back: () => this.set({ view: 'mails', mailId: null, reply: null, sheet: null }),
+    did: () => this.did(),
+    reopen: () => this.reopen(),
+    info: () => this.set({ sheet: 'info' }),
+    step: () => this.set({ sheet: 'step' }),
+    showmail: () => this.showMail(),
+    closesheet: () => this.set({ sheet: null }),
+    needs: () => this.set({ needsOnly: !this.s.needsOnly, menu: null }),
+    new: () => this.set({ newOnly: !this.s.newOnly, menu: null }),
+  };
+
   private act(a: string): void {
-    if (a === 'sync') void this.sync();
-    if (a === 'reply') {
-      this.set({ reply: { text: '', writing: false } });
-      const pane = this.root.closest('.sa-fit') && this.root.querySelector('.sa-main');
-      if (pane) pane.scrollTop = pane.scrollHeight;
-    }
-    if (a === 'cancel') this.set({ reply: null });
-    if (a === 'send') void this.send();
-    if (a === 'back') this.set({ view: 'mails', mailId: null, reply: null });
-    if (a === 'did') this.did();
-    if (a === 'needs') this.set({ needsOnly: !this.s.needsOnly });
-    if (a === 'new') this.set({ newOnly: !this.s.newOnly });
+    this.actions[a]?.();
+  }
+
+  /** Opens the reply. "AI reply" (phones) puts the cursor in the hint; the laptop hero scrolls down to the box. */
+  private startReply(ai: boolean): void {
+    this.set({ reply: { text: '', writing: false } });
+    if (ai) return this.root.querySelector<HTMLElement>('.sa-hint')?.focus({ preventScroll: true });
+    const pane = this.root.closest('.sa-fit') && this.root.querySelector('.sa-main');
+    if (pane) pane.scrollTop = pane.scrollHeight;
   }
 
   private key(e: KeyboardEvent): void {
@@ -146,7 +171,7 @@ export class SampleApp {
     const m = this.mail(id);
     if (!m) return;
     m.isNew = false;
-    this.set({ view: 'mail', mailId: id, reply: null });
+    this.set({ view: 'mail', mailId: id, reply: null, sheet: null, menu: null });
     const main = this.root.querySelector('.sa-main, .sa-pmain');
     if (main) main.scrollTop = 0;
   }
@@ -160,6 +185,8 @@ export class SampleApp {
     this.s = startState(this.initialView);
     this.root.classList.remove('used');
     this.lastView = '';
+    this.lastPage = '';
+    this.lastSheet = '';
     this.render();
   }
 
@@ -253,7 +280,7 @@ export class SampleApp {
     if (b) b.disabled = false;
   }
 
-  /** "I did this", for a step the visitor finished somewhere else (a test link). */
+  /** "I did this" (Done on a phone), for a step the visitor finished somewhere else (a test link). */
   private did(): void {
     const m = this.mail();
     if (!m) return;
@@ -261,6 +288,33 @@ export class SampleApp {
     const app = this.s.apps.find((x) => x.mail === m.id);
     if (app) app.todo = '';
     this.render();
+    this.toast(`Done: ${m.step}`);
+  }
+
+  /** Reopen: one word puts any closed step back on the list, as in the app (owner, 13 Nov 2026). */
+  private reopen(): void {
+    const m = this.mail();
+    if (!m) return;
+    Object.assign(m, { state: 'OPEN', checking: false, closed: undefined, note: undefined });
+    const app = this.s.apps.find((x) => x.mail === m.id);
+    if (app) app.todo = m.step;
+    this.render();
+    this.toast(`Reopened: ${m.step}`);
+  }
+
+  /** From the step's sheet to the mail that asked: the sheet closes and the page scrolls to that mail. */
+  private showMail(): void {
+    this.set({ sheet: null });
+    const main = this.root.querySelector<HTMLElement>('.sa-pmain');
+    const mails = [...this.root.querySelectorAll<HTMLElement>('.sa-pmsg:not(.you)')];
+    const target = this.root.querySelector<HTMLElement>('.sa-pmsg .tag-yellow')?.closest<HTMLElement>('.sa-pmsg') ?? mails[mails.length - 1];
+    if (main && target) main.scrollTop = target.offsetTop - 60;
+  }
+
+  /** The small title in the middle of the phone's top shows once the big title has scrolled under it. */
+  private scrolled(el: Element): void {
+    if (!el.matches?.('.sa-pmain')) return;
+    el.closest('.sa-p')?.classList.toggle('scrolled', el.scrollTop > 36);
   }
 
   /** Send: "Sent from your Gmail", the step turns Replied, then the AI reads the reply and closes it. */
@@ -300,12 +354,26 @@ export class SampleApp {
     const focus = this.focused();
     const toast = this.root.querySelector('.toast');
     const m = s.view === 'mail' ? (this.mail() ?? null) : null;
-    this.root.innerHTML = this.mode === 'phone' ? phone(s, m) : laptop(s, m);
+    this.root.innerHTML = this.mode === 'phone' ? phone(s, m, this.motion(m)) : laptop(s, m);
     if (toast) this.root.appendChild(toast);
     const nm = this.root.querySelector('.sa-main, .sa-pmain');
     if (nm && keep) nm.scrollTop = keep;
+    if (nm) this.scrolled(nm);
     this.lastView = s.view + s.mailId;
     this.refocus(focus);
+  }
+
+  /** Phones: a mail slides in from the right and back out; a sheet rises once, when it opens. */
+  private motion(m: Mail | null): Enter {
+    const page = m ? `mail:${m.id}` : this.s.view;
+    const sheet = this.s.reply ? 'reply' : (this.s.sheet ?? '');
+    let enter: Enter = '';
+    if (sheet && sheet !== this.lastSheet) enter = 'sheet';
+    else if (this.lastPage && page !== this.lastPage && m) enter = 'push';
+    else if (this.lastPage.startsWith('mail:') && !m) enter = 'pop';
+    this.lastPage = page;
+    this.lastSheet = sheet;
+    return enter;
   }
 
   /** Where keyboard focus is inside the example: the reply text, or a control to find again after drawing. */
