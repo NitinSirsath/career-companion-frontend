@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { usePasswordLogin } from '../../api/auth';
 import { PasswordLoginRequestSchema, type PasswordLoginRequest } from '../../contracts/auth';
 import { EMAIL_PROBLEM, PASSWORD_MISSING, signInProblem } from '../../lib/signIn';
+import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
@@ -22,20 +23,36 @@ function ForgotPasswordNote({ id, open }: { id: string; open: boolean }) {
   );
 }
 
+/** Sizes: the page's form, and the bigger one in the phone's sign-in sheet (owner, 15 Nov 2026). */
+const SIZES = {
+  page: { label: 'text-xs font-medium', field: 'h-10', link: 'text-xs', button: 'mt-2 h-10' },
+  phone: {
+    label: 'text-[15px] ml-1',
+    field: 'h-12 px-[18px]',
+    // Taller than it looks: a 46px tap area that keeps the row's height.
+    link: 'text-[15px] -my-3 py-3',
+    button: 'mt-1 h-[50px] text-[17px] font-semibold',
+  },
+} as const;
+
 /**
  * Sign-in with email and password. `onSignedIn` runs once the session exists. `testAccount`: the
  * test sign-in, for test accounts only. `withGoogle`: "Continue with Google" is offered too, so
- * "Forgot password?" by the Password label can point to it.
+ * "Forgot password?" by the Password label can point to it. `phone`: the bigger fields of the
+ * phone's sign-in sheet.
  */
 export function PasswordSignInForm({
   onSignedIn,
   testAccount = false,
   withGoogle = false,
+  phone = false,
 }: {
   onSignedIn: () => void;
   testAccount?: boolean;
   withGoogle?: boolean;
+  phone?: boolean;
 }) {
+  const size = SIZES[phone ? 'phone' : 'page'];
   const login = usePasswordLogin(testAccount);
   const form = useForm<PasswordLoginRequest>({
     resolver: zodResolver(PasswordLoginRequestSchema),
@@ -52,7 +69,7 @@ export function PasswordSignInForm({
         <InlineNotification kind="error">{signInProblem(login.error)}</InlineNotification>
       )}
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="signin-email" className="text-xs font-medium text-text-secondary">
+        <Label htmlFor="signin-email" className={cn('text-text-secondary', size.label)}>
           Email
         </Label>
         <Input
@@ -60,14 +77,14 @@ export function PasswordSignInForm({
           type="email"
           autoComplete="username"
           placeholder="you@example.com"
-          className="h-10"
+          className={size.field}
           {...form.register('email')}
         />
         {errors.email && <p className="text-xs text-status-error">{EMAIL_PROBLEM}</p>}
       </div>
       <div className="flex flex-col gap-1.5">
         <div className="flex items-baseline justify-between gap-4">
-          <Label htmlFor="signin-password" className="text-xs font-medium text-text-secondary">
+          <Label htmlFor="signin-password" className={cn('text-text-secondary', size.label)}>
             Password
           </Label>
           {withGoogle && (
@@ -76,7 +93,7 @@ export function PasswordSignInForm({
               aria-expanded={forgotOpen}
               aria-controls={forgotId}
               onClick={() => setForgotOpen((open) => !open)}
-              className="cursor-pointer text-xs text-link hover:underline"
+              className={cn('cursor-pointer text-link hover:underline', size.link)}
             >
               Forgot password?
             </button>
@@ -86,14 +103,18 @@ export function PasswordSignInForm({
           id="signin-password"
           type="password"
           autoComplete="current-password"
-          className="h-10"
+          className={size.field}
           aria-invalid={login.isError || undefined}
           {...form.register('password')}
         />
         {errors.password && <p className="text-xs text-status-error">{PASSWORD_MISSING}</p>}
         <ForgotPasswordNote id={forgotId} open={forgotOpen} />
       </div>
-      <Button type="submit" className="mt-2 h-10 w-full justify-center" loading={login.isPending}>
+      <Button
+        type="submit"
+        className={cn('w-full justify-center', size.button)}
+        loading={login.isPending}
+      >
         {login.isPending ? 'Signing in…' : 'Sign in'}
       </Button>
     </form>
