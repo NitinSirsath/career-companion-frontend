@@ -78,14 +78,16 @@ function useReplyOpen(replyAsks: number, startOpen: boolean): [boolean, (open: b
 
 /**
  * On phones the open reply is a tall sheet (owner, 13 Nov 2026, approved mock `IOS-LOOK-mock/`):
- * Close at its top left, Send at its top right, the AI help and the text, and the text tools at
- * its bottom, above the keyboard. Closing it only hides it: the text stays (also on this device),
- * and Reply shows it again.
+ * Close at its top left, Send at its top right, the AI help and the text, and at its bottom, above
+ * the keyboard, the one-line note and the text tools (owner, 15 Nov 2026, `REPLY-SHEET-mock/`).
+ * The bottom keeps the home bar's room while the keyboard is closed, and none while it is open.
+ * Closing it only hides it: the text stays (also on this device), and Reply shows it again.
  */
 function PhoneReplyScreen({ replyAsks, children }: { replyAsks: number; children: ReactNode }) {
   const [shown, setShown] = useState(true);
   const [askedFor, setAskedFor] = useState(replyAsks);
   const [send, setSend] = useState<HTMLElement | null>(null);
+  const [note, setNote] = useState<HTMLElement | null>(null);
   const [format, setFormat] = useState<HTMLElement | null>(null);
   if (askedFor !== replyAsks) {
     setAskedFor(replyAsks);
@@ -101,15 +103,18 @@ function PhoneReplyScreen({ replyAsks, children }: { replyAsks: number; children
       header={
         <SheetCenterHeader title="Reply" closeLabel="Close reply" end={<div ref={setSend} />} />
       }
+      contentClassName="px-4 pb-3"
       footer={
-        <div
-          ref={setFormat}
-          className="shrink-0 border-t border-border-subtle pb-[calc(env(safe-area-inset-bottom)*0.6)] empty:hidden"
-        />
+        <div className="shrink-0 border-t border-border-subtle pb-[max(0px,env(safe-area-inset-bottom)-var(--drawer-keyboard-inset,0px))]">
+          <div ref={setNote} />
+          <div ref={setFormat} />
+        </div>
       }
     >
-      <div className="[&>form]:rounded-none [&>form]:border-0 [&>form]:bg-transparent">
-        <PhoneReplySlots.Provider value={{ send, format }}>{children}</PhoneReplySlots.Provider>
+      <div className="flex flex-1 flex-col [&>form]:rounded-none [&>form]:border-0 [&>form]:bg-transparent">
+        <PhoneReplySlots.Provider value={{ send, note, format }}>
+          {children}
+        </PhoneReplySlots.Provider>
       </div>
     </Sheet>
   );
@@ -154,7 +159,7 @@ function ClosedReplyBar({
   );
 }
 
-/** The mailbox itself: Gmail in prod, the mail sandbox in dev mode. */
+/** The mailbox itself: Gmail in prod, the mail sandbox in dev mode. Small in the phone's note line. */
 function Elsewhere({
   sandbox,
   threadId,
@@ -164,9 +169,14 @@ function Elsewhere({
   threadId: string;
   subject: string | null;
 }) {
+  const phone = useIsPhone();
   if (sandbox)
     return (
-      <Link to="/sandbox/$threadId" params={{ threadId }} className="text-sm text-link">
+      <Link
+        to="/sandbox/$threadId"
+        params={{ threadId }}
+        className={phone ? 'text-xs text-link' : 'text-sm text-link'}
+      >
         Open in the mail sandbox
       </Link>
     );
@@ -251,7 +261,7 @@ export function MailReplyBox({
         threadId={threadId}
         replyTo={replyTo}
         replyCc={replyCc}
-        hint={replyHint(sandbox)}
+        hint={replyHint(!!sandbox, phone)}
         onCheck={onCheck}
         onSending={onSending}
         ai={ai}

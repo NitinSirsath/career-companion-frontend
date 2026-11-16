@@ -90,7 +90,7 @@ function FormatButton({
         onClick={onPress}
         className={cn(
           'inline-flex shrink-0 cursor-pointer items-center justify-center text-text-secondary transition-colors duration-70 ease-standard hover:bg-layer-hover hover:text-text-primary',
-          large ? 'size-10' : 'size-7',
+          large ? 'size-11' : 'size-7',
           active && 'bg-surface-selected text-text-primary',
         )}
       >
@@ -134,7 +134,7 @@ function FormatButtons({
         large={large}
         onPress={() => (format === 'link' ? onLink() : toggle(editor, format))}
       >
-        <Icon size={16} aria-hidden="true" />
+        <Icon size={large ? 18 : 16} aria-hidden="true" />
       </FormatButton>
     </span>
   ));
@@ -284,6 +284,8 @@ interface RichReplyFieldProps {
   actions?: ReactNode;
   /** False: the text leaves the focus where it is when it opens. */
   autofocus?: boolean;
+  /** The text got or lost the focus. */
+  onFocusChange?: (focused: boolean) => void;
 }
 
 /** Hands the reply form what it can do with the text, from the live editor each time. */
@@ -413,9 +415,8 @@ function FormatRow({
           className="px-4 pt-2"
         />
       )}
-      <div
-        className={cn('flex items-center gap-3', phone ? 'px-2 py-1' : 'flex-wrap py-2 pr-2 pl-3')}
-      >
+      {/* Phones: 44 px buttons, the first letter in line with the text above. */}
+      <div className={cn('flex items-center gap-3', phone ? 'pr-2' : 'flex-wrap py-2 pr-2 pl-3')}>
         <div role="toolbar" aria-label="Format" className="flex items-center gap-0.5">
           <FormatButtons editor={editor} large={phone} onLink={link.open} />
         </div>
@@ -436,6 +437,7 @@ export default function RichReplyField({
   children,
   actions,
   autofocus,
+  onFocusChange,
 }: RichReplyFieldProps) {
   const [linking, setLinking] = useState<{ initial: string } | null>(null);
   const formatSlot = useContext(PhoneReplySlots)?.format ?? null;
@@ -445,6 +447,8 @@ export default function RichReplyField({
     onSubmitKey,
     onLinkKey: () => link.open(),
     autofocus,
+    phone,
+    onFocusChange,
   });
   useEditorHandle(editor, current, onReady);
   useInvalidState(editor, invalid, describedBy);
@@ -456,8 +460,9 @@ export default function RichReplyField({
   };
   const row = <FormatRow editor={editor} link={link} phone={phone} actions={actions} />;
   return (
-    <div className="flex flex-col">
-      <EditorContent editor={editor} />
+    // Phones: the text fills the reply sheet, so a tap anywhere below it still writes.
+    <div className={cn('flex flex-col', phone && 'flex-1')}>
+      <EditorContent editor={editor} className={cn(phone && 'flex flex-1 flex-col')} />
       {!phone && <FloatingMenus editor={editor} link={link} />}
       {phone && <LinkCardMenu editor={editor} link={link} />}
       {children}

@@ -1,4 +1,3 @@
-import { XIcon } from 'lucide-react';
 import {
   Suspense,
   lazy,
@@ -9,24 +8,24 @@ import {
   useState,
   type FormEvent,
 } from 'react';
-import { createPortal } from 'react-dom';
+import { createPortal, flushSync } from 'react-dom';
 import { useSendMailReply } from '../../api/mailbox';
 import type { DraftDoc } from '../../contracts/conversation';
 import { keepReply, readKeptReply, useKeptReply } from '../../lib/keptReply';
-import {
-  replyChoice,
-  replyProblem,
-  replySentNote,
-  replyTextProblem,
-  type ReplyProblem,
-} from '../../lib/mailReply';
-import { parseSender } from '../../lib/mails';
+import { replyProblem, replySentNote, replyTextProblem } from '../../lib/mailReply';
+import { isEmptyDoc } from '../../lib/replyDoc';
 import { cn } from '../../lib/utils';
 import { useIsPhone } from '../layout/useIsPhone';
-import { Button } from '../ui/button';
-import { InlineNotification } from '../ui/notification';
-import { Select } from '../ui/select';
+import { useKeyboardOpen } from '../layout/useKeyboardOpen';
 import { showToast } from '../ui/toast';
+import {
+  CloseReply,
+  EditorLoading,
+  KeptLine,
+  ReplyButtons,
+  ReplyOutcome,
+  ReplyReceivers,
+} from './MailReplyParts';
 import { PhoneReplySlots } from './phoneReplySlots';
 import { ReplyAiHelp, WritingDraft, type ReplyAi } from './ReplyAiHelp';
 import type { ReplyEditorHandle } from './RichReplyField';
@@ -37,37 +36,51 @@ const RichReplyField = lazy(() => import('./RichReplyField'));
 
 /**
  * The reply text with AI help above it, for a job mail. While the AI writes, the text is hidden
- * behind "Writing…", and kept.
+ * behind "Writing…", and kept. On a phone everything sits at the sheet's one edge, the text fills
+ * the room, and `compact` shrinks the AI help to one row while the user types the reply.
  */
 function ReplyWriting({
   ai,
   draft,
+  phone,
+  typing,
   children,
 }: {
   ai: ReplyAi | undefined;
   draft: ReturnType<typeof useAiDraft>;
+  phone: boolean;
+  typing: ReturnType<typeof useReplyTyping>;
   children: React.ReactNode;
 }) {
   return (
     <>
       {ai && (
-        <div className="px-4 pt-3">
+        <div className={phone ? 'pt-3' : 'px-4 pt-3'}>
           <ReplyAiHelp
             ai={ai}
             writing={draft.writing}
             onWriting={draft.setWriting}
             onDraft={draft.onDraft}
+            compact={typing.compact}
+            onOpen={typing.openAi}
           />
         </div>
       )}
       {draft.writing && (
-        <div className="px-4 py-3">
+        <div className={phone ? 'py-3' : 'px-4 py-3'}>
           <WritingDraft model={ai?.model ?? null} onStop={draft.stop} />
         </div>
       )}
-      <div hidden={draft.writing}>{children}</div>
+      <div hidden={draft.writing} className={cn(phone && 'flex flex-1 flex-col')}>
+        {children}
+      </div>
     </>
   );
+}
+
+/** Esc closes the box, unless a menu inside it took the key first. */
+function closeOnEscape(event: React.KeyboardEvent, onClose?: () => void) {
+  if (onClose && event.key === 'Escape' && !event.defaultPrevented) onClose();
 }
 
 /** The line under the reply text: what to know before sending it. */
@@ -76,131 +89,6 @@ function replyNote(unconfirmed: boolean, writtenBy: string | null, hint: string)
   return writtenBy
     ? `Written by ${writtenBy} from the whole conversation. Check it before you send.`
     : hint;
-}
-
-/** What became of the last send: sent, not confirmed, or not sent. */
-function ReplyOutcome({
-  sentNote,
-  problem,
-}: {
-  sentNote: string | null;
-  problem: ReplyProblem | null;
-}) {
-  if (sentNote) return <InlineNotification kind="success">{sentNote}</InlineNotification>;
-  if (problem?.kind === 'unconfirmed')
-    return (
-      <InlineNotification kind="error" title="Could not confirm that your reply was sent.">
-        Gmail did not answer in time. The reply may have gone out. Check the conversation before you
-        send it again, so the same mail does not go out twice.
-      </InlineNotification>
-    );
-  if (problem?.kind === 'not-sent')
-    return <InlineNotification kind="error">{problem.message}</InlineNotification>;
-  return null;
-}
-
-/** "Send reply", or "Send" in the phone's top bar; "Sending…" while it sends. */
-function sendLabel(pending: boolean, short: boolean) {
-  if (pending) return 'Sending…';
-  return short ? 'Send' : 'Send reply';
-}
-
-/** After a send that could not be confirmed, sending again is a choice of its own. */
-function ReplyButtons({
-  unconfirmed,
-  pending,
-  onCheck,
-  onSendAgain,
-  form,
-  short = false,
-}: {
-  unconfirmed: boolean;
-  pending: boolean;
-  onCheck: () => void;
-  onSendAgain: () => void;
-  /** The form's id, for a Send button outside it (the phone's top bar). */
-  form?: string;
-  /** "Send" instead of "Send reply": the phone's top bar. */
-  short?: boolean;
-}) {
-  if (!unconfirmed)
-    return (
-      <Button
-        type="submit"
-        form={form}
-        size={short ? 'sm' : 'default'}
-        loading={pending}
-        title="Send reply (⌘ Enter)"
-      >
-        {sendLabel(pending, short)}
-      </Button>
-    );
-  return (
-    <>
-      <Button type="button" variant="tertiary" onClick={onCheck}>
-        Check the conversation
-      </Button>
-      <Button type="button" disabled={pending} onClick={onSendAgain}>
-        {pending ? 'Sending…' : 'Send again'}
-      </Button>
-    </>
-  );
-}
-
-/**
- * Who the reply reaches. With other people on the mail it goes to all of them, unless the user
- * chooses the sender alone. These are the only two choices: no address is typed or removed.
- */
-function ReplyReceivers({
-  replyTo,
-  others,
-  toAll,
-  onToAll,
-}: {
-  replyTo: string;
-  others: string[];
-  toAll: boolean;
-  onToAll: (toAll: boolean) => void;
-}) {
-  const line = (label: string, people: string[]) => (
-    <span className="flex min-w-0 flex-wrap items-center gap-2">
-      <span className="w-6 text-xs text-text-secondary">{label}</span>
-      {people.map((person) => (
-        <span key={person} className="bg-tag-gray-bg px-2 text-xs leading-6 text-tag-gray">
-          {parseSender(person).name}
-        </span>
-      ))}
-    </span>
-  );
-  const chips = (
-    <span className="flex min-w-0 flex-col gap-1">
-      {line('To', [replyTo])}
-      {toAll && line('Cc', others)}
-    </span>
-  );
-  if (!others.length) return chips;
-  const choice = replyChoice(replyTo, others, toAll);
-  const all = replyChoice(replyTo, others, true);
-  const one = replyChoice(replyTo, others, false);
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        {chips}
-        <Select<'all' | 'one'>
-          label="Who gets this reply"
-          hideLabel
-          className="w-64"
-          value={toAll ? 'all' : 'one'}
-          options={[
-            { value: 'all', label: all.title },
-            { value: 'one', label: one.title },
-          ]}
-          onValueChange={(next) => onToAll(next === 'all')}
-        />
-      </div>
-      {choice.leftOut && <p className="text-xs text-text-secondary">{choice.leftOut}</p>}
-    </div>
-  );
 }
 
 interface MailReplyFormProps {
@@ -221,47 +109,6 @@ interface MailReplyFormProps {
   onClose?: () => void;
 }
 
-/** Esc closes the box, unless a menu inside it took the key first. */
-function closeOnEscape(event: React.KeyboardEvent, onClose?: () => void) {
-  if (onClose && event.key === 'Escape' && !event.defaultPrevented) onClose();
-}
-
-/** The round × at the top right of the box on laptops (owner, 13 Nov 2026). */
-function CloseReply({ onClose }: { onClose: () => void }) {
-  return (
-    <button
-      type="button"
-      aria-label="Close reply"
-      title="Close (Esc). Your text is kept."
-      onClick={onClose}
-      className="absolute top-2 right-2 z-10 flex size-8 cursor-pointer items-center justify-center rounded-full text-text-secondary transition-colors duration-70 ease-standard hover:bg-layer-hover hover:text-text-primary"
-    >
-      <XIcon size={18} aria-hidden="true" />
-    </button>
-  );
-}
-
-/** "Not sent yet. Kept on this device only." with Discard, when the box opened with kept text. */
-function KeptLine({ onDiscard }: { onDiscard: () => void }) {
-  return (
-    <p className="flex flex-wrap items-center gap-x-3 px-4 pb-1 text-xs text-text-secondary">
-      Not sent yet. Kept on this device only.
-      <button
-        type="button"
-        onClick={onDiscard}
-        className="cursor-pointer text-link hover:underline"
-      >
-        Discard
-      </button>
-    </p>
-  );
-}
-
-/** While the editor loads: the same room, so nothing jumps. */
-function EditorLoading() {
-  return <div className="min-h-[164px] px-4 pt-3 text-sm text-text-tertiary">Write your reply</div>;
-}
-
 /**
  * The reply text in the rich text editor: kept on this device while unsent, filled by AI drafts,
  * and checked before it is sent.
@@ -273,9 +120,14 @@ function useReplyText(threadId: string) {
   const [start, setStart] = useState(kept0);
   const kept = useKeptReply(threadId);
   const [problem, setProblem] = useState<string | null>(null);
+  // Nothing written yet: the phone's Send stays grey (owner, 15 Nov 2026).
+  const [empty, setEmpty] = useState(() => !kept0 || isEmptyDoc(kept0));
   const set = (doc: DraftDoc | null) => {
     if (editor.current) editor.current.setDoc(doc);
-    else setStart(doc);
+    else {
+      setStart(doc);
+      setEmpty(!doc || isEmptyDoc(doc));
+    }
   };
   const onReady = useCallback((handle: ReplyEditorHandle) => {
     editor.current = handle;
@@ -284,6 +136,7 @@ function useReplyText(threadId: string) {
     (doc: DraftDoc) => {
       keepReply(threadId, doc);
       setProblem(null);
+      setEmpty(isEmptyDoc(doc));
     },
     [threadId],
   );
@@ -306,6 +159,7 @@ function useReplyText(threadId: string) {
   return {
     initial: start,
     showKept: !!kept0 && !!kept,
+    empty,
     problem,
     onReady,
     onChange,
@@ -369,6 +223,10 @@ function useReplySend({
     // Names who the sent reply went to, whatever the user chooses for the next one.
     sentNote: send.isSuccess ? replySentNote(replyTo, send.variables.toAll ? replyCc : []) : null,
     submit: () => submit(replyId),
+    onSubmit: (event: FormEvent) => {
+      event.preventDefault();
+      submit(replyId);
+    },
     // The user's own decision after an unconfirmed send: a new reply with a new ID.
     sendAgain: () => {
       const next = crypto.randomUUID();
@@ -385,12 +243,14 @@ function ReplyText({
   onSubmitKey,
   actions,
   autofocus,
+  onFocusChange,
 }: {
   text: ReturnType<typeof useReplyText>;
   phone: boolean;
   onSubmitKey: () => void;
   actions?: React.ReactNode;
   autofocus: boolean;
+  onFocusChange: (focused: boolean) => void;
 }) {
   const problemId = useId();
   return (
@@ -405,21 +265,99 @@ function ReplyText({
         describedBy={text.problem ? problemId : undefined}
         actions={actions}
         autofocus={autofocus}
+        onFocusChange={onFocusChange}
       >
         {text.problem && (
-          <p id={problemId} className="px-4 pb-1 text-sm text-danger-text">
+          <p id={problemId} className={cn('pb-1 text-sm text-danger-text', !phone && 'px-4')}>
             {text.problem}
           </p>
         )}
-        {text.showKept && <KeptLine onDiscard={text.discard} />}
+        {text.showKept && <KeptLine onDiscard={text.discard} phone={phone} />}
       </RichReplyField>
     </Suspense>
   );
 }
 
+/** Phones: while the user types the reply (its text has the focus and the keyboard is up), the AI
+ * help is one row, so the text has room. A tap on that row opens the box at once, so the hint can
+ * take the focus. */
+function useReplyTyping(phone: boolean) {
+  const [textFocus, setTextFocus] = useState(false);
+  const keyboard = useKeyboardOpen();
+  return {
+    compact: phone && textFocus && keyboard,
+    onFocusChange: setTextFocus,
+    openAi: () => flushSync(() => setTextFocus(false)),
+  };
+}
+
+/**
+ * The note under the reply. On a phone: Send in the sheet's top bar, and the note as one line in its
+ * bottom bar, with the way to answer in Gmail (or the mail sandbox).
+ */
+function ReplyNote({
+  phone,
+  note,
+  send,
+  children,
+}: {
+  phone: boolean;
+  note: string;
+  send: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  const slots = useContext(PhoneReplySlots);
+  if (!phone)
+    return (
+      <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-secondary">
+        {note}
+      </p>
+    );
+  const line = (
+    <p className="px-4 pt-2 text-xs text-text-secondary">
+      {note}
+      <span aria-hidden="true"> · </span>
+      {children}
+    </p>
+  );
+  return (
+    <>
+      {slots?.note && createPortal(line, slots.note)}
+      {slots?.send && createPortal(send, slots.send)}
+    </>
+  );
+}
+
+/** What became of the last send, and who the reply reaches: at the sheet's edge on a phone. */
+function ReplyHead({
+  phone,
+  closable,
+  children,
+}: {
+  phone: boolean;
+  closable: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className={cn(
+        'flex flex-col gap-3 empty:hidden',
+        phone ? 'pt-1' : 'px-4 pt-3',
+        closable && 'pr-12',
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+const FORM_CLASS =
+  'relative flex animate-open flex-col overflow-hidden rounded-lg border border-border-default bg-surface transition-colors duration-70 ease-standard focus-within:border-border-focus';
+
 /**
  * The reply box of a conversation, in the calm card of the rich text reply (owner, 25 Oct 2026).
- * On a phone, Send sits in the reply screen's top bar.
+ * On a phone, Send sits in the reply screen's top bar, grey until there is text, and the note is
+ * one line above the text tools (owner, 15 Nov 2026, `REPLY-SHEET-mock/`).
  */
 export function MailReplyForm({
   threadId,
@@ -434,7 +372,7 @@ export function MailReplyForm({
 }: MailReplyFormProps) {
   const formId = useId();
   const phone = useIsPhone();
-  const sendSlot = useContext(PhoneReplySlots)?.send ?? null;
+  const typing = useReplyTyping(phone);
   // Opened by "AI reply": the AI's hint box gets the focus, not the text (owner, 13 Nov 2026).
   const [hintFirst] = useState(() => !!ai?.start && !ai.start.choice);
   const [all, setAll] = useState(true);
@@ -458,8 +396,10 @@ export function MailReplyForm({
       onSendAgain={reply.sendAgain}
       form={inTopBar ? formId : undefined}
       short={inTopBar}
+      empty={text.empty}
     />
   );
+  const note = replyNote(reply.unconfirmed, draft.writtenBy, hint);
   const desktopActions = (
     <>
       {children}
@@ -470,35 +410,31 @@ export function MailReplyForm({
     <>
       <form
         id={formId}
-        onSubmit={(event: FormEvent) => {
-          event.preventDefault();
-          reply.submit();
-        }}
+        onSubmit={reply.onSubmit}
         noValidate
         aria-label="Reply"
         onKeyDown={(event) => closeOnEscape(event, onClose)}
-        className="relative flex animate-open flex-col overflow-hidden rounded-lg border border-border-default bg-surface transition-colors duration-70 ease-standard focus-within:border-border-focus"
+        className={cn(FORM_CLASS, phone && 'flex-1')}
       >
         {onClose && <CloseReply onClose={onClose} />}
-        <div className={cn('flex flex-col gap-3 px-4 pt-3 empty:hidden', onClose && 'pr-12')}>
+        <ReplyHead phone={phone} closable={!!onClose}>
           <ReplyOutcome sentNote={reply.sentNote} problem={reply.problem} />
           <ReplyReceivers replyTo={replyTo} others={replyCc} toAll={toAll} onToAll={setAll} />
-        </div>
-        <ReplyWriting ai={ai} draft={draft}>
+        </ReplyHead>
+        <ReplyWriting ai={ai} draft={draft} phone={phone} typing={typing}>
           <ReplyText
             text={text}
             phone={phone}
             onSubmitKey={reply.submit}
             actions={phone ? undefined : desktopActions}
             autofocus={!hintFirst}
+            onFocusChange={typing.onFocusChange}
           />
         </ReplyWriting>
       </form>
-      <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-secondary">
-        {replyNote(reply.unconfirmed, draft.writtenBy, hint)}
-        {phone && children}
-      </p>
-      {phone && sendSlot && createPortal(buttons(true), sendSlot)}
+      <ReplyNote phone={phone} note={note} send={phone && buttons(true)}>
+        {children}
+      </ReplyNote>
     </>
   );
 }

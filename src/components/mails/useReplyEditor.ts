@@ -24,7 +24,16 @@ interface ReplyEditorOptions {
   onLinkKey: () => void;
   /** False: the text does not take the focus when it opens (the AI hint has it). */
   autofocus?: boolean;
+  /** Phones: the text fills the reply sheet and starts at the sheet's own edge. */
+  phone?: boolean;
+  /** The text got or lost the focus. */
+  onFocusChange?: (focused: boolean) => void;
 }
+
+/** On a phone the text fills the reply sheet, at the sheet's own edge; on a laptop it scrolls. */
+const PHONE_TEXT = 'reply-text min-h-22 flex-1 pt-3 pb-2 text-sm outline-none';
+const LAPTOP_TEXT =
+  'reply-text min-h-28 px-4 pt-3 pb-2 text-sm outline-none md:max-h-[45vh] md:overflow-y-auto';
 
 /**
  * The reply's editor (Tiptap): only the formats the owner agreed (bold, italic, underline, bullet
@@ -38,9 +47,11 @@ export function useReplyEditor({
   onSubmitKey,
   onLinkKey,
   autofocus = true,
+  phone = false,
+  onFocusChange,
 }: ReplyEditorOptions) {
   // The newest callbacks, for the editor's own handlers, which are made once.
-  const latest = useRef({ onChange, onSubmitKey, onLinkKey });
+  const latest = useRef({ onChange, onSubmitKey, onLinkKey, onFocusChange });
   const current = useRef<Editor | null>(null);
   const editor = useEditor({
     immediatelyRender: true,
@@ -90,8 +101,7 @@ export function useReplyEditor({
     content: initial ?? undefined,
     editorProps: {
       attributes: {
-        class:
-          'reply-text min-h-28 px-4 pt-3 pb-2 text-sm outline-none md:max-h-[45vh] md:overflow-y-auto',
+        class: phone ? PHONE_TEXT : LAPTOP_TEXT,
         role: 'textbox',
         'aria-multiline': 'true',
         'aria-label': 'Your reply',
@@ -107,9 +117,11 @@ export function useReplyEditor({
       },
     },
     onUpdate: ({ editor: changed }) => latest.current.onChange(toReplyDoc(changed.getJSON())),
+    onFocus: () => latest.current.onFocusChange?.(true),
+    onBlur: () => latest.current.onFocusChange?.(false),
   });
   useLayoutEffect(() => {
-    latest.current = { onChange, onSubmitKey, onLinkKey };
+    latest.current = { onChange, onSubmitKey, onLinkKey, onFocusChange };
     current.current = editor;
   });
   return { editor, current };

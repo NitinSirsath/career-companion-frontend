@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ApiError, api } from '../api/client';
@@ -26,7 +26,7 @@ vi.mock('../api/client', async (importOriginal) => ({
 }));
 
 import { routeTree } from '../routeTree.gen';
-import { replyWords, writeReply } from './reply-editor';
+import { replyEditor, replyWords, writeReply } from './reply-editor';
 
 const PHONE_WIDTH = 375;
 const ROW_NAME = 'Interview: first round availability, from Priya Nair';
@@ -102,6 +102,8 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   setWidth(desktopWidth);
+  // jsdom has no visible-screen object: a test that makes one takes it away again.
+  Reflect.deleteProperty(window, 'visualViewport');
 });
 
 describe('phone tab bar and Settings', () => {
@@ -295,6 +297,67 @@ describe('phone mail details', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Open draft' }));
     const again = within(await screen.findByRole('form', { name: 'Reply' }));
     expect(await replyWords(again)).toBe('Tuesday works for me.');
+  });
+
+  it('keeps Send grey until there is text, and the Gmail note on one line above the text tools', async () => {
+    show('/mails/thread-1');
+    await screen.findByText('Send your available dates');
+    fireEvent.click(screen.getByRole('button', { name: 'Reply' }));
+    const form = within(await screen.findByRole('form', { name: 'Reply' }));
+    await replyEditor(form);
+    const send = await screen.findByRole('button', { name: 'Send' });
+    expect(send).toBeDisabled();
+    await writeReply(form, 'Tuesday works for me.');
+    expect(send).toBeEnabled();
+    await writeReply(form, '');
+    expect(send).toBeDisabled();
+
+    // One short line, in the sheet's bottom bar with the text tools, not under the text.
+    const note = screen.getByText('Sent from your Gmail');
+    expect(screen.getByRole('form', { name: 'Reply' })).not.toContainElement(note);
+    expect(note.parentElement?.nextElementSibling).toContainElement(
+      screen.getByRole('toolbar', { name: 'Format' }),
+    );
+    expect(within(note).getByRole('link', { name: /in Gmail$/ })).toBeInTheDocument();
+  });
+
+  it('shrinks the AI help to one row while the reply is typed, and opens it at the hint', async () => {
+    detail.replyChoices = ['Confirm my availability', 'Request another time'];
+    // The phone's visible screen: as tall as the page until the keyboard comes up.
+    const viewport = Object.assign(new EventTarget(), { height: window.innerHeight, scale: 1 });
+    Object.defineProperty(window, 'visualViewport', { configurable: true, value: viewport });
+    show('/mails/thread-1');
+    await screen.findByText('Send your available dates');
+    fireEvent.click(screen.getByRole('button', { name: 'Reply' }));
+    const form = within(await screen.findByRole('form', { name: 'Reply' }));
+    const hintLabel = 'What the AI should say (optional)';
+    // The choices side by side, and the hint with its own small Write button.
+    expect(
+      await form.findByRole('button', { name: 'Confirm my availability' }),
+    ).toBeInTheDocument();
+    expect(form.getByLabelText(hintLabel)).toBeInTheDocument();
+    expect(form.getByRole('button', { name: 'Write with AI' })).toBeInTheDocument();
+
+    // The text has the focus when the sheet opens, but no keyboard is up yet: the box stays.
+    const editor = await replyEditor(form);
+    act(() => {
+      editor.commands.focus();
+    });
+    expect(form.getByLabelText(hintLabel)).toBeInTheDocument();
+
+    // The keyboard comes up: the visible part of the screen gets shorter.
+    act(() => {
+      viewport.height = window.innerHeight - 300;
+      viewport.dispatchEvent(new Event('resize'));
+    });
+    const row = await form.findByRole('button', { name: 'Reply with AI' });
+    expect(row).toHaveAttribute('aria-expanded', 'false');
+    expect(form.queryByLabelText(hintLabel)).not.toBeInTheDocument();
+    expect(form.queryByRole('button', { name: 'Confirm my availability' })).not.toBeInTheDocument();
+
+    fireEvent.click(row);
+    expect(form.getByLabelText(hintLabel)).toHaveFocus();
+    expect(form.getByRole('button', { name: 'Confirm my availability' })).toBeInTheDocument();
   });
 
   it('puts "Create application" right under the next step, with key dates behind ⓘ', async () => {

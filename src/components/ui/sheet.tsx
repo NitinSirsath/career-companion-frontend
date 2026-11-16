@@ -1,4 +1,4 @@
-import { useLayoutEffect, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { useLayoutEffect, useState, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { Drawer } from '@base-ui/react/drawer';
 import { CheckIcon, XIcon } from 'lucide-react';
 import { cn } from '../../lib/utils';
@@ -25,7 +25,7 @@ export function SheetHeader({ title, children }: { title: ReactNode; children?: 
       {children}
       <Drawer.Close
         aria-label="Close"
-        className="flex size-[38px] shrink-0 cursor-pointer items-center justify-center rounded-full bg-layer-accent text-text-primary transition-transform duration-450 ease-[cubic-bezier(0.25,1.6,0.4,1)] active:scale-110"
+        className="flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-full bg-layer-accent text-text-primary transition-transform duration-450 ease-[cubic-bezier(0.25,1.6,0.4,1)] active:scale-110"
       >
         <XIcon size={20} aria-hidden="true" />
       </Drawer.Close>
@@ -47,10 +47,10 @@ export function SheetCenterHeader({
   end?: ReactNode;
 }) {
   return (
-    <div className="grid min-h-[58px] shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2.5 px-3 py-1">
+    <div className="grid min-h-[58px] shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2.5 px-4 py-1">
       <Drawer.Close
         aria-label={closeLabel}
-        className="flex size-[38px] cursor-pointer items-center justify-center justify-self-start rounded-full bg-layer-accent text-text-primary transition-transform duration-450 ease-[cubic-bezier(0.25,1.6,0.4,1)] active:scale-110"
+        className="flex size-11 cursor-pointer items-center justify-center justify-self-start rounded-full bg-layer-accent text-text-primary transition-transform duration-450 ease-[cubic-bezier(0.25,1.6,0.4,1)] active:scale-110"
       >
         <XIcon size={20} aria-hidden="true" />
       </Drawer.Close>
@@ -60,11 +60,25 @@ export function SheetCenterHeader({
   );
 }
 
+/** True once the sheet's content is scrolled: a thin line then shows under the title row. */
+function useScrolledLine(open: boolean) {
+  const [scrolled, setScrolled] = useState(false);
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    setScrolled(false);
+  }
+  const onScroll = (event: React.UIEvent<HTMLElement>) =>
+    setScrolled(event.currentTarget.scrollTop > 0);
+  return { scrolled, onScroll };
+}
+
 /**
  * A sheet on phones (owner, 13 Nov 2026, approved mock `IOS-LOOK-mock/`): it floats over the page
  * with round corners and springs up; drag it down and it follows the finger, fling it or drag it
  * far enough and it closes. The page behind shrinks a little. `tall` sheets (Reply) reach almost
- * to the top. `header` replaces the title row; `footer` stays at the bottom (text tools).
+ * to the top. `header` replaces the title row; `footer` stays at the bottom (text tools). A thin
+ * line shows under the title row once the content scrolls under it.
  */
 export function Sheet({
   open,
@@ -74,6 +88,7 @@ export function Sheet({
   header,
   footer,
   className,
+  contentClassName,
   initialFocus = true,
   children,
 }: {
@@ -84,14 +99,17 @@ export function Sheet({
   header?: ReactNode;
   footer?: ReactNode;
   className?: string;
+  /** Changes the content's own spacing (the Reply sheet's narrower sides). */
+  contentClassName?: string;
   /** False: the sheet leaves the focus to its own fields (the reply's text or AI hint). */
   initialFocus?: boolean;
   children: ReactNode;
 }) {
   useShrinkBehind(open, tall);
+  const line = useScrolledLine(open);
   return (
     <Drawer.Root open={open} onOpenChange={onOpenChange}>
-      {/* The phone's keyboard pushes the sheet up, so fields and the tools stay in view. */}
+      {/* The phone's keyboard pushes the sheet's content up, so fields and the tools stay in view. */}
       <Drawer.VirtualKeyboardProvider>
         <Drawer.Portal>
           <Drawer.Backdrop className="fixed inset-0 z-50 bg-black/25 opacity-[calc(1-var(--drawer-swipe-progress))] transition-opacity duration-450 ease-sheet data-swiping:duration-0 data-starting-style:opacity-0 data-ending-style:opacity-0 data-ending-style:duration-[calc(var(--drawer-swipe-strength)*400ms)] dark:bg-black/50" />
@@ -100,8 +118,11 @@ export function Sheet({
               initialFocus={initialFocus}
               className={cn(
                 POPUP,
+                // A tall sheet keeps its height and takes the keyboard's room as padding inside, so its
+                // own colour fills the strip behind the iPhone's ˄ ˅ ✓ bar: as a margin, that strip
+                // stayed empty and the page behind showed through (owner, 15 Nov 2026).
                 tall
-                  ? 'mb-[var(--drawer-keyboard-inset,0px)] h-[calc(100dvh-env(safe-area-inset-top)-12px-var(--drawer-keyboard-inset,0px))] w-full rounded-t-[22px]'
+                  ? 'h-[calc(100dvh-env(safe-area-inset-top)-12px)] w-full rounded-t-[22px] pb-[var(--drawer-keyboard-inset,0px)]'
                   : 'mb-[calc(8px+var(--drawer-keyboard-inset,0px))] max-h-[calc(100dvh-env(safe-area-inset-top)-46px-var(--drawer-keyboard-inset,0px))] w-[calc(100%-16px)] rounded-[28px] rounded-b-[36px]',
                 className,
               )}
@@ -110,8 +131,21 @@ export function Sheet({
                 aria-hidden="true"
                 className="mx-auto mt-[7px] h-[5px] w-9 shrink-0 rounded-full bg-border-strong/60"
               />
-              {header ?? <SheetHeader title={title} />}
-              <Drawer.Content className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-5 pb-[calc(22px+env(safe-area-inset-bottom)*0.4)]">
+              <div
+                className={cn(
+                  'shrink-0 border-b transition-colors duration-200',
+                  line.scrolled ? 'border-border-subtle' : 'border-transparent',
+                )}
+              >
+                {header ?? <SheetHeader title={title} />}
+              </div>
+              <Drawer.Content
+                onScroll={line.onScroll}
+                className={cn(
+                  'flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-5 pb-[calc(22px+env(safe-area-inset-bottom)*0.4)]',
+                  contentClassName,
+                )}
+              >
                 {children}
               </Drawer.Content>
               {footer}
