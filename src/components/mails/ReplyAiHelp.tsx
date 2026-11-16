@@ -1,6 +1,7 @@
 import { useEffect, useEffectEvent, useId, useRef, useState, type RefObject } from 'react';
 import { Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
+import { ArrowUpIcon, ChevronDownIcon } from 'lucide-react';
 import { api } from '../../api/client';
 import { useWriteReplyDraft } from '../../api/conversations';
 import type { ReplyDraftResponse } from '../../contracts/conversation';
@@ -60,7 +61,10 @@ function ProblemLine({ problem }: { problem: DraftProblem }) {
   );
 }
 
-/** The optional one-line hint and "Write with AI". Enter in the hint writes too. */
+/**
+ * The optional one-line hint and "Write with AI". Enter in the hint writes too. On a phone the hint
+ * takes the whole width, with a small arrow inside it to write (owner, 15 Nov 2026).
+ */
 function HintRow({
   hint,
   onHint,
@@ -76,6 +80,43 @@ function HintRow({
 }) {
   const hintId = useId();
   const phone = useIsPhone();
+  const onKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    onWrite();
+  };
+  if (phone)
+    return (
+      <div className="relative">
+        <Label htmlFor={hintId} className="sr-only">
+          What the AI should say (optional)
+        </Label>
+        <Input
+          ref={field}
+          id={hintId}
+          value={hint}
+          maxLength={200}
+          disabled={writing}
+          placeholder="Optional: what to say"
+          className="h-11 bg-surface-raised pr-12 pl-4 text-base"
+          onChange={(event) => onHint(event.target.value)}
+          onKeyDown={onKeyDown}
+        />
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label="Write with AI"
+          disabled={writing}
+          onClick={onWrite}
+          className="absolute top-0 right-0 size-11 hover:bg-transparent disabled:bg-transparent"
+        >
+          <span className="flex size-8 items-center justify-center rounded-full bg-action-primary text-text-inverse">
+            <ArrowUpIcon size={18} strokeWidth={2.4} aria-hidden="true" />
+          </span>
+        </Button>
+      </div>
+    );
   return (
     <div className="flex gap-2">
       <Label htmlFor={hintId} className="sr-only">
@@ -87,25 +128,12 @@ function HintRow({
         value={hint}
         maxLength={200}
         disabled={writing}
-        placeholder={
-          phone ? 'Optional: what to say' : `Optional: what to say, like "I'm free Tue after 3"`
-        }
-        className="h-8 min-w-0 flex-1 text-sm max-md:h-10 max-md:bg-surface-raised max-md:text-base"
+        placeholder={`Optional: what to say, like "I'm free Tue after 3"`}
+        className="h-8 min-w-0 flex-1 text-sm"
         onChange={(event) => onHint(event.target.value)}
-        onKeyDown={(event) => {
-          if (event.key !== 'Enter') return;
-          event.preventDefault();
-          onWrite();
-        }}
+        onKeyDown={onKeyDown}
       />
-      <Button
-        type="button"
-        size="sm"
-        variant="secondary"
-        disabled={writing}
-        onClick={onWrite}
-        className="max-md:h-10 max-md:border-transparent max-md:bg-action-primary max-md:px-4 max-md:text-[15px] max-md:text-text-inverse"
-      >
+      <Button type="button" size="sm" variant="secondary" disabled={writing} onClick={onWrite}>
         Write with AI
       </Button>
     </div>
@@ -127,7 +155,7 @@ function useAiStart(ai: ReplyAi, begin: (choice: string | null) => void) {
   }, [start]);
 }
 
-/** The newest mail's reply choices, one button each. */
+/** The newest mail's reply choices, one button each; on a phone side by side in one row to swipe. */
 function ChoiceButtons({
   choices,
   writing,
@@ -139,7 +167,8 @@ function ChoiceButtons({
 }) {
   if (!choices.length) return null;
   return (
-    <div className="flex flex-wrap gap-2">
+    // Phones: the row runs to the box's edges and fades at the right, so more to swipe shows.
+    <div className="flex flex-wrap gap-2 max-md:-mx-3 max-md:flex-nowrap max-md:overflow-x-auto max-md:px-3 max-md:[mask-image:linear-gradient(to_right,#000_calc(100%-28px),transparent)] max-md:[scrollbar-width:none]">
       {choices.map((choice) => (
         <Button
           key={choice}
@@ -148,12 +177,44 @@ function ChoiceButtons({
           variant="secondary"
           disabled={writing}
           onClick={() => onPick(choice)}
-          className="max-md:h-auto max-md:min-h-9 max-md:border-transparent max-md:bg-surface-raised max-md:py-2 max-md:text-left max-md:text-[15px] max-md:whitespace-normal"
+          className="max-md:h-11 max-md:border-transparent max-md:bg-surface-raised max-md:px-4 max-md:text-[15px]"
         >
           {choice}
         </Button>
       ))}
     </div>
+  );
+}
+
+/**
+ * Phones, while the user types the reply: the AI help as one row. A tap opens it again, with the
+ * cursor in the hint (owner, 15 Nov 2026).
+ */
+function AiRow({
+  label,
+  onOpen,
+  hint,
+}: {
+  label: string;
+  onOpen?: () => void;
+  hint: RefObject<HTMLInputElement | null>;
+}) {
+  return (
+    <button
+      type="button"
+      aria-expanded={false}
+      // The reply keeps the focus until the hint takes it, so the keyboard stays up.
+      onMouseDown={(event) => event.preventDefault()}
+      onClick={() => {
+        onOpen?.();
+        hint.current?.focus();
+      }}
+      className="flex h-11 w-full cursor-pointer items-center gap-2 rounded-2xl bg-layer-accent pr-3.5 pl-3 text-left text-[15px] font-semibold text-text-secondary"
+    >
+      <AiIcon size={18} aria-hidden="true" />
+      <span className="min-w-0 flex-1">{label}</span>
+      <ChevronDownIcon size={18} aria-hidden="true" />
+    </button>
   );
 }
 
@@ -168,11 +229,17 @@ export function ReplyAiHelp({
   writing,
   onWriting,
   onDraft,
+  compact = false,
+  onOpen,
 }: {
   ai: ReplyAi;
   writing: boolean;
   onWriting: (writing: boolean) => void;
   onDraft: (draft: ReplyDraftResponse) => void;
+  /** Phones, while the user types the reply: one row. */
+  compact?: boolean;
+  /** The one row was tapped: the box opens at once, before the hint takes the focus. */
+  onOpen?: () => void;
 }) {
   const [hint, setHint] = useState('');
   const field = useRef<HTMLInputElement>(null);
@@ -203,6 +270,8 @@ export function ReplyAiHelp({
         </Link>
       </p>
     );
+  const label = ai.choices.length ? 'Reply with AI' : 'Let the AI write it';
+  if (compact && !writing) return <AiRow label={label} onOpen={onOpen} hint={field} />;
   // Offline the toast says that nothing was written.
   const problem =
     write.isError && !writing && !isOfflineError(write.error) ? draftProblem(write.error) : null;
@@ -213,14 +282,14 @@ export function ReplyAiHelp({
   return (
     // Phones: one soft grey box inside the reply sheet (owner, 13 Nov 2026).
     <div
-      className="flex flex-col gap-2 max-md:mt-1 max-md:gap-2.5 max-md:rounded-2xl max-md:bg-layer-accent max-md:p-3"
+      className="flex flex-col gap-2 max-md:gap-2.5 max-md:rounded-2xl max-md:bg-layer-accent max-md:p-3"
       aria-label="Reply with AI"
       role="group"
     >
       {problem && <ProblemLine problem={problem} />}
       <span className="flex items-center gap-1.5 text-xs text-text-secondary max-md:text-[13px] max-md:font-semibold">
         <AiIcon size={16} aria-hidden="true" className="hidden max-md:block" />
-        {ai.choices.length ? 'Reply with AI' : 'Let the AI write it'}
+        {label}
       </span>
       <ChoiceButtons
         choices={ai.choices}
