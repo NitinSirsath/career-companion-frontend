@@ -1,6 +1,10 @@
 import { Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
+import { FileTextIcon, SearchXIcon, WorkflowIcon } from 'lucide-react';
+import { useSandboxMailbox } from '../../api/appMode';
 import { api } from '../../api/client';
+import { useGmailStatus } from '../../api/gmail';
+import { gmailConnectionCopy } from '../../lib/gmailConnection';
 import { applicationGroupsKey } from '../../lib/applicationCache';
 import {
   LIST_TABS,
@@ -12,8 +16,7 @@ import {
   type StatusTab,
 } from '../../lib/applicationsView';
 import { useIsPhone } from '../layout/useIsPhone';
-import { Button } from '../ui/button';
-import { EmptyState } from '../ui/empty-state';
+import { EMPTY_ACTION, EMPTY_ACTION_QUIET, EmptyState } from '../ui/empty-state';
 import { Tabs } from '../ui/tabs';
 import { ReplyBar } from './ReplyBar';
 
@@ -34,6 +37,8 @@ export function ApplicationListTabs({
     queryKey: applicationGroupsKey(view.archive),
     queryFn: ({ signal }) => api.getApplicationGroups(view.archive, { signal }),
   });
+  // Nothing sent yet: no "0 of 0 replied" bar and no empty filters, only the empty list's next step.
+  const nothingSent = groups?.apply.total === 0;
   return (
     <>
       <Tabs<ListTab>
@@ -46,38 +51,39 @@ export function ApplicationListTabs({
           count: groups && (item.value === 'progress' ? groups.inProgress : groups.apply.total),
         }))}
       />
-      {view.list === 'progress' ? (
-        // Phones pick the status in the top bar's filter menu (owner, 13 Nov 2026).
-        !phone && (
-          <Tabs<StatusTab>
-            label="Status"
-            value={view.tab}
-            onValueChange={(next) => onChange({ tab: next })}
-            items={STATUS_TABS}
-            phoneLook="chips"
-          />
-        )
-      ) : (
-        <div className="space-y-6 max-md:space-y-4">
-          {groups && <ReplyBar replied={groups.apply.replied} total={groups.apply.total} />}
-          <Tabs<ReplyTab>
-            label="Replies"
-            value={view.reply}
-            onValueChange={(next) => onChange({ reply: next })}
-            items={REPLY_TABS.map((item) => ({
-              ...item,
-              count:
-                groups && (item.value === 'ALL' ? groups.apply.total : groups.apply[item.value]),
-            }))}
-            phoneLook="chips"
-          />
-          <p className="text-sm text-text-secondary">
-            Everything NorthList Apply sent. A job moves to In progress once the company replies.
-            Submissions waiting for a match are in{' '}
-            <Link to="/automation">NorthList Apply review</Link>.
-          </p>
-        </div>
-      )}
+      {view.list === 'progress'
+        ? // Phones pick the status in the top bar's filter menu (owner, 13 Nov 2026).
+          !phone && (
+            <Tabs<StatusTab>
+              label="Status"
+              value={view.tab}
+              onValueChange={(next) => onChange({ tab: next })}
+              items={STATUS_TABS}
+              phoneLook="chips"
+            />
+          )
+        : !nothingSent && (
+            <div className="space-y-6 max-md:space-y-4">
+              {groups && <ReplyBar replied={groups.apply.replied} total={groups.apply.total} />}
+              <Tabs<ReplyTab>
+                label="Replies"
+                value={view.reply}
+                onValueChange={(next) => onChange({ reply: next })}
+                items={REPLY_TABS.map((item) => ({
+                  ...item,
+                  count:
+                    groups &&
+                    (item.value === 'ALL' ? groups.apply.total : groups.apply[item.value]),
+                }))}
+                phoneLook="chips"
+              />
+              <p className="text-sm text-text-secondary">
+                Everything NorthList Apply sent. A job moves to In progress once the company
+                replies. Submissions waiting for a match are in{' '}
+                <Link to="/automation">NorthList Apply review</Link>.
+              </p>
+            </div>
+          )}
     </>
   );
 }
@@ -92,36 +98,51 @@ export function ApplicationsEmpty({
   hasFilters: boolean;
   onClear: () => void;
 }) {
+  const sandbox = useSandboxMailbox();
+  const gmail = useGmailStatus();
   if (hasFilters) {
     return (
       <EmptyState
+        icon={SearchXIcon}
         title="No matching applications"
         action={
-          <Button variant="ghost" className="-ml-4" onClick={onClear}>
-            Clear all filters
-          </Button>
+          <button type="button" className={EMPTY_ACTION_QUIET} onClick={onClear}>
+            Clear filters
+          </button>
         }
       >
-        Try changing the search, the tab or what is shown.
+        Try other words, another tab, or clear the filters.
       </EmptyState>
     );
   }
   if (list === 'apply') {
     return (
-      <EmptyState title="Nothing sent by NorthList Apply yet">
-        Each job your agent applies to appears here. Set it up on the{' '}
-        <Link to="/automation" search={{ tab: 'setup' }}>
-          NorthList Apply
-        </Link>{' '}
-        page.
+      <EmptyState
+        icon={WorkflowIcon}
+        title="Nothing from NorthList Apply yet"
+        action={
+          <Link to="/automation" search={{ tab: 'setup' }} className={EMPTY_ACTION_QUIET}>
+            Set up NorthList Apply
+          </Link>
+        }
+      >
+        Each job your own agent applies to shows here.
       </EmptyState>
     );
   }
   return (
-    <EmptyState title="No applications yet">
-      They appear here when the app finds one in your mails, or when NorthList Apply sends one and
-      the company replies. Submissions waiting for a match are in{' '}
-      <Link to="/automation">NorthList Apply</Link>.
+    <EmptyState
+      icon={FileTextIcon}
+      title="No applications yet"
+      action={
+        gmail.data?.connected === false && (
+          <Link to="/gmail" className={EMPTY_ACTION}>
+            {gmailConnectionCopy(sandbox, gmail.data.status).connect}
+          </Link>
+        )
+      }
+    >
+      NorthList adds one when it finds an application in your mails, with where it stands.
     </EmptyState>
   );
 }
