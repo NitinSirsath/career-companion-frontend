@@ -10,7 +10,7 @@ import { icon, mark } from './icons.ts';
  * `<div data-site-header></div>`, `<div data-site-footer></div>`, `<p data-lead></p>`,
  * `<div … data-promises></div>`, `<div … data-flow></div>`, `<div … data-changelog></div>`,
  * `<i data-icon="name" data-size="16"></i>`, `<i data-app-icon="name" data-size="16"></i>` (the app's own
- * icons, inside the pictures of the app) and `<i data-mark="16"></i>`. 
+ * icons, inside the pictures of the app) and `<i data-mark="16"></i>`.
  */
 export function fillParts(html: string): string {
   const page = /<body data-page="([a-z]+)"/.exec(html)?.[1] ?? '';
