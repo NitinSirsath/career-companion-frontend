@@ -1,3 +1,5 @@
+import { FREE_AI_CONSENT } from './freeAI';
+
 const KEY = 'career-companion-gmail-connect';
 
 /**
@@ -21,4 +23,20 @@ export function takeGmailConnectStarted(): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * "Connect Gmail" (owner, 15 Nov 2026). `freeAI`: the button said that NorthList's free AI reads
+ * the job mails, so pressing it agrees; the server turns the free AI on, starts the first sync and
+ * sends the user back to the Dashboard. Otherwise the user comes back to the Gmail page and, with
+ * no AI yet, goes on to choose one.
+ */
+export function startGmailConnect(freeAI: boolean) {
+  if (freeAI) {
+    const agreed = encodeURIComponent(FREE_AI_CONSENT);
+    window.location.href = `/api/gmail/connect?returnTo=%2Fdashboard&freeAI=${agreed}`;
+    return;
+  }
+  markGmailConnectStarted();
+  window.location.href = '/api/gmail/connect';
 }
