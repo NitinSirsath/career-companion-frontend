@@ -2,6 +2,7 @@ import * as React from 'react';
 import { SearchIcon, SlidersHorizontalIcon, XIcon } from 'lucide-react';
 import { Dialog } from '@base-ui/react/dialog';
 import { cn } from '../../lib/utils';
+import { leavingProps, pillPhaseClass, useListMotion } from './useListMotion';
 import { Button } from './button';
 
 /**
@@ -127,14 +128,19 @@ export function FilterChips({
   onClearAll: () => void;
   summary?: React.ReactNode;
 }) {
-  if (chips.length === 0) return null;
+  const pills = useListMotion(chips, (chip) => chip.label, 'chips', true);
+  if (pills.length === 0) return null;
   return (
     <div className="flex flex-wrap items-center gap-2 pt-3">
       {summary && <span className="text-xs text-text-secondary">{summary}</span>}
-      {chips.map((chip) => (
+      {pills.map(({ key, item: chip, phase }) => (
         <span
-          key={chip.label}
-          className="inline-flex h-6 animate-open items-center rounded-full bg-tag-gray-bg pl-2.5 text-xs text-tag-gray"
+          key={key}
+          {...leavingProps(phase)}
+          className={cn(
+            'inline-flex h-6 items-center rounded-full bg-tag-gray-bg pl-2.5 text-xs text-tag-gray',
+            pillPhaseClass(phase),
+          )}
         >
           {chip.label}
           <button
@@ -181,7 +187,7 @@ export function PhoneSearchRow({
       </div>
       <button
         type="button"
-        className="shrink-0 cursor-pointer text-[17px] text-link"
+        className="shrink-0 cursor-pointer text-[17px] text-link transition-opacity duration-300 active:opacity-40 active:duration-0"
         onClick={onClose}
       >
         Cancel
