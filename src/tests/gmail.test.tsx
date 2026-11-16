@@ -14,10 +14,13 @@ vi.mock('../api/client', async (importOriginal) => ({
     getMessages: vi.fn(),
     triggerSync: vi.fn(),
     disconnectGmail: vi.fn(),
+    getAISettings: vi.fn(),
   },
 }));
 
 import { routeTree } from '../routeTree.gen';
+import { FREE_AI_CONSENT } from '../lib/freeAI';
+import { makeAISettings } from './fixtures';
 
 const MOCK_USER = { id: 'test-user', email: 'test@test.local', name: 'Test User' };
 
@@ -42,6 +45,12 @@ describe('Gmail Route', () => {
     // Mock window.location.href
     delete (window as any).location;
     window.location = { href: '' } as any;
+    // A Connect Gmail click of an earlier test leaves its mark for the next page.
+    sessionStorage.clear();
+    // No free AI here unless a test offers it: Connect Gmail works as before.
+    vi.mocked(api.getAISettings).mockResolvedValue(
+      makeAISettings({ offeredProviders: ['openrouter'], waitingEmails: 0 }),
+    );
   });
 
   function renderWithProviders(initialPath = '/gmail') {
@@ -423,5 +432,63 @@ describe('Gmail Route', () => {
       '/mails/thread-1',
     );
     expect(screen.getAllByRole('link', { name: 'Open in Mails' })).toHaveLength(1);
+  });
+
+  describe('connecting Gmail with the free AI (owner, 15 Nov 2026)', () => {
+    const notConnected = {
+      connected: false,
+      gmailEmail: null,
+      status: 'NOT_CONNECTED' as const,
+      syncStatus: 'IDLE' as const,
+      lastSyncedAt: null,
+    };
+
+    it('says the free AI reads the mails, and connects with it back to the Dashboard', async () => {
+      vi.mocked(api.getGmailStatus).mockResolvedValue(notConnected);
+      vi.mocked(api.getAISettings).mockResolvedValue(makeAISettings());
+      renderWithProviders();
+      expect(
+        await screen.findByText(/Your job mails are read by NorthList's free AI/),
+      ).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: 'Connect Gmail' }));
+      expect(window.location.href).toBe(
+        `/api/gmail/connect?returnTo=%2Fdashboard&freeAI=${encodeURIComponent(FREE_AI_CONSENT)}`,
+      );
+    });
+
+    it('says nothing about the AI before Gmail is connected', async () => {
+      vi.mocked(api.getGmailStatus).mockResolvedValue(notConnected);
+      vi.mocked(api.getAISettings).mockResolvedValue(makeAISettings());
+      renderWithProviders();
+      expect(await screen.findByRole('button', { name: 'Connect Gmail' })).toBeInTheDocument();
+      await waitFor(() => expect(api.getAISettings).toHaveBeenCalled());
+      expect(screen.queryByText('AI is not set up')).not.toBeInTheDocument();
+    });
+
+    it('a user who already has an AI connects Gmail as before', async () => {
+      vi.mocked(api.getGmailStatus).mockResolvedValue(notConnected);
+      vi.mocked(api.getAISettings).mockResolvedValue(
+        makeAISettings({
+          connections: [
+            {
+              provider: 'openrouter',
+              active: true,
+              state: 'READY',
+              reason: null,
+              modelId: null,
+              failure: null,
+              models: null,
+              verified: true,
+              lastCheckedAt: null,
+              consentCurrent: true,
+            },
+          ],
+        }),
+      );
+      renderWithProviders();
+      fireEvent.click(await screen.findByRole('button', { name: 'Connect Gmail' }));
+      expect(window.location.href).toBe('/api/gmail/connect');
+      expect(screen.queryByText(/read by NorthList's free AI/)).not.toBeInTheDocument();
+    });
   });
 });
