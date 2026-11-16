@@ -124,12 +124,15 @@ export function MetaLine({ conversation: c }: { conversation: Conversation }) {
 export function MailRow({ conversation: c }: { conversation: Conversation }) {
   const sender = parseSender(c.sender).name;
   return (
-    <li className="group relative grid grid-cols-[32px_minmax(0,1fr)_minmax(180px,240px)_64px_32px] gap-4 border-b border-border-subtle px-3 py-3.5 transition-colors duration-70 ease-standard hover:bg-layer-hover">
-      {c.isNew && (
-        <span className="absolute top-[26px] left-0.5 size-1.5 rounded-full bg-link">
-          <span className="sr-only">New</span>
-        </span>
-      )}
+    <div className="group relative grid grid-cols-[32px_minmax(0,1fr)_minmax(180px,240px)_64px_32px] gap-4 border-b border-border-subtle px-3 py-3.5 transition-colors duration-70 ease-standard hover:bg-layer-hover">
+      <span
+        className={cn(
+          'absolute top-[26px] left-0.5 size-1.5 rounded-full bg-link transition-[scale,opacity] duration-300 ease-standard',
+          c.isNew ? 'scale-100 opacity-100' : 'scale-0 opacity-0 delay-200',
+        )}
+      >
+        {c.isNew && <span className="sr-only">New</span>}
+      </span>
       <Avatar name={sender} className="mt-px" />
       <div className="min-w-0">
         <Link
@@ -159,6 +162,6 @@ export function MailRow({ conversation: c }: { conversation: Conversation }) {
       >
         <RowMenu conversation={c} />
       </div>
-    </li>
+    </div>
   );
 }
