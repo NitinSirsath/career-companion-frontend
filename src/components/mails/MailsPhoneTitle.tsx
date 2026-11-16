@@ -18,9 +18,13 @@ function ListMenu({ tab }: { tab: MailsTab }) {
   const current = lists.find((list) => list.value === tab) ?? lists[0];
   return (
     <Menu.Root>
-      <Menu.Trigger className="inline-flex max-w-full cursor-pointer items-center gap-1.5 text-left outline-none focus-visible:outline-2 focus-visible:outline-border-focus">
+      <Menu.Trigger className="group inline-flex max-w-full cursor-pointer items-center gap-1.5 text-left outline-none focus-visible:outline-2 focus-visible:outline-border-focus">
         <span className="truncate">{current.label}</span>
-        <ChevronDownIcon size={22} aria-hidden="true" className="shrink-0 text-text-tertiary" />
+        <ChevronDownIcon
+          size={22}
+          aria-hidden="true"
+          className="shrink-0 text-text-tertiary transition-transform duration-240 ease-spring group-data-[popup-open]:rotate-180"
+        />
       </Menu.Trigger>
       <Menu.Portal>
         <Menu.Positioner align="start" sideOffset={8} className="z-50 outline-none">
