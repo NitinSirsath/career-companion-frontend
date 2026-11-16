@@ -1,0 +1,4 @@
+# Gitleaks false alarms, checked by hand on 2026-11-15.
+# Made-up AI keys in a test and the smoke script; none of them is a real key.
+3ed7447659d46f2749353c1b17eb537f010ed9ac:scripts/smoke-stabilization.mjs:generic-api-key:777
+3ed7447659d46f2749353c1b17eb537f010ed9ac:src/tests/ai-settings.test.tsx:generic-api-key:27
