@@ -92,7 +92,8 @@ function applicationCard(card: HTMLElement): void {
 /** Reply box: the AI writes the draft (grey shimmer, then the text types in), then Send reply turns blue. */
 function replyDraft(demo: HTMLElement): void {
   const ed = demo.querySelector<HTMLElement>('.ed');
-  const send = demo.querySelector<HTMLButtonElement>('[data-send]');
+  // Send reply (laptop) and Send in the sheet's top bar (phones)
+  const sends = [...demo.querySelectorAll<HTMLButtonElement>('[data-send]')];
   if (!ed) return;
   const text = ed.dataset.text ?? '';
   const placeholder = ed.innerHTML;
@@ -112,7 +113,7 @@ function replyDraft(demo: HTMLElement): void {
   addEventListener('resize', size);
   const done = () => {
     ed.textContent = text;
-    if (send) send.disabled = false;
+    for (const send of sends) send.disabled = false;
   };
   const type = (my: number) => {
     let n = 0;
@@ -134,7 +135,7 @@ function replyDraft(demo: HTMLElement): void {
     const my = ++run;
     size();
     if (still) return done();
-    if (send) send.disabled = true;
+    for (const send of sends) send.disabled = true;
     ed.innerHTML = placeholder;
     setTimeout(() => {
       if (my !== run) return;

@@ -49,9 +49,10 @@ html[data-device='pixel'] .dv-home span { width: 108px; height: 4px; border-radi
 .alert .ai { width: 28px; height: 28px; display: grid; place-items: center; background: var(--bg-2); }
 .alert.press { background: var(--bg-2); }
 /* In a frame, the alert looks like the phone's own: just under the status bar, rounded like iOS or Android */
-.device .alert { top: calc(var(--dv-status) + 4px); left: 8px; right: 8px; padding: 12px 14px; border-color: var(--line); background: var(--bg-2); border-radius: 22px; }
+.device .alert { z-index: 50; top: calc(var(--dv-status) + 4px); left: 8px; right: 8px; padding: 12px 14px; border-color: transparent; border-radius: 24px;
+  background: color-mix(in srgb, var(--bg-2) 76%, transparent); backdrop-filter: blur(20px) saturate(1.8); box-shadow: 0 6px 24px rgb(0 0 0 / 0.14); } /* the phone's own alert: frosted, as on today's phones */
 .device .alert .ai { background: var(--bg); border-radius: 7px; }
-.device .alert.press { background: var(--bg-3); }
+.device .alert.press { background: color-mix(in srgb, var(--bg-3) 86%, transparent); }
 html[data-device='pixel'] .device .alert { border-radius: 24px; }
 html[data-device='pixel'] .device .alert .ai { border-radius: 50%; }
 .alert b { font-weight: 600; }

@@ -39,12 +39,13 @@ describe('the live example', () => {
   it('opens a mail, lets the AI write the reply, sends it, and closes the step', async () => {
     const { root, app } = start({ phone: true });
     click(root, '[data-open="brightwave"]');
-    expect(root.querySelector('.sa-h1')?.textContent).toBe(
+    expect(root.querySelector('.sa-big')?.textContent).toBe(
       'Interview invitation: Frontend Engineer',
     );
     click(root, '[data-act="reply"]');
+    expect(root.querySelector('.sa-sheet.large')?.getAttribute('aria-label')).toBe('Reply');
     click(root, '[data-ai="write"]');
-    expect(root.querySelector('.sa-writing')?.textContent).toContain('Writing your reply');
+    expect(root.querySelector('.sa-writing')?.textContent).toContain('AI is writing your reply');
     await vi.advanceTimersByTimeAsync(4000);
     const ta = root.querySelector<HTMLTextAreaElement>('.sa-ta')!;
     expect(ta.value).toContain('Tuesday, November 4 at 11:00 AM works well for me.');
@@ -56,23 +57,51 @@ describe('the live example', () => {
     expect(root.querySelector('.toast')?.textContent).toContain('Sent from your Gmail');
     await vi.advanceTimersByTimeAsync(1900);
     expect(app.mail('brightwave')?.state).toBe('DONE');
-    expect(root.querySelector('.sa-closed')?.textContent).toContain('Your reply answered it');
+    expect(root.querySelector('.sa-stepc.done')).not.toBeNull();
+    click(root, '[data-act="step"]');
+    expect(root.querySelector('.sa-sheet .sa-note')?.textContent).toContain(
+      'Your reply answered it',
+    );
+    expect(root.querySelector('.sa-sheet [data-act="reopen"]')).not.toBeNull();
+  });
+
+  it('puts a closed step back with Reopen, and Done closes a step done outside mail', () => {
+    const { root, app } = start({ phone: true });
+    click(root, '[data-open="kestrel"]');
+    click(root, '[data-act="did"]');
+    expect(app.mail('kestrel')?.state).toBe('DONE');
+    expect(root.querySelector('.toast')?.textContent).toContain('Done: Finish the coding test');
+    click(root, '[data-act="reopen"]');
+    expect(app.mail('kestrel')?.state).toBe('OPEN');
+    expect(app.s.apps.find((a) => a.mail === 'kestrel')?.todo).toBe('Finish the coding test');
+    expect(root.querySelector('.toast')?.textContent).toContain('Reopened: Finish the coding test');
+  });
+
+  it('shows key dates and the application behind ⓘ, in a sheet', () => {
+    const { root } = start({ phone: true });
+    click(root, '[data-open="brightwave"]');
+    click(root, '[data-act="info"]');
+    expect(root.querySelector('.sa-sheet')?.getAttribute('aria-label')).toBe('About this job mail');
+    expect(root.querySelector('.sa-dl dd')?.textContent).toBe('Mon, Nov 3');
+    click(root, '.sa-scrim');
+    expect(root.querySelector('.sa-sheet')).toBeNull();
   });
 
   it('finds a new mail on the first sync, hides what the AI found until it has read it, and nothing the second time', async () => {
     const { root, app } = start({ phone: true });
     click(root, '[data-act="sync"]');
-    expect(root.querySelector('.sa-pbar')?.textContent).toContain('Checking Gmail');
+    expect(root.querySelector('.sa-status')?.textContent).toBe('Syncing…');
     await vi.advanceTimersByTimeAsync(1200);
     expect(app.s.mails[0].id).toBe('fernhill');
     expect(root.querySelector('[data-open="fernhill"] .tg')?.classList.contains('sa-wait')).toBe(
       true,
     );
-    expect(root.querySelector('[data-open="fernhill"] .stp')?.textContent).toBe(
+    expect(root.querySelector('[data-open="fernhill"] .st')?.textContent).toBe(
       'AI is reading this mail',
     );
+    expect(root.querySelector('.sa-status')?.textContent).toContain('Reading your new mails');
     await vi.advanceTimersByTimeAsync(1800);
-    expect(root.querySelector('[data-open="fernhill"] .stp')?.textContent).toBe(
+    expect(root.querySelector('[data-open="fernhill"] .st')?.textContent).toBe(
       'Suggest a time for a call',
     );
     expect(app.s.apps.find((a) => a.co === 'Fernhill')?.status).toBe('RECRUITER_CONTACT');
@@ -109,7 +138,7 @@ describe('the live example', () => {
     app.reset();
     expect(root.classList.contains('used')).toBe(false);
     expect(app.s.view).toBe('dashboard');
-    expect(root.querySelector('.sa-ptabs .on')?.textContent).toBe('Dashboard');
+    expect(root.querySelector('.sa-tabbar .on')?.textContent).toBe('Dashboard');
     expect(app.s.mails).toHaveLength(5);
   });
 
@@ -157,10 +186,18 @@ describe('the live example', () => {
     ])
       expect(avatarTone(name)).toContain(`--avatar-${tone(name).slice(1)})`);
     const { root } = start({ phone: true });
-    click(root, '[data-act="new"]');
+    click(root, '[data-menu="filters"]');
+    click(root, '.sa-menu [data-act="new"]');
+    expect(root.querySelector('.sa-menu')).toBeNull();
     expect(
       [...root.querySelectorAll('[data-open]')].map((el) => el.getAttribute('data-open')),
     ).toEqual(['brightwave', 'kestrel']);
+    expect(root.querySelector('.sa-fpill')?.textContent).toBe('New only');
+    // A tap outside an open menu only closes it.
+    click(root, '[data-menu="filters"]');
+    click(root, '.sa-big');
+    expect(root.querySelector('.sa-menu')).toBeNull();
+    expect(root.querySelectorAll('[data-open]')).toHaveLength(2);
   });
 
   it('asks the server for nothing', async () => {

@@ -1,9 +1,16 @@
 /*
- * The app's own look (owner, 4 Nov 2026) for the pictures of the app on the site: the live example
- * (`.sa`) and the drawn app parts (`.app-look`). The colours are the app's, from src/index.css; the rest
- * of the site keeps its own.
+ * The app's own look for the pictures of the app on the site: the live example (`.sa`) and the drawn
+ * app parts (`.app-look`). The colours are the app's, from src/index.css (owner, 4 Nov 2026); since the
+ * new look (owner, 13 Nov 2026) also its font (the device's own), round buttons, chips and fields, 16 px
+ * cards and quiet frosted glass on things that float. The rest of the site keeps its own look and Geist.
  */
 :is(.sa, .app-look) {
+  --app-font: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --sans: var(--app-font);
+  font-family: var(--app-font);
+  --glass: rgb(250 250 252 / 0.74); --glass-edge: rgb(0 0 0 / 0.08); --glass-shadow: 0 2px 12px rgb(0 0 0 / 0.14);
+  --glass-pill: rgb(0 0 0 / 0.075); --glass-cut: #e7e7ea; --menu: #ffffff; --sheet-bg: #ffffff; --danger: #d92d20;
+  --ease-sheet: cubic-bezier(0.32, 0.72, 0, 1); --ease-push: cubic-bezier(0.2, 0.9, 0.25, 1);
   --bg: #ffffff; --bg-2: #f5f5f6; --bg-3: #ececee;
   --panel: #f5f5f6;
   --line: #ededef; --line-2: #e1e1e5; --line-3: #a1a1aa;
@@ -33,6 +40,8 @@
   --sheet-shadow: none; --button-shadow: 0 1px 1px rgb(0 0 0 / 0.04);
 }
 :root[data-theme='dark'] :is(.sa, .app-look) {
+  --glass: rgb(42 42 47 / 0.64); --glass-edge: rgb(255 255 255 / 0.1); --glass-shadow: 0 2px 12px rgb(0 0 0 / 0.4);
+  --glass-pill: rgb(255 255 255 / 0.11); --glass-cut: #313136; --menu: #18181b; --sheet-bg: #18181b; --danger: #f97066;
   --bg: #111113; --bg-2: #18181b; --bg-3: #222226;
   --panel: #18181b;
   --line: #232327; --line-2: #2e2e33; --line-3: #52525b;
@@ -73,8 +82,56 @@
 :is(.sa, .app-look) .tag-yellow { --ring: var(--tag-yellow-ring); }
 :is(.sa, .app-look) .tag-outline { --ring: var(--line-3); background: transparent; color: var(--text-2); }
 
-/* Buttons, chips and fields: 6 px corners, as in the app */
-:is(.sa, .app-look) :is(.sa-btn, .chip) { border-radius: 6px; box-shadow: var(--button-shadow); }
+/* Buttons, chips and fields: fully round, as in the app since the new look */
+:is(.sa, .app-look) :is(.sa-btn, .chip) { border-radius: 999px; box-shadow: var(--button-shadow); }
 :is(.sa, .app-look) .sa-btn { height: 34px; border-color: var(--line-2); font-weight: 500; }
 :is(.sa, .app-look) .sa-btn.pri { box-shadow: none; }
-:is(.sa, .app-look) .hintrow .field { border-radius: 6px; border-color: var(--line-2); }
+:is(.sa, .app-look) .hintrow .field { border-radius: 999px; border-color: var(--line-2); }
+
+/* Frosted glass, only on things that float over the page: quiet, no shine. The build adds -webkit- for Safari. */
+:is(.sa, .app-look) .glass { background: var(--glass); backdrop-filter: blur(18px) saturate(1.7); box-shadow: inset 0 0 0 0.5px var(--glass-edge), var(--glass-shadow); }
+:is(.sa, .app-look) .glass-menu { background: color-mix(in srgb, var(--menu) 76%, transparent); backdrop-filter: blur(18px) saturate(1.7); box-shadow: inset 0 0 0 0.5px var(--glass-edge), 0 12px 32px rgb(0 0 0 / 0.18); }
+
+/* The drawn app parts on Home, in the new look: 16 px cards, round step markers, round text tools, and
+   the "Next step" card over the hero phone on frosted glass (it floats over the picture). */
+.life-step .card, .life-step .card::before { border-radius: 16px; }
+@media (min-width: 600px) {
+  .appcard, .appcard::before, .rbox, .rbox::before { border-radius: 20px; }
+}
+.appcard .track .sq, .appcard .track .now .sq::after { border-radius: 50%; }
+.rbox .rhead { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.rbox .x { width: 28px; height: 28px; display: grid; place-items: center; margin-right: -6px; color: var(--text-2); }
+.rbox .editor .tb span { border-radius: 8px; }
+.rbox .chip { font-weight: 500; }
+@media (max-width: 599px) {
+  .hero-float.app-look { border: 0; border-radius: 16px; background: var(--glass); backdrop-filter: blur(18px) saturate(1.7); box-shadow: inset 0 0 0 0.5px var(--glass-edge), var(--glass-shadow); }
+}
+/* The reply picture: the laptop's reply box; on phones the phone's reply sheet (× Reply Send at the top,
+   To, the AI's help on a grey card, the text tools at the bottom). */
+.rbox .psheet, .rbox .field .sm, .rbox .aihelp .lbl svg { display: none; }
+@media (max-width: 599px) {
+  .rbox { padding-top: 0; gap: 12px; }
+  .rbox::before { background: var(--bg); border-radius: 22px 22px 0 0; -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent); mask-image: linear-gradient(to bottom, #000 70%, transparent); }
+  .rbox .psheet { display: block; }
+  .rbox .grab { display: block; width: 36px; height: 5px; border-radius: 3px; background: var(--line-2); margin: 7px auto 0; }
+  .rbox .sh { display: grid; grid-template-columns: 36px 1fr auto; align-items: center; gap: 10px; min-height: 52px; }
+  .rbox .sh b { text-align: center; font-size: 18px; font-weight: 650; }
+  .rbox .sx { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; background: var(--bg-2); }
+  .rbox .sh .sa-btn { height: 34px; padding: 0 16px; font-size: 15px; font-weight: 600; }
+  .rbox .pto { display: flex; align-items: center; gap: 8px; padding: 6px 0 10px; border-bottom: 0.5px solid var(--line-2); font-size: 15px; color: var(--text-2); }
+  .rbox .pto span { padding: 2px 10px; border-radius: 12px; background: var(--bg-2); color: var(--text); }
+  .rbox .rhead, .rbox .editor .efoot { display: none; }
+  .rbox .aihelp { padding: 12px; border-radius: 16px; background: var(--bg-2); gap: 10px; }
+  .rbox .aihelp .lbl { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; }
+  .rbox .aihelp .lbl svg { display: block; }
+  .rbox .chip { height: auto; min-height: 36px; padding: 7px 14px; border: 0; background: var(--bg); font-size: 15px; box-shadow: none; }
+  .rbox .hintrow { flex-wrap: nowrap; }
+  .rbox .hintrow .field { display: flex; height: 40px; min-width: 0; border: 0; padding: 0 14px; font-size: 15px; }
+  .rbox .field .lg { display: none; }
+  .rbox .field .sm { display: inline; }
+  .rbox .chip.wai { height: 40px; background: var(--blue); color: #fff; font-weight: 600; white-space: nowrap; }
+  .rbox .editor { display: flex; flex-direction: column; border-top: 0; }
+  .rbox .editor .ed { order: 1; padding-top: 4px; font-size: 17px; line-height: 25px; }
+  .rbox .editor .tb { order: 2; border-bottom: 0; border-top: 0.5px solid var(--line-2); padding-top: 6px; padding-bottom: 10px; }
+  .rbox .editor .tb span { width: 40px; height: 38px; border-radius: 19px; }
+}

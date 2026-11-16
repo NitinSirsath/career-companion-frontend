@@ -32,7 +32,7 @@ export function startAlert(alert: HTMLElement, phoneEl: HTMLElement, app: Sample
     run += 1;
     phoneEl.classList.add('used');
     openMail();
-    phoneEl.querySelector<HTMLElement>('.sa-ppage .sa-h1')?.focus({ preventScroll: true });
+    phoneEl.querySelector<HTMLElement>('.sa-big')?.focus({ preventScroll: true });
   });
   alert.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter' && e.key !== ' ') return;

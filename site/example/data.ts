@@ -73,6 +73,9 @@ export interface State {
   /** The Mails list's quick filters: Needs action, New only */
   needsOnly: boolean;
   newOnly: boolean;
+  /** Phones: the open pop-up menu (the filters in the capsule) or sheet (ⓘ about the mail, or the next step). */
+  menu: 'filters' | null;
+  sheet: 'info' | 'step' | null;
 }
 
 export const TYPE: Record<MailType, [string, string]> = {
@@ -160,6 +163,8 @@ export function startState(view: View): State {
     syncedAt: '9:40 AM',
     needsOnly: false,
     newOnly: false,
+    menu: null,
+    sheet: null,
   };
 }
 
