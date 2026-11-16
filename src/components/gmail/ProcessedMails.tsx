@@ -1,4 +1,5 @@
 import { useState, useSyncExternalStore } from 'react';
+import { MailCheckIcon } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { api, isApiError } from '../../api/client';
@@ -179,7 +180,7 @@ function ReadMailsEmpty({ failed }: { failed: boolean }) {
   if (failed)
     return <SectionError className="my-4" title="Could not load the mails the app has read" />;
   return (
-    <EmptyState title="No job mails read yet">
+    <EmptyState icon={MailCheckIcon} title="No job mails read yet">
       Job mails appear here after a sync reads them.
     </EmptyState>
   );
