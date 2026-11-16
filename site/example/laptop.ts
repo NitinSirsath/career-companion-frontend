@@ -1,8 +1,14 @@
-import { icon as I, wordmark } from '../parts/icons.ts';
+import { appIcon as I } from '../parts/appIcons.ts';
+import { wordmark } from '../parts/icons.ts';
 import { needing, shownMails, TYPE, type Mail, type State } from './data.ts';
-import { appCard, avatar, esc, fakeTag, mailCount, message, nextCard, reading, replyBox, statusTag, stepLine, synced } from './pieces.ts';
+import { appCard, asking, avatar, esc, mailCount, message, nextCard, reading, replyBar, replyBox, statusTag, stepLine, summary, synced } from './pieces.ts';
 
-/* The example's laptop layout: side menu, top bar, and the Mails, mail, Applications and Dashboard pages. */
+/*
+ * The example's laptop layout: side menu, top bar, and the Mails, mail, Applications and Dashboard pages.
+ * The app's desktop keeps its layout in the new look (owner, 13 Nov 2026): Lucide icons, the device's own
+ * font, round buttons and fields, 16 px cards, a refresh button on the Dashboard, the reply box under the
+ * conversation with × to close it.
+ */
 
 /** "Priya Nair · Brightwave · Interview · 2 mails" */
 const metaLine = (m: Mail) => [m.from, m.company, TYPE[m.type][0], mailCount(m)].map(esc).join(' · ');
@@ -17,36 +23,29 @@ function mailRow(m: Mail): string {
   return `
     <div class="sa-tr row${m.fresh ? ' sa-new' : ''}" data-open="${m.id}" tabindex="0">
       ${m.isNew ? '<i class="sa-dot" aria-label="New"></i>' : ''}${avatar(m.from)}
-      <span class="sa-cell"><span class="sa-subj${m.isNew ? ' new' : ''}">${esc(m.subject)}</span>${stepLine(m, 'sa-step')}<span class="sa-meta">${metaLine(m)}</span></span>
+      <span class="sa-cell"><span class="sa-subj${m.isNew ? ' new' : ''}">${esc(m.subject)}</span>${stepLine(m, 'sa-step', 16)}<span class="sa-meta">${metaLine(m)}</span></span>
       <span class="sa-cell${m.reading ? ' sa-wait' : ''}">${appCell(m)}</span>
       <span class="sa-date c-date">${m.date}</span>
     </div>`;
 }
 
-/** "3 mails need you. Everything else is up to date." The count turns the Needs action filter on and off. */
-function summary(s: State): string {
-  const n = needing(s).length;
-  if (n === 0) return 'Nothing needs you right now. Everything is up to date.';
-  return `<button type="button" class="sa-need" data-act="needs" aria-pressed="${s.needsOnly}">${n === 1 ? '1 mail needs you' : `${n} mails need you`}</button>. Everything else is up to date.`;
-}
-
 function mailsView(s: State): string {
   return `<div class="sa-page">
-    <div class="sa-head"><div><h3 class="sa-h1">Mails</h3><p class="sa-sub">${summary(s)}</p></div>
-      <div class="sa-sync"><span>${synced(s)}</span><button type="button" class="sa-btn" data-act="sync" ${s.syncing ? 'disabled' : ''}>${I('renew', 14, s.syncing ? 'spin' : '')} Sync now</button></div></div>
+    <div class="sa-head"><div><h3 class="sa-h1">Mails</h3><p class="sa-sub">${summary(needing(s).length, s.needsOnly)}</p></div>
+      <div class="sa-sync"><span>${synced(s)}</span><button type="button" class="sa-btn" data-act="sync" ${s.syncing ? 'disabled' : ''}>${I('renew', 16, s.syncing ? 'spin' : '')} Sync now</button></div></div>
     <div class="sa-tabline">
       <div class="sa-tabs"><span class="on">Job mails <i>${s.mails.length}</i></span><span>Whole inbox</span><span class="c-hide">Restricted</span></div>
-      <div class="sa-tools"><div class="sa-search">${I('search', 14)} Search mails</div><span class="sa-ghost">${I('filter', 14)} Filters</span><span class="sa-filter c-hide">Sort: Newest first ${I('chevronDown', 12)}</span></div>
+      <div class="sa-tools"><div class="sa-search">${I('search', 14)} Search mails</div><span class="sa-ghost">${I('filter', 16)} Filters</span><span class="sa-filter c-hide">Sort: Newest first ${I('chevronDown', 14)}</span></div>
     </div>
     <div class="sa-list" aria-label="Job mails">${shownMails(s).map(mailRow).join('')}</div>
   </div>`;
 }
 
 function mailView(s: State, m: Mail): string {
+  const asks = asking(m);
   return `<div class="sa-page">
-    <div class="sa-head"><div><h3 class="sa-h1">${esc(m.subject)}</h3><div class="sa-tagrow">${m.app ? statusTag(m.app.status) : ''}${m.fake ? fakeTag : ''}<span class="sa-meta">${esc(m.company)} · ${mailCount(m)}</span></div></div>
-      ${s.reply ? '' : `<button type="button" class="sa-btn pri" data-act="reply">${I('reply', 14)} Reply</button>`}</div>
-    <div class="sa-conv"><div class="sa-thread">${m.thread.map(message).join('')}${s.reply ? replyBox(m, s.reply) : ''}</div>
+    <div class="sa-head"><div><h3 class="sa-h1">${esc(m.subject)}</h3><div class="sa-tagrow">${m.app ? statusTag(m.app.status) : ''}<span class="sa-meta">${esc(m.company)} · ${mailCount(m)}</span></div></div></div>
+    <div class="sa-conv"><div class="sa-thread">${m.thread.map((x) => message(x, x === asks)).join('')}${s.reply ? replyBox(m, s.reply) : replyBar(m)}</div>
       <div class="sa-cards">${nextCard(m)}${appCard(m)}</div></div>
   </div>`;
 }
@@ -67,7 +66,7 @@ function appsView(s: State): string {
   return `<div class="sa-page">
     <div class="sa-head"><div><h3 class="sa-h1">Applications</h3><p class="sa-sub">Every job you applied for, where it stands, and what is next.</p></div></div>
     <div class="sa-seg"><span class="on">All</span><span>Applied</span><span>Recruiter contact</span><span>Assessment</span><span>Interview</span><span class="c-hide">Offer</span><span class="c-hide">Rejected</span></div>
-    <div class="sa-atools"><div class="sa-search">${I('search', 14)} Search company or job title</div><span class="sa-filter c-hide">Sort: Newest added ${I('chevronDown', 12)}</span></div>
+    <div class="sa-atools"><div class="sa-search">${I('search', 16)} Search company or job title</div><span class="sa-filter c-hide">Sort: Newest added ${I('chevronDown', 14)}</span><button type="button" class="sa-btn sa-refresh" data-act="sync" aria-label="Refresh" ${s.syncing ? 'disabled' : ''}>${I('renew', 16, s.syncing ? 'spin' : '')}</button></div>
     <div class="sa-table" aria-label="Applications">
       <div class="sa-tr apps sa-th"><span>Company <span class="sa-count">${s.apps.length}</span></span><span>Status</span><span>To do</span><span class="c-date">Applied</span><span class="c-hide">Last activity</span></div>
       ${rows}
@@ -117,6 +116,9 @@ const FUNNEL = `<div class="sa-two">
     <div class="sa-quiet"><span><b>Halcyon</b><span class="sa-meta">UI Developer</span></span><span class="sa-meta">16 days</span></div></div>
 </div>`;
 
+/** Your progress: the five numbers, the running total and the way from applied to offer. */
+export const PROGRESS = `${STATS_HTML}${CHART}${FUNNEL}`;
+
 interface NowCard {
   /** The page it opens, if any */
   go?: string;
@@ -131,8 +133,8 @@ interface NowCard {
 /** One "Needs you now" panel. */
 function nowCard({ go, icon: ic, title: k, value: v, note: d, dot = false }: NowCard): string {
   const tag = go ? `button type="button" data-go="${go}"` : 'div';
-  const arrow = go ? `<span class="arr">${I('arrowRight', 14)}</span>` : '<span></span>';
-  return `<${tag} class="sa-panel"><span class="k">${I(ic, 14)} ${k}${dot ? '<i class="sa-dot"></i>' : ''}</span>${arrow}<b>${v}</b><span class="d">${d}</span></${go ? 'button' : 'div'}>`;
+  const arrow = go ? `<span class="arr">${I('arrowRight', 16)}</span>` : '<span></span>';
+  return `<${tag} class="sa-panel"><span class="k">${I(ic, 16)} ${k}${dot ? '<i class="sa-dot"></i>' : ''}</span>${arrow}<b>${v}</b><span class="d">${d}</span></${go ? 'button' : 'div'}>`;
 }
 
 /** The Dashboard page, as in the app; the phone layout shows the same page without its outer frame. */
@@ -140,17 +142,16 @@ export function dashView(s: State): string {
   const open = needing(s).length;
   const fresh = s.mails.filter((m) => m.isNew).length;
   return `<div class="sa-page">
-    <div class="sa-head"><div><h3 class="sa-h1">Good morning, Alex</h3><p class="sa-sub">Your job search, from your mails since Oct 1</p></div></div>
+    <div class="sa-head"><div><h3 class="sa-h1">Good morning, Alex</h3><p class="sa-sub">Monday, November 3 · your job search, from your mails since Oct 1</p></div>
+      <button type="button" class="sa-iconbtn" data-act="sync" aria-label="Refresh" ${s.syncing ? 'disabled' : ''}>${I('renew', 18, s.syncing ? 'spin' : '')}</button></div>
     <h4 class="sa-sec">Needs you now</h4>
     <div class="sa-now">
       ${nowCard({ go: 'mails', icon: 'mail', title: 'New job mails', value: fresh, note: fresh ? 'Open them on Mails' : 'You have opened every job mail' })}
-      ${nowCard({ go: 'mails', icon: 'doc', title: 'Needs action', value: open, note: 'Answer them, or mark them done', dot: open > 0 })}
+      ${nowCard({ go: 'mails', icon: 'todo', title: 'Needs action', value: open, note: 'Answer them, or mark them done', dot: open > 0 })}
       ${nowCard({ icon: 'calendar', title: 'Interviews coming up', value: 0, note: 'No interviews booked yet' })}
     </div>
-    <div class="sa-sechead"><h4 class="sa-sec">Your progress</h4><span class="sa-filter">Last 30 days ${I('chevronDown', 12)}</span></div>
-    ${STATS_HTML}
-    ${CHART}
-    ${FUNNEL}
+    <div class="sa-sechead"><h4 class="sa-sec">Your progress</h4><span class="sa-filter">Last 30 days ${I('chevronDown', 14)}</span></div>
+    ${PROGRESS}
   </div>`;
 }
 
@@ -161,8 +162,8 @@ const CRUMB_ICON = { dashboard: 'dashboard', mails: 'mail', mail: 'mail', applic
 export function laptop(s: State, m: Mail | null): string {
   const title = TITLE[s.view];
   const crumb = m
-    ? `<button type="button" data-act="back">${I('mail', 14)} Mails</button><span class="sep">${I('chevronRight', 12)}</span><span class="cur">${esc(m.company)}</span>`
-    : `${I(CRUMB_ICON[s.view], 14)}<span class="cur">${title}</span>`;
+    ? `<button type="button" data-act="back">${I('mail', 16)} Mails</button><span class="sep">${I('chevronRight', 14)}</span><span class="cur">${esc(m.company)}</span>`
+    : `${I(CRUMB_ICON[s.view], 16)}<span class="cur">${title}</span>`;
   const nav = (v: string, ic: string, label: string) =>
     `<button type="button" class="sa-nav${title === label ? ' on' : ''}" data-go="${v}" title="${label}">${I(ic, 16)} <span class="lbl">${label}</span></button>`;
   const soon = (ic: string, label: string) =>
@@ -172,7 +173,7 @@ export function laptop(s: State, m: Mail | null): string {
     <div class="sa-brand">${wordmark(17)}</div>
     <div class="sa-top"><div class="sa-crumb">${crumb}</div><div class="sa-top-right"><span><span class="sa-avatar">A</span></span></div></div>
     <aside class="sa-side" aria-label="Sample app menu">${nav('dashboard', 'dashboard', 'Dashboard')}${nav('mails', 'mail', 'Mails')}${nav('applications', 'doc', 'Applications')}
-      <span class="sa-group">Settings</span>${soon('renew', 'Gmail sync')}${soon('model', 'AI providers')}${soon('flow', 'NorthList Apply')}${reading(s)}</aside>
+      <span class="sa-group">Settings</span>${soon('renew', 'Gmail sync')}${soon('ai', 'AI providers')}${soon('flow', 'NorthList Apply')}${reading(s)}</aside>
     <div class="sa-main">${view}</div>
   </div>`;
 }
