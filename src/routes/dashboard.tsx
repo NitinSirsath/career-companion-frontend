@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useAIReading } from '../api/aiReading';
 import { useDashboard } from '../api/dashboard';
 import { useGmailStatus } from '../api/gmail';
+import { AIAccessNotice } from '../components/ai/AIAccessNotice';
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
 import { PageHeader } from '../components/layout/PageHeader';
 import { useIsPhone } from '../components/layout/useIsPhone';
@@ -52,6 +53,13 @@ function DashboardPage() {
   const hasData = !!numbers?.dataStartsAt;
   const noGmail = gmail.data?.connected === false && !hasData;
   const firstRead = reading.data?.state === 'READING' && !numbers?.mailbox.jobMails.total;
+  // Right after Gmail is connected the first sync runs (owner, 15 Nov 2026): no empty numbers yet.
+  const firstSync =
+    !!gmail.data?.connected &&
+    gmail.data.syncStatus === 'SYNCING' &&
+    !gmail.data.lastSyncedAt &&
+    !hasData;
+  const starting = firstRead || firstSync;
   const setPeriod = (next: DashboardPeriod) =>
     void navigate({ search: next === DEFAULT_PERIOD ? {} : { period: next }, replace: true });
 
@@ -69,16 +77,20 @@ function DashboardPage() {
           description={todayLine(numbers?.dataStartsAt ?? null)}
         />
       )}
+      {/* Mails wait for AI (none chosen, a pause, a key problem): the Mails page's AI line. */}
+      {gmail.data?.connected && <AIAccessNotice compact />}
       {noGmail && <NoGmailYet status={gmail.data?.status} />}
-      {!noGmail && firstRead && reading.data && <ReadingFirstMails reading={reading.data} />}
-      {!noGmail && !firstRead && dashboard.isPending && <DashboardSkeleton />}
+      {!noGmail && starting && (
+        <ReadingFirstMails reading={firstRead ? (reading.data ?? null) : null} />
+      )}
+      {!noGmail && !starting && dashboard.isPending && <DashboardSkeleton />}
       {!noGmail && dashboard.isError && !numbers && (
         <SectionError
           title="Could not load your numbers"
           onRetry={() => void dashboard.refetch()}
         />
       )}
-      {!noGmail && !firstRead && numbers && (
+      {!noGmail && !starting && numbers && (
         <DashboardBody numbers={numbers} period={period} onPeriodChange={setPeriod} />
       )}
     </div>

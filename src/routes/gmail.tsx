@@ -39,7 +39,8 @@ function ConnectProblem({ error }: { error: string }) {
 
 /**
  * Right after Gmail is connected, a user with no AI provider yet goes on to choose how mails are
- * read (owner, 24 Oct 2026). Anyone else stays here.
+ * read (owner, 24 Oct 2026). Since 15 Nov 2026 that happens only when the free AI could not come
+ * with the connection; with it, the user goes to the Dashboard instead. Anyone else stays here.
  */
 function useNextStepAfterConnect(connected: boolean) {
   const queryClient = useQueryClient();
@@ -84,7 +85,8 @@ function GmailPage() {
           description="Which Gmail the app reads, how far back, and every mail it has read."
           actions={status && connected && <GmailSyncNow status={status} sync={sync} />}
         />
-        <AIAccessNotice />
+        {/* Before Gmail is connected there is nothing for the AI to read yet. */}
+        {connected && <AIAccessNotice />}
         {(connectError || search.gmailError) && (
           <ConnectProblem error={connectError ?? search.gmailError ?? ''} />
         )}

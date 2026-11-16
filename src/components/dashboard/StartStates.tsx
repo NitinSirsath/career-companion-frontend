@@ -1,8 +1,12 @@
-import { Link } from '@tanstack/react-router';
 import type { AIReadingStatusResponse } from '../../contracts/ai';
 import { useSandboxMailbox } from '../../api/appMode';
+import { useFreeAIWithGmail } from '../../api/freeAI';
+import { startGmailConnect } from '../../lib/afterGmailConnect';
 import { gmailConnectionCopy } from '../../lib/gmailConnection';
 import { timeLeftText } from '../../lib/aiReading';
+import { isFreeAI } from '../../lib/freeAI';
+import { FreeAIConsentLine } from '../ai/FreeAIConsentLine';
+import { Button } from '../ui/button';
 import { Skeleton } from '../ui/skeleton';
 
 const STEPS = [
@@ -20,9 +24,13 @@ const STEPS = [
   },
 ];
 
-/** A new user with no Gmail yet: one clear start, and nothing else on the page. */
+/**
+ * A new user with no Gmail yet: one clear start, and nothing else on the page. One tap goes to
+ * Google (owner, 15 Nov 2026); while the free AI comes with it, the line under the button says so.
+ */
 export function NoGmailYet({ status }: { status: string | null | undefined }) {
   const sandbox = useSandboxMailbox();
+  const withFreeAI = useFreeAIWithGmail();
   return (
     <div className="flex flex-col gap-6">
       <section className="flex flex-col items-center gap-2 panel px-6 py-12 text-center">
@@ -31,19 +39,14 @@ export function NoGmailYet({ status }: { status: string | null | undefined }) {
           Connect Gmail and NorthList reads your job mails: applications, replies, interviews and
           offers. This page then shows how your search is going.
         </p>
-        <Link
-          to="/gmail"
-          className="mt-3 inline-flex h-10 items-center bg-action-primary px-4 text-sm text-text-inverse hover:bg-action-primary-hover"
-        >
+        <Button size="lg" className="mt-3" onClick={() => startGmailConnect(withFreeAI)}>
           {gmailConnectionCopy(sandbox, status).connect}
-        </Link>
+        </Button>
+        {withFreeAI && <FreeAIConsentLine className="mt-1 max-w-115 md:max-w-none" />}
       </section>
-      <ol className="grid border-t border-l border-border-subtle md:grid-cols-3">
+      <ol className="grid gap-2 md:grid-cols-3">
         {STEPS.map((step, i) => (
-          <li
-            key={step.title}
-            className="flex flex-col gap-1.5 border-r border-b border-border-subtle p-4 md:p-6"
-          >
+          <li key={step.title} className="flex flex-col gap-1.5 panel p-4 md:p-6">
             <span className="font-mono text-[12px] text-text-secondary">{i + 1}</span>
             <span className="text-sm font-semibold">{step.title}</span>
             <span className="text-xs text-text-secondary">{step.text}</span>
@@ -54,8 +57,24 @@ export function NoGmailYet({ status }: { status: string | null | undefined }) {
   );
 }
 
-/** Gmail is connected and the AI reads the first mails: progress, not empty charts. */
-export function ReadingFirstMails({ reading }: { reading: AIReadingStatusResponse }) {
+/**
+ * Gmail is connected and the first mails come in: progress, not empty charts. With `reading`, the
+ * AI reads them (and names the free AI when it is the one, owner 15 Nov 2026); without, the first
+ * sync is still getting them from Gmail.
+ */
+export function ReadingFirstMails({ reading }: { reading: AIReadingStatusResponse | null }) {
+  if (!reading)
+    return (
+      <div className="flex flex-col gap-6">
+        <section className="panel p-4 md:p-6" aria-live="polite">
+          <p className="ai-shimmer text-sm font-semibold">Getting your mails from Gmail</p>
+          <p className="mt-1 text-xs text-text-secondary">
+            The AI reads them next. The numbers fill in as each mail is read.
+          </p>
+        </section>
+        <DashboardSkeleton />
+      </div>
+    );
   const time = reading.secondsLeft === null ? '' : ` · ${timeLeftText(reading.secondsLeft)}`;
   const share = reading.total ? (reading.done / reading.total) * 100 : 0;
   return (
@@ -63,11 +82,13 @@ export function ReadingFirstMails({ reading }: { reading: AIReadingStatusRespons
       <section className="panel p-4 md:p-6" aria-live="polite">
         <p className="ai-shimmer text-sm font-semibold">The AI is reading your mails</p>
         <p className="mt-1 text-xs text-text-secondary">
-          {reading.done} of {reading.total} done{time}. The numbers fill in as each mail is read.
+          {reading.done} of {reading.total} done{time}
+          {isFreeAI(reading.provider) && ' · read by NorthList free AI'}. The numbers fill in as
+          each mail is read.
         </p>
-        <div className="mt-3 h-1 bg-chart-track" aria-hidden>
+        <div className="mt-3 h-1 overflow-hidden rounded-full bg-chart-track" aria-hidden>
           <div
-            className="h-full bg-link transition-[width] duration-240"
+            className="h-full rounded-full bg-link transition-[width] duration-240"
             style={{ width: `${share}%` }}
           />
         </div>
@@ -83,15 +104,15 @@ export function DashboardSkeleton() {
     <div className="flex flex-col gap-8" aria-hidden>
       <div className="grid gap-2 md:grid-cols-3">
         {[0, 1, 2].map((i) => (
-          <Skeleton key={i} className="h-20 md:h-40" />
+          <Skeleton key={i} className="h-20 rounded-lg md:h-40" />
         ))}
       </div>
       <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
         {[0, 1, 2, 3, 4].map((i) => (
-          <Skeleton key={i} className="h-28" />
+          <Skeleton key={i} className="h-28 rounded-lg" />
         ))}
       </div>
-      <Skeleton className="h-72" />
+      <Skeleton className="h-72 rounded-lg" />
     </div>
   );
 }

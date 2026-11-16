@@ -3,6 +3,7 @@ import {
   type ApplicationEventResponse,
   type ApplicationResponse,
 } from '../contracts/application';
+import type { AISettingsResponse } from '../contracts/ai';
 import type { Conversation, ConversationMail } from '../contracts/conversation';
 import type { MailMessage } from '../contracts/mailbox';
 
@@ -171,6 +172,37 @@ export function makeMailMessage(overrides: Partial<MailMessage> = {}): MailMessa
     html: null,
     truncated: false,
     attachments: [],
+    ...overrides,
+  };
+}
+
+/**
+ * AI settings of a user with no provider yet, with the free AI offered and 3 mails waiting.
+ * Override what a test needs.
+ */
+export function makeAISettings(overrides: Partial<AISettingsResponse> = {}): AISettingsResponse {
+  return {
+    configured: false,
+    provider: null,
+    offeredProviders: ['openrouter', 'career-companion'],
+    models: null,
+    access: {
+      state: 'NOT_SET_UP',
+      reason: 'NOT_SET_UP',
+      modelId: null,
+      resumesAt: null,
+      failure: null,
+      pauses: [],
+      verified: false,
+      lastCheckedAt: null,
+    },
+    lastFailure: null,
+    usageToday: { day: '2026-11-15', calls: 0, inputTokens: 0, outputTokens: 0 },
+    safetyLimit: { callsPerDay: 250, resetsAt: '2026-11-16T00:00:00.000Z' },
+    waitingEmails: 3,
+    needsYourOk: { emails: 0, model: null, lastTriedAt: null, tries: 0 },
+    consent: null,
+    connections: [],
     ...overrides,
   };
 }

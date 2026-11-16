@@ -22,6 +22,13 @@ export const FREE_AI_MODEL = getCatalogProvider(FREE_AI)?.models[0]?.displayName
 export const freeAIOffered = (settings: AISettingsResponse) =>
   settings.offeredProviders.includes(FREE_AI);
 
+/**
+ * Connecting Gmail turns on the free AI (owner, 15 Nov 2026) for a user with no provider at all,
+ * connected or saved, while the server offers it. The Connect Gmail button then says so.
+ */
+export const freeAIStartsWithGmail = (settings: AISettingsResponse | undefined): boolean =>
+  !!settings && freeAIOffered(settings) && !settings.connections.length;
+
 export const freeAIConnection = (settings: AISettingsResponse): AIConnection | null =>
   settings.connections.find((connection) => isFreeAI(connection.provider)) ?? null;
 
