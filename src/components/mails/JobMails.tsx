@@ -140,6 +140,7 @@ export function JobMails({ search, onChange }: JobMailsProps) {
             >
               <div className={phase === 'stay' ? undefined : 'min-h-0 overflow-clip'}>
                 <PhoneMailRow conversation={item} />
+              </div>
             </div>
           ))}
         </div>
