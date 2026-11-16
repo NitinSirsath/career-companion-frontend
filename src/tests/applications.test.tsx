@@ -107,7 +107,9 @@ describe('Applications Dashboard (/applications)', () => {
     renderWithProviders(queryClient, '/applications');
 
     // Applications come from mails and the automation only.
-    expect(await screen.findByText(/when the app finds one in your mails/)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/when it finds an application in your mails/),
+    ).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /add application/i })).not.toBeInTheDocument();
   });
 
@@ -738,7 +740,7 @@ describe('application discovery completion (AD-02)', () => {
     );
     expect(screen.getByRole('tab', { name: 'Replied (1)' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'Waiting (4)' })).toBeInTheDocument();
-    expect(await screen.findByText('Nothing sent by NorthList Apply yet')).toBeInTheDocument();
+    expect(await screen.findByText('Nothing from NorthList Apply yet')).toBeInTheDocument();
   });
 
   it('opens an old "Sent by automation" link as NorthList Apply › Waiting', async () => {
@@ -802,7 +804,7 @@ describe('application discovery completion (AD-02)', () => {
     renderWithProviders(qc, '/applications');
     await screen.findByText('No applications yet');
     fireEvent.click(screen.getByRole('tab', { name: /^NorthList Apply/ }));
-    await screen.findByText('Nothing sent by NorthList Apply yet');
+    await screen.findByText('Nothing from NorthList Apply yet');
     fireEvent.click(screen.getByRole('tab', { name: /^Waiting/ }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Could not load your applications');
     expect(screen.getByRole('tab', { name: /^Waiting/ })).toHaveAttribute('aria-selected', 'true');
