@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../api/client';
+import { useFreeAIWithGmail } from '../../api/freeAI';
 import type { GmailStatusResponse } from '../../contracts/gmail';
-import { markGmailConnectStarted } from '../../lib/afterGmailConnect';
+import { startGmailConnect } from '../../lib/afterGmailConnect';
 import { gmailConnectionCopy } from '../../lib/gmailConnection';
+import { FreeAIConsentLine } from '../ai/FreeAIConsentLine';
 import { Button } from '../ui/button';
 import {
   Dialog,
@@ -93,20 +95,17 @@ export function GmailConnection({
   onDisconnected: () => void;
 }) {
   const copy = gmailConnectionCopy(devMode, status?.status);
+  const withFreeAI = useFreeAIWithGmail();
   if (loading) return <SkeletonList rows={1} label="Loading the Gmail connection" />;
   if (failed) return <SectionError title="Could not load the Gmail connection" />;
   if (!status?.connected)
     return (
       <div className="flex flex-wrap items-center justify-between gap-4 panel px-6 py-4">
-        <p className="text-sm">{copy.notConnected}</p>
-        <Button
-          onClick={() => {
-            markGmailConnectStarted();
-            window.location.href = '/api/gmail/connect';
-          }}
-        >
-          {copy.connect}
-        </Button>
+        <div className="flex flex-col gap-1">
+          <p className="text-sm">{copy.notConnected}</p>
+          {withFreeAI && <FreeAIConsentLine />}
+        </div>
+        <Button onClick={() => startGmailConnect(withFreeAI)}>{copy.connect}</Button>
       </div>
     );
   return (
