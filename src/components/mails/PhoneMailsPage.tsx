@@ -1,5 +1,6 @@
 import { AIAccessNotice } from '../ai/AIAccessNotice';
-import type { MailsSearch } from '../../lib/mails';
+import { useConversations } from '../../api/conversations';
+import { filtersFromSearch, type MailsSearch } from '../../lib/mails';
 import { GmailInbox } from './GmailInbox';
 import { JobMails } from './JobMails';
 import { PhoneMailsTools } from './MailsBars';
@@ -26,6 +27,9 @@ export function PhoneMailsPage({
   onChange: (changes: Partial<MailsSearch>) => void;
 }) {
   const needsActionOn = search.request === 'open';
+  // The same list JobMails shows (one shared request): with no rows, its empty state says it all.
+  const list = useConversations(filtersFromSearch(search), search.offset ?? 0);
+  const emptyList = list.data?.items.length === 0;
   return (
     <div>
       <MailsPhoneTitle tab={tab} />
@@ -38,7 +42,7 @@ export function PhoneMailsPage({
         {search.tab === 'restricted' && <RestrictedList />}
         {!search.tab && <JobMails search={search} onChange={onChange} />}
       </div>
-      {!search.tab && (
+      {!search.tab && !emptyList && (
         <p className="px-1 pt-3.5 text-[13px] leading-[18px] text-text-tertiary">
           <MailSummary
             needsActionOn={needsActionOn}
