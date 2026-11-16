@@ -83,7 +83,7 @@ const COLUMNS: ColumnDef<MailboxThread>[] = [
   },
 ];
 
- /** Under the list: Gmail's order, and the way to newer and older pages. */
+/** Under the list: Gmail's order, and the way to newer and older pages. */
 function InboxPager({
   canGoBack,
   older,
