@@ -83,7 +83,7 @@ function DashboardPage() {
       {!noGmail && starting && (
         <ReadingFirstMails reading={firstRead ? (reading.data ?? null) : null} />
       )}
-      {!noGmail && !starting && dashboard.isPending && <DashboardSkeleton />
+      {!noGmail && !starting && dashboard.isPending && <DashboardSkeleton />}
       {!noGmail && dashboard.isError && !numbers && (
         <SectionError
           title="Could not load your numbers"
