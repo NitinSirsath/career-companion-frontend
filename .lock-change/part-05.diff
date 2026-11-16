@@ -31,7 +31,8 @@
 @@ -2207,3 +2282,3 @@
 -      "version": "1.168.35",
 -      "resolved": "https://registry.npmjs.org/@tanstack/router-plugin/-/router-plugin-1.168.35.tgz",
--      "integrity": "sha512-foDAZKFqHXae+oFbIgcsSvy2QCVRn7XdS3nhwcRvD+ed6JrKPUP/1lQMsZLJqWycgR1vkZF7gs955KGa0NZQ0w==",+      "version": "1.169.0",
+-      "integrity": "sha512-foDAZKFqHXae+oFbIgcsSvy2QCVRn7XdS3nhwcRvD+ed6JrKPUP/1lQMsZLJqWycgR1vkZF7gs955KGa0NZQ0w==",
++      "version": "1.169.0",
 +      "resolved": "https://registry.npmjs.org/@tanstack/router-plugin/-/router-plugin-1.169.0.tgz",
 +      "integrity": "sha512-aulFJmvW/rN5zQg/IM1Z5iUueX9dnYjBKxNpFWstpHxbatdlRlEwtSrc57VlBmfzRuckVxpZLi6wH3O40DMLgw==",
 @@ -2213,6 +2288,6 @@
