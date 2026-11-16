@@ -68,6 +68,11 @@ describe('reply wording', () => {
     expect(replyHint(false)).not.toContain('sandbox');
   });
 
+  it('says it in one short line on a phone', () => {
+    expect(replyHint(false, true)).toBe('Sent from your Gmail');
+    expect(replyHint(true, true)).toBe('Goes to the mail sandbox');
+  });
+
   it('names who the reply went to', () => {
     expect(replySentNote('Priya Nair <priya.nair@northwind.example>')).toBe(
       'Reply sent to Priya Nair.',
