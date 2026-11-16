@@ -1,0 +1,42 @@
+name: Finish security-frontend once (temporary)
+# Commits the lock file on fix/security-frontend and nothing else.
+# Lives only on the throwaway branch tmp/security-frontend-finish, which is deleted afterwards.
+on:
+  push:
+    branches: [tmp/security-frontend-finish]
+permissions:
+  contents: write
+concurrency:
+  group: finish-security-frontend-once
+  cancel-in-progress: false
+jobs:
+  finish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: fix/security-frontend
+      - name: Check the commits on the branch
+        run: |
+          if [ "$(git rev-parse 'HEAD^{tree}')" != "68a00da511a20309cd258389137d2a7822ef98dc" ]; then
+            echo "The commits on fix/security-frontend do not match the reviewed files. Nothing was changed."
+            exit 1
+          fi
+      - name: Make the reviewed change
+        run: |
+          cat .lock-change/part-*.diff > "$RUNNER_TEMP/lock-change.diff"
+          git apply --unidiff-zero "$RUNNER_TEMP/lock-change.diff"
+          git rm -r -q -f .lock-change
+          git add -A
+          if [ "$(git write-tree)" != "548b724c7bde3f90beaa639ce83fb52b6316f50d" ]; then
+            echo "The result does not match the reviewed tree. Nothing was pushed."
+            git status --short
+            exit 1
+          fi
+      - name: Commit only the reviewed result
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(security): package-lock.json for the package updates'
+          git push origin HEAD:fix/security-frontend
