@@ -245,6 +245,7 @@ function BodyRows<T>({
         );
       })}
     </>
+  );
 }
 
 /** One row of cells. On phones the cells stack, each named by its `phoneLabel`. */
