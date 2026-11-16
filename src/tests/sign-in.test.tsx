@@ -167,6 +167,82 @@ describe('login page', () => {
   });
 });
 
+describe('login page on phones', () => {
+  let wideWidth: number;
+  const setWidth = (width: number) =>
+    Object.defineProperty(window, 'innerWidth', {
+      configurable: true,
+      writable: true,
+      value: width,
+    });
+  beforeEach(() => {
+    wideWidth = window.innerWidth;
+    setWidth(375);
+  });
+  afterEach(() => setWidth(wideWidth));
+
+  it('shows Google as the one main button and keeps email sign-in in a sheet', async () => {
+    renderWithQuery(<LoginPage />);
+    await waitFor(() => expect(modeFetch).toHaveBeenCalled());
+    expect(screen.getByRole('heading', { level: 1, name: 'Sign in to NorthList' })).toBeVisible();
+    const google = screen.getByRole('button', { name: 'Continue with Google' });
+    const email = screen.getByRole('button', { name: 'Sign in with email' });
+    expect(google.compareDocumentPosition(email) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByText('New here? This creates your account.')).toBeVisible();
+    expect(screen.queryByText(/Every job mail, what it needs/)).not.toBeInTheDocument();
+    expect(screen.queryByText('or sign in with email')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Email')).not.toBeInTheDocument();
+
+    fireEvent.click(email);
+    const sheet = await screen.findByRole('dialog', { name: 'Sign in with email' });
+    expect(within(sheet).getByLabelText('Email')).toBeInTheDocument();
+    expect(within(sheet).getByLabelText('Password')).toBeInTheDocument();
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Forgot password?' }));
+    expect(within(sheet).getByText(/Continue with Google, then set a new password/)).toBeVisible();
+  });
+
+  it('signs in with email and password from the sheet', async () => {
+    post.mockResolvedValue(profile({ hasPassword: true }));
+    renderWithQuery(<LoginPage />);
+    await waitFor(() => expect(modeFetch).toHaveBeenCalled());
+    press('Sign in with email');
+    const sheet = await screen.findByRole('dialog', { name: 'Sign in with email' });
+    fireEvent.change(within(sheet).getByLabelText('Email'), {
+      target: { value: 'alex@example.com' },
+    });
+    fireEvent.change(within(sheet).getByLabelText('Password'), {
+      target: { value: 'correct horse battery' },
+    });
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Sign in' }));
+    await waitFor(() =>
+      expect(post).toHaveBeenCalledWith('/api/auth/login', {
+        email: 'alex@example.com',
+        password: 'correct horse battery',
+      }),
+    );
+  });
+
+  it('shows a failed Google sign-in right above the Google button', async () => {
+    renderWithQuery(<LoginPage error="beta_full" />);
+    await waitFor(() => expect(modeFetch).toHaveBeenCalled());
+    const notice = screen.getByRole('status');
+    expect(notice).toHaveTextContent(/The NorthList beta is full/);
+    const google = screen.getByRole('button', { name: 'Continue with Google' });
+    expect(notice.compareDocumentPosition(google) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('offers email sign-in and a new test user, each in a sheet, in dev mode', async () => {
+    mode('dev');
+    renderWithQuery(<LoginPage />);
+    const create = await screen.findByRole('button', { name: 'Create test user' });
+    expect(screen.queryByRole('button', { name: 'Continue with Google' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('form', { name: 'Create test user' })).not.toBeInTheDocument();
+    fireEvent.click(create);
+    const sheet = await screen.findByRole('dialog', { name: 'Create test user' });
+    expect(within(sheet).getByRole('form', { name: 'Create test user' })).toBeInTheDocument();
+  });
+});
+
 describe('sign in with email and password', () => {
   it('signs in and then opens the app', async () => {
     post.mockResolvedValue(profile({ hasPassword: true }));
