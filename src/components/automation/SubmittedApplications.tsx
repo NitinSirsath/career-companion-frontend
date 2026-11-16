@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { SendIcon } from 'lucide-react';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchApplicationsPage } from '../../lib/applicationCache';
 import { ApplicationsTable } from '../applications/ApplicationsTable';
@@ -45,7 +46,7 @@ export function SubmittedApplications() {
               onRetry={() => void refetch()}
             />
           ) : (
-            <EmptyState title="Nothing sent yet">
+            <EmptyState icon={SendIcon} title="Nothing sent yet">
               Applications appear here as your automation sends them.
             </EmptyState>
           )
