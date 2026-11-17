@@ -98,6 +98,15 @@ describe('the Automation page', () => {
     expect(text).toContain('The NorthList app never applies to jobs itself.');
   });
 
+  it("says to sign in to the job sites in the AI app's own browser before a run", () => {
+    const steps = [...doc('automation').querySelectorAll('#setup-title ~ ol li')].map(
+      (li) => li.textContent ?? '',
+    );
+    expect(steps[steps.length - 1]).toContain(
+      "sign in to them once in your AI app's own browser: it opens them for you.",
+    );
+  });
+
   it('shows a run in Antigravity, Claude Code or Codex, named in words only (no logos)', () => {
     const page = doc('automation');
     expect(page.body.textContent).toContain('like Antigravity, Claude Code or Codex.');
