@@ -439,7 +439,6 @@ describe('job mail details', () => {
     show('/mails/thread-1');
     const panel = within(await screen.findByRole('complementary', { name: 'About this job mail' }));
     expect(panel.getByText(/^Your reply answered it · /)).toBeInTheDocument();
-
     vi.mocked(api.patch).mockResolvedValue(detail.conversation);
     fireEvent.click(panel.getByRole('button', { name: /^Reopen/ }));
     await waitFor(() =>
