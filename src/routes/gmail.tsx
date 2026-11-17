@@ -63,7 +63,6 @@ function GmailPage() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: '/gmail' });
   const sandbox = useSandboxMailbox();
-
   // Google sends the user back with the problem in the URL; it shows once, then the URL is clean.
   const [connectError] = useState(() => search.gmailError ?? null);
   useEffect(() => {
