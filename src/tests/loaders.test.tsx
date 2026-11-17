@@ -30,7 +30,7 @@ describe('loaders', () => {
     // A page that draws its own grey rows skips the shared side space (owner, 17 Nov 2026).
     const ownLoaders = sourceFiles(SRC)
       .filter((file) => !file.endsWith(join('ui', 'skeleton.tsx')))
-      .filter((file) => /["'`]skeleton[\s"'`] |\sskeleton["'`]/.test(readFileSync(file, 'utf8')))
+      .filter((file) => /["'`]skeleton[\s"'`]|\sskeleton["'`]/.test(readFileSync(file, 'utf8')))
       .map((file) => relative(SRC, file));
     expect(ownLoaders).toEqual([]);
   });
