@@ -547,3 +547,61 @@ describe('Gmail tab', () => {
     await waitFor(() => expect(failure).toHaveBeenCalled());
   });
 });
+
+describe('career contacts and the "Link to" offer (owner, 17 Nov 2026)', () => {
+  const POOLIT = { id: APP_ID, companyName: 'POOLit', jobTitle: 'Front-end Developer' };
+
+  it('shows a career contact with its type and no way to create an application', async () => {
+    conversations = [
+      makeConversation({
+        subject: 'Listing NorthList Apply on Agensi',
+        sender: 'Joeri Brons <joeri@agensi.example>',
+        category: 'CAREER_CONTACT',
+        company: 'Agensi',
+        role: null,
+      }),
+    ];
+    show();
+    const cells = await row('Listing NorthList Apply on Agensi');
+    expect(cells.getByText('Joeri Brons · Agensi · Career contact · 1 mail')).toBeInTheDocument();
+    expect(cells.getByText('No application needed')).toBeInTheDocument();
+    expect(cells.queryByText('Not linked')).not.toBeInTheDocument();
+    expect(cells.queryByRole('button', { name: 'Create application' })).not.toBeInTheDocument();
+    // The next step works as for any job mail.
+    expect(cells.getByText('Send your available dates')).toBeInTheDocument();
+  });
+
+  it('offers the type as a filter', async () => {
+    show();
+    await row('Interview: first round availability');
+    const filters = within(await openFilters());
+    await chooseOption(filters.getByRole('combobox', { name: 'Type' }), 'Career contact');
+    await waitFor(() =>
+      expect(listCalls().some((path) => path.includes('category=CAREER_CONTACT'))).toBe(true),
+    );
+  });
+
+  it('links to the company’s application in one click, instead of creating one', async () => {
+    conversations = [makeConversation({ sameCompanyApplications: [POOLIT] })];
+    show();
+    const cells = await row('Interview: first round availability');
+    expect(cells.queryByRole('button', { name: 'Create application' })).not.toBeInTheDocument();
+    vi.mocked(api.post).mockResolvedValue({});
+    fireEvent.click(cells.getByRole('button', { name: 'Link to POOLit · Front-end Developer' }));
+    await waitFor(() =>
+      expect(api.post).toHaveBeenCalledWith('/api/conversations/thread-1/application', {
+        applicationId: APP_ID,
+      }),
+    );
+  });
+
+  it('lets the user choose when the company has several applications', async () => {
+    const second = { ...POOLIT, id: '44444444-4444-4444-8444-444444444444', jobTitle: 'Designer' };
+    conversations = [makeConversation({ sameCompanyApplications: [POOLIT, second] })];
+    show();
+    const cells = await row('Interview: first round availability');
+    fireEvent.click(cells.getByRole('button', { name: 'Link to POOLit' }));
+    expect(await cells.findByText('Choose an application')).toBeInTheDocument();
+    expect(api.post).not.toHaveBeenCalled();
+  });
+});
