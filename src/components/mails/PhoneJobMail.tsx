@@ -306,7 +306,6 @@ export function PhoneJobMailInfo({
   onOpenChange: (open: boolean) => void;
 }) {
   const { conversation } = detail;
-
   return (
     <Sheet open={open} onOpenChange={onOpenChange} title="About this job mail">
       <h3 className="text-[17px] font-semibold">Key dates</h3>
