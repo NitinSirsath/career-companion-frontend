@@ -246,6 +246,26 @@ describe('the glass header', () => {
   });
 });
 
+describe("the site's own controls", () => {
+  const css = (file: string) => readFileSync(resolve(__dirname, '../../site/styles', file), 'utf8');
+
+  it('are round like the app: buttons, icon buttons, menu links, the theme switch, chips and tags', () => {
+    expect(css('base.css')).toMatch(/\.btn \{[^}]*border-radius: 999px;/);
+    expect(css('base.css')).toMatch(/\.icon-btn \{[^}]*border-radius: 50%;/);
+    expect(css('chrome.css')).toMatch(/\.nav a \{[^}]*border-radius: 999px;/);
+    expect(css('chrome.css')).toMatch(/\.seg \{[^}]*border-radius: 999px;/);
+    expect(css('chrome.css')).toMatch(/\.seg button \{[^}]*border-radius: 999px;/);
+    expect(css('sections.css')).toMatch(/\.replay \{[^}]*border-radius: 50%;/);
+    expect(css('pages.css')).toMatch(/\.toc-m a \{[^}]*border-radius: 999px;/);
+    expect(css('pages.css')).toMatch(/\.site-chips li \{[^}]*border-radius: 999px;/);
+    expect(css('states.css')).toMatch(/\.tag \{[^}]*border-radius: 999px;/);
+    const notFound = readFileSync(resolve(__dirname, '../../site/public/404.html'), 'utf8');
+    expect(notFound).toMatch(/\.button \{[^}]*border-radius: 999px;/);
+    for (const file of ['base.css', 'chrome.css', 'sections.css', 'pages.css', 'states.css'])
+      expect(css(file)).not.toContain('border-radius: 0;');
+  });
+});
+
 describe('the theme switch and the phone menu', () => {
   beforeAll(async () => {
     vi.stubGlobal('matchMedia', (query: string) => ({

@@ -2,7 +2,8 @@
  * The app's own look for the pictures of the app on the site: the live example (`.sa`) and the drawn
  * app parts (`.app-look`). The colours are the app's, from src/index.css (owner, 4 Nov 2026); since the
  * new look (owner, 13 Nov 2026) also its font (the device's own), round buttons, chips and fields, 16 px
- * cards and quiet frosted glass on things that float. The rest of the site keeps its own look and Geist.
+ * cards and quiet frosted glass on things that float. The rest of the site keeps its own colours and Geist;
+ * its own buttons, menu links, switches, chips and tags are round too (owner, 17 Nov 2026).
  */
 :is(.sa, .app-look) {
   --app-font: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
