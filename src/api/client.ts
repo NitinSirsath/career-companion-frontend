@@ -47,6 +47,7 @@ import type {
   ListApplicationsResponse,
   ListApplicationEventsResponse,
   UpdateApplicationStatusRequest,
+  DeclineAnswerRequest,
   ListApplicationActionsResponse,
   GmailStatusResponse,
   SyncResponse,
@@ -304,6 +305,15 @@ export class ApiClient {
     return this.request(
       `/api/applications/${id}/status`,
       { method: 'PATCH', body: JSON.stringify(data) },
+      ApplicationResponseSchema,
+    );
+  }
+
+  /** The answer to "Close the application?" after the user declined by mail. Never retried. */
+  async answerDecline(id: string, data: DeclineAnswerRequest): Promise<ApplicationResponse> {
+    return this.request(
+      `/api/applications/${id}/decline`,
+      { method: 'POST', body: JSON.stringify(data) },
       ApplicationResponseSchema,
     );
   }
