@@ -286,6 +286,10 @@ describe('the run on the Automation page', () => {
     tab('cx').dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
     expect($('.run .aw').dataset.app).toBe('cc');
     expect($('.run [data-run="title"]').textContent).toBe('Claude');
+    expect($('.run [data-note="cc"]').hidden).toBe(false);
+    expect($('.run [data-note="cc"]').textContent).toContain(
+      'It uses its own browser. Chrome is only the backup.',
+    );
     expect(document.activeElement).toBe(tab('cc'));
     expect(tab('cc').tabIndex).toBe(0);
     expect(tab('cx').tabIndex).toBe(-1);
