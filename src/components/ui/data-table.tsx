@@ -181,7 +181,6 @@ export function DataTable<T>({
               group={phone}
             />
           )}
-
           {!loading && (
             <BodyRows
               entries={entries}
