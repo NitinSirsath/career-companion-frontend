@@ -178,6 +178,7 @@ describe('Gmail Route', () => {
     expect(api.getMessages).not.toHaveBeenCalled();
     expect(screen.queryByRole('heading', { name: 'Sync' })).not.toBeInTheDocument();
   });
+
   it('lists every mail it read on its own page, with what is kept of other mails', async () => {
     vi.mocked(api.getGmailStatus).mockResolvedValue({
       connected: true,
