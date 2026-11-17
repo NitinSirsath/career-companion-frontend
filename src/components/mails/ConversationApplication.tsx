@@ -10,7 +10,14 @@ import {
   type Conversation,
   type LinkConversation,
 } from '../../contracts/conversation';
-import { companyAndRole, linkProblem, type LinkProblem } from '../../lib/mails';
+import {
+  CAREER_CONTACT,
+  careerContact,
+  companyAndRole,
+  linkLabel,
+  linkProblem,
+  type LinkProblem,
+} from '../../lib/mails';
 import { StatusBadge } from '../ApplicationStatus';
 import { Tag } from '../ui/tag';
 import { ApplicationPicker } from '../ApplicationPicker';
@@ -20,6 +27,7 @@ import { Label } from '../ui/label';
 import { isOfflineError } from '../../lib/offline';
 import { closedAfterDeclineLine } from '../../lib/declineQuestion';
 import { DeclineQuestion } from '../applications/DeclineQuestion';
+import { MailType } from './MailType';
 
 /**
  * The conversation's application, or the one-click way to give it one. In a table row ("cell")
@@ -82,9 +90,29 @@ export function ConversationApplication({
         )}
       </div>
     );
+  return <NoApplication conversation={conversation} appearance={appearance} />;
+}
+
+/** A conversation without an application: why it has none, or the way to give it one. */
+function NoApplication({
+  conversation,
+  appearance,
+}: {
+  conversation: Conversation;
+  appearance: 'cell' | 'row' | 'panel';
+}) {
   // The user said earlier that this mail belongs to no application.
   if (conversation.link === 'IGNORED')
     return <p className="text-sm text-text-secondary">No application</p>;
+  if (careerContact(conversation))
+    return appearance === 'panel' ? (
+      <p className="text-sm text-text-secondary">{CAREER_CONTACT.noApplication}</p>
+    ) : (
+      <div className="flex flex-col items-start gap-1">
+        <MailType category="CAREER_CONTACT" />
+        <span className="text-xs text-text-tertiary">{CAREER_CONTACT.noApplication}</span>
+      </div>
+    );
   return <CreateApplication conversation={conversation} appearance={appearance} />;
 }
 
@@ -100,6 +128,61 @@ function createButtonLook(cell: boolean, quiet: boolean) {
     size: 'default',
     className: 'max-md:h-12 max-md:w-full max-md:justify-center',
   } as const;
+}
+
+/** Which button shows the spinner while the request runs. */
+function pendingButton(running: boolean, body: LinkConversation | undefined) {
+  if (!running) return null;
+  return body && 'applicationId' in body ? 'link' : 'create';
+}
+
+/**
+ * "Link to POOLit · Front-end Developer" when the company already has an application (owner,
+ * 17 Nov 2026), then "Create application". A list row shows only the first.
+ */
+function LinkButtons({
+  conversation,
+  cell,
+  busy,
+  pending,
+  onLink,
+  onCreate,
+}: {
+  conversation: Conversation;
+  cell: boolean;
+  busy: boolean;
+  pending: 'link' | 'create' | null;
+  onLink: () => void;
+  onCreate: () => void;
+}) {
+  const offers = conversation.sameCompanyApplications;
+  // A probable fake offer: linking stays possible, but it is not the suggested next move.
+  const quiet = cell || conversation.fakeOfferWarning !== null;
+  const [first] = offers;
+  return (
+    <div className="flex flex-wrap gap-2 max-md:w-full">
+      {first && (
+        <Button
+          {...createButtonLook(cell, quiet)}
+          loading={pending === 'link'}
+          disabled={busy}
+          onClick={onLink}
+        >
+          {offers.length === 1 ? linkLabel(first) : `Link to ${first.companyName}`}
+        </Button>
+      )}
+      {!(cell && first) && (
+        <Button
+          {...createButtonLook(cell, quiet || !!first)}
+          loading={pending === 'create'}
+          disabled={busy}
+          onClick={onCreate}
+        >
+          {conversation.link === 'NEEDS_REVIEW' ? 'Choose application' : 'Create application'}
+        </Button>
+      )}
+    </div>
+  );
 }
 
 function CreateApplication({
@@ -138,19 +221,23 @@ function CreateApplication({
       />
     );
   const cell = appearance !== 'panel';
-  // A probable fake offer: linking stays possible, but it is not the suggested next move.
-  const quiet = cell || conversation.fakeOfferWarning !== null;
+  // The company already has an application: linking to it comes first, creating second.
+  const offers = conversation.sameCompanyApplications;
   return (
     <div className="flex flex-col items-start gap-1">
       {cell && <span className="text-text-secondary">Not linked</span>}
-      <Button
-        {...createButtonLook(cell, quiet)}
-        loading={link.isPending}
-        disabled={busy}
-        onClick={() => send({})}
-      >
-        {conversation.link === 'NEEDS_REVIEW' ? 'Choose application' : 'Create application'}
-      </Button>
+      <LinkButtons
+        conversation={conversation}
+        cell={cell}
+        busy={busy}
+        pending={pendingButton(link.isPending, link.variables)}
+        onLink={() =>
+          offers.length === 1
+            ? send({ applicationId: offers[0].id })
+            : setProblem({ kind: 'choice', candidates: offers })
+        }
+        onCreate={() => send({})}
+      />
       {filled && !cell && <p className="text-xs text-text-secondary break-words">{filled}</p>}
       {problem && (
         <p role="alert" className="text-xs text-status-error">
