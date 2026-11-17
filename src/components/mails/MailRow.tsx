@@ -112,7 +112,6 @@ export function MetaLine({ conversation: c }: { conversation: Conversation }) {
   const company = mailCompany(c);
   const rest = [
     parseSender(c.sender).name,
-
     c.category && CATEGORY_LABEL[c.category],
     mailCounts(c.mailCount + c.sentCount, c.sentCount),
   ];
