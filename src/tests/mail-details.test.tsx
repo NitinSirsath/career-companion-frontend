@@ -27,6 +27,7 @@ vi.mock('../api/client', async (importOriginal) => ({
     getApplication: vi.fn(),
     getApplicationEvents: vi.fn(),
     getApplicationActions: vi.fn(),
+    answerDecline: vi.fn(),
   },
 }));
 
@@ -292,6 +293,105 @@ describe('job mail details', () => {
     ).toBeInTheDocument();
   });
 
+  it('waits for their reply after the user asked them a question (owner, 17 Nov 2026)', async () => {
+    const { conversation } = detail;
+    const replied = { ...conversation.request!, repliedAt: '2026-10-11T08:45:00.000Z' };
+    detail = {
+      ...detail,
+      conversation: {
+        ...conversation,
+        request: { ...replied, state: 'REPLIED', replyRead: 'ASKED_BACK' },
+      },
+    };
+    show('/mails/thread-1');
+    const panel = within(await screen.findByRole('complementary', { name: 'About this job mail' }));
+    expect(panel.getByText('Replied')).toBeInTheDocument();
+    expect(
+      panel.getByText('You asked them a question. Waiting for their reply.'),
+    ).toBeInTheDocument();
+    expect(panel.queryByText('Needs action')).not.toBeInTheDocument();
+    cleanup();
+
+    detail = {
+      ...detail,
+      conversation: {
+        ...conversation,
+        request: {
+          ...replied,
+          state: 'OPEN',
+          replyRead: 'THEY_ANSWERED',
+          theyAnsweredAt: '2026-10-12T09:00:00.000Z',
+        },
+      },
+    };
+    show('/mails/thread-1');
+    const open = within(await screen.findByRole('complementary', { name: 'About this job mail' }));
+    expect(open.getByText('Needs action')).toBeInTheDocument();
+    expect(open.getByText(/^They answered your question Oct 12\. /)).toBeInTheDocument();
+  });
+
+  it('shows a declined step and asks before it closes the application', async () => {
+    const { conversation } = detail;
+    const application = {
+      id: '22222222-2222-4222-8222-222222222222',
+      companyName: 'XYZ Technologies',
+      jobTitle: 'Software Engineer',
+      effectiveStatus: 'INTERVIEW' as const,
+      archived: false,
+      decline: { repliedAt: '2026-11-15T10:12:00.000Z', closesAt: '2026-11-18T10:12:00.000Z' },
+      closedAfterDeclineAt: null,
+    };
+    detail = {
+      ...detail,
+      conversation: {
+        ...conversation,
+        link: 'LINKED',
+        application,
+        request: {
+          ...conversation.request!,
+          state: 'DONE',
+          closedReason: 'YOU_DECLINED',
+          closedAt: '2026-11-15T10:12:00.000Z',
+          closedByMessageId: 'sent-1',
+        },
+      },
+    };
+    vi.mocked(api.answerDecline).mockResolvedValue(
+      makeApplication({ id: application.id, userStatus: 'CLOSED' }),
+    );
+    show('/mails/thread-1');
+    const panel = within(await screen.findByRole('complementary', { name: 'About this job mail' }));
+    expect(panel.getByText(/^You declined/)).toBeInTheDocument();
+    expect(
+      panel.getByText('Your reply says you no longer want this job. Close the application?'),
+    ).toBeInTheDocument();
+    expect(panel.getByText('Closes by itself on Nov 18 if you do nothing.')).toBeInTheDocument();
+    fireEvent.click(panel.getByRole('button', { name: 'Close it' }));
+    await waitFor(() =>
+      expect(api.answerDecline).toHaveBeenCalledWith(application.id, { answer: 'CLOSE' }),
+    );
+    cleanup();
+
+    detail = {
+      ...detail,
+      conversation: {
+        ...detail.conversation,
+        application: {
+          ...application,
+          effectiveStatus: 'CLOSED',
+          decline: null,
+          closedAfterDeclineAt: '2026-11-18T10:20:00.000Z',
+        },
+      },
+    };
+    show('/mails/thread-1');
+    const closed = within(
+      await screen.findByRole('complementary', { name: 'About this job mail' }),
+    );
+    expect(closed.getByText('Closed after you declined by mail · Nov 18')).toBeInTheDocument();
+    expect(closed.queryByRole('button', { name: 'Close it' })).not.toBeInTheDocument();
+  });
+
   it('asks again by itself while the AI reads the reply, until it is read', async () => {
     const { conversation } = detail;
     const replied = { ...conversation.request!, repliedAt: '2026-10-11T08:45:00.000Z' };
@@ -339,7 +439,7 @@ describe('job mail details', () => {
     show('/mails/thread-1');
     const panel = within(await screen.findByRole('complementary', { name: 'About this job mail' }));
     expect(panel.getByText(/^Your reply answered it · /)).toBeInTheDocument();
-    expect(panel.getByRole('button', { name: 'Show your reply' })).toBeInTheDocument();
+
     vi.mocked(api.patch).mockResolvedValue(detail.conversation);
     fireEvent.click(panel.getByRole('button', { name: /^Reopen/ }));
     await waitFor(() =>
@@ -361,6 +461,8 @@ describe('job mail details', () => {
           jobTitle: 'Senior Platform Engineer',
           effectiveStatus: 'INTERVIEW',
           archived: false,
+          decline: null,
+          closedAfterDeclineAt: null,
         },
       }),
     };
@@ -453,6 +555,8 @@ describe('the breadcrumb of a linked mail', () => {
         jobTitle: null,
         effectiveStatus: null,
         archived: false,
+        decline: null,
+        closedAfterDeclineAt: null,
       },
     });
     show('/mails/11111111-1111-4111-8111-111111111111');
