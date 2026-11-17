@@ -218,6 +218,7 @@ export const CLOSED_REASON_LABEL: Record<RequestClosedReason, string> = {
   YOUR_REPLY: 'Your reply answered it',
   YOU_SAID_DONE: 'You said you did it',
   APPLICATION_CLOSED: 'Closed with the application',
+  YOU_DECLINED: 'You declined',
 };
 
 /** An open request whose deadline has passed: it stays open and says so. */
