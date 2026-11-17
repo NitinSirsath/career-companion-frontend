@@ -187,8 +187,9 @@ function ReadMailsEmpty({ failed }: { failed: boolean }) {
 }
 
 /**
- * Every job mail a sync read, with what the app and the AI made of it. Other mails are not
- * listed: the app keeps only their Gmail ids, date and that they are not job mails, for 35 days.
+ * Every job mail a sync read, with what the app and the AI made of it, on its own page since
+ * 17 Nov 2026 (`/gmail/mails`). Other mails are not listed: the app keeps only their Gmail ids,
+ * date and that they are not job mails, for 35 days.
  */
 export function ProcessedMails({
   devMode,
@@ -214,17 +215,8 @@ export function ProcessedMails({
   const nextOffset = messages.data?.metadata?.nextOffset ?? null;
 
   return (
-    <section aria-labelledby="read-mails-heading" className="flex flex-col gap-4 pt-6">
-      <div className="flex flex-col gap-1">
-        <h2 id="read-mails-heading" className="text-base leading-[22px] font-semibold">
-          Job mails the app has read
-        </h2>
-        <p className="text-sm text-text-secondary">
-          Check here when a job mail seems missing from Mails. Other mails are not listed. For them,
-          the app keeps only Gmail&apos;s id, the date and that they are not job mails, for 35 days.
-        </p>
-        <BlockedLine />
-      </div>
+    <div className="flex flex-col gap-4">
+      <BlockedLine />
       <RetryProblems retries={retries} onlyUs={onlyUs} />
       <DataTable
         label="Job mails the app has read"
@@ -255,6 +247,6 @@ export function ProcessedMails({
           onNext={() => nextOffset && setOffset(nextOffset)}
         />
       )}
-    </section>
+    </div>
   );
 }

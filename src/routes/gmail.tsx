@@ -9,7 +9,7 @@ import { AIAccessNotice } from '../components/ai/AIAccessNotice';
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
 import { GmailConnection } from '../components/gmail/GmailConnection';
 import { GmailSyncNotices, GmailSyncNow } from '../components/gmail/GmailSyncSettings';
-import { ProcessedMails } from '../components/gmail/ProcessedMails';
+import { EveryMailLink, HowMailIsRead, ReadNumbers } from '../components/gmail/GmailSummary';
 import { PageHeader } from '../components/layout/PageHeader';
 import { PhoneRefreshCapsule } from '../components/phone/PhoneRefresh';
 import { InlineNotification } from '../components/ui/notification';
@@ -63,14 +63,13 @@ function GmailPage() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: '/gmail' });
   const sandbox = useSandboxMailbox();
-  const [offset, setOffset] = useState(0);
   // Google sends the user back with the problem in the URL; it shows once, then the URL is clean.
   const [connectError] = useState(() => search.gmailError ?? null);
   useEffect(() => {
     if (search.gmailError) void navigate({ search: {}, replace: true });
   }, [search.gmailError, navigate]);
   const { data: status, isLoading, error } = useGmailStatus();
-  const sync = useSyncNow(() => setOffset(0));
+  const sync = useSyncNow();
   const connected = !!status?.connected;
   useNextStepAfterConnect(connected);
 
@@ -82,7 +81,7 @@ function GmailPage() {
         <PageHeader
           className="mb-2"
           title="Gmail sync"
-          description="Which Gmail the app reads, how far back, and every mail it has read."
+          description="Which Gmail the app reads, what it has read, and how."
           actions={status && connected && <GmailSyncNow status={status} sync={sync} />}
         />
         {/* Before Gmail is connected there is nothing for the AI to read yet. */}
@@ -90,17 +89,13 @@ function GmailPage() {
         {(connectError || search.gmailError) && (
           <ConnectProblem error={connectError ?? search.gmailError ?? ''} />
         )}
-        <GmailConnection
-          status={status}
-          loading={isLoading}
-          failed={!!error}
-          devMode={sandbox}
-          onDisconnected={() => setOffset(0)}
-        />
+        <GmailConnection status={status} loading={isLoading} failed={!!error} devMode={sandbox} />
         {status && connected && (
           <>
             <GmailSyncNotices status={status} sync={sync} />
-            <ProcessedMails devMode={sandbox} offset={offset} onOffset={setOffset} />
+            <ReadNumbers />
+            <EveryMailLink />
+            <HowMailIsRead status={status} />
           </>
         )}
       </div>

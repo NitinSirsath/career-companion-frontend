@@ -12,7 +12,7 @@ import {
   type WorkspaceBucket,
 } from '../contracts/workspace';
 import { DashboardResponseSchema, type DashboardPeriod } from '../contracts/dashboard';
-import { GmailStatusResponseSchema } from '../contracts/gmail';
+import { GmailStatusResponseSchema, GmailSummaryResponseSchema } from '../contracts/gmail';
 import type { ApplicationFilters } from '../contracts/application';
 import { CorrectEmailMatchResponseSchema, type CorrectEmailMatchRequest } from '../contracts/email';
 import { onlineManager } from '@tanstack/react-query';
@@ -726,6 +726,15 @@ export class ApiClient {
       GmailStatusResponseSchema.extend({
         lastSyncedAt: z.iso.datetime({ offset: true }).nullable(),
       }),
+    );
+  }
+
+  /** What the app has read in the last 30 days, for the Gmail sync page. */
+  async getGmailSummary(options?: RequestOptions) {
+    return this.request(
+      '/api/gmail/summary',
+      { method: 'GET', signal: options?.signal },
+      GmailSummaryResponseSchema,
     );
   }
 

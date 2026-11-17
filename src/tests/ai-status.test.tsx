@@ -19,6 +19,7 @@ vi.mock('../api/client', async (importOriginal) => {
     ...actual,
     api: {
       getGmailStatus: vi.fn(),
+      getGmailSummary: vi.fn(),
       getMessages: vi.fn(),
       retryEmail: vi.fn(),
       triggerSync: vi.fn(),
@@ -145,6 +146,16 @@ beforeEach(() => {
   vi.mocked(api.getUnmatchedEmails).mockResolvedValue(empty);
   vi.mocked(api.getPendingSubmissions).mockResolvedValue(empty);
   vi.mocked(api.getMessages).mockResolvedValue(page([]));
+  vi.mocked(api.getGmailSummary).mockResolvedValue({
+    days: 30,
+    since: '2026-10-19T00:00:00.000Z',
+    checked: 0,
+    jobMails: 0,
+    notJobMails: 0,
+    waiting: 0,
+    fakeOffers: 0,
+    failed: 0,
+  });
 });
 afterEach(() => vi.useRealTimers());
 
@@ -234,7 +245,7 @@ describe('Gmail table while waiting for AI', () => {
         }),
       ]),
     );
-    show('/gmail');
+    show('/gmail/mails');
     expect(await screen.findByText('Waiting for AI')).toBeInTheDocument();
     const calls = vi.mocked(api.getMessages).mock.calls.length;
     await new Promise((resolve) => setTimeout(resolve, 2600));
@@ -256,7 +267,7 @@ describe('Gmail table while waiting for AI', () => {
         }),
       ]),
     );
-    show('/gmail');
+    show('/gmail/mails');
     // "Read" alone; which model read it shows on hover, focus or a tap.
     const [ai, rules] = await screen.findAllByRole('button', { name: 'Read' });
     expect(screen.queryByText('Analyzed by Google Gemini · Gemini 2.5 Flash')).toBeNull();
@@ -299,7 +310,7 @@ describe('Gmail Sync row badges and the (i)', () => {
         message({ id: 'email-2', subject: 'In line', aiStatus: null }),
       ]),
     );
-    show('/gmail');
+    show('/gmail/mails');
     // AI access is ready: only the model this mail needs is paused.
     expect(await screen.findByText('Waiting for AI')).toBeInTheDocument();
     expect(screen.getByText('Queued')).toBeInTheDocument();
@@ -317,7 +328,7 @@ describe('Gmail Sync row badges and the (i)', () => {
 
   it('keeps the (i) open after a click, also after hover opened it, until a second click, Escape or a click outside', async () => {
     vi.mocked(api.getMessages).mockResolvedValue(page([message({ aiStatus: aiStatus() })]));
-    show('/gmail');
+    show('/gmail/mails');
     const why = await screen.findByRole('button', { name: 'Why is this mail waiting?' });
     const title = 'Gemini 3.8 Flash is busy right now';
     // Hover opens it, and the click that follows keeps it open, also when the mouse leaves.
@@ -362,7 +373,7 @@ describe('Gmail Sync row badges and the (i)', () => {
         }),
       ]),
     );
-    show('/gmail');
+    show('/gmail/mails');
     expect(await screen.findByText('Waiting for AI')).toBeInTheDocument();
     expect(screen.queryByText('AI could not read it')).toBeNull();
     expect(screen.queryByRole('button', { name: /Manual Retry/ })).toBeNull();
@@ -414,7 +425,7 @@ describe('Gmail Sync row badges and the (i)', () => {
     vi.mocked(api.getMessages).mockResolvedValue(
       page([message({ aiStatus: aiStatus({ reason: 'RATE_LIMITED', nextTryAt: resumesAt }) })]),
     );
-    show('/gmail');
+    show('/gmail/mails');
     fireEvent.click(await screen.findByRole('button', { name: 'Why is this mail waiting?' }));
     expect(
       await screen.findByText(
@@ -452,7 +463,7 @@ describe('Gmail Sync row badges and the (i)', () => {
         }),
       ]),
     );
-    show('/gmail');
+    show('/gmail/mails');
     expect(await screen.findByText('Not sent yet: waits for the test mail.')).toBeInTheDocument();
     expect(screen.getByText('Needs your OK')).toBeInTheDocument();
     expect(screen.getByText('AI could not read it')).toBeInTheDocument();
@@ -522,7 +533,7 @@ describe('Retry anyway (user-approved retry)', () => {
 
   async function clickManualRetry() {
     vi.mocked(api.getMessages).mockResolvedValue(page([needsOk]));
-    show('/gmail');
+    show('/gmail/mails');
     await screen.findByText('Interview invite');
     fireEvent.click(screen.getByRole('button', { name: 'Why does this mail need my OK?' }));
     expect(await screen.findByText('Gemini 2.5 Flash did not answer in time')).toBeInTheDocument();
@@ -674,7 +685,7 @@ describe('Retry anyway (user-approved retry)', () => {
       paused('gemini-2.5-flash', ['detailed'], resumesAt),
     );
     vi.mocked(api.getMessages).mockResolvedValue(page([needsOk]));
-    show('/gmail');
+    show('/gmail/mails');
     const held = await screen.findByRole('button', {
       name: `Paused until about ${clock(resumesAt)}`,
     });
@@ -779,7 +790,7 @@ describe('stopped email recovery', () => {
         ]),
       );
       vi.mocked(api.retryEmail).mockResolvedValue({ success: true });
-      show('/gmail');
+      show('/gmail/mails');
       expect(await screen.findByText('Stopped')).toBeInTheDocument();
       expect(screen.getByText(/Processing stopped before it finished/)).toBeInTheDocument();
       fireEvent.click(screen.getByRole('button', { name: 'Manual Retry' }));
@@ -794,7 +805,7 @@ describe('stopped email recovery', () => {
       vi.mocked(api.getMessages).mockResolvedValue(
         page([message({ processingState: 'PROCESSING', processingStuck })]),
       );
-      show('/gmail');
+      show('/gmail/mails');
       await screen.findByText('Interview invite');
       const count = vi.mocked(api.getMessages).mock.calls.length;
       await act(() => vi.advanceTimersByTimeAsync(90000));
@@ -813,7 +824,7 @@ describe('stopped email recovery', () => {
         }),
       ]),
     );
-    show('/gmail');
+    show('/gmail/mails');
     await screen.findByText('Retry scheduled');
     const count = vi.mocked(api.getMessages).mock.calls.length;
     vi.mocked(api.getMessages).mockResolvedValue(

@@ -11,6 +11,7 @@ vi.mock('../api/client', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../api/client')>()),
   api: {
     getGmailStatus: vi.fn(),
+    getGmailSummary: vi.fn(),
     getMessages: vi.fn(),
     triggerSync: vi.fn(),
     disconnectGmail: vi.fn(),
@@ -23,6 +24,16 @@ import { FREE_AI_CONSENT } from '../lib/freeAI';
 import { makeAISettings } from './fixtures';
 
 const MOCK_USER = { id: 'test-user', email: 'test@test.local', name: 'Test User' };
+const SUMMARY = {
+  days: 30,
+  since: '2026-10-19T00:00:00.000Z',
+  checked: 1248,
+  jobMails: 37,
+  notJobMails: 1205,
+  waiting: 6,
+  fakeOffers: 1,
+  failed: 0,
+};
 
 function createTestRouter(initialPath = '/gmail') {
   const history = createMemoryHistory({
@@ -51,6 +62,7 @@ describe('Gmail Route', () => {
     vi.mocked(api.getAISettings).mockResolvedValue(
       makeAISettings({ offeredProviders: ['openrouter'], waitingEmails: 0 }),
     );
+    vi.mocked(api.getGmailSummary).mockResolvedValue(SUMMARY);
   });
 
   function renderWithProviders(initialPath = '/gmail') {
@@ -155,16 +167,43 @@ describe('Gmail Route', () => {
     expect(screen.getByRole('button', { name: 'Disconnect' })).toBeInTheDocument();
     expect(screen.getByText('Look back')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Sync now' })).toBeInTheDocument();
-    // The title of the job mail list, with no tabs, and no settings sections any more.
-    expect(screen.getByRole('heading', { name: 'Job mails the app has read' })).toBeInTheDocument();
+    // A summary since 17 Nov 2026: the mail list has its own page.
+    expect(screen.getByRole('heading', { name: 'What the app has read' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'How your mail is read' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'See every mail it read' })).toHaveAttribute(
+      'href',
+      '/gmail/mails',
+    );
+    expect(screen.queryByRole('heading', { name: 'Job mails the app has read' })).toBeNull();
+    expect(api.getMessages).not.toHaveBeenCalled();
+    expect(screen.queryByRole('heading', { name: 'Sync' })).not.toBeInTheDocument();
+  });
+
+  it('lists every mail it read on its own page, with what is kept of other mails', async () => {
+    vi.mocked(api.getGmailStatus).mockResolvedValue({
+      connected: true,
+      gmailEmail: 'user@gmail.com',
+      status: 'CONNECTED',
+      syncStatus: 'IDLE',
+      lastSyncedAt: null,
+    });
+    vi.mocked(api.getMessages).mockResolvedValue({
+      items: [],
+      metadata: { limit: 20, offset: 0, nextOffset: null },
+    });
+    renderWithProviders('/gmail/mails');
+    expect(await screen.findByRole('heading', { name: 'Every mail it read' })).toBeInTheDocument();
     // What is kept of other mails, as the privacy policy says.
     expect(
       screen.getByText(
         /Other mails are not listed\. For them, the app keeps only Gmail's id, the date and that they are not job mails, for 35 days\./,
       ),
     ).toBeInTheDocument();
+    expect(await screen.findByText('No job mails read yet')).toBeInTheDocument();
+    // The side menu's Gmail sync, and the way back in the breadcrumb.
+    const back = within(screen.getByRole('navigation', { name: 'Breadcrumb' }));
+    expect(back.getByRole('link', { name: 'Gmail sync' })).toHaveAttribute('href', '/gmail');
     expect(screen.queryByRole('tab', { name: 'Not job mails' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: 'Sync' })).not.toBeInTheDocument();
   });
 
   it('asks before it disconnects Gmail', async () => {
@@ -357,7 +396,7 @@ describe('Gmail Route', () => {
       metadata: { limit: 50, offset: 0, nextOffset: null },
     });
 
-    renderWithProviders();
+    renderWithProviders('/gmail/mails');
 
     // The first email should be a link
     const link = await screen.findByRole('link', {
@@ -415,7 +454,7 @@ describe('Gmail Route', () => {
       metadata: { limit: 20, offset: 0, nextOffset: null },
     });
 
-    renderWithProviders();
+    renderWithProviders('/gmail/mails');
 
     expect(await screen.findByText('Interview on Friday')).toBeInTheDocument();
     expect(api.getMessages).toHaveBeenCalledWith({ limit: 20, offset: 0 });

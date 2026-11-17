@@ -4,6 +4,7 @@ import { startProcessingRefresh } from '../lib/processingRefresh';
 import { api } from './client';
 
 export const gmailStatusKey = ['gmailStatus'] as const;
+export const gmailSummaryKey = ['gmailSummary'] as const;
 
 /** Whether Gmail is connected, and when it last and next syncs. Polls while a sync runs. */
 export function useGmailStatus() {
@@ -11,6 +12,16 @@ export function useGmailStatus() {
     queryKey: gmailStatusKey,
     queryFn: ({ signal }) => api.getGmailStatus({ signal }),
     refetchInterval: (query) => (query.state.data?.syncStatus === 'SYNCING' ? 2000 : false),
+  });
+}
+
+/** What the app has read in the last 30 days. Read again now and then while mails wait. */
+export function useGmailSummary(enabled: boolean) {
+  return useQuery({
+    queryKey: gmailSummaryKey,
+    queryFn: ({ signal }) => api.getGmailSummary({ signal }),
+    enabled,
+    refetchInterval: (query) => (query.state.data?.waiting ? 15000 : false),
   });
 }
 
@@ -39,6 +50,7 @@ export function useSyncNow(onAccepted?: () => void) {
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: gmailStatusKey });
       void queryClient.invalidateQueries({ queryKey: ['gmailMessages'] });
+      void queryClient.invalidateQueries({ queryKey: gmailSummaryKey });
       startProcessingRefresh();
     },
   });

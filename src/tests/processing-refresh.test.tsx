@@ -21,6 +21,7 @@ vi.mock('../api/client', async (importOriginal) => {
     ...actual,
     api: {
       getGmailStatus: vi.fn(),
+      getGmailSummary: vi.fn(),
       getAISettings: vi.fn(),
       getMessages: vi.fn(),
       retryEmail: vi.fn(),
@@ -177,7 +178,7 @@ describe('authenticated-shell bounded refresh', () => {
     vi.mocked(api.retryEmail).mockRejectedValue(
       new Error('The request timed out. Check your connection and try again.'),
     );
-    show('/gmail');
+    show('/gmail/mails');
     await screen.findByText('Failed email');
     fireEvent.click(await screen.findByRole('button', { name: /Manual Retry/ }));
     expect(await screen.findByText(/Retry could not be confirmed/)).toBeInTheDocument();
@@ -225,7 +226,7 @@ describe('refresh window while nothing can change', () => {
         resumesAt: new Date(Date.now() + 30 * 60_000).toISOString(),
       }),
     );
-    show('/gmail');
+    show('/gmail/mails');
     await screen.findByRole('status', { name: 'AI status' });
     act(() => startProcessingRefresh());
     await act(() => vi.advanceTimersByTimeAsync(5_000));
@@ -240,7 +241,7 @@ describe('refresh window while nothing can change', () => {
     vi.mocked(api.getAISettings).mockResolvedValue(
       aiSettings({ state: 'NEEDS_ATTENTION', reason: 'KEY_REJECTED' }),
     );
-    show('/gmail');
+    show('/gmail/mails');
     await screen.findByRole('status', { name: 'AI status' });
     act(() => startProcessingRefresh());
     await act(() => vi.advanceTimersByTimeAsync(5_000));
@@ -251,7 +252,7 @@ describe('refresh window while nothing can change', () => {
 
   it('goes on while AI can read mail', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    show('/gmail');
+    show('/gmail/mails');
     await waitFor(() => expect(api.getAISettings).toHaveBeenCalled());
     act(() => startProcessingRefresh());
     await act(() => vi.advanceTimersByTimeAsync(5_000));

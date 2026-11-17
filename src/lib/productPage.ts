@@ -3,6 +3,9 @@
 /** The privacy policy: a static file on the product site, so it opens even while the server sleeps. */
 export const PRIVACY_POLICY_URL = '/privacy.html';
 
+/** The same policy from inside the app, which runs on its own site (app.northlist.site). */
+export const PRIVACY_POLICY_FROM_APP = 'https://northlist.site/privacy.html';
+
 /** The contact address, as on the privacy policy. */
 export const CONTACT_EMAIL = 'nitinsirsath8855@gmail.com';
 

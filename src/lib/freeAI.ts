@@ -1,6 +1,7 @@
 import type { AIConnection, AISettingsResponse } from '../contracts/ai';
 import { getCatalogProvider } from '../contracts/aiCatalog';
 import { clock, type AccessCopy } from './aiLabels';
+import { FREE_AI_READER, WHAT_IS_SENT } from './mailReading';
 
 /**
  * The free AI (owner, 24 Oct 2026): "NorthList free AI" runs on NorthList's own
@@ -51,14 +52,8 @@ export const ownKeyProviders = (settings: AISettingsResponse): string[] =>
 
 /** The confirm dialog's notices, approved by the owner with the mock (24 Oct 2026). */
 export const FREE_AI_FACTS: readonly { term: string; text: string }[] = [
-  {
-    term: 'What is sent',
-    text: 'For each new mail: the sender, subject, Gmail labels and a short preview (up to 1,000 characters). For job mails, also the mail text (up to 8,000 characters). When a conversation still needs something from you, also the new text of your own replies in it. When you ask the AI to write a reply, the whole conversation, any hint you type or reply choice you click, and your first name. Nothing else from your mailbox.',
-  },
-  {
-    term: 'Who reads it',
-    text: "OpenRouter, on NorthList's account. It passes each mail to GPT-6 Luna on Microsoft Azure servers in the US or Europe. NorthList asks for servers that keep nothing, so they cannot train on your mail.",
-  },
+  { term: 'What is sent', text: WHAT_IS_SENT },
+  { term: 'Who reads it', text: FREE_AI_READER },
   {
     term: 'Shared',
     text: 'Everyone on the free AI shares it. When it is busy, it pauses for a few minutes and your mails wait in line. They are read by themselves later. None are lost.',

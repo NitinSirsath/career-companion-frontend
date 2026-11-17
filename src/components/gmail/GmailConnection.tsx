@@ -21,14 +21,14 @@ import { SkeletonList } from '../ui/skeleton';
 import { GmailLookback } from './GmailSyncSettings';
 
 /** Disconnecting stops the reading; it asks first, since connecting again goes through Google. */
-function DisconnectButton({ onDisconnected }: { onDisconnected: () => void }) {
+function DisconnectButton({ onDisconnected }: { onDisconnected?: () => void }) {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const disconnect = useMutation({
     mutationFn: () => api.disconnectGmail(),
     onSuccess: () => {
       setOpen(false);
-      onDisconnected();
+      onDisconnected?.();
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: ['gmailStatus'] });
@@ -92,7 +92,7 @@ export function GmailConnection({
   loading: boolean;
   failed: boolean;
   devMode: boolean;
-  onDisconnected: () => void;
+  onDisconnected?: () => void;
 }) {
   const copy = gmailConnectionCopy(devMode, status?.status);
   const withFreeAI = useFreeAIWithGmail();
