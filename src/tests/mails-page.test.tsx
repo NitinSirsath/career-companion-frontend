@@ -215,10 +215,13 @@ describe('Job mails tab', () => {
     show();
     const cells = await row('Interview: first round availability');
     expect(cells.getByText('New')).toBeInTheDocument();
-    // One grey line says who, where, what type and how many (owner, 3 Nov 2026).
-    expect(
-      cells.getByText('Priya Nair · Northwind Robotics · Interview · 1 mail'),
-    ).toBeInTheDocument();
+    // One line says where, who, what type and how many (owner, 3 Nov 2026); the company leads in
+    // the text colour, even with no application (owner, 17 Nov 2026).
+    const company = cells.getByText('Northwind Robotics');
+    expect(company).toHaveClass('font-medium', 'text-text-primary');
+    expect(company.parentElement).toHaveTextContent(
+      /^Northwind Robotics · Priya Nair · Interview · 1 mail$/,
+    );
     expect(cells.getByText('Send your available dates')).toBeInTheDocument();
     // One list, newest first: no "Needs action" tag on each row; the blue arrow marks the step.
     expect(cells.queryByText('Needs action')).not.toBeInTheDocument();
@@ -563,7 +566,9 @@ describe('career contacts and the "Link to" offer (owner, 17 Nov 2026)', () => {
     ];
     show();
     const cells = await row('Listing NorthList Apply on Agensi');
-    expect(cells.getByText('Joeri Brons · Agensi · Career contact · 1 mail')).toBeInTheDocument();
+    expect(cells.getByText('Agensi').parentElement).toHaveTextContent(
+      /^Agensi · Joeri Brons · Career contact · 1 mail$/,
+    );
     expect(cells.getByText('No application needed')).toBeInTheDocument();
     expect(cells.queryByText('Not linked')).not.toBeInTheDocument();
     expect(cells.queryByRole('button', { name: 'Create application' })).not.toBeInTheDocument();
