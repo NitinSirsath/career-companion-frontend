@@ -12,6 +12,7 @@ import {
   fileSize,
   filtersFromSearch,
   linkProblem,
+  mailCompany,
   mailCounts,
   mailDate,
   mailDateTime,
@@ -66,6 +67,21 @@ describe('labels', () => {
 });
 
 describe('senders and counts', () => {
+  it("names the company: the application's, else the one the AI read", () => {
+    const application = {
+      id: '7f1c2d3e-4b5a-4c6d-8e9f-0a1b2c3d4e5f',
+      companyName: 'Northwind Robotics',
+      jobTitle: null,
+      effectiveStatus: null,
+      archived: false,
+      decline: null,
+      closedAfterDeclineAt: null,
+    };
+    expect(mailCompany({ company: 'Northwind', application })).toBe('Northwind Robotics');
+    expect(mailCompany({ company: 'Quanta Labs', application: null })).toBe('Quanta Labs');
+    expect(mailCompany({ company: null, application: null })).toBeNull();
+  });
+
   it('splits a sender into name and address', () => {
     expect(parseSender('Priya Nair <priya@northwind.example>')).toEqual({
       name: 'Priya Nair',

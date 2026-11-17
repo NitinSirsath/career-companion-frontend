@@ -164,6 +164,14 @@ export function recipientLine(
   );
 }
 
+/**
+ * The company a job mail is about: its application's (the user may have corrected it), else the
+ * one the AI read. Rows show it first and stronger (owner, 17 Nov 2026).
+ */
+export function mailCompany(c: Pick<Conversation, 'company' | 'application'>): string | null {
+  return c.application?.companyName ?? c.company;
+}
+
 /** "4 mails · 2 from you": every message of the thread, and how many the user wrote. */
 export function mailCounts(total: number, fromYou: number): string {
   const mails = `${total} mail${total === 1 ? '' : 's'}`;

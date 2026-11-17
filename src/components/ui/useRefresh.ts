@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { onlineManager, useQueryClient } from '@tanstack/react-query';
+import { onlineManager, useIsFetching, useQueryClient } from '@tanstack/react-query';
 import { OFFLINE_REFRESH } from '../../lib/offline';
 import { showToast } from './toast';
 
@@ -7,6 +7,12 @@ import { showToast } from './toast';
 const MIN_SPIN_MS = 600;
 /** A refresh that hangs (a slow server) stops spinning after this; its answers still land. */
 const MAX_SPIN_MS = 8000;
+/**
+ * Data at least this old that is fetched again on its own also turns the icon: the page shows the
+ * copy saved on this device while it checks for new data, as phone mail apps do (owner, 17 Nov
+ * 2026). Fresher data, such as a list that polls, does not, so the icon is not always turning.
+ */
+const SAVED_COPY_MS = 60_000;
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -17,6 +23,12 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 export function useRefresh(also?: () => unknown) {
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState(false);
+  const checking =
+    useIsFetching({
+      type: 'active',
+      predicate: (query) =>
+        query.state.data !== undefined && Date.now() - query.state.dataUpdatedAt >= SAVED_COPY_MS,
+    }) > 0;
   const refresh = async () => {
     if (busy) return;
     if (!onlineManager.isOnline()) {
@@ -33,5 +45,5 @@ export function useRefresh(also?: () => unknown) {
       setBusy(false);
     }
   };
-  return { busy, refresh };
+  return { busy, checking, refresh };
 }

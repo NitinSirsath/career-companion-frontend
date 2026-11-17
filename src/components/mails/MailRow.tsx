@@ -6,6 +6,7 @@ import {
   CATEGORY_LABEL,
   fakeOfferStep,
   mailCounts,
+  mailCompany,
   mailDate,
   parseSender,
   requestDetail,
@@ -103,16 +104,27 @@ export function StepLine({
   );
 }
 
-/** "Riya Kapoor · Lumen Apps · Recruiter · 5 mails, 2 from you": who, where, what, how many. */
+/**
+ * "Lumen Apps · Riya Kapoor · Recruiter · 5 mails, 2 from you": where, who, what, how many. The
+ * company leads, in the text colour, so it stands out on every row (owner, 17 Nov 2026).
+ */
 export function MetaLine({ conversation: c }: { conversation: Conversation }) {
-  const parts = [
+  const company = mailCompany(c);
+  const rest = [
     parseSender(c.sender).name,
-    c.company,
     c.category && CATEGORY_LABEL[c.category],
     mailCounts(c.mailCount + c.sentCount, c.sentCount),
   ];
   return (
-    <p className="mt-1 truncate text-xs text-text-tertiary">{parts.filter(Boolean).join(' · ')}</p>
+    <p className="mt-1 truncate text-xs text-text-tertiary">
+      {company && (
+        <>
+          <span className="font-medium text-text-primary">{company}</span>
+          {' · '}
+        </>
+      )}
+      {rest.filter(Boolean).join(' · ')}
+    </p>
   );
 }
 

@@ -6,16 +6,18 @@ import { CapsuleButton, GlassCapsule } from './GlassButton';
 
 /**
  * The refresh button in a list's glass capsule (owner, 13 Nov 2026): it spins while the page is
- * fetched again. `also`: more to do first, such as asking Gmail for new mail.
+ * fetched again, by hand or on its own over a saved copy. `also`: more to do first, such as
+ * asking Gmail for new mail.
  */
 export function PhoneRefresh({ also }: { also?: () => unknown }) {
-  const { busy, refresh } = useRefresh(also);
+  const { busy, checking, refresh } = useRefresh(also);
+  const spinning = busy || checking;
   // Keeps turning after the fetch until the icon is upright again, so it never snaps back.
   const [turning, setTurning] = useState(false);
   return (
     <CapsuleButton
-      label={busy ? 'Refreshing…' : 'Refresh'}
-      aria-busy={busy || undefined}
+      label={spinning ? 'Refreshing…' : 'Refresh'}
+      aria-busy={spinning || undefined}
       onClick={() => {
         setTurning(true);
         void refresh();
@@ -24,8 +26,8 @@ export function PhoneRefresh({ also }: { also?: () => unknown }) {
       <RefreshCwIcon
         size={22}
         aria-hidden="true"
-        className={busy || turning ? 'animate-spin' : undefined}
-        onAnimationIteration={() => !busy && setTurning(false)}
+        className={spinning || turning ? 'animate-spin' : undefined}
+        onAnimationIteration={() => !spinning && setTurning(false)}
       />
     </CapsuleButton>
   );
