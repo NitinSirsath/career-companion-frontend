@@ -250,6 +250,8 @@ describe('Job mails tab', () => {
           jobTitle: 'Product Analyst',
           effectiveStatus: 'APPLIED',
           archived: false,
+          decline: null,
+          closedAfterDeclineAt: null,
         },
       }),
     ];
