@@ -1,9 +1,9 @@
 /** The product page's fixed values (owner, 31 Oct 2026). */
 
-/** The privacy policy: a static file on the product site, so it opens even while the server sleeps. */
-export const PRIVACY_POLICY_URL = '/privacy.html';
-
-/** The same policy from inside the app, which runs on its own site (app.northlist.site). */
+/**
+ * The privacy policy: a static file on the product site, so it opens even while the server sleeps.
+ * The app runs on its own site (app.northlist.site), which has no privacy.html, so it links the full address.
+ */
 export const PRIVACY_POLICY_FROM_APP = 'https://northlist.site/privacy.html';
 
 /** The contact address, as on the privacy policy. */

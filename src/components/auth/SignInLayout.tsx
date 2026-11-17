@@ -1,5 +1,5 @@
 import { useLayoutEffect, type ReactNode } from 'react';
-import { PRIVACY_POLICY_URL } from '../../lib/productPage';
+import { PRIVACY_POLICY_FROM_APP } from '../../lib/productPage';
 import { usePictureStep } from '../../lib/signInPicture';
 import { DevModeBanner } from '../devMode/DevModeBanner';
 import { Logo, Wordmark } from '../layout/Logo';
@@ -94,7 +94,7 @@ export function SignInLayout({ children }: { children: ReactNode }) {
             ·
           </span>
           <span>
-            <a href={PRIVACY_POLICY_URL} className="text-text-secondary hover:underline">
+            <a href={PRIVACY_POLICY_FROM_APP} className="text-text-secondary hover:underline">
               Privacy
             </a>
             {' · '}
