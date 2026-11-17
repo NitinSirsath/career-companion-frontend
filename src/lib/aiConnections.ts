@@ -10,6 +10,7 @@ import type { TagColor } from './statusTags';
 import { failureSaid } from './aiProviderPage';
 import { modelName, providerName } from './aiLabels';
 import { isFreeAI, ownKeyProviders } from './freeAI';
+import { FREE_AI_READER } from './mailReading';
 
 /**
  * The AI providers page: several providers can be connected, and one is active. The active one
@@ -142,4 +143,17 @@ export function inactiveCheckNote(response: CheckAIProviderResponse, providerId:
     ? `: ${failureSaid(response.verificationFailure, true)}`
     : '';
   return `${name} did not confirm right now${because}. Try again later.`;
+}
+
+/**
+ * Which AI reads the mail now, for "How your mail is read" on the Gmail sync page (owner,
+ * 17 Nov 2026): the free AI, the user's own key, or none yet.
+ */
+export function aiReaderText(settings: AISettingsResponse | undefined): string {
+  const active = settings?.connections.find((connection) => connection.active);
+  if (!settings || !active || settings.access.state === 'NOT_SET_UP')
+    return 'No AI is set up yet. New mails wait until you choose one on the AI providers page.';
+  if (isFreeAI(active.provider)) return `NorthList free AI. ${FREE_AI_READER}`;
+  const models = modelsLine(active, ' and ');
+  return `${providerName(active.provider)}, with your own key${models ? ` (${models})` : ''}. Your mail goes to your own account with that AI service, under its own terms.`;
 }
