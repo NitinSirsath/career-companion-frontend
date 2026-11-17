@@ -607,6 +607,17 @@
   line-height: 22px;
 }
 
+/*
+ * A list that runs to the screen's edges on phones. Rows inside keep 20px from the edge, and so do
+ * loaders, which read --list-inset (owner, 17 Nov 2026: loaders touched the edge).
+ */
+@utility phone-bleed {
+  @media (width < 48rem) {
+    margin-inline: -1rem;
+    --list-inset: 1.25rem;
+  }
+}
+
 /* Rows on a group with thin lines between them, starting at the text, as iPhone lists draw them. */
 @utility grouped-rows {
   & > * {
