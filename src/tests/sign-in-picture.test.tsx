@@ -133,6 +133,20 @@ describe('the sign-in picture (owner, 7 Nov 2026)', () => {
   });
 });
 
+describe('the sign-in footer', () => {
+  it('links the privacy policy on the product site, since the app site has none', () => {
+    withQuery(
+      <SignInLayout>
+        <p>Form</p>
+      </SignInLayout>,
+    );
+    expect(screen.getByRole('link', { name: 'Privacy' })).toHaveAttribute(
+      'href',
+      'https://northlist.site/privacy.html',
+    );
+  });
+});
+
 describe('the Sign in button', () => {
   it('is the filled blue button, also when Google is offered', () => {
     withQuery(<PasswordSignInForm onSignedIn={() => undefined} withGoogle />);
