@@ -370,6 +370,7 @@ export const noApplicationLine = (conversation: Pick<Conversation, 'sameCompanyA
     ? `You already have an application at ${first.companyName}.`
     : 'This conversation has no application yet.';
 };
+
 export type LinkProblem =
   | { kind: 'company' }
   | { kind: 'choice'; candidates: ApplicationChoiceDetails['candidates'] }
