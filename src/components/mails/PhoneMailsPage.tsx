@@ -37,7 +37,7 @@ export function PhoneMailsPage({
       <div className="mt-2 empty:hidden">
         <AIAccessNotice compact />
       </div>
-      <div className="-mx-4 mt-1">
+      <div className="phone-bleed mt-1">
         {search.tab === 'gmail' && <GmailInbox />}
         {search.tab === 'restricted' && <RestrictedList />}
         {!search.tab && <JobMails search={search} onChange={onChange} />}
