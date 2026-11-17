@@ -178,6 +178,20 @@ describe('Gmail Route', () => {
     expect(api.getMessages).not.toHaveBeenCalled();
     expect(screen.queryByRole('heading', { name: 'Sync' })).not.toBeInTheDocument();
   });
+  it('lists every mail it read on its own page, with what is kept of other mails', async () => {
+    vi.mocked(api.getGmailStatus).mockResolvedValue({
+      connected: true,
+      gmailEmail: 'user@gmail.com',
+      status: 'CONNECTED',
+      syncStatus: 'IDLE',
+      lastSyncedAt: null,
+    });
+    vi.mocked(api.getMessages).mockResolvedValue({
+      items: [],
+      metadata: { limit: 20, offset: 0, nextOffset: null },
+    });
+    renderWithProviders('/gmail/mails');
+    expect(await screen.findByRole('heading', { name: 'Every mail it read' })).toBeInTheDocument();
     // What is kept of other mails, as the privacy policy says.
     expect(
       screen.getByText(
