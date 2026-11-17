@@ -18,6 +18,8 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { isOfflineError } from '../../lib/offline';
+import { closedAfterDeclineLine } from '../../lib/declineQuestion';
+import { DeclineQuestion } from '../applications/DeclineQuestion';
 
 /**
  * The conversation's application, or the one-click way to give it one. In a table row ("cell")
@@ -70,6 +72,14 @@ export function ConversationApplication({
           <StatusBadge status={application.effectiveStatus} />
           {application.archived && <Tag color="outline">Archived</Tag>}
         </div>
+        {application.closedAfterDeclineAt && (
+          <p className="text-xs text-text-secondary">
+            {closedAfterDeclineLine(application.closedAfterDeclineAt)}
+          </p>
+        )}
+        {appearance === 'panel' && application.decline && (
+          <DeclineQuestion applicationId={application.id} decline={application.decline} />
+        )}
       </div>
     );
   // The user said earlier that this mail belongs to no application.
