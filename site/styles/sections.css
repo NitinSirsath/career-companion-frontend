@@ -1,7 +1,7 @@
 /* Product site: Replay buttons, data promises, page endings and page heads. Loaded in order by site.css. */
 
 /* Replay button for self-playing pictures */
-.replay { width: 32px; height: 32px; display: inline-grid; place-items: center; flex: none; border: 1px solid var(--line); background: var(--bg); color: var(--text-3); cursor: pointer; transition: color 70ms var(--ease), border-color 70ms var(--ease), background-color 70ms var(--ease); }
+.replay { width: 32px; height: 32px; display: inline-grid; place-items: center; flex: none; border: 1px solid var(--line); border-radius: 50%; background: var(--bg); color: var(--text-3); cursor: pointer; transition: color 70ms var(--ease), border-color 70ms var(--ease), background-color 70ms var(--ease); }
 .replay:hover { color: var(--text); border-color: var(--line-3); background: var(--bg-2); }
 .replay svg { transition: transform 300ms var(--ease); }
 .replay:active svg { transform: rotate(-120deg); }
