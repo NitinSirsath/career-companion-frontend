@@ -124,6 +124,7 @@ export function makeConversation(overrides: Partial<Conversation> = {}): Convers
     fakeOfferWarning: null,
     link: 'UNLINKED',
     application: null,
+    sameCompanyApplications: [],
     analyzedBy: { provider: 'gemini', model: 'gemini-3.5-flash-lite' },
     ...overrides,
   };

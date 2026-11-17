@@ -9,6 +9,9 @@ import type {
 import { closedByYourReply, showMail, stepNote } from '../../lib/jobStep';
 import { askingMessageId, keyDates } from '../../lib/mailThread';
 import {
+  CAREER_CONTACT,
+  careerContact,
+  noApplicationLine,
   FAKE_OFFER,
   fakeOfferStep,
   closesByHand,
@@ -193,18 +196,24 @@ function NextStep({ detail }: { detail: ConversationDetail }) {
  */
 export function JobMailPanel({ detail }: { detail: ConversationDetail }) {
   const { conversation, mails } = detail;
-  const canCreate = !conversation.application && conversation.link !== 'IGNORED';
+  const contact = careerContact(conversation);
+  const canCreate = !conversation.application && conversation.link !== 'IGNORED' && !contact;
   // Later mails never join a probable fake offer's application by themselves.
   const oneClick = canCreate && conversation.fakeOfferWarning === null;
+  const offered = conversation.sameCompanyApplications.length > 0;
   const dates = keyDates(mails);
   // Phones: a mail with no application yet keeps this card open, right under the next step, so
   // "Create application" is in view (owner, 7 Nov 2026). A probable fake offer stays folded.
   const openOnPhone = useIsPhone() && oneClick;
-  const applicationCard = (
+  const applicationCard = contact ? (
+    <PanelSection title="About this mail" fold>
+      <p className="text-sm">{CAREER_CONTACT.about(conversation.sender)}</p>
+    </PanelSection>
+  ) : (
     <PanelSection title="Application" fold={!oneClick}>
-      {canCreate && <p className="text-sm">This conversation has no application yet.</p>}
+      {canCreate && <p className="text-sm">{noApplicationLine(conversation)}</p>}
       <ConversationApplication conversation={conversation} />
-      {oneClick && (
+      {oneClick && !offered && (
         <p className="text-xs text-text-secondary">
           One click. The details come from this mail. Later mails from the same company join it by
           themselves.

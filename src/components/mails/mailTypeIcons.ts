@@ -2,6 +2,7 @@ import {
   AwardIcon,
   CircleXIcon,
   CodeIcon,
+  HandshakeIcon,
   MailIcon,
   MessageCircleIcon,
   UserIcon,
@@ -20,4 +21,5 @@ export const MAIL_TYPE_ICON: Record<MailCategory, LucideIcon> = {
   FOLLOW_UP: MessageCircleIcon,
   NEWSLETTER: MailIcon,
   SPAM: MailIcon,
+  CAREER_CONTACT: HandshakeIcon,
 };

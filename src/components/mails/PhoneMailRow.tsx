@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import type { Conversation } from '../../contracts/conversation';
 import {
+  careerContact,
   CATEGORY_LABEL,
   fakeOfferStep,
   mailDate,
@@ -62,7 +63,9 @@ function TagLine({ conversation: c }: { conversation: Conversation }) {
   const where = c.application ? (
     <span className="font-medium text-text-secondary">{c.application.companyName}</span>
   ) : (
-    [c.category && CATEGORY_LABEL[c.category], 'Not linked'].filter(Boolean).join(' · ')
+    [c.category && CATEGORY_LABEL[c.category], !careerContact(c) && 'Not linked']
+      .filter(Boolean)
+      .join(' · ')
   );
   const state = asked && requestDetail(asked);
   const late = asked && requestPastDue(asked);

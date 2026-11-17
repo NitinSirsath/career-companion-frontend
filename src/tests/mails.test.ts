@@ -49,6 +49,7 @@ describe('labels', () => {
       'Offer',
       'Rejection',
       'Update',
+      'Career contact',
     ]);
   });
 

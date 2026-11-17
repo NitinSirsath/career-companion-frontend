@@ -32,6 +32,7 @@ export const CATEGORY_LABEL: Record<MailCategory, string> = {
   FOLLOW_UP: 'Update',
   NEWSLETTER: 'Other',
   SPAM: 'Other',
+  CAREER_CONTACT: 'Career contact',
 };
 
 /** The types offered as a filter, in the order a job search usually runs. */
@@ -42,6 +43,7 @@ const TYPE_FILTERS: MailCategory[] = [
   'OFFER',
   'REJECTION',
   'FOLLOW_UP',
+  'CAREER_CONTACT',
 ];
 
 export const REQUEST_STATE_LABEL: Record<RequestState, string> = {
@@ -341,6 +343,34 @@ export const needsGmailConnection = (error: unknown): boolean =>
   isApiError(error) && error.code === 'GMAIL_NOT_CONNECTED';
 
 /** What the Application cell does after "Create application" was refused. */
+/**
+ * A career contact (owner, 17 Nov 2026): a named person writes about the user's work or career,
+ * not a job. It never gets an application, so there is no "Not linked" and no way to create one.
+ */
+export const careerContact = (conversation: Pick<Conversation, 'category' | 'application'>) =>
+  conversation.category === 'CAREER_CONTACT' && !conversation.application;
+
+export const CAREER_CONTACT = {
+  noApplication: 'No application needed',
+  about: (sender: string | null) =>
+    `A career contact: ${parseSender(sender).name.split(/\s+/)[0]} writes about your work, not a job. No application needed.`,
+} as const;
+
+/**
+ * The application the user already has at the conversation's company, offered before "Create
+ * application" (owner, 17 Nov 2026): "Link to POOLit · Front-end Developer".
+ */
+export const linkLabel = (app: { companyName: string; jobTitle: string | null }) =>
+  `Link to ${[app.companyName, app.jobTitle].filter(Boolean).join(' · ')}`;
+
+/** The first line of the card that gives an unlinked conversation its application. */
+export const noApplicationLine = (conversation: Pick<Conversation, 'sameCompanyApplications'>) => {
+  const [first] = conversation.sameCompanyApplications;
+  return first
+    ? `You already have an application at ${first.companyName}.`
+    : 'This conversation has no application yet.';
+};
+
 export type LinkProblem =
   | { kind: 'company' }
   | { kind: 'choice'; candidates: ApplicationChoiceDetails['candidates'] }
@@ -354,6 +384,8 @@ export function linkProblem(error: unknown): LinkProblem {
       return { kind: 'choice', candidates: choice.data.candidates };
     if (error.code === 'CONVERSATION_LINKED')
       return { kind: 'message', text: 'This conversation already has an application.' };
+    if (error.code === 'CAREER_CONTACT')
+      return { kind: 'message', text: 'A career contact has no application.' };
   }
   const reason = error instanceof Error ? error.message : 'Something went wrong.';
   return { kind: 'message', text: `Could not create the application: ${reason}` };
