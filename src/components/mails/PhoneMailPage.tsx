@@ -72,7 +72,7 @@ function PhoneThread({
       </InlineNotification>
     );
   return (
-    <div className="-mx-4 mt-3.5">
+    <div className="phone-bleed mt-3.5">
       <MailThreadView
         threadId={conversation.threadId}
         job={{
