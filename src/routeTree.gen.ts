@@ -20,6 +20,7 @@ import { Route as GmailRouteImport } from './routes/gmail'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as TestLoginRouteImport } from './routes/test-login'
 import { Route as ApplicationsIdRouteImport } from './routes/applications.$id'
+import { Route as GmailMailsRouteImport } from './routes/gmail_.mails'
 import { Route as MailsIndexRouteImport } from './routes/mails.index'
 import { Route as MailsKeyRouteImport } from './routes/mails.$key'
 import { Route as SandboxIndexRouteImport } from './routes/sandbox.index'
@@ -84,6 +85,11 @@ const ApplicationsIdRoute = ApplicationsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApplicationsRoute,
 } as any)
+const GmailMailsRoute = GmailMailsRouteImport.update({
+  id: '/gmail_/mails',
+  path: '/gmail/mails',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MailsIndexRoute = MailsIndexRouteImport.update({
   id: '/mails/',
   path: '/mails/',
@@ -137,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/test-login': typeof TestLoginRoute
   '/applications/$id': typeof ApplicationsIdRoute
+  '/gmail/mails': typeof GmailMailsRoute
   '/mails/$key': typeof MailsKeyRoute
   '/sandbox/$threadId': typeof SandboxThreadIdRoute
   '/sandbox/compose': typeof SandboxComposeRoute
@@ -158,6 +165,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/test-login': typeof TestLoginRoute
   '/applications/$id': typeof ApplicationsIdRoute
+  '/gmail/mails': typeof GmailMailsRoute
   '/mails/$key': typeof MailsKeyRoute
   '/sandbox/$threadId': typeof SandboxThreadIdRoute
   '/sandbox/compose': typeof SandboxComposeRoute
@@ -180,6 +188,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/test-login': typeof TestLoginRoute
   '/applications/$id': typeof ApplicationsIdRoute
+  '/gmail_/mails': typeof GmailMailsRoute
   '/mails/$key': typeof MailsKeyRoute
   '/sandbox/$threadId': typeof SandboxThreadIdRoute
   '/sandbox/compose': typeof SandboxComposeRoute
@@ -203,6 +212,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/test-login'
     | '/applications/$id'
+    | '/gmail/mails'
     | '/mails/$key'
     | '/sandbox/$threadId'
     | '/sandbox/compose'
@@ -224,6 +234,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/test-login'
     | '/applications/$id'
+    | '/gmail/mails'
     | '/mails/$key'
     | '/sandbox/$threadId'
     | '/sandbox/compose'
@@ -245,6 +256,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/test-login'
     | '/applications/$id'
+    | '/gmail_/mails'
     | '/mails/$key'
     | '/sandbox/$threadId'
     | '/sandbox/compose'
@@ -266,6 +278,7 @@ export interface RootRouteChildren {
   GmailRoute: typeof GmailRoute
   LoginRoute: typeof LoginRoute
   TestLoginRoute: typeof TestLoginRoute
+  GmailMailsRoute: typeof GmailMailsRoute
   MailsKeyRoute: typeof MailsKeyRoute
   SandboxThreadIdRoute: typeof SandboxThreadIdRoute
   SandboxComposeRoute: typeof SandboxComposeRoute
@@ -355,6 +368,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApplicationsIdRouteImport
       parentRoute: typeof ApplicationsRoute
     }
+    '/gmail_/mails': {
+      id: '/gmail_/mails'
+      path: '/gmail/mails'
+      fullPath: '/gmail/mails'
+      preLoaderRoute: typeof GmailMailsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/mails/': {
       id: '/mails/'
       path: '/mails'
@@ -437,6 +457,7 @@ const rootRouteChildren: RootRouteChildren = {
   GmailRoute: GmailRoute,
   LoginRoute: LoginRoute,
   TestLoginRoute: TestLoginRoute,
+  GmailMailsRoute: GmailMailsRoute,
   MailsKeyRoute: MailsKeyRoute,
   SandboxThreadIdRoute: SandboxThreadIdRoute,
   SandboxComposeRoute: SandboxComposeRoute,
