@@ -6,9 +6,12 @@ import type { ConversationDetail, ConversationRequest } from '../../contracts/co
 import { reopenNote, showMail, stepNote, stepSource } from '../../lib/jobStep';
 import { dueIn, keyDates } from '../../lib/mailThread';
 import {
+  CAREER_CONTACT,
   FAKE_OFFER,
+  careerContact,
   closesByHand,
   fakeOfferStep,
+  noApplicationLine,
   requestDetail,
   requestPastDue,
   requestTitle,
@@ -200,12 +203,14 @@ function PhoneCreateApplication({
       aria-label="Application"
       className="mt-3 flex flex-col gap-2.5 rounded-2xl bg-surface-subtle px-4 pt-3.5 pb-4 text-[15px]"
     >
-      <p>This conversation has no application yet.</p>
+      <p>{noApplicationLine(conversation)}</p>
       <ConversationApplication conversation={conversation} />
-      <p className="text-[13px] text-text-tertiary">
-        One tap. The details come from this mail. Later mails from the same company join it by
-        themselves.
-      </p>
+      {conversation.sameCompanyApplications.length === 0 && (
+        <p className="text-[13px] text-text-tertiary">
+          One tap. The details come from this mail. Later mails from the same company join it by
+          themselves.
+        </p>
+      )}
     </section>
   );
 }
@@ -219,7 +224,8 @@ export function PhoneJobMailTop({ detail }: { detail: ConversationDetail }) {
   const oneTap =
     !conversation.application &&
     conversation.link !== 'IGNORED' &&
-    conversation.fakeOfferWarning === null;
+    conversation.fakeOfferWarning === null &&
+    !careerContact(conversation);
   const { application } = conversation;
   return (
     <div role="group" aria-label="About this job mail" className="pb-1.5">
@@ -300,19 +306,43 @@ export function PhoneJobMailInfo({
   onOpenChange: (open: boolean) => void;
 }) {
   const { conversation } = detail;
-  const application = conversation.application;
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange} title="About this job mail">
       <h3 className="text-[17px] font-semibold">Key dates</h3>
       <KeyDates detail={detail} />
-      <h3 className="pt-2 text-[17px] font-semibold">Application</h3>
+      <SheetApplication conversation={conversation} onOpen={() => onOpenChange(false)} />
+    </Sheet>
+  );
+}
+
+/** The sheet's last part: the application, or why a career contact has none. */
+function SheetApplication({
+  conversation,
+  onOpen,
+}: {
+  conversation: ConversationDetail['conversation'];
+  onOpen: () => void;
+}) {
+  const heading = (text: string) => <h3 className="pt-2 text-[17px] font-semibold">{text}</h3>;
+  if (careerContact(conversation))
+    return (
+      <>
+        {heading('About this mail')}
+        <p className="text-[15px]">{CAREER_CONTACT.about(conversation.sender)}</p>
+      </>
+    );
+  const { application } = conversation;
+  return (
+    <>
+      {heading('Application')}
       {application ? (
         <SheetGroup>
-          <ApplicationRow application={application} onOpen={() => onOpenChange(false)} />
+          <ApplicationRow application={application} onOpen={onOpen} />
         </SheetGroup>
       ) : (
         <ConversationApplication conversation={conversation} />
       )}
-    </Sheet>
+    </>
   );
 }
