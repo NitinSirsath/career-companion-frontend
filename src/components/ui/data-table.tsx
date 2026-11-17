@@ -10,7 +10,7 @@ import {
 import { ArrowDownIcon } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useIsPhone } from '../layout/useIsPhone';
-import { Skeleton } from './skeleton';
+import { Skeleton, SkeletonList } from './skeleton';
 import { leavingProps, listPhaseClass, useListMotion, type ListEntry } from './useListMotion';
 
 declare module '@tanstack/react-table' {
@@ -58,8 +58,10 @@ interface DataTableProps<T> {
   motionKey?: string;
 }
 
-const ROW_CLASS =
-  'relative flex flex-col gap-2 border-b border-border-subtle p-4 transition-colors duration-70 ease-standard hover:bg-layer-hover md:grid md:items-start md:gap-x-4 md:gap-y-0 md:py-4';
+/** A row's side space on phones: 16px, or the rows' 20px inside a list that runs to the edges. */
+const PHONE_ROW_INSET = 'px-[var(--list-inset,1rem)]';
+
+const ROW_CLASS = `relative flex flex-col gap-2 border-b border-border-subtle py-4 ${PHONE_ROW_INSET} transition-colors duration-70 ease-standard hover:bg-layer-hover md:grid md:items-start md:gap-x-4 md:gap-y-0 md:px-4 md:py-4`;
 
 /** The number after a header: small, mono, on grey. */
 function CountTag({ count }: { count: number }) {
@@ -90,7 +92,8 @@ export function DataTable<T>({
   phoneRow,
   motionKey,
 }: DataTableProps<T>) {
-  const phone = useIsPhone() && !!phoneRow;
+  const isPhone = useIsPhone();
+  const phone = isPhone && !!phoneRow;
   const table = useReactTable({
     data: data as T[],
     columns,
@@ -170,21 +173,14 @@ export function DataTable<T>({
           )}
         >
           {loading && (
-            <span role="status" className="sr-only">
-              Loading {label.toLowerCase()}
-            </span>
+            <LoadingRows
+              label={label}
+              columns={columns.length}
+              style={style}
+              phone={isPhone}
+              group={phone}
+            />
           )}
-          {loading &&
-            Array.from({ length: 5 }, (_, i) => (
-              <div key={i} role="row" className={ROW_CLASS} style={style}>
-                {columns.map((_, c) => (
-                  <div key={c} role="cell" className="flex flex-col gap-2">
-                    <Skeleton className={c === 1 ? 'w-4/5' : 'w-3/5'} />
-                    {c === 1 && <Skeleton className="h-3 w-1/2" />}
-                  </div>
-                ))}
-              </div>
-            ))}
           {!loading && (
             <BodyRows
               entries={entries}
@@ -200,6 +196,46 @@ export function DataTable<T>({
       )}
       {footer}
     </div>
+  );
+}
+
+/**
+ * Grey rows while the list loads. Phones stack a row's cells, so there the desktop's grey cells
+ * would be a tall pile per row: plain loader lines instead, as far in as the rows' words, on the
+ * grey group (`group`) or in plain rows.
+ */
+function LoadingRows({
+  label,
+  columns,
+  style,
+  phone,
+  group,
+}: {
+  label: string;
+  columns: number;
+  style: React.CSSProperties;
+  phone: boolean;
+  group: boolean;
+}) {
+  const name = `Loading ${label.toLowerCase()}`;
+  if (phone)
+    return <SkeletonList rows={5} label={name} className={group ? 'px-4 py-3' : PHONE_ROW_INSET} />;
+  return (
+    <>
+      <span role="status" className="sr-only">
+        {name}
+      </span>
+      {Array.from({ length: 5 }, (_, i) => (
+        <div key={i} role="row" className={ROW_CLASS} style={style}>
+          {Array.from({ length: columns }, (_, c) => (
+            <div key={c} role="cell" className="flex flex-col gap-2">
+              <Skeleton className={c === 1 ? 'w-4/5' : 'w-3/5'} />
+              {c === 1 && <Skeleton className="h-3 w-1/2" />}
+            </div>
+          ))}
+        </div>
+      ))}
+    </>
   );
 }
 

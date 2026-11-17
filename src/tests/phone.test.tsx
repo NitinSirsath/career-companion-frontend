@@ -170,9 +170,10 @@ describe('phone lists', () => {
     expect(api.patch).not.toHaveBeenCalled();
   });
 
-  it('makes the company a little stronger than the rest of the last line', async () => {
+  it('leads the last line with the company in the text colour, linked or not', async () => {
     detail.conversation = makeConversation({
       link: 'LINKED',
+      company: 'Northwind (as the AI read it)',
       application: {
         id: '7f1c2d3e-4b5a-4c6d-8e9f-0a1b2c3d4e5f',
         companyName: 'Northwind Robotics',
@@ -184,11 +185,19 @@ describe('phone lists', () => {
       },
     });
     show('/mails');
-    const row = await screen.findByRole('link', { name: ROW_NAME });
+    let row = await screen.findByRole('link', { name: ROW_NAME });
+    // The application's name wins: the user may have corrected what the AI read.
     expect(within(row).getByText('Northwind Robotics')).toHaveClass(
       'font-medium',
-      'text-text-secondary',
+      'text-text-primary',
     );
+    cleanup();
+    detail.conversation = makeConversation({ company: 'Quanta Labs', application: null });
+    show('/mails');
+    row = await screen.findByRole('link', { name: ROW_NAME });
+    const company = within(row).getByText('Quanta Labs');
+    expect(company).toHaveClass('font-medium', 'text-text-primary');
+    expect(company.parentElement).toHaveTextContent(/^Quanta Labs · Interview · Not linked/);
   });
 
   it('marks a new mail with a dot in the side margin, and lines every row up with the title', async () => {
@@ -275,6 +284,50 @@ describe('phone lists', () => {
       expect.stringMatching(/^\/applications\//),
     );
     expect(screen.queryByRole('button', { name: 'Add application' })).not.toBeInTheDocument();
+  });
+});
+
+describe('phone loaders', () => {
+  /** The answer for `path` never comes, so the page keeps its loader. */
+  const neverAnswer = (prefix: string) => {
+    const answer = vi.mocked(api.get).getMockImplementation()!;
+    vi.mocked(api.get).mockImplementation((path: string, ...rest) =>
+      path.startsWith(prefix) ? new Promise(() => {}) : answer(path, ...rest),
+    );
+  };
+  /** The loader that says `label` to screen readers. */
+  const loaderFor = async (label: string) =>
+    (await screen.findByText(label)).closest<HTMLElement>('[role="status"]')!;
+  // The grey rows sit inside the edge-to-edge list and take its 20px side space, like the rows.
+  const expectInset = (loader: HTMLElement) => {
+    expect(loader.closest('.phone-bleed')).not.toBeNull();
+    expect(loader).toHaveClass('px-[var(--list-inset,0px)]');
+  };
+
+  it('keeps the Job mails and Whole inbox loaders 20px from the screen edge', async () => {
+    neverAnswer('/api/conversations?');
+    show('/mails');
+    expectInset(await loaderFor('Loading job mails'));
+    cleanup();
+    neverAnswer('/api/mailbox/threads');
+    show('/mails?tab=gmail');
+    expectInset(await loaderFor('Loading the inbox'));
+  });
+
+  it('keeps the mail page loader 20px from the screen edge', async () => {
+    neverAnswer('/api/mailbox/threads/');
+    show('/mails/conv-1');
+    expectInset(await loaderFor('Reading this mail from Gmail'));
+  });
+
+  it('shows loader lines, not a pile of cells, while Applications loads', async () => {
+    vi.mocked(api.listApplications).mockReturnValue(new Promise(() => {}));
+    show('/applications');
+    const loader = await loaderFor('Loading applications');
+    // As far in as the words of a loaded card on the grey group.
+    expect(loader).toHaveClass('px-4');
+    expect(loader).not.toHaveClass('px-[var(--list-inset,0px)]');
+    expect(screen.queryAllByRole('cell')).toHaveLength(0);
   });
 });
 

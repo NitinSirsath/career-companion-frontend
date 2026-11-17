@@ -4,6 +4,7 @@ import { ChevronRightIcon } from 'lucide-react';
 import type { MailboxThread } from '../../contracts/mailbox';
 import { mailDate, parseSender, snippetText } from '../../lib/mails';
 import { cn } from '../../lib/utils';
+import { SkeletonRows } from '../ui/skeleton';
 import { Tag } from '../ui/tag';
 
 const ROW =
@@ -89,18 +90,7 @@ export function PhoneInboxList({
   empty: ReactNode;
   footer: ReactNode;
 }) {
-  if (loading)
-    return (
-      <div
-        aria-busy="true"
-        aria-label="Loading the inbox"
-        className="flex flex-col gap-2 px-5 pt-2"
-      >
-        {Array.from({ length: 5 }, (_, i) => (
-          <div key={i} className="skeleton h-20 rounded-lg" />
-        ))}
-      </div>
-    );
+  if (loading) return <SkeletonRows label="Loading the inbox" />;
   if (!threads?.length) return <>{empty}</>;
   return (
     <>

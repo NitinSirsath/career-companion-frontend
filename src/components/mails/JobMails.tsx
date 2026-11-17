@@ -9,6 +9,7 @@ import { useIsPhone } from '../layout/useIsPhone';
 import { EMPTY_ACTION, EMPTY_ACTION_QUIET, EmptyState } from '../ui/empty-state';
 import { Pagination } from '../ui/pagination';
 import { SectionError } from '../ui/section-error';
+import { SkeletonRows } from '../ui/skeleton';
 import { leavingProps, listPhaseClass, useListMotion } from '../ui/useListMotion';
 import { MailRow } from './MailRow';
 import { PhoneMailRow } from './PhoneMailRow';
@@ -65,16 +66,6 @@ const isNarrowed = (search: MailsSearch) =>
   [search.q, search.request, search.category, search.application, search.unseen].some(Boolean) ||
   (search.offset ?? 0) > 0;
 
-function LoadingRows() {
-  return (
-    <div aria-busy="true" aria-label="Loading job mails" className="flex flex-col gap-2 pt-2">
-      {Array.from({ length: 5 }, (_, i) => (
-        <div key={i} className="skeleton h-20 rounded-lg" />
-      ))}
-    </div>
-  );
-}
-
 interface JobMailsProps {
   search: MailsSearch;
   onChange: (changes: Partial<MailsSearch>) => void;
@@ -109,7 +100,7 @@ export function JobMails({ search, onChange }: JobMailsProps) {
         onRetry={() => void refetch()}
       />
     );
-  if (isLoading) return <LoadingRows />;
+  if (isLoading) return <SkeletonRows label="Loading job mails" />;
   if (data && items.length === 0)
     return (
       <NoJobMails

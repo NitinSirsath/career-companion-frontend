@@ -11,6 +11,7 @@ import {
   careerContact,
   CATEGORY_LABEL,
   fakeOfferStep,
+  mailCompany,
   mailDate,
   parseSender,
   requestDetail,
@@ -54,18 +55,22 @@ function StepLine({ conversation: c }: { conversation: Conversation }) {
 }
 
 /**
- * The fourth line: the application's status and company (or the mail's type), and the step's
- * state. The company is a little stronger than the rest of the line (owner, 16 Nov 2026), as on
- * the product page.
+ * The fourth line: the application's status, the company, the mail's type when it has no
+ * application, and the step's state. The company leads in the text colour, so it stands out on
+ * every row, linked or not (owner, 17 Nov 2026).
  */
 function TagLine({ conversation: c }: { conversation: Conversation }) {
   const asked = c.request;
-  const where = c.application ? (
-    <span className="font-medium text-text-secondary">{c.application.companyName}</span>
-  ) : (
-    [c.category && CATEGORY_LABEL[c.category], !careerContact(c) && 'Not linked']
-      .filter(Boolean)
-      .join(' · ')
+  const company = mailCompany(c);
+  const unlinked = c.application
+    ? []
+    : [c.category && CATEGORY_LABEL[c.category], !careerContact(c) && 'Not linked'].filter(Boolean);
+  const where = (
+    <>
+      {company && <span className="font-medium text-text-primary">{company}</span>}
+      {company && unlinked.length > 0 && ' · '}
+      {unlinked.join(' · ')}
+    </>
   );
   const state = asked && requestDetail(asked);
   const late = asked && requestPastDue(asked);
