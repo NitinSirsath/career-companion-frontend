@@ -8,6 +8,7 @@ import type {
 import { AUTOMATION_SUBMITTED, platformLabel } from './eventLabels';
 import { parseSender } from './mails';
 import { STATUS_LABEL } from './statusLabels';
+import { closedAfterDeclineLine } from './declineQuestion';
 
 /** A date the server sent, or "Date unknown" when it sent none it can read. */
 function safeFormat(value: string | Date, pattern: string): string {
@@ -22,9 +23,10 @@ export const dateAndTime = (value: string | Date) => safeFormat(value, 'EEE d MM
 export function statusSourceLine(
   app: Pick<
     ApplicationResponse,
-    'statusSource' | 'submittedVia' | 'userStatusSetAt' | 'effectiveStatus'
+    'statusSource' | 'submittedVia' | 'userStatusSetAt' | 'effectiveStatus' | 'closedAfterDeclineAt'
   >,
 ): string {
+  if (app.closedAfterDeclineAt) return closedAfterDeclineLine(app.closedAfterDeclineAt);
   if (app.statusSource === 'USER')
     return app.userStatusSetAt
       ? `Set by you · ${longDate(app.userStatusSetAt)}`

@@ -10,6 +10,7 @@ import { PhoneApplicationBar } from './PhoneApplicationBar';
 import { StatusPickerContext } from './statusPicker';
 import { useApplicationMenu } from './useApplicationMenu';
 import { useStatusControl } from './useStatusControl';
+import { DeclineQuestion } from './DeclineQuestion';
 
 function ArchivedNotice({ canRestore, onRestore }: { canRestore: boolean; onRestore: () => void }) {
   return (
@@ -92,6 +93,13 @@ export function ApplicationHeader({
   const role = [application.jobTitle, application.location].filter(Boolean).join(' · ');
   const notices = (
     <>
+      {application.decline && (
+        <DeclineQuestion
+          applicationId={application.id}
+          decline={application.decline}
+          divider={false}
+        />
+      )}
       {status.notice}
       {archived && <ArchivedNotice canRestore={canEdit} onRestore={menu.openArchive} />}
     </>

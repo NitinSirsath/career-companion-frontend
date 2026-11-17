@@ -6,7 +6,7 @@ import type {
   ConversationMail,
   ConversationRequest,
 } from '../../contracts/conversation';
-import { showMail, stepNote } from '../../lib/jobStep';
+import { closedByYourReply, showMail, stepNote } from '../../lib/jobStep';
 import { askingMessageId, keyDates } from '../../lib/mailThread';
 import {
   FAKE_OFFER,
@@ -108,7 +108,7 @@ function ClosedByLink({ asked }: { asked: ConversationRequest }) {
       className="flex cursor-pointer items-center gap-1.5 border-t border-border-subtle pt-3 text-left text-sm text-link"
     >
       <ArrowDownIcon size={16} aria-hidden="true" />
-      {asked.closedReason === 'YOUR_REPLY' ? 'Show your reply' : 'Show that mail'}
+      {closedByYourReply(asked) ? 'Show your reply' : 'Show that mail'}
     </button>
   );
 }

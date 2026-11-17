@@ -179,6 +179,8 @@ describe('phone lists', () => {
         jobTitle: 'Frontend Engineer',
         effectiveStatus: 'INTERVIEW',
         archived: false,
+        decline: null,
+        closedAfterDeclineAt: null,
       },
     });
     show('/mails');
@@ -384,6 +386,8 @@ describe('phone mail details', () => {
         jobTitle: 'Frontend Engineer',
         effectiveStatus: 'INTERVIEW',
         archived: false,
+        decline: null,
+        closedAfterDeclineAt: null,
       },
     });
     show('/mails/thread-1');

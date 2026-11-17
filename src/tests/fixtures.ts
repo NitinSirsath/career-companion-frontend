@@ -27,6 +27,8 @@ export function makeApplication(overrides: Partial<ApplicationResponse> = {}): A
     pendingActionCount: 0,
     submittedVia: null,
     automation: null,
+    decline: null,
+    closedAfterDeclineAt: null,
     ...overrides,
   } as ApplicationResponse;
   return { ...base, ...deriveStatus(base.aiStatus, base.userStatus), ...pickDerived(overrides) };
@@ -117,6 +119,7 @@ export function makeConversation(overrides: Partial<Conversation> = {}): Convers
       closedAt: null,
       closedByMessageId: null,
       replyRead: null,
+      theyAnsweredAt: null,
     },
     fakeOfferWarning: null,
     link: 'UNLINKED',

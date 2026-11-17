@@ -21,6 +21,7 @@ import { InlineNotification } from '../ui/notification';
 import { Sheet, SheetAction, SheetGroup } from '../ui/sheet';
 import { Tag } from '../ui/tag';
 import { showToast } from '../ui/toast';
+import { DeclineQuestion } from '../applications/DeclineQuestion';
 import { ConversationApplication } from './ConversationApplication';
 import { ReadingReply, StepDue, StepState } from './StepParts';
 import { TodoState } from './TodoState';
@@ -219,10 +220,24 @@ export function PhoneJobMailTop({ detail }: { detail: ConversationDetail }) {
     !conversation.application &&
     conversation.link !== 'IGNORED' &&
     conversation.fakeOfferWarning === null;
+  const { application } = conversation;
   return (
     <div role="group" aria-label="About this job mail" className="pb-1.5">
       <PhoneNextStep detail={detail} />
       {oneTap && <PhoneCreateApplication conversation={conversation} />}
+      {application?.decline && (
+        // "Close the application?" right under the step (owner, 17 Nov 2026), not behind ⓘ.
+        <section
+          aria-label="Application"
+          className="mt-3 rounded-2xl bg-surface-subtle px-4 pt-3.5 pb-4 text-[15px]"
+        >
+          <DeclineQuestion
+            applicationId={application.id}
+            decline={application.decline}
+            divider={false}
+          />
+        </section>
+      )}
     </div>
   );
 }

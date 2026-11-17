@@ -261,6 +261,8 @@ export function StatusNotice({
         </InlineNotification>
       );
     default:
+      // Closed after the user declined by mail: their own reply explains it, nothing to compare.
+      if (application.closedAfterDeclineAt) return null;
       if (!application.hasStatusConflict || !application.aiStatus || !application.userStatus)
         return null;
       return (

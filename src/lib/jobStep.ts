@@ -1,6 +1,6 @@
 import type { ConversationDetail, ConversationRequest } from '../contracts/conversation';
 import { askingMessageId } from './mailThread';
-import { mailDateTime, parseSender, repliedLine } from './mails';
+import { mailDate, mailDateTime, parseSender, repliedLine } from './mails';
 
 /** Scrolls to a mail of the conversation and flashes it, so the user sees which mail asks. */
 export function showMail(gmailMessageId: string) {
@@ -21,13 +21,28 @@ export function stepNote(
   pastDue: boolean,
   phone = false,
 ): string | null {
-  if (asked.state === 'REPLIED')
-    return asked.replyRead === 'NOT_READ'
-      ? "The AI could not read your reply, so it can't tell if this is done."
-      : null;
+  if (asked.state === 'REPLIED') return repliedNote(asked);
   if (asked.state !== 'OPEN') return null;
   if (asked.replyRead === 'NOT_ANSWERED' && asked.repliedAt)
     return `${repliedLine(asked.repliedAt)}, but your reply does not answer this yet.`;
+  const how = howItCloses(asked, pastDue, phone);
+  // They answered the user's question (owner, 17 Nov 2026): the ask stands again.
+  if (asked.replyRead !== 'THEY_ANSWERED') return how;
+  const when = asked.theyAnsweredAt ? ` ${mailDate(asked.theyAnsweredAt)}` : '';
+  return `They answered your question${when}. ${how}`;
+}
+
+/** Under a replied step: a question back waits for them; an unread reply can't tell. */
+function repliedNote(asked: ConversationRequest): string | null {
+  if (asked.replyRead === 'ASKED_BACK')
+    return 'You asked them a question. Waiting for their reply.';
+  return asked.replyRead === 'NOT_READ'
+    ? "The AI could not read your reply, so it can't tell if this is done."
+    : null;
+}
+
+/** What closes an open step. */
+function howItCloses(asked: ConversationRequest, pastDue: boolean, phone: boolean): string {
   if (asked.askKind === 'REPLY_BY_MAIL')
     return pastDue
       ? 'Closes when your reply answers it, or when you set the application to Rejected or Closed.'
@@ -40,6 +55,10 @@ export function stepNote(
     : `This sender can't get a reply. When you've done it, choose "I did this"${where}.`;
 }
 
+/** The step closed by the user's own reply: it answered or declined it. */
+export const closedByYourReply = (asked: Pick<ConversationRequest, 'closedReason'>) =>
+  asked.closedReason === 'YOUR_REPLY' || asked.closedReason === 'YOU_DECLINED';
+
 /** The mail a step's sheet can show: the one that closed it, or the one that asks. */
 export function stepSource(
   detail: ConversationDetail,
@@ -48,7 +67,7 @@ export function stepSource(
   if (asked.state === 'DONE')
     return asked.closedByMessageId
       ? {
-          label: asked.closedReason === 'YOUR_REPLY' ? 'Show your reply' : 'Show that mail',
+          label: closedByYourReply(asked) ? 'Show your reply' : 'Show that mail',
           messageId: asked.closedByMessageId,
         }
       : null;
@@ -64,6 +83,8 @@ export function stepSource(
  * closing reason itself shows beside the step's state.
  */
 export function reopenNote(asked: ConversationRequest): string | null {
+  if (asked.state === 'REPLIED' && asked.replyRead === 'ASKED_BACK')
+    return 'Reopen puts it back on your list before they answer.';
   if (asked.state === 'REPLIED')
     return 'Your reply closed this step by itself. Reopen puts it back on your list.';
   if (asked.state === 'DONE') return 'Reopen puts it back on your list.';
