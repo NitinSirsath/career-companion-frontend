@@ -211,7 +211,7 @@ describe('one home for each fact', () => {
     }
     for (const text of [facts, policy, yourData]) {
       expect(text).toContain(chars(MAIL_LIMITS.reply));
-      expect(text).toContain(\`\${NOT_JOB_MAIL_KEPT_DAYS} days\`);
+      expect(text).toContain(`${NOT_JOB_MAIL_KEPT_DAYS} days`);
     }
   });
 
