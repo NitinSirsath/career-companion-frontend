@@ -1,25 +1,35 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import {
   FileTextIcon,
   LayoutGridIcon,
   MailIcon,
+  SearchIcon,
   SettingsIcon,
   type LucideIcon,
 } from 'lucide-react';
+import { useDashboard } from '../../api/dashboard';
+import { DEFAULT_PERIOD } from '../../lib/dashboard';
 import { PHONE_TABS, TAB_ROOT, type PhoneTab } from '../../lib/phoneStack';
-import { animateSpring, SNAP_SPRING } from '../../lib/spring';
+import { animateSpring, prefersReducedMotion, spring } from '../../lib/spring';
 import { cn } from '../../lib/utils';
+import { PRESS } from './GlassButton';
 import type { PhoneNav } from './phoneNav';
-import { DashboardFilled, FileFilled, MailFilled, SettingsFilled } from './tabIcons';
 
-const TABS: Record<PhoneTab, { label: string; Icon: LucideIcon; On: typeof MailFilled }> = {
-  dashboard: { label: 'Dashboard', Icon: LayoutGridIcon, On: DashboardFilled },
-  mails: { label: 'Mails', Icon: MailIcon, On: MailFilled },
-  applications: { label: 'Applications', Icon: FileTextIcon, On: FileFilled },
-  settings: { label: 'Settings', Icon: SettingsIcon, On: SettingsFilled },
+/** Icon-only tabs; the words stay for screen readers. */
+const TABS: Record<PhoneTab, { label: string; Icon: LucideIcon }> = {
+  dashboard: { label: 'Dashboard', Icon: LayoutGridIcon },
+  mails: { label: 'Mails', Icon: MailIcon },
+  applications: { label: 'Applications', Icon: FileTextIcon },
+  settings: { label: 'Settings', Icon: SettingsIcon },
 };
 
-/** The soft highlight follows the chosen tab with a spring. */
+/** The open tab is a quarter wider than the others (mock: `.tabs div.on { flex: 1.25 }`). */
+const ON_GROW = 1.25;
+const UNITS = PHONE_TABS.length - 1 + ON_GROW;
+/** The pill slides to the tapped tab in ~200ms with a little spring (Motion rules). */
+const PILL_SPRING = spring(0.3, 0.74);
+
+/** The lighter pill under the open tab: `--tab-at` is where it is, in tabs from the left. */
 function usePill(index: number) {
   const pill = useRef<HTMLSpanElement>(null);
   const shown = useRef(index);
@@ -28,61 +38,102 @@ function usePill(index: number) {
     shown.current = index;
     const element = pill.current;
     if (!element || from === index) return;
-    void animateSpring({ from, to: index }, SNAP_SPRING, (x) => {
-      element.style.transform = `translateX(${x * 100}%)`;
-    });
+    const place = (x: number) => element.style.setProperty('--tab-at', String(x));
+    if (prefersReducedMotion()) return place(index);
+    void animateSpring({ from, to: index }, PILL_SPRING, place);
   }, [index]);
   return pill;
 }
 
+/** True while there are job mails the user has not opened yet: the blue dot on Mails. */
+function useNewMails() {
+  const count = useDashboard(DEFAULT_PERIOD).data?.now.newJobMails.count ?? 0;
+  return count > 0;
+}
+
 /**
- * The floating glass tab bar on phones (owner, 13 Nov 2026): Dashboard, Mails, Applications and
- * Settings. Line icons when off, filled and blue when on. Tapping the open tab goes back to its
- * first page, then to the top.
+ * The phone tab bar (owner, 18 Nov 2026, mock `PHONE-LINEAR-mock/` screen 1): a shorter glass
+ * capsule of icons only, the open tab in a lighter, wider pill with a blue icon, a blue dot on
+ * Mails while there are new mails, and Search as its own glass circle. Tapping the open tab goes
+ * back to its first page, then to the top. The glass swells a little under the finger.
+ * `hidden`: a detail page is open; the icons blur away while the glass becomes its bottom bar.
  */
-export function TabBar({ nav }: { nav: PhoneNav }) {
+export function TabBar({
+  nav,
+  hidden,
+  onSearch,
+}: {
+  nav: PhoneNav;
+  hidden: boolean;
+  onSearch: () => void;
+}) {
   const index = PHONE_TABS.indexOf(nav.tab);
   const pill = usePill(index);
-  const [bounce, setBounce] = useState<{ tab: PhoneTab; n: number } | null>(null);
+  const newMails = useNewMails();
   return (
-    <nav
-      aria-label="Main"
-      className="glass absolute inset-x-[18px] bottom-[max(calc(env(safe-area-inset-bottom)-12px),10px)] z-20 grid h-[62px] grid-cols-4 rounded-full p-1"
+    <div
+      aria-hidden={hidden || undefined}
+      inert={hidden}
+      className={cn(
+        'motion-fade absolute inset-0 flex items-center gap-2 transition-[opacity,filter] duration-250 ease-morph',
+        hidden && 'pointer-events-none opacity-0 blur-[6px]',
+      )}
     >
-      <span
-        ref={pill}
-        aria-hidden="true"
-        className="absolute inset-y-1 left-1 w-[calc((100%-8px)/4)] rounded-full bg-[var(--glass-pill)]"
-        style={{ transform: `translateX(${index * 100}%)` }}
-      />
-      {PHONE_TABS.map((tab) => {
-        const { label, Icon, On } = TABS[tab];
-        const on = tab === nav.tab;
-        return (
-          <a
-            key={tab}
-            href={TAB_ROOT[tab]}
-            aria-current={on ? 'page' : undefined}
-            onClick={(event) => {
-              event.preventDefault();
-              setBounce((last) => ({ tab, n: (last?.n ?? 0) + 1 }));
-              nav.openTab(tab);
-            }}
-            className={cn(
-              'relative z-10 flex flex-col items-center justify-center gap-px rounded-full text-[10.5px] leading-[13px] font-semibold transition-colors duration-300 select-none active:bg-[var(--glass-pill)] active:duration-0',
-              on ? 'text-link' : 'text-text-primary',
-            )}
-          >
-            <span
-              key={bounce?.tab === tab ? bounce.n : 0}
-              className={cn('flex', bounce?.tab === tab && 'motion-safe:animate-tab-bounce')}
+      <nav aria-label="Main" className="relative flex h-full flex-1 items-center px-1">
+        <span
+          ref={pill}
+          aria-hidden="true"
+          className="absolute inset-y-1 rounded-full bg-[var(--glass-on)] shadow-[0_1px_4px_rgb(0_0_0/0.12)]"
+          style={{
+            ['--tab-at' as string]: index,
+            left: `calc(4px + var(--tab-at) * (100% - 8px) / ${UNITS})`,
+            width: `calc((100% - 8px) * ${ON_GROW} / ${UNITS})`,
+          }}
+        />
+        {PHONE_TABS.map((tab) => {
+          const { label, Icon } = TABS[tab];
+          const on = tab === nav.tab;
+          return (
+            <a
+              key={tab}
+              href={TAB_ROOT[tab]}
+              aria-current={on ? 'page' : undefined}
+              onClick={(event) => {
+                event.preventDefault();
+                nav.openTab(tab);
+              }}
+              style={{ flexGrow: on ? ON_GROW : 1 }}
+              className={cn(
+                'relative z-10 flex h-[42px] basis-0 items-center justify-center rounded-full transition-[flex-grow,color,opacity] duration-200 ease-morph select-none',
+                on ? 'text-accent' : 'text-text-primary opacity-85',
+              )}
             >
-              {on ? <On size={26} /> : <Icon size={26} aria-hidden="true" />}
-            </span>
-            {label}
-          </a>
-        );
-      })}
-    </nav>
+              <Icon size={22} strokeWidth={1.9} aria-hidden="true" />
+              <span className="sr-only">{label}</span>
+              {tab === 'mails' && newMails && (
+                <>
+                  <span
+                    aria-hidden="true"
+                    className="absolute top-[7px] right-[calc(50%-17px)] size-[9px] rounded-full border-[1.5px] border-background bg-accent"
+                  />
+                  <span className="sr-only">, new mails</span>
+                </>
+              )}
+            </a>
+          );
+        })}
+      </nav>
+      <button
+        type="button"
+        aria-label="Search"
+        onClick={onSearch}
+        className={cn(
+          'glass flex size-[50px] shrink-0 cursor-pointer items-center justify-center rounded-full text-text-primary outline-none focus-visible:outline-2 focus-visible:outline-border-focus',
+          PRESS,
+        )}
+      >
+        <SearchIcon size={23} strokeWidth={1.9} aria-hidden="true" />
+      </button>
+    </div>
   );
 }
