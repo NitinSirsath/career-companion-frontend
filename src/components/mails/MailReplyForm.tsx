@@ -17,6 +17,7 @@ import { isEmptyDoc } from '../../lib/replyDoc';
 import { cn } from '../../lib/utils';
 import { useIsPhone } from '../layout/useIsPhone';
 import { useKeyboardOpen } from '../layout/useKeyboardOpen';
+import { AiIcon } from '../ui/ai-icon';
 import { showToast } from '../ui/toast';
 import {
   CloseReply,
@@ -54,7 +55,8 @@ function ReplyWriting({
 }) {
   return (
     <>
-      {ai && (
+      {phone && ai && <AiTool open={typing.aiOpen} onToggle={typing.toggleAi} />}
+      {ai && (!phone || typing.aiOpen) && (
         <div className={phone ? 'pt-3' : 'px-4 pt-3'}>
           <ReplyAiHelp
             ai={ai}
@@ -97,6 +99,8 @@ interface MailReplyFormProps {
   /** The other people on the answered mail: a reply goes to them too unless the user says not. */
   replyCc: string[];
   hint: string;
+  /** The conversation's subject: phones show "Re: …" under who gets the reply. */
+  subject?: string | null;
   /** Reads the conversation again, so the user sees whether an unconfirmed reply is there. */
   onCheck: () => void;
   /** Another way to answer, shown beside the button. */
@@ -281,10 +285,14 @@ function ReplyText({
 /** Phones: while the user types the reply (its text has the focus and the keyboard is up), the AI
  * help is one row, so the text has room. A tap on that row opens the box at once, so the hint can
  * take the focus. */
-function useReplyTyping(phone: boolean) {
+function useReplyTyping(phone: boolean, startAi: boolean) {
   const [textFocus, setTextFocus] = useState(false);
+  // Phones: "AI reply" opens the AI help with the sheet; "✦ AI" in the tool bar opens and closes it.
+  const [aiOpen, setAiOpen] = useState(startAi);
   const keyboard = useKeyboardOpen();
   return {
+    aiOpen,
+    toggleAi: () => setAiOpen(!aiOpen),
     compact: phone && textFocus && keyboard,
     onFocusChange: setTextFocus,
     openAi: () => flushSync(() => setTextFocus(false)),
@@ -328,6 +336,39 @@ function ReplyNote({
   );
 }
 
+/** Phones: "Re: …" under who gets the reply (mock `PHONE-LINEAR-mock/` #4). */
+function PhoneSubject({ subject }: { subject?: string | null }) {
+  return (
+    <p className="-mx-4 truncate border-b border-border-subtle px-[18px] pb-[9px] text-[14.5px] text-text-secondary">
+      Re: {(subject ?? '').replace(/^re:\s*/i, '') || '(No subject)'}
+    </p>
+  );
+}
+
+/** "✦ AI" at the start of the phone's tool bar (mock #4): opens and closes the AI help. */
+function AiTool({ open, onToggle }: { open: boolean; onToggle: () => void }) {
+  const slot = useContext(PhoneReplySlots)?.ai;
+  if (!slot) return null;
+  return createPortal(
+    <button
+      type="button"
+      aria-pressed={open}
+      aria-label="Reply with AI"
+      // The reply keeps the focus, so the keyboard stays up.
+      onMouseDown={(event) => event.preventDefault()}
+      onClick={onToggle}
+      className={cn(
+        'flex h-[34px] shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-3 text-[14px] font-semibold text-text-primary transition-colors duration-200',
+        open ? 'bg-[var(--glass-pill)] text-accent' : 'bg-[var(--glass-pill)]',
+      )}
+    >
+      <AiIcon size={15} aria-hidden="true" />
+      AI
+    </button>,
+    slot,
+  );
+}
+
 /** What became of the last send, and who the reply reaches: at the sheet's edge on a phone. */
 function ReplyHead({
   phone,
@@ -342,7 +383,7 @@ function ReplyHead({
     <div
       className={cn(
         'flex flex-col gap-3 empty:hidden',
-        phone ? 'pt-1' : 'px-4 pt-3',
+        phone ? 'gap-0' : 'px-4 pt-3',
         closable && 'pr-12',
       )}
     >
@@ -364,6 +405,7 @@ export function MailReplyForm({
   replyTo,
   replyCc,
   hint,
+  subject,
   onCheck,
   children,
   onSending,
@@ -372,7 +414,7 @@ export function MailReplyForm({
 }: MailReplyFormProps) {
   const formId = useId();
   const phone = useIsPhone();
-  const typing = useReplyTyping(phone);
+  const typing = useReplyTyping(phone, !!ai?.start);
   // Opened by "AI reply": the AI's hint box gets the focus, not the text (owner, 13 Nov 2026).
   const [hintFirst] = useState(() => !!ai?.start && !ai.start.choice);
   const [all, setAll] = useState(true);
@@ -420,6 +462,7 @@ export function MailReplyForm({
         <ReplyHead phone={phone} closable={!!onClose}>
           <ReplyOutcome sentNote={reply.sentNote} problem={reply.problem} />
           <ReplyReceivers replyTo={replyTo} others={replyCc} toAll={toAll} onToAll={setAll} />
+          {phone && <PhoneSubject subject={subject} />}
         </ReplyHead>
         <ReplyWriting ai={ai} draft={draft} phone={phone} typing={typing}>
           <ReplyText
