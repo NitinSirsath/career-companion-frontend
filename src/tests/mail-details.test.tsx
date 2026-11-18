@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -331,6 +331,12 @@ describe('job mail details', () => {
   });
 
   it('shows a declined step and asks before it closes the application', async () => {
+    // A fixed "now", so the closing date never reads as "Today" or "Tomorrow".
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-11-01T12:00:00.000Z'));
+    onTestFinished(() => {
+      vi.useRealTimers();
+    });
     const { conversation } = detail;
     const application = {
       id: '22222222-2222-4222-8222-222222222222',
