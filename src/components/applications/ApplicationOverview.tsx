@@ -11,7 +11,7 @@ import { NextSteps } from './NextSteps';
 
 /**
  * The application's steps, mails, facts and history. Phones: one grouped list, the facts before
- * the history (owner, 12 Nov 2026); else a main column with the facts beside it.
+ * the history; else a main column with the facts beside it.
  */
 export function ApplicationOverview({
   id,
@@ -38,12 +38,13 @@ export function ApplicationOverview({
   const history = (
     <ApplicationHistory query={eventsQuery} offset={eventsOffset} onOffset={onEventsOffset} />
   );
+  // Phones (owner, 18 Nov 2026, mock screen 6): To do, Mails, Activity; the facts are pills at
+  // the top.
   if (phone)
     return (
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col">
         {steps}
         <ApplicationConversations applicationId={id} />
-        {facts}
         {history}
       </div>
     );
