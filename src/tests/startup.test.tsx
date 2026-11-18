@@ -241,6 +241,8 @@ describe('signing in returns to the page asked for', () => {
       hasPassword: true,
       hasGoogle: false,
       testAccount: false,
+      admin: false,
+      suspension: null,
     });
     wrap(<LoginPage next="/applications/123" />);
     fireEvent.click(await screen.findByRole('button', { name: 'Continue with Google' }));
