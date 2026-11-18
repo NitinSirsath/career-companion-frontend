@@ -14,7 +14,9 @@ import {
 import { mailDateTime } from '../../lib/mails';
 import { cn } from '../../lib/utils';
 import { AnalyzedBy } from '../ai/AnalyzedBy';
-import { ChevronRightIcon as ChevronIcon } from 'lucide-react';
+import { CircleDotIcon, MailIcon, WorkflowIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { STATUS_LABEL } from '../../lib/statusLabels';
 import { useIsPhone } from '../layout/useIsPhone';
 import type { DialogHandle } from '../../lib/dialogs';
 import { MatchCorrectionDialog } from '../MatchCorrectionDialog';
@@ -23,7 +25,9 @@ import { Collapse } from '../ui/collapse';
 import { OverflowMenu, type MenuAction } from '../ui/menu';
 import { Pagination } from '../ui/pagination';
 import { SectionError } from '../ui/section-error';
-import { PHONE_ROW, PhoneGroupSection as PhoneSection } from '../phone/PhoneList';
+import { DETAIL_ROW, DetailSection } from './DetailSection';
+import { Ring } from '../ui/ring';
+import { STATUS_RING } from '../../lib/statusTags';
 import { Sheet, SheetAction, SheetBody, SheetGroup } from '../ui/sheet';
 import { SkeletonList } from '../ui/skeleton';
 
@@ -120,9 +124,45 @@ function RowMenu({ event, entry }: { event: ApplicationEventResponse; entry: His
   );
 }
 
+const ACTIVITY_ICON = { automation: WorkflowIcon, mail: MailIcon, other: CircleDotIcon };
+
 /**
- * A History row on a phone (owner, 12 Nov 2026): the title and "date · what happened" in a row; a
- * tap opens a sheet with the AI note (or what the automation reported) and the row's actions.
+ * What one Activity row says (mock `PHONE-LINEAR-mock/` screen 6): a status change as its ring and
+ * "Moved to **Interview**"; any other row with a small icon and its title.
+ */
+function ActivityLine({
+  event,
+  title,
+  kind,
+}: {
+  event: ApplicationEventResponse;
+  title: string;
+  kind: HistoryEntry['kind'];
+}) {
+  const moved =
+    !event.retiredAt && event.newState && event.newState !== event.oldState ? event.newState : null;
+  if (moved)
+    return (
+      <>
+        <Ring kind={STATUS_RING[moved]} size={14} />
+        <span className="min-w-0 truncate">
+          {event.oldState || moved !== 'APPLIED' ? 'Moved to ' : ''}
+          <b className="font-medium text-text-primary">{STATUS_LABEL[moved]}</b>
+        </span>
+      </>
+    );
+  const Icon = ACTIVITY_ICON[kind];
+  return (
+    <>
+      <Icon size={14} aria-hidden="true" className="shrink-0" />
+      <span className="min-w-0 truncate">{title}</span>
+    </>
+  );
+}
+
+/**
+ * An Activity row on a phone (owner, 18 Nov 2026): what happened and the day; a tap opens a sheet
+ * with the AI note (or what the automation reported) and the row's actions.
  */
 function PhoneHistoryRow({ event }: { event: ApplicationEventResponse }) {
   const [open, setOpen] = useState(false);
@@ -133,17 +173,17 @@ function PhoneHistoryRow({ event }: { event: ApplicationEventResponse }) {
     <>
       <button
         type="button"
-        className={cn(PHONE_ROW, retired && 'text-text-secondary')}
+        className={cn(
+          DETAIL_ROW,
+          'cursor-pointer gap-2.5 py-1.5 text-phone-sub text-text-secondary',
+          retired && 'opacity-60',
+        )}
         onClick={() => setOpen(true)}
       >
-        <span className="flex min-w-0 flex-1 flex-col gap-1">
-          <span className="text-[15px] leading-[21px] break-words">{entry.title}</span>
-          <span className="text-[13px] text-text-secondary">
-            {mailDateTime(event.recordedAt)}
-            {entry.detail && <> · {entry.detail}</>}
-          </span>
+        <ActivityLine event={event} title={entry.title} kind={entry.kind} />
+        <span className="ml-auto shrink-0 pl-2 text-[12.5px] text-text-tertiary">
+          {format(new Date(event.recordedAt), 'MMM d')}
         </span>
-        <ChevronIcon size={18} className="shrink-0 text-text-tertiary" />
       </button>
       <Sheet open={open} onOpenChange={setOpen} title="History entry">
         <SheetBody>
@@ -250,7 +290,7 @@ function HistoryRow({ event }: { event: ApplicationEventResponse }) {
   );
 }
 
-/** The history on a phone, as one grouped list of rows that open a sheet. */
+/** The history on a phone, as Activity rows that open a sheet (mock screen 6). */
 function PhoneHistory({
   query,
   pages,
@@ -260,9 +300,8 @@ function PhoneHistory({
 }) {
   const events = query.data?.items;
   return (
-    <PhoneSection
-      title="History"
-      count={events && events.length > 0 ? events.length : undefined}
+    <DetailSection
+      title="Activity"
       note="In the order the app recorded it. A mail's own date can be earlier."
     >
       {query.isLoading && <SkeletonList rows={3} label="Loading history" />}
@@ -270,7 +309,7 @@ function PhoneHistory({
         <SectionError title="Could not load the history" onRetry={() => void query.refetch()} />
       )}
       {events && events.length === 0 && (
-        <p className={cn(PHONE_ROW, 'text-sm text-text-secondary')}>
+        <p className="px-[18px] py-1.5 text-phone-sub text-text-secondary">
           Nothing yet. Mails the AI reads and sends from your automation show here.
         </p>
       )}
@@ -278,7 +317,7 @@ function PhoneHistory({
         <PhoneHistoryRow key={event.id} event={event} />
       ))}
       {pages}
-    </PhoneSection>
+    </DetailSection>
   );
 }
 
