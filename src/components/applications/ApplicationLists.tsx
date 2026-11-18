@@ -9,13 +9,10 @@ import { applicationGroupsKey } from '../../lib/applicationCache';
 import {
   LIST_TABS,
   REPLY_TABS,
-  STATUS_TABS,
   type DiscoveryView,
   type ListTab,
   type ReplyTab,
-  type StatusTab,
 } from '../../lib/applicationsView';
-import { useIsPhone } from '../layout/useIsPhone';
 import { EMPTY_ACTION, EMPTY_ACTION_QUIET, EmptyState } from '../ui/empty-state';
 import { Tabs } from '../ui/tabs';
 import { ReplyBar } from './ReplyBar';
@@ -32,7 +29,6 @@ export function ApplicationListTabs({
   view: Pick<DiscoveryView, 'list' | 'reply' | 'tab' | 'archive'>;
   onChange: (changes: Partial<DiscoveryView>) => void;
 }) {
-  const phone = useIsPhone();
   const { data: groups } = useQuery({
     queryKey: applicationGroupsKey(view.archive),
     queryFn: ({ signal }) => api.getApplicationGroups(view.archive, { signal }),
@@ -52,16 +48,9 @@ export function ApplicationListTabs({
         }))}
       />
       {view.list === 'progress'
-        ? // Phones pick the status in the top bar's filter menu (owner, 13 Nov 2026).
-          !phone && (
-            <Tabs<StatusTab>
-              label="Status"
-              value={view.tab}
-              onValueChange={(next) => onChange({ tab: next })}
-              items={STATUS_TABS}
-              phoneLook="chips"
-            />
-          )
+        ? // Phones pick the status in the top bar's filter menu (owner, 13 Nov 2026), laptops in
+          // the toolbar's segmented control (`LaptopStatusFilter`, 18 Nov 2026).
+          null
         : !nothingSent && (
             <div className="space-y-6 max-md:space-y-4">
               {groups && <ReplyBar replied={groups.apply.replied} total={groups.apply.total} />}
