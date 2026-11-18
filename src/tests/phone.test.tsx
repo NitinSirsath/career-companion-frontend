@@ -114,7 +114,7 @@ describe('phone tab bar and Settings', () => {
     await screen.findByRole('link', { name: ROW_NAME });
     const bar = within(screen.getByRole('navigation', { name: 'Main' }));
     expect(bar.getAllByRole('link').map((link) => link.textContent)).toEqual([
-      'Dashboard',
+      'Today',
       'Mails',
       'Applications',
       'Settings',
@@ -353,8 +353,8 @@ describe('phone loaders', () => {
     vi.mocked(api.listApplications).mockReturnValue(new Promise(() => {}));
     show('/applications');
     const loader = await loaderFor('Loading applications');
-    // As far in as the words of a loaded card on the grey group.
-    expect(loader).toHaveClass('px-4');
+    // Plain rows (owner, 18 Nov 2026): the lines start at a row's edge, with no grey group.
+    expect(loader).toHaveClass('px-[18px]');
     expect(loader).not.toHaveClass('px-[var(--list-inset,0px)]');
     expect(screen.queryAllByRole('cell')).toHaveLength(0);
   });

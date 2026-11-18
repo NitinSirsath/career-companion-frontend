@@ -17,7 +17,7 @@ import type { PhoneNav } from './phoneNav';
 
 /** Icon-only tabs; the words stay for screen readers. */
 const TABS: Record<PhoneTab, { label: string; Icon: LucideIcon }> = {
-  dashboard: { label: 'Dashboard', Icon: LayoutGridIcon },
+  dashboard: { label: 'Today', Icon: LayoutGridIcon },
   mails: { label: 'Mails', Icon: MailIcon },
   applications: { label: 'Applications', Icon: FileTextIcon },
   settings: { label: 'Settings', Icon: SettingsIcon },

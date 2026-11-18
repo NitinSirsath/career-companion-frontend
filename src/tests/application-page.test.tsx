@@ -333,11 +333,10 @@ describe('on a phone (owner, 7 Nov 2026)', () => {
   });
   afterEach(() => setWidth(desktopWidth));
 
-  it('opens a History row in a sheet with its AI note and actions (owner, 12 Nov 2026)', async () => {
+  it('opens an Activity row in a sheet with its AI note and actions (owner, 18 Nov 2026)', async () => {
     show();
-    const row = await screen.findByRole('button', {
-      name: /The AI moved the status from Assessment to Interview/,
-    });
+    // The row says the change in short, with the status ring (mock `PHONE-LINEAR-mock/` screen 6).
+    const row = await screen.findByRole('button', { name: /^Moved to Interview/ });
     // No "Show the AI note" in the row: the note is in the sheet.
     expect(screen.queryByRole('button', { name: 'Show the AI note' })).not.toBeInTheDocument();
     fireEvent.click(row);
@@ -380,21 +379,23 @@ describe('on a phone (owner, 7 Nov 2026)', () => {
     expect(fromMail.getByRole('button', { name: 'Open the mail' })).toBeInTheDocument();
   });
 
-  it('has Status and More in the action bar, each opening a sheet', async () => {
+  it('has the status as a pill and Archive and Delete under ··· (owner, 18 Nov 2026)', async () => {
     show();
-    const bar = within(await screen.findByRole('navigation', { name: 'Application actions' }));
-    fireEvent.click(bar.getByRole('button', { name: 'More' }));
-    const more = within(await screen.findByRole('dialog', { name: 'This application' }));
-    expect(more.getByRole('button', { name: 'Archive application…' })).toBeInTheDocument();
-    expect(more.getByRole('button', { name: 'Delete application…' })).toBeInTheDocument();
-    fireEvent.click(more.getByRole('button', { name: 'Close' }));
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    // No bottom bar: the mock's page has only Back and ··· at the top.
+    expect(
+      screen.queryByRole('navigation', { name: 'Application actions' }),
+    ).not.toBeInTheDocument();
+    fireEvent.click(await screen.findByRole('button', { name: 'More' }));
+    expect(await screen.findByRole('menuitem', { name: 'Archive application…' })).toBeVisible();
+    expect(screen.getByRole('menuitem', { name: 'Delete application…' })).toBeVisible();
+    fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' });
 
     // The status is a round pill with no "Set by …" beside it; that line is in the sheet.
-    const pill = screen.getByRole('button', { name: /^Status: .*\. Change status$/ });
+    const facts = within(screen.getByRole('group', { name: 'About this application' }));
+    const pill = facts.getByRole('button', { name: /^Status: .*\. Change status$/ });
     expect(pill.querySelector('[data-ring]')).not.toBeNull();
     expect(screen.queryByText(/^Set by /)).not.toBeInTheDocument();
-    fireEvent.click(bar.getByRole('button', { name: 'Status' }));
+    fireEvent.click(pill);
     const status = within(await screen.findByRole('dialog', { name: 'Status' }));
     expect(status.getByText(/^Set by /)).toBeInTheDocument();
     expect(status.getAllByRole('radio')).toHaveLength(8);

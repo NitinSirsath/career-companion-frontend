@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { api } from '../api/client';
 import type { AIReadingStatusResponse } from '../contracts/ai';
 import { FREE_AI_CONSENT } from '../lib/freeAI';
+import { chooseOption } from './choose';
 import { dashboardFixture } from './dashboard-fixture';
 import { makeAISettings } from './fixtures';
 
@@ -371,5 +372,76 @@ describe('the first run (owner, 15 Nov 2026)', () => {
     const line = await screen.findByRole('status', { name: 'AI status' });
     expect(within(line).getByText(/AI is not set up/)).toBeInTheDocument();
     expect(within(line).getByRole('link', { name: 'Set up AI' })).toHaveAttribute('href', '/ai');
+  });
+});
+
+describe('Today on a phone (owner, 18 Nov 2026, mock `PHONE-LINEAR-mock/` screen 7)', () => {
+  let desktopWidth = 0;
+  const setWidth = (width: number) =>
+    Object.defineProperty(window, 'innerWidth', {
+      configurable: true,
+      writable: true,
+      value: width,
+    });
+  beforeEach(() => {
+    desktopWidth = window.innerWidth;
+    setWidth(375);
+  });
+  afterEach(() => setWidth(desktopWidth));
+
+  it('is called Today, with the date, rows with counts and the four numbers', async () => {
+    renderPage();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Today' })).toBeInTheDocument();
+    const needs = await screen.findByRole('region', { name: 'Needs you' });
+    const row = (name: string, count: string, href: string) => {
+      const link = within(needs).getByRole('link', { name: new RegExp(`^${name}`) });
+      expect(link).toHaveAttribute('href', href);
+      expect(link).toHaveTextContent(new RegExp(`${count}$`));
+    };
+    row('Needs action', '3', '/mails?request=open');
+    row('New job mails', '5', '/mails?unseen=true');
+    row('Interviews coming up', '2', '/mails/thread-9');
+    row('Gone quiet', '1', '/dashboard/charts?period=30d#gone-quiet');
+    const numbers = screen.getByRole('region', { name: 'Your numbers' });
+    for (const term of ['Applied', 'Replies', 'Interviews', 'Offers'])
+      expect(within(numbers).getByText(term)).toBeInTheDocument();
+    // The charts are one tap deeper, never on Today itself.
+    expect(screen.queryByRole('region', { name: 'Your mailbox' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Charts and rates' })).toHaveAttribute(
+      'href',
+      '/dashboard/charts?period=30d',
+    );
+  });
+
+  it('picks the period on Charts and rates; Today follows it', async () => {
+    const router = renderPage('/dashboard/charts');
+    await chooseOption(await screen.findByRole('combobox', { name: 'Period' }), 'Last 7 days');
+    await waitFor(() => expect(router.state.location.search).toEqual({ period: '7d' }));
+    await router.navigate({ to: '/dashboard' });
+    expect(
+      await screen.findByRole('heading', { level: 2, name: 'Last 7 days' }),
+    ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(api.getDashboard).toHaveBeenLastCalledWith(
+        expect.objectContaining({ period: '7d' }),
+        expect.anything(),
+      ),
+    );
+  });
+
+  it('keeps every chart on the Charts and rates page', async () => {
+    renderPage('/dashboard/charts?period=30d');
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Charts and rates' }),
+    ).toBeInTheDocument();
+    expect(await screen.findByRole('region', { name: 'Your progress' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Your mailbox' })).toBeInTheDocument();
+    expect(screen.getByText('Acme Analytics')).toBeInTheDocument();
+  });
+
+  it('sends a laptop from the charts page back to the Dashboard, which has the charts', async () => {
+    setWidth(desktopWidth);
+    const router = renderPage('/dashboard/charts');
+    await waitFor(() => expect(router.state.location.pathname).toBe('/dashboard'));
   });
 });

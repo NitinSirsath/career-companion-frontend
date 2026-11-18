@@ -2,49 +2,44 @@ import { useState, type ReactNode } from 'react';
 import { Link } from '@tanstack/react-router';
 import { CONVERSATION_PAGE_SIZE, useConversations } from '../../api/conversations';
 import type { Conversation } from '../../contracts/conversation';
-import { conversationSummary, fakeOfferStep, mailDate } from '../../lib/mails';
+import { mailDate, parseSender } from '../../lib/mails';
 import { cn } from '../../lib/utils';
-import { ChevronRightIcon as ChevronIcon } from 'lucide-react';
 import { useIsPhone } from '../layout/useIsPhone';
 import { Pagination } from '../ui/pagination';
-import { PHONE_ROW, PhoneGroupSection as PhoneSection } from '../phone/PhoneList';
+import { DETAIL_ROW, DetailSection } from '../applications/DetailSection';
+import { Avatar } from '../ui/avatar';
 import { SectionError } from '../ui/section-error';
 import { SkeletonList } from '../ui/skeleton';
 import { ConversationTable } from './ConversationTable';
-import { TodoState } from './TodoState';
 
 const countLine = (count: number, more: boolean) =>
   `${count === 1 ? '1 conversation' : `${count} conversations`}${more ? ' on this page' : ''}`;
 
-/** One conversation on a phone: a row that opens the mail (owner, 12 Nov 2026). */
+/**
+ * One conversation on a phone (owner, 18 Nov 2026, mock `PHONE-LINEAR-mock/` screen 6): the
+ * person, the subject in grey, the date; a tap opens the mail.
+ */
 function PhoneConversationRow({ conversation }: { conversation: Conversation }) {
+  const who = parseSender(conversation.sender).name;
   return (
-    <Link to="/mails/$key" params={{ key: conversation.key }} className={PHONE_ROW}>
-      <span className="flex min-w-0 flex-1 flex-col gap-1">
-        <span
-          className={cn(
-            'text-[15px] leading-[21px] break-words',
-            conversation.isNew && 'font-semibold',
-          )}
-        >
-          {conversation.subject || '(No subject)'}
-        </span>
-        <span className="text-[13px] break-words text-text-secondary">
-          {conversationSummary(conversation)}
-        </span>
-        <span className="flex flex-wrap items-center gap-2 text-[13px] text-text-secondary">
-          {conversation.request && (
-            <TodoState state={conversation.request.state} fakeOffer={fakeOfferStep(conversation)} />
-          )}
-          Last mail {mailDate(conversation.lastReceivedAt)}
-        </span>
+    <Link
+      to="/mails/$key"
+      params={{ key: conversation.key }}
+      className={cn(DETAIL_ROW, 'gap-2.5 py-2 text-[14.5px]')}
+    >
+      <Avatar name={who} className="size-[26px] text-[10px]" />
+      <span className="min-w-0 flex-1 truncate">
+        <span className={cn(conversation.isNew && 'font-semibold')}>{who}</span>
+        <span className="text-text-secondary"> · {conversation.subject || '(No subject)'}</span>
       </span>
-      <ChevronIcon size={18} className="shrink-0 text-text-tertiary" />
+      <span className="shrink-0 text-[13px] text-text-tertiary">
+        {mailDate(conversation.lastReceivedAt)}
+      </span>
     </Link>
   );
 }
 
-/** The conversations on a phone, as one grouped list. */
+/** The conversations on a phone, as plain rows under "Mails". */
 function PhoneConversations({
   result,
   pages,
@@ -54,8 +49,8 @@ function PhoneConversations({
 }) {
   const { data, error, isLoading, refetch } = result;
   return (
-    <PhoneSection
-      title="Conversations"
+    <DetailSection
+      title="Mails"
       count={data && data.items.length > 0 ? data.items.length : undefined}
     >
       {isLoading && <SkeletonList rows={2} label="Loading conversations" />}
@@ -63,7 +58,7 @@ function PhoneConversations({
         <SectionError title="Could not load the conversations" onRetry={() => void refetch()} />
       )}
       {data && data.items.length === 0 && (
-        <p className={cn(PHONE_ROW, 'text-sm text-text-secondary')}>
+        <p className="px-[18px] py-2 text-[15px] text-text-secondary">
           No mails yet. Mails about this job join here by themselves.
         </p>
       )}
@@ -71,7 +66,7 @@ function PhoneConversations({
         <PhoneConversationRow key={conversation.key} conversation={conversation} />
       ))}
       {pages}
-    </PhoneSection>
+    </DetailSection>
   );
 }
 

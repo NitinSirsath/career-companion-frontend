@@ -5,16 +5,17 @@ import { CheckIcon, ChevronRightIcon, ClockIcon, MailIcon, XIcon } from 'lucide-
 import { api } from '../../api/client';
 import type { ApplicationActionListItem } from '../../contracts/application';
 import { dateAndTime, stepSource, stepText } from '../../lib/applicationDetail';
-import { deadlineLabel, deadlineOverdue } from '../../lib/deadline';
+import { deadlineLabel, deadlineOverdue, shortDue } from '../../lib/deadline';
 import { CLOSED_REASON_LABEL, closesByHand, repliedLine } from '../../lib/mails';
 import { dueIn } from '../../lib/mailThread';
 import { cn } from '../../lib/utils';
 import { SnoozeControl } from '../FollowThrough';
 import type { DialogHandle } from '../../lib/dialogs';
-import { ChevronRightIcon as ChevronIcon, CircleCheckIcon as DoneIcon } from 'lucide-react';
+import { CircleCheckIcon as DoneIcon } from 'lucide-react';
 import { useIsPhone } from '../layout/useIsPhone';
 import { TodoState } from '../mails/TodoState';
-import { PHONE_ROW, PhoneGroupSection as PhoneSection } from '../phone/PhoneList';
+import { DETAIL_ROW, DetailSection } from './DetailSection';
+import { Ring } from '../ui/ring';
 import { Sheet, SheetAction, SheetBody, SheetGroup } from '../ui/sheet';
 import { Button } from '../ui/button';
 import { Collapse } from '../ui/collapse';
@@ -255,13 +256,9 @@ function PhoneStepRow({
   const navigate = useNavigate();
   const text = stepText(action);
   const own = action.origin === 'USER' || !action.emailId;
-  const body = (
-    <span className="flex min-w-0 flex-1 flex-col gap-1">
-      <span className="text-[15px] leading-[21px] break-words">{text}</span>
-      <StepMeta action={action} source={source} plain />
-    </span>
-  );
-  if (archived) return <div className={PHONE_ROW}>{body}</div>;
+  const body = <PhoneStepLine action={action} text={text} />;
+  if (archived)
+    return <div className={cn(DETAIL_ROW, 'py-[9px] active:bg-transparent')}>{body}</div>;
   const pick = (status: 'COMPLETED' | 'DISMISSED') => {
     setOpen(false);
     change(status);
@@ -276,9 +273,12 @@ function PhoneStepRow({
   };
   return (
     <>
-      <button type="button" className={PHONE_ROW} onClick={() => setOpen(true)}>
+      <button
+        type="button"
+        className={cn(DETAIL_ROW, 'cursor-pointer py-[9px]')}
+        onClick={() => setOpen(true)}
+      >
         {body}
-        <ChevronIcon size={18} className="shrink-0 text-text-tertiary" />
       </button>
       <Sheet open={open} onOpenChange={setOpen} title="Next step">
         <SheetBody>
@@ -296,7 +296,7 @@ function PhoneStepRow({
       </Sheet>
       <SnoozeControl action={action} trigger={false} ref={snooze} />
       {update.isError && !isOfflineError(update.error) && (
-        <div className="px-3.5 py-2">
+        <div className="px-[18px] py-2">
           <InlineNotification kind="error">
             We could not confirm this change. The list was read again: check the step before you try
             once more.
@@ -307,38 +307,43 @@ function PhoneStepRow({
   );
 }
 
-/** Finished steps on a phone: a "Done (3)" row that opens them in place. */
-function PhoneDoneSteps({ actions }: { actions: ApplicationActionListItem[] }) {
-  const [open, setOpen] = useState(false);
-  if (actions.length === 0) return null;
+/** One open step's row on a phone: the empty ring, what to do, and when it is due. */
+function PhoneStepLine({ action, text }: { action: ApplicationActionListItem; text: string }) {
+  const now = new Date();
+  const late = !action.repliedAt && deadlineOverdue(action, now);
+  let when = '';
+  if (action.repliedAt) when = 'You replied';
+  else if (action.snoozedUntil) when = 'Snoozed';
+  else if (action.deadline) when = shortDue(action, now);
   return (
     <>
-      <button
-        type="button"
-        aria-expanded={open}
-        className={PHONE_ROW}
-        onClick={() => setOpen(!open)}
-      >
-        <span className="flex-1 text-[15px]">Done ({actions.length})</span>
-        <ChevronIcon
-          size={18}
+      <Ring kind="todo" size={17} />
+      <span className="min-w-0 flex-1 text-[15px] leading-[21px] break-words">{text}</span>
+      {when && (
+        <span
           className={cn(
-            'shrink-0 text-text-tertiary transition-transform duration-150 ease-standard',
-            open && 'rotate-90',
+            'shrink-0 text-phone-sub whitespace-nowrap text-text-secondary',
+            late && 'text-late',
           )}
-        />
-      </button>
-      {open &&
-        actions.map((action) => (
-          <div key={action.id} className={cn(PHONE_ROW, 'text-sm text-text-secondary')}>
-            <span className="flex-1 break-words line-through decoration-text-tertiary">
-              {stepText(action)}
-            </span>
-            <span className="shrink-0 text-xs">{doneLabel(action)}</span>
-          </div>
-        ))}
+        >
+          {when}
+        </span>
+      )}
     </>
   );
+}
+
+/** Finished steps on a phone, under the open ones: the green tick, struck through (mock screen 6). */
+function PhoneDoneSteps({ actions }: { actions: ApplicationActionListItem[] }) {
+  return actions.map((action) => (
+    <div key={action.id} className={cn(DETAIL_ROW, 'py-[9px] active:bg-transparent')}>
+      <Ring kind="offer" size={17} />
+      <span className="min-w-0 flex-1 text-[15px] leading-[21px] break-words text-text-secondary line-through">
+        {stepText(action)}
+      </span>
+      <span className="shrink-0 text-phone-sub text-text-secondary">{doneLabel(action)}</span>
+    </div>
+  ));
 }
 
 const DONE_LABEL: Record<string, string> = { COMPLETED: 'Done', DISMISSED: 'Dismissed' };
@@ -387,7 +392,7 @@ function DoneSteps({ actions }: { actions: ApplicationActionListItem[] }) {
   );
 }
 
-/** The next steps on a phone, as one grouped list: open steps, then "Done (3)". */
+/** The to-dos on a phone (mock screen 6): open ones with their due date, then the finished ones. */
 function PhoneNextSteps({ applicationId, archived, senders }: NextStepsProps) {
   const [offset, onOffset] = useState(0);
   const query = useQuery({
@@ -402,13 +407,13 @@ function PhoneNextSteps({ applicationId, archived, senders }: NextStepsProps) {
     ? 'Steps from mails close by themselves when your reply or a newer mail settles them. Setting the application to Rejected or Closed closes them too.'
     : null;
   return (
-    <PhoneSection title="Next steps" count={query.data && `${open.length} open`} note={note}>
+    <DetailSection title="To do" count={query.data && open.length} note={note}>
       {query.isLoading && <SkeletonList rows={2} label="Loading next steps" />}
       {query.isError && (
         <SectionError title="Could not load next steps" onRetry={() => void query.refetch()} />
       )}
       {query.data && open.length === 0 && (
-        <p className={cn(PHONE_ROW, 'text-sm text-text-secondary')}>
+        <p className="px-[18px] py-[9px] text-[15px] text-text-secondary">
           {offset > 0 ? 'No open steps on this page.' : 'Nothing to do now.'}
         </p>
       )}
@@ -430,7 +435,7 @@ function PhoneNextSteps({ applicationId, archived, senders }: NextStepsProps) {
           onNext={() => nextOffset !== null && onOffset(nextOffset)}
         />
       )}
-    </PhoneSection>
+    </DetailSection>
   );
 }
 

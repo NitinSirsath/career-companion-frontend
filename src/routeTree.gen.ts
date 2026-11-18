@@ -22,6 +22,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as TestLoginRouteImport } from './routes/test-login'
 import { Route as AdminMoneyRouteImport } from './routes/admin_.money'
 import { Route as ApplicationsIdRouteImport } from './routes/applications.$id'
+import { Route as DashboardChartsRouteImport } from './routes/dashboard_.charts'
 import { Route as GmailMailsRouteImport } from './routes/gmail_.mails'
 import { Route as MailsIndexRouteImport } from './routes/mails.index'
 import { Route as MailsKeyRouteImport } from './routes/mails.$key'
@@ -98,6 +99,11 @@ const ApplicationsIdRoute = ApplicationsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApplicationsRoute,
 } as any)
+const DashboardChartsRoute = DashboardChartsRouteImport.update({
+  id: '/dashboard_/charts',
+  path: '/dashboard/charts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GmailMailsRoute = GmailMailsRouteImport.update({
   id: '/gmail_/mails',
   path: '/gmail/mails',
@@ -163,6 +169,7 @@ export interface FileRoutesByFullPath {
   '/test-login': typeof TestLoginRoute
   '/admin/money': typeof AdminMoneyRoute
   '/applications/$id': typeof ApplicationsIdRoute
+  '/dashboard/charts': typeof DashboardChartsRoute
   '/gmail/mails': typeof GmailMailsRoute
   '/mails/$key': typeof MailsKeyRoute
   '/sandbox/$threadId': typeof SandboxThreadIdRoute
@@ -188,6 +195,7 @@ export interface FileRoutesByTo {
   '/test-login': typeof TestLoginRoute
   '/admin/money': typeof AdminMoneyRoute
   '/applications/$id': typeof ApplicationsIdRoute
+  '/dashboard/charts': typeof DashboardChartsRoute
   '/gmail/mails': typeof GmailMailsRoute
   '/mails/$key': typeof MailsKeyRoute
   '/sandbox/$threadId': typeof SandboxThreadIdRoute
@@ -214,6 +222,7 @@ export interface FileRoutesById {
   '/test-login': typeof TestLoginRoute
   '/admin_/money': typeof AdminMoneyRoute
   '/applications/$id': typeof ApplicationsIdRoute
+  '/dashboard_/charts': typeof DashboardChartsRoute
   '/gmail_/mails': typeof GmailMailsRoute
   '/mails/$key': typeof MailsKeyRoute
   '/sandbox/$threadId': typeof SandboxThreadIdRoute
@@ -241,6 +250,7 @@ export interface FileRouteTypes {
     | '/test-login'
     | '/admin/money'
     | '/applications/$id'
+    | '/dashboard/charts'
     | '/gmail/mails'
     | '/mails/$key'
     | '/sandbox/$threadId'
@@ -266,6 +276,7 @@ export interface FileRouteTypes {
     | '/test-login'
     | '/admin/money'
     | '/applications/$id'
+    | '/dashboard/charts'
     | '/gmail/mails'
     | '/mails/$key'
     | '/sandbox/$threadId'
@@ -291,6 +302,7 @@ export interface FileRouteTypes {
     | '/test-login'
     | '/admin_/money'
     | '/applications/$id'
+    | '/dashboard_/charts'
     | '/gmail_/mails'
     | '/mails/$key'
     | '/sandbox/$threadId'
@@ -316,6 +328,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   TestLoginRoute: typeof TestLoginRoute
   AdminMoneyRoute: typeof AdminMoneyRoute
+  DashboardChartsRoute: typeof DashboardChartsRoute
   GmailMailsRoute: typeof GmailMailsRoute
   MailsKeyRoute: typeof MailsKeyRoute
   SandboxThreadIdRoute: typeof SandboxThreadIdRoute
@@ -421,6 +434,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApplicationsIdRouteImport
       parentRoute: typeof ApplicationsRoute
     }
+    '/dashboard_/charts': {
+      id: '/dashboard_/charts'
+      path: '/dashboard/charts'
+      fullPath: '/dashboard/charts'
+      preLoaderRoute: typeof DashboardChartsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/gmail_/mails': {
       id: '/gmail_/mails'
       path: '/gmail/mails'
@@ -519,6 +539,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   TestLoginRoute: TestLoginRoute,
   AdminMoneyRoute: AdminMoneyRoute,
+  DashboardChartsRoute: DashboardChartsRoute,
   GmailMailsRoute: GmailMailsRoute,
   MailsKeyRoute: MailsKeyRoute,
   SandboxThreadIdRoute: SandboxThreadIdRoute,
