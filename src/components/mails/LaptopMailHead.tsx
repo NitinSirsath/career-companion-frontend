@@ -18,7 +18,7 @@ import { Avatar } from '../ui/avatar';
 import { FakeOfferTag } from './FakeOffer';
 import { MailType } from './MailType';
 
-/**
+/*
  * The top of a job mail on a laptop (laptop v2, owner 18 Nov 2026, `PHONE-LINEAR-mock/desktop.html`):
  * a grey "who · when" line above the title, a "For ◔ company" link under it, then the facts as
  * pills in one round card, as on the phone.
