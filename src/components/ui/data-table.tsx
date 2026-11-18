@@ -51,6 +51,8 @@ interface DataTableProps<T> {
    * apps show lists. Without it the cells stack, each with its `phoneLabel`.
    */
   phoneRow?: (row: T) => React.ReactNode;
+  /** Phones: plain rows edge to edge, each drawing its own line, instead of the grey group. */
+  phonePlain?: boolean;
   /**
    * Names the list on screen (its filters and page). Given, a row that leaves shrinks away where
    * it was and a new row grows in (15 Nov 2026); a new key draws the new list at once.
@@ -90,6 +92,7 @@ export function DataTable<T>({
   footer,
   toolbar,
   phoneRow,
+  phonePlain = false,
   motionKey,
 }: DataTableProps<T>) {
   const isPhone = useIsPhone();
@@ -163,22 +166,14 @@ export function DataTable<T>({
           ))}
         </div>
         {/* On phones the header row is hidden, so the first row draws the line above itself. */}
-        <div
-          role="rowgroup"
-          className={cn(
-            phone
-              ? // Phones: the rows sit on one soft grey group, as iPhone lists do (owner, 13 Nov 2026).
-                'grouped-rows overflow-hidden rounded-2xl bg-surface-subtle empty:hidden'
-              : 'border-t border-border-subtle md:border-t-0',
-          )}
-        >
+        <div role="rowgroup" className={rowGroupClass(phone, phonePlain)}>
           {loading && (
             <LoadingRows
               label={label}
               columns={columns.length}
               style={style}
               phone={isPhone}
-              group={phone}
+              look={loaderLook(phone, phonePlain)}
             />
           )}
           {!loading && (
@@ -199,6 +194,23 @@ export function DataTable<T>({
   );
 }
 
+/** Where the rows go: on phones plain rows edge to edge, or one soft grey group; else a table. */
+function rowGroupClass(phone: boolean, plain: boolean) {
+  // Plain rows, as Linear iOS lists are (owner, 18 Nov 2026, mock `PHONE-LINEAR-mock/`).
+  if (phone && plain) return 'phone-bleed empty:hidden';
+  // The rows sit on one soft grey group, as iPhone lists do (owner, 13 Nov 2026).
+  if (phone) return 'grouped-rows overflow-hidden rounded-2xl bg-surface-subtle empty:hidden';
+  return 'border-t border-border-subtle md:border-t-0';
+}
+
+/** Loader lines start where a loaded row's words would: in the group, at a plain row's edge. */
+const LOADER_INSET = { group: 'px-4 py-3', plain: 'px-[18px]', cells: PHONE_ROW_INSET } as const;
+
+function loaderLook(phone: boolean, plain: boolean): keyof typeof LOADER_INSET {
+  if (!phone) return 'cells';
+  return plain ? 'plain' : 'group';
+}
+
 /**
  * Grey rows while the list loads. Phones stack a row's cells, so there the desktop's grey cells
  * would be a tall pile per row: plain loader lines instead, as far in as the rows' words, on the
@@ -209,17 +221,16 @@ function LoadingRows({
   columns,
   style,
   phone,
-  group,
+  look,
 }: {
   label: string;
   columns: number;
   style: React.CSSProperties;
   phone: boolean;
-  group: boolean;
+  look: 'group' | 'plain' | 'cells';
 }) {
   const name = `Loading ${label.toLowerCase()}`;
-  if (phone)
-    return <SkeletonList rows={5} label={name} className={group ? 'px-4 py-3' : PHONE_ROW_INSET} />;
+  if (phone) return <SkeletonList rows={5} label={name} className={LOADER_INSET[look]} />;
   return (
     <>
       <span role="status" className="sr-only">
