@@ -490,7 +490,7 @@ describe('phone mail details', () => {
     show('/mails/thread-1');
     await screen.findByText('Send your available dates');
     expect(screen.queryByRole('button', { name: 'Create application' })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'About this job mail' }));
+    await openInfo();
     const sheet = within(await screen.findByRole('dialog', { name: 'About this job mail' }));
     expect(sheet.getByRole('link', { name: /Northwind Robotics/ })).toHaveAttribute(
       'href',
@@ -502,37 +502,101 @@ describe('phone mail details', () => {
     show('/mails/thread-1');
     await screen.findByText('Send your available dates');
     expect(screen.queryByRole('button', { name: 'Create application' })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'About this job mail' }));
+    await openInfo();
     const fake = within(await screen.findByRole('dialog', { name: 'About this job mail' }));
     expect(fake.getByRole('button', { name: 'Create application' })).toBeInTheDocument();
   });
 
-  it('has an action bar in place of the tab bar, and Back and ⓘ over the page', async () => {
+  it('has AI reply · Reply · Open in Gmail in place of the tab bar, and Back and ··· over the page', async () => {
     show('/mails/thread-1');
     await screen.findByText('Send your available dates');
-    // A page opened from a list has no tab bar: its own action bar floats in its place.
+    // A page opened from a list has no tab bar: its own bottom bar floats in its place.
     expect(screen.queryByRole('navigation', { name: 'Main' })).not.toBeInTheDocument();
     const bar = within(screen.getByRole('navigation', { name: 'Mail actions' }));
-    // An ask answered by mail has no "Done": the reply closes it.
-    expect(bar.getAllByRole('button').map((button) => button.textContent)).toEqual([
-      'Reply',
+    expect(bar.getAllByRole('button').map((button) => button.getAttribute('aria-label'))).toEqual([
       'AI reply',
-      'More',
+      'Reply',
+      'Open in Gmail',
     ]);
+    expect(bar.getByRole('button', { name: 'Reply' })).toHaveTextContent('Reply to Priya Nair');
+    const open = vi.spyOn(window, 'open').mockReturnValue(null);
+    fireEvent.click(bar.getByRole('button', { name: 'Open in Gmail' }));
+    expect(open).toHaveBeenCalledWith(
+      expect.stringContaining('mail.google.com'),
+      '_blank',
+      'noopener,noreferrer',
+    );
+    open.mockRestore();
+    // Grey "who · when", the subject, "For …", and the facts as pills in one card.
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      'Interview: first round availability',
+    );
+    expect(screen.getByRole('group', { name: 'About this mail' })).toHaveTextContent('Priya Nair');
     expect(screen.getByRole('button', { name: 'Back' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'About this job mail' })).toBeInTheDocument();
+    // An ask answered by mail has no "Done": the reply closes it.
+    const tools = within(screen.getByRole('group', { name: 'Mail tools' }));
+    expect(tools.queryByRole('button', { name: 'Done' })).not.toBeInTheDocument();
+    expect(tools.getByRole('button', { name: 'More' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Open menu' })).not.toBeInTheDocument();
   });
 
-  it('marks an ask done outside mail as done from the action bar', async () => {
+  it('opens the Status sheet from the status pill, and saves the choice as the application page does', async () => {
+    const id = '7f1c2d3e-4b5a-4c6d-8e9f-0a1b2c3d4e5f';
+    detail.conversation = makeConversation({
+      link: 'LINKED',
+      application: {
+        id,
+        companyName: 'Northwind Robotics',
+        jobTitle: 'Frontend Engineer',
+        effectiveStatus: 'RECRUITER_CONTACT',
+        archived: false,
+        decline: null,
+        closedAfterDeclineAt: null,
+      },
+    });
+    const app = makeApplication({ id, aiStatus: 'RECRUITER_CONTACT' });
+    vi.mocked(api.getApplication).mockResolvedValue(app);
+    vi.mocked(api.updateApplicationStatus).mockResolvedValue(
+      makeApplication({
+        id,
+        aiStatus: 'RECRUITER_CONTACT',
+        userStatus: 'INTERVIEW',
+        userStatusRevision: 1,
+      }),
+    );
+    show('/mails/thread-1');
+    // "For ◔ company · role" opens the application.
+    expect(
+      await screen.findByRole('link', {
+        name: 'For Northwind Robotics · Frontend Engineer. Open the application',
+      }),
+    ).toHaveAttribute('href', `/applications/${id}`);
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Status: Recruiter contact. Change status' }),
+    );
+    const sheet = within(await screen.findByRole('dialog', { name: 'Status' }));
+    fireEvent.click(sheet.getByRole('radio', { name: 'Interview' }));
+    await waitFor(() =>
+      expect(api.updateApplicationStatus).toHaveBeenCalledWith(id, {
+        userStatus: 'INTERVIEW',
+        expectedUserStatusRevision: 0,
+      }),
+    );
+    expect(
+      await screen.findByRole('button', { name: 'Status: Interview. Change status' }),
+    ).toBeInTheDocument();
+  });
+
+  it('marks an ask done outside mail as done from the top capsule', async () => {
     const conversation = makeConversation();
     detail.conversation = {
       ...conversation,
       request: { ...conversation.request!, askKind: 'OUTSIDE_MAIL', canReply: false },
     };
     show('/mails/thread-1');
-    const bar = within(await screen.findByRole('navigation', { name: 'Mail actions' }));
-    fireEvent.click(bar.getByRole('button', { name: 'Done' }));
+    await screen.findByText('Send your available dates');
+    const tools = within(screen.getByRole('group', { name: 'Mail tools' }));
+    fireEvent.click(tools.getByRole('button', { name: 'Done' }));
     await waitFor(() =>
       expect(api.patch).toHaveBeenCalledWith('/api/conversations/thread-1/request', {
         emailId: '11111111-1111-4111-8111-111111111111',
@@ -560,18 +624,20 @@ describe('phone mail details', () => {
     );
   });
 
-  it('shows the conversation\'s "⋯" actions in a sheet from More', async () => {
+  it('shows the conversation\'s "⋯" actions in the ··· menu', async () => {
     show('/mails/thread-1');
-    const bar = within(await screen.findByRole('navigation', { name: 'Mail actions' }));
-    fireEvent.click(bar.getByRole('button', { name: 'More' }));
-    const sheet = within(await screen.findByRole('dialog', { name: 'This conversation' }));
-    expect(sheet.getByRole('button', { name: 'Delete from NorthList…' })).toBeInTheDocument();
-    expect(sheet.getByRole('button', { name: 'Close' })).toBeInTheDocument();
+    await screen.findByText('Send your available dates');
+    const tools = within(screen.getByRole('group', { name: 'Mail tools' }));
+    fireEvent.click(tools.getByRole('button', { name: 'More' }));
+    const menu = within(await screen.findByRole('menu', { name: 'More' }));
+    expect(menu.getByRole('menuitem', { name: 'Key dates and application' })).toBeInTheDocument();
+    expect(menu.getByRole('menuitem', { name: 'Delete from NorthList…' })).toBeInTheDocument();
   });
 
   it('opens the reply with the AI hint ready from "AI reply"', async () => {
     show('/mails/thread-1');
-    const bar = within(await screen.findByRole('navigation', { name: 'Mail actions' }));
+    await screen.findByText('Send your available dates');
+    const bar = within(screen.getByRole('navigation', { name: 'Mail actions' }));
     fireEvent.click(bar.getByRole('button', { name: 'AI reply' }));
     // One Reply sheet, with the AI's help inside it (owner, 13 Nov 2026).
     expect(await screen.findByRole('dialog', { name: 'Reply' })).toBeInTheDocument();
