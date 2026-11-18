@@ -1,14 +1,36 @@
-import type { Ref } from 'react';
+import { useLayoutEffect, useState, type Ref } from 'react';
 import { ChevronLeftIcon } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { GlassButton } from './GlassButton';
 import type { PhoneFrame } from './phoneNav';
 
 /**
- * The phone top bar (owner, 13 Nov 2026): round frosted buttons over the page, with no bar of its
- * own. Back on the left when a page is open on top of another; the page's own buttons on the
- * right (on a list: refresh, search and filters in one capsule; on a mail: one ⓘ). The small title
- * shows in the middle once the big title has scrolled under it.
+ * Tells the page how wide the buttons at the right are (`--phone-actions-w`), so a list's big
+ * title, which sits in the same row, stops before them.
+ */
+function useActionsWidth(place?: (element: HTMLElement | null) => void) {
+  const [actions, setActions] = useState<HTMLDivElement | null>(null);
+  useLayoutEffect(() => {
+    const page = actions?.closest<HTMLElement>('[data-phone-page]');
+    if (!actions || !page || typeof ResizeObserver === 'undefined') return;
+    const watch = new ResizeObserver(() =>
+      page.style.setProperty('--phone-actions-w', `${actions.offsetWidth}px`),
+    );
+    watch.observe(actions);
+    return () => watch.disconnect();
+  }, [actions]);
+  return (element: HTMLDivElement | null) => {
+    setActions(element);
+    place?.(element);
+  };
+}
+
+/**
+ * The phone top bar (owner, 13 Nov 2026; 18 Nov 2026, mock `PHONE-LINEAR-mock/`): glass buttons
+ * that float over the page, with no bar of their own. On a list, the big title sits at the left
+ * of this row and the page's 1–3 icons in one glass capsule at the right; on a detail page, a
+ * glass Back circle at the left and the capsule at the right. The small title fades into the
+ * middle once the big title has scrolled away.
  */
 export function PhoneTopBar({
   nav,
@@ -20,6 +42,7 @@ export function PhoneTopBar({
   ref?: Ref<HTMLDivElement>;
 }) {
   const { depth, back, titleWords, actionsPlace } = nav;
+  const placeActions = useActionsWidth(actionsPlace);
   return (
     <div
       ref={ref}
@@ -35,14 +58,14 @@ export function PhoneTopBar({
       <p
         aria-hidden={!shown}
         className={cn(
-          'min-w-0 flex-1 truncate text-center text-[17px] leading-[22px] font-semibold transition-[opacity,translate] duration-220 ease-standard',
+          'motion-fade min-w-0 flex-1 truncate text-center text-[15.5px] leading-[21px] font-semibold transition-[opacity,translate] duration-220 ease-standard',
           shown ? 'opacity-100' : 'translate-y-1.5 opacity-0',
         )}
       >
         {titleWords}
       </p>
       <div
-        ref={actionsPlace}
+        ref={placeActions}
         className="pointer-events-auto flex min-w-11 shrink-0 items-center justify-end gap-2"
       />
     </div>
