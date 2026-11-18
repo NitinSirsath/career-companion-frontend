@@ -1,10 +1,19 @@
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { statusSourceLine } from '../lib/applicationDetail';
 import { closedAfterDeclineLine, declineNote } from '../lib/declineQuestion';
 import { reopenNote, stepNote } from '../lib/jobStep';
 import { makeApplication, makeConversation } from './fixtures';
 
 describe('after the user declined by mail (owner, 17 Nov 2026)', () => {
+  // A fixed "now", so the dates below never read as "Today" or "Tomorrow".
+  beforeAll(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-11-01T12:00:00.000Z'));
+  });
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
   it('says when it closes by itself, or that it no longer does', () => {
     expect(
       declineNote({ repliedAt: '2026-11-15T10:00:00.000Z', closesAt: '2026-11-18T10:00:00.000Z' }),
