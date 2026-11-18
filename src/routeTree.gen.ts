@@ -161,8 +161,6 @@ export interface FileRoutesByFullPath {
   '/gmail': typeof GmailRoute
   '/login': typeof LoginRoute
   '/test-login': typeof TestLoginRoute
-  '/admin_/money': typeof AdminMoneyRoute
-  '/admin/money': typeof AdminMoneyRoute
   '/admin/money': typeof AdminMoneyRoute
   '/applications/$id': typeof ApplicationsIdRoute
   '/gmail/mails': typeof GmailMailsRoute
@@ -173,7 +171,6 @@ export interface FileRoutesByFullPath {
   '/mails/': typeof MailsIndexRoute
   '/sandbox/': typeof SandboxIndexRoute
   '/settings/': typeof SettingsIndexRoute
-  '/admin_/accounts/$accountId': typeof AdminAccountsAccountIdRoute
   '/admin/accounts/$accountId': typeof AdminAccountsAccountIdRoute
   '/mails/gmail/$threadId': typeof MailsGmailThreadIdRoute
 }
@@ -189,6 +186,7 @@ export interface FileRoutesByTo {
   '/gmail': typeof GmailRoute
   '/login': typeof LoginRoute
   '/test-login': typeof TestLoginRoute
+  '/admin/money': typeof AdminMoneyRoute
   '/applications/$id': typeof ApplicationsIdRoute
   '/gmail/mails': typeof GmailMailsRoute
   '/mails/$key': typeof MailsKeyRoute
@@ -214,6 +212,7 @@ export interface FileRoutesById {
   '/gmail': typeof GmailRoute
   '/login': typeof LoginRoute
   '/test-login': typeof TestLoginRoute
+  '/admin_/money': typeof AdminMoneyRoute
   '/applications/$id': typeof ApplicationsIdRoute
   '/gmail_/mails': typeof GmailMailsRoute
   '/mails/$key': typeof MailsKeyRoute
@@ -223,6 +222,7 @@ export interface FileRoutesById {
   '/mails/': typeof MailsIndexRoute
   '/sandbox/': typeof SandboxIndexRoute
   '/settings/': typeof SettingsIndexRoute
+  '/admin_/accounts/$accountId': typeof AdminAccountsAccountIdRoute
   '/mails/gmail/$threadId': typeof MailsGmailThreadIdRoute
 }
 export interface FileRouteTypes {
@@ -239,8 +239,6 @@ export interface FileRouteTypes {
     | '/gmail'
     | '/login'
     | '/test-login'
-    | '/admin_/money'
-    | '/admin/money'
     | '/admin/money'
     | '/applications/$id'
     | '/gmail/mails'
@@ -251,7 +249,6 @@ export interface FileRouteTypes {
     | '/mails/'
     | '/sandbox/'
     | '/settings/'
-    | '/admin_/accounts/$accountId'
     | '/admin/accounts/$accountId'
     | '/mails/gmail/$threadId'
   fileRoutesByTo: FileRoutesByTo
@@ -267,6 +264,7 @@ export interface FileRouteTypes {
     | '/gmail'
     | '/login'
     | '/test-login'
+    | '/admin/money'
     | '/applications/$id'
     | '/gmail/mails'
     | '/mails/$key'
@@ -291,6 +289,7 @@ export interface FileRouteTypes {
     | '/gmail'
     | '/login'
     | '/test-login'
+    | '/admin_/money'
     | '/applications/$id'
     | '/gmail_/mails'
     | '/mails/$key'
@@ -300,6 +299,7 @@ export interface FileRouteTypes {
     | '/mails/'
     | '/sandbox/'
     | '/settings/'
+    | '/admin_/accounts/$accountId'
     | '/mails/gmail/$threadId'
   fileRoutesById: FileRoutesById
 }
