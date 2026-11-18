@@ -29,17 +29,19 @@ interface SelectProps<V extends string> {
 }
 
 /**
- * Shared popup look for every dropdown and menu (owner, 13 Nov 2026): frosted menu colour, a thin
- * border and a soft shadow. It grows out of its button with a spring (320ms) and shrinks away in
- * 160ms.
+ * Shared popup look for every dropdown, ··· menu and pop-over, phone and laptop (owner, 18 Nov
+ * 2026, mocks `PHONE-LINEAR-mock/`): the phone's glass, 14px corners. It grows out of the corner
+ * of its button and blurs in (~220ms, a little spring), and shrinks back into it faster.
+ * Reduce Motion: a fade.
  */
 export const POPUP_MOTION =
-  'origin-[var(--transform-origin)] transition-[opacity,scale] duration-320 ease-spring data-ending-style:scale-90 data-ending-style:opacity-0 data-ending-style:duration-160 data-ending-style:ease-exit data-starting-style:scale-60 data-starting-style:opacity-0';
+  'motion-fade origin-[var(--transform-origin)] transition-[opacity,scale,filter] duration-220 ease-spring data-ending-style:scale-75 data-ending-style:opacity-0 data-ending-style:blur-[4px] data-ending-style:duration-160 data-ending-style:ease-exit data-starting-style:scale-50 data-starting-style:opacity-0 data-starting-style:blur-[6px]';
 
-export const POPUP_CLASS = `rounded-lg border border-border-subtle glass-menu py-1 text-text-primary shadow-popup outline-none ${POPUP_MOTION}`;
+export const POPUP_CLASS = `rounded-[14px] glass-menu p-[5px] text-text-primary outline-none ${POPUP_MOTION}`;
 
+/** A menu row: the highlight is a soft pill that follows the pointer, or the finger on phones. */
 export const ITEM_CLASS =
-  'flex min-h-10 cursor-pointer items-center justify-between gap-4 px-4 py-2 text-[14px] leading-5 text-text-primary outline-none select-none transition-colors duration-70 ease-standard data-highlighted:bg-menu-hover data-disabled:cursor-not-allowed data-disabled:text-text-disabled';
+  'flex min-h-8 cursor-pointer items-center justify-between gap-4 rounded-[8px] px-[9px] py-1.5 text-[14px] leading-5 text-text-primary outline-none select-none transition-colors duration-70 ease-standard data-highlighted:bg-[var(--glass-pill)] data-disabled:cursor-not-allowed data-disabled:text-text-disabled';
 
 /**
  * A short fixed list. Opens below its box with the app's own menu (not the computer's), works with
