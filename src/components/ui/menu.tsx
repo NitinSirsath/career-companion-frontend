@@ -22,7 +22,10 @@ interface OverflowMenuProps {
   triggerRef?: Ref<HTMLButtonElement>;
 }
 
-/** The "…" menu for a row or a page: actions that are not the main one. */
+/**
+ * The "…" menu for a row or a page: actions that are not the main one. A glass menu that grows
+ * out of its button (owner, 18 Nov 2026); risky actions read red and sit last.
+ */
 export function OverflowMenu({
   label,
   actions,
@@ -51,11 +54,7 @@ export function OverflowMenu({
                 key={action.label}
                 disabled={action.disabled}
                 onClick={action.onSelect}
-                className={cn(
-                  ITEM_CLASS,
-                  action.danger &&
-                    'text-danger-text data-highlighted:bg-action-danger data-highlighted:text-text-inverse',
-                )}
+                className={cn(ITEM_CLASS, action.danger && 'text-danger-text')}
               >
                 {action.label}
               </BaseMenu.Item>
