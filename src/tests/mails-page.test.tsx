@@ -204,7 +204,8 @@ describe('home and navigation', () => {
       screen.getByText(/each date is shown on its mail, on the Mails page/),
     ).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Upcoming|Needs review/ })).not.toBeInTheDocument();
-    expect(get).not.toHaveBeenCalled();
+    // The page itself asks nothing; the app's frame asks only for messages from NorthList.
+    expect(get.mock.calls.filter(([url]) => url !== '/api/messages')).toEqual([]);
     fireEvent.click(screen.getByRole('button', { name: 'Open Mails' }));
     expect(await screen.findByRole('heading', { name: 'Mails' })).toBeInTheDocument();
   });
