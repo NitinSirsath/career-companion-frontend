@@ -5,11 +5,9 @@ import { PlusIcon } from 'lucide-react';
 import { api } from '../api/client';
 import { useGmailStatus } from '../api/gmail';
 import type { ProviderActions } from '../components/ai/ActiveProviderCard';
-import {
-  OpenProviderDialog,
-  ProvidersBody,
-  type OpenDialog,
-} from '../components/ai/ProvidersPageParts';
+import { OpenProviderDialog, type OpenDialog } from '../components/ai/ProvidersPageParts';
+import { ProvidersBodyFor } from '../components/ai/PhoneProviders';
+import { usePhoneNav } from '../components/phone/phoneNav';
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
 import { PageHeader } from '../components/layout/PageHeader';
 import { Button } from '../components/ui/button';
@@ -52,15 +50,22 @@ function AIProvidersPage() {
     onNote: setNote,
   };
   const connect = () => openDialog({ kind: 'connect', start: null });
+  const phone = !!usePhoneNav();
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
+        phoneSmallTitle
         className="mb-0"
         title="AI providers"
-        description="NorthList reads your job mails with AI: your own AI account, or the free AI. You can connect several providers. One is active and reads your mail."
+        description={
+          phone
+            ? undefined
+            : 'NorthList reads your job mails with AI: your own AI account, or the free AI. You can connect several providers. One is active and reads your mail.'
+        }
         actions={
           settings &&
+          !phone &&
           canConnectMore(settings) && (
             <Button onClick={connect}>
               <PlusIcon size={16} aria-hidden="true" />
@@ -73,7 +78,8 @@ function AIProvidersPage() {
       {error && <SectionError title="Could not load your AI settings" />}
       {note && <InlineNotification kind="success">{note}</InlineNotification>}
       {settings && (
-        <ProvidersBody
+        <ProvidersBodyFor
+          phone={phone}
           settings={settings}
           actions={actions}
           gmailConnected={!!gmail?.connected}
