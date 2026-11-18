@@ -20,6 +20,7 @@ import { SectionError } from '../ui/section-error';
 import { SkeletonList } from '../ui/skeleton';
 import { AdminAccounts, ResumeButton } from './AdminAccounts';
 import { AdminMessages } from './AdminMessages';
+import { PhoneAdmin } from './PhoneAdmin';
 
 function SectionTitle({ title, note }: { title: string; note?: string }) {
   return (
@@ -242,7 +243,7 @@ function ChartBar({
 }
 
 /** AI calls per day, one bar a day; today's bar is lighter because the day is not over. */
-function CallsChart({ days }: { days: ChartDays }) {
+export function CallsChart({ days }: { days: ChartDays }) {
   const phone = !!usePhoneNav();
   const [hover, setHover] = useState<number | null>(null);
   const g = chartGeometry(days, phone);
@@ -284,7 +285,13 @@ function CallsChart({ days }: { days: ChartDays }) {
 }
 
 /** "Today $0.42 · This month $3.10 · Left $6.18 of $10.00", with a bar when the key has a limit. */
-function MoneyLine({ money, loading }: { money: AdminFreeAIMoney | undefined; loading: boolean }) {
+export function MoneyLine({
+  money,
+  loading,
+}: {
+  money: AdminFreeAIMoney | undefined;
+  loading: boolean;
+}) {
   let body: ReactNode;
   if (loading) body = <span className="text-text-tertiary">Checking OpenRouter…</span>;
   else if (!money || money.state === 'UNAVAILABLE')
@@ -344,6 +351,7 @@ function MoneyLine({ money, loading }: { money: AdminFreeAIMoney | undefined; lo
  * Account facts and counts only, never anyone's mail. Only for ADMIN_EMAILS.
  */
 export function AdminPage() {
+  const phone = !!usePhoneNav();
   const overview = useAdminOverview();
   const money = useFreeAIMoney();
   const data = overview.data;
@@ -353,6 +361,7 @@ export function AdminPage() {
     body = (
       <SectionError title="Could not load the Admin page" onRetry={() => void overview.refetch()} />
     );
+  else if (phone) body = <PhoneAdmin overview={data} />;
   else {
     const items = needsALook(data, money.data);
     body = (
@@ -393,12 +402,18 @@ export function AdminPage() {
     <div className="flex flex-col gap-4">
       <PhoneRefreshCapsule />
       <PageHeader
+        phoneSmallTitle
         className="mb-2"
         title="Admin"
-        description="Only you see this page. Account facts and counts, never anyone's mail."
+        description={
+          phone
+            ? "Only you see this. Counts only, never anyone's mail."
+            : "Only you see this page. Account facts and counts, never anyone's mail."
+        }
         refresh
         actions={
-          data && (
+          data &&
+          !phone && (
             <span className="text-xs text-text-secondary">
               Updated {format(new Date(data.generatedAt), 'h:mm a')}
             </span>
