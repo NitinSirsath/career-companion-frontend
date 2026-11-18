@@ -121,3 +121,15 @@ export function mailPreview(message: Pick<MailMessage, 'text'>): string {
 /** Hides those quoted parts inside the mail frame until the user asks for them. */
 export const HIDE_HTML_QUOTE_CSS =
   '.gmail_quote,blockquote[type="cite"],#divRplyFwdMsg,#divRplyFwdMsg~*,#appendonsend,#appendonsend~*{display:none!important}';
+
+/**
+ * The mail whose reading a phone shows under the next step: the one that asks for it, else the
+ * newest the AI read.
+ */
+export function readingAbove(detail: ConversationDetail): ConversationMail | null {
+  const asking = askingMessageId(detail);
+  const read = detail.mails.filter((mail) => mail.gmailMessageId);
+  return (
+    (asking && read.find((mail) => mail.gmailMessageId === asking)) || read[read.length - 1] || null
+  );
+}
