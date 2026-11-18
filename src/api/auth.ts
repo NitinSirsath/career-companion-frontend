@@ -14,6 +14,10 @@ export interface User {
   email: string;
   name: string | null;
   testAccount?: boolean;
+  /** In ADMIN_EMAILS: the menu shows the Admin page. */
+  admin?: boolean;
+  /** Set while the owner has suspended the account: the app shows only the suspended page. */
+  suspension?: UserProfile['suspension'];
 }
 
 export const authKeys = { profile: ['auth', 'profile'] as const };
@@ -88,6 +92,11 @@ export function useProfile() {
     queryKey: authKeys.profile,
     queryFn: ({ signal }) => getProfile(signal),
   });
+}
+
+/** A suspended user asks the owner to resume the account; the answer is the new profile. */
+export async function sendResumeRequest(text: string): Promise<UserProfile> {
+  return UserProfileSchema.parse(await api.post<unknown>('/api/auth/resume-request', { text }));
 }
 
 /** The normal sign-in, or the test sign-in when `testAccount` is set. */
