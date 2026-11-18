@@ -25,7 +25,7 @@ export interface AlertBrowser {
 const browser = (): AlertBrowser => ({ navigator, window });
 
 /** iPhone and iPad, including an iPad that names itself a Mac but has a touch screen. */
-function isAppleMobile({ navigator }: AlertBrowser) {
+export function isAppleMobile({ navigator }: AlertBrowser) {
   return (
     /iPhone|iPad|iPod/.test(navigator.userAgent) ||
     (navigator.userAgent.includes('Macintosh') && navigator.maxTouchPoints > 1)
@@ -33,7 +33,7 @@ function isAppleMobile({ navigator }: AlertBrowser) {
 }
 
 /** Opened from the Home Screen (or as an installed app on a computer). */
-function isInstalledApp({ navigator, window }: AlertBrowser) {
+export function isInstalledApp({ navigator, window }: AlertBrowser) {
   return (
     (navigator as Navigator & { standalone?: boolean }).standalone === true ||
     window.matchMedia?.('(display-mode: standalone)').matches === true
