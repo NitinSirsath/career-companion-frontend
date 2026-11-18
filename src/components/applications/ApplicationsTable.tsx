@@ -1,18 +1,21 @@
-import type { ReactNode } from 'react';
+import { Fragment, type ReactNode } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import type { ColumnDef } from '@tanstack/react-table';
-import { ChevronRightIcon, UserIcon, WorkflowIcon } from 'lucide-react';
+import { UserIcon, WorkflowIcon } from 'lucide-react';
 import { AiIcon } from '../ui/ai-icon';
 import { format } from 'date-fns';
+import { useNextSteps, type NextStep } from '../../api/nextSteps';
 import type { ApplicationResponse } from '../../contracts/application';
 import { activityLine } from '../../lib/applicationsView';
 import { platformLabel } from '../../lib/eventLabels';
+import { shortAgo } from '../../lib/shortAgo';
+import { cn } from '../../lib/utils';
 import { applicationTag, ARCHIVED_TAG } from '../../lib/statusTags';
 import { JobLink } from '../automation/JobLink';
 import { DataTable, ROW_LINK_CLASS } from '../ui/data-table';
 import { OverflowMenu } from '../ui/menu';
-import { StatusRing } from '../ui/ring';
 import { Tag } from '../ui/tag';
+import { Ring, StatusRing } from '../ui/ring';
 
 const SOURCE: Record<'USER' | 'AI' | 'AUTOMATION', { icon: ReactNode; label: string }> = {
   USER: { icon: <UserIcon size={16} aria-hidden="true" />, label: 'Status set by you' },
@@ -163,46 +166,67 @@ interface ApplicationsTableProps {
   motionKey?: string;
 }
 
-/** One row per application: company and role, status, open to-dos, applied date, latest news. */
 /**
- * An application on a phone (owner, 13 Nov 2026): one row of the group with its company and
- * status, the role, and its to-dos and latest news.
+ * A phone row's third line: the status, the open to-dos (a red "Past due" in their place when the
+ * next step is late, mock screen 5), then the next step, or the latest news when nothing is open.
  */
-function PhoneApplicationCard({ app }: { app: ApplicationResponse }) {
-  const tag = applicationTag(app);
-  const activity = activityLine(app.recentEvent);
+function statusLine(app: ApplicationResponse, step: NextStep | undefined): ReactNode[] {
+  const parts: ReactNode[] = [applicationTag(app).label];
+  if (step?.pastDue) parts.push(<span className="font-medium text-late">Past due</span>);
+  else if (app.pendingActionCount > 0)
+    parts.push(
+      <span className="font-medium text-text-primary">{app.pendingActionCount} to do</span>,
+    );
+  if (app.archivedAt) parts.push(ARCHIVED_TAG.label);
+  const news = step?.text ?? activityLine(app.recentEvent)?.what;
+  if (news) parts.push(news);
+  return parts;
+}
+
+/**
+ * An application on a phone (owner, 18 Nov 2026, mock `PHONE-LINEAR-mock/` screen 5): a plain row
+ * that starts with the status ring and the company, the latest date at the right; the role and
+ * place; then the status, the open to-dos (red "Past due" when the next step is late) and the next
+ * step, or the latest news when nothing is open. Closed ones are faded.
+ */
+function PhoneApplicationRow({ app }: { app: ApplicationResponse }) {
   const role = [app.jobTitle, app.location].filter(Boolean).join(' · ');
+  const ended =
+    !!app.archivedAt || app.effectiveStatus === 'REJECTED' || app.effectiveStatus === 'CLOSED';
+  const when = app.recentEvent?.sourceEmail?.receivedAt ?? app.recentEvent?.recordedAt;
+  const parts = statusLine(app, useNextSteps().steps?.get(app.id));
   return (
     <Link
       to="/applications/$id"
       params={{ id: app.id }}
-      className="flex items-center gap-3 px-4 py-[11px] text-text-primary transition-colors duration-450 active:bg-surface-selected active:duration-0"
+      className={cn(
+        'grid grid-cols-[16px_minmax(0,1fr)] gap-x-3 border-b border-border-subtle px-[18px] py-[11px] text-text-primary transition-colors duration-450 active:bg-surface-selected active:duration-0',
+        ended && 'opacity-55',
+      )}
     >
-      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="flex items-center gap-2">
-          <span className="min-w-0 flex-1 truncate text-[17px] leading-[22px] font-semibold">
-            {app.companyName}
+      <Ring kind={applicationTag(app).ring} className="mt-[3px]" />
+      <span className="flex min-w-0 flex-col gap-px">
+        <span className="flex items-baseline justify-between gap-2">
+          <span className="truncate text-phone-row font-semibold">{app.companyName}</span>
+          <span className="shrink-0 text-[13px] text-text-tertiary">
+            {shortAgo(when ?? app.updatedAt)}
           </span>
-          <StatusRing look={tag} className="text-[13px] text-text-secondary" />
         </span>
-        {role && (
-          <span className="text-[15px] leading-5 break-words text-text-secondary">{role}</span>
-        )}
-        <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[15px] text-text-secondary">
-          {app.pendingActionCount > 0 && <Tag color="yellow">{app.pendingActionCount} to do</Tag>}
-          {app.archivedAt && <Tag color={ARCHIVED_TAG.color}>{ARCHIVED_TAG.label}</Tag>}
-          {activity && (
-            <span>
-              {activity.what} · {activity.when}
-            </span>
-          )}
+        {role && <span className="truncate text-phone-sub text-text-secondary">{role}</span>}
+        <span className="truncate text-phone-sub text-text-secondary">
+          {parts.map((part, i) => (
+            <Fragment key={i}>
+              {i > 0 && ' · '}
+              {part}
+            </Fragment>
+          ))}
         </span>
       </span>
-      <ChevronRightIcon size={18} aria-hidden="true" className="shrink-0 text-text-tertiary" />
     </Link>
   );
 }
 
+/** One row per application: company and role, status, open to-dos, applied date, latest news. */
 export function ApplicationsTable({ applications, ...rest }: ApplicationsTableProps) {
   return (
     <DataTable
@@ -211,7 +235,8 @@ export function ApplicationsTable({ applications, ...rest }: ApplicationsTablePr
       columns={COLUMNS}
       getRowId={(app) => app.id}
       gridTemplate="minmax(220px,2fr) minmax(170px,1.3fr) 112px 128px minmax(200px,1.6fr) 32px"
-      phoneRow={(app) => <PhoneApplicationCard app={app} />}
+      phoneRow={(app) => <PhoneApplicationRow app={app} />}
+      phonePlain
       {...rest}
     />
   );
