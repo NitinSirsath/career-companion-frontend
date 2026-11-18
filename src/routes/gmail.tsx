@@ -11,6 +11,8 @@ import { GmailConnection } from '../components/gmail/GmailConnection';
 import { GmailSyncNotices, GmailSyncNow } from '../components/gmail/GmailSyncSettings';
 import { EveryMailLink, HowMailIsRead, ReadNumbers } from '../components/gmail/GmailSummary';
 import { PageHeader } from '../components/layout/PageHeader';
+import { PhoneDisconnect, PhoneGmailConnection } from '../components/gmail/PhoneGmailSync';
+import { usePhoneNav } from '../components/phone/phoneNav';
 import { PhoneRefreshCapsule } from '../components/phone/PhoneRefresh';
 import { InlineNotification } from '../components/ui/notification';
 import { TooltipProvider } from '../components/ui/tooltip';
@@ -71,6 +73,7 @@ function GmailPage() {
   const { data: status, isLoading, error } = useGmailStatus();
   const sync = useSyncNow();
   const connected = !!status?.connected;
+  const phone = !!usePhoneNav();
   useNextStepAfterConnect(connected);
 
   return (
@@ -79,23 +82,35 @@ function GmailPage() {
         {/* Phones: refresh in the top bar also asks Gmail for new mail (owner, 13 Nov 2026). */}
         <PhoneRefreshCapsule also={() => connected && sync.mutate()} />
         <PageHeader
+          phoneSmallTitle
           className="mb-2"
           title="Gmail sync"
-          description="Which Gmail the app reads, what it has read, and how."
-          actions={status && connected && <GmailSyncNow status={status} sync={sync} />}
+          description={phone ? undefined : 'Which Gmail the app reads, what it has read, and how.'}
+          actions={status && connected && !phone && <GmailSyncNow status={status} sync={sync} />}
         />
         {/* Before Gmail is connected there is nothing for the AI to read yet. */}
         {connected && <AIAccessNotice />}
         {(connectError || search.gmailError) && (
           <ConnectProblem error={connectError ?? search.gmailError ?? ''} />
         )}
-        <GmailConnection status={status} loading={isLoading} failed={!!error} devMode={sandbox} />
+        {phone ? (
+          <PhoneGmailConnection
+            status={status}
+            loading={isLoading}
+            failed={!!error}
+            devMode={sandbox}
+            sync={sync}
+          />
+        ) : (
+          <GmailConnection status={status} loading={isLoading} failed={!!error} devMode={sandbox} />
+        )}
         {status && connected && (
           <>
             <GmailSyncNotices status={status} sync={sync} />
             <ReadNumbers />
             <EveryMailLink />
             <HowMailIsRead status={status} />
+            {phone && <PhoneDisconnect />}
           </>
         )}
       </div>
