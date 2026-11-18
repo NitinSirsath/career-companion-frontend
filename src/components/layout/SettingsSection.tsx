@@ -1,9 +1,13 @@
 import { useId, type ReactNode } from 'react';
 import { cn } from '../../lib/utils';
+import { usePhoneNav } from '../phone/phoneNav';
+import { PlainSection } from '../phone/PlainList';
 
 /**
  * One section of a settings page: the title and a short help above, the controls under them in a
- * card across the full width. Sections are spaced apart, with no line between them.
+ * card across the full width. Sections are spaced apart, with no line between them. On phones the
+ * plain-row look of Settings: the title, the controls, the help as a note under them (owner, 18 Nov
+ * 2026, mock `PHONE-LINEAR-mock/`).
  */
 export function SettingsSection({
   title,
@@ -17,6 +21,13 @@ export function SettingsSection({
   className?: string;
 }) {
   const headingId = useId();
+  const phone = !!usePhoneNav();
+  if (phone)
+    return (
+      <PlainSection label={title} note={help} className={className}>
+        <div className="flex min-w-0 flex-col gap-4 px-[18px] py-3.5 text-[15px]">{children}</div>
+      </PlainSection>
+    );
   return (
     <section
       aria-labelledby={headingId}
