@@ -17,6 +17,8 @@ import {
   closesByHand,
   mailDateTime,
   parseSender,
+  REQUEST_STATE_LABEL,
+  requestDetail,
   requestPastDue,
   requestTitle,
   scheduleLine,
@@ -26,10 +28,12 @@ import { useIsPhone } from '../layout/useIsPhone';
 import { Button } from '../ui/button';
 import { Collapse } from '../ui/collapse';
 import { OverflowMenu } from '../ui/menu';
+import { Ring } from '../ui/ring';
 import { InlineNotification } from '../ui/notification';
 import { showToast } from '../ui/toast';
 import { ConversationApplication } from './ConversationApplication';
-import { ReadingReply, StepDue, StepState } from './StepParts';
+import { FakeOfferTag } from './FakeOffer';
+import { ReadingReply, StepDue } from './StepParts';
 import { isOfflineError } from '../../lib/offline';
 
 /** On phones a card that folds: its title is a button, the rest opens under it. */
@@ -75,9 +79,10 @@ function PanelSection({
   const phone = useIsPhone();
   if (fold && phone) return <FoldedSection title={title}>{children}</FoldedSection>;
   return (
-    <section aria-label={title} className="flex flex-col gap-3 panel p-6 max-md:p-4">
-      <div className="mb-1 flex items-center justify-between gap-3">
-        <h2 className="text-sm font-semibold">{title}</h2>
+    // Laptops (laptop v2, 18 Nov 2026): a flat grey card with a small grey heading.
+    <section aria-label={title} className="flex flex-col gap-2.5 panel p-3.5 max-md:p-4">
+      <div className="flex min-h-5 items-center justify-between gap-3">
+        <h2 className="text-xs font-semibold text-text-secondary">{title}</h2>
         {menu && <div className="-my-1.5 -mr-2">{menu}</div>}
       </div>
       {children}
@@ -125,6 +130,32 @@ function StepSourceLink({ detail }: { detail: ConversationDetail }) {
   return source && messageId ? <AskingMailLink mail={source} messageId={messageId} /> : null;
 }
 
+/**
+ * Where the step stands, in grey words under it: "Needs action", "↩ You replied Nov 13", "Done ·
+ * Your reply answered it". No coloured label; a fake offer's open step says Probably fake.
+ */
+function StepStateLine({ asked, fake }: { asked: ConversationRequest; fake: boolean }) {
+  if (asked.state === 'OPEN' && fake) return <FakeOfferTag />;
+  const detail = asked.state === 'OPEN' ? null : requestDetail(asked);
+  return (
+    <p className="flex flex-wrap gap-x-1 text-xs text-text-secondary">
+      <span>
+        {asked.state === 'REPLIED' && <span aria-hidden="true">↩ </span>}
+        {REQUEST_STATE_LABEL[asked.state]}
+      </span>
+      {detail && (
+        <>
+          <span aria-hidden="true">·</span>
+          <span>
+            {detail}
+            {asked.state === 'DONE' && asked.closedAt && ` · ${mailDateTime(asked.closedAt)}`}
+          </span>
+        </>
+      )}
+    </p>
+  );
+}
+
 /** What the conversation needs now: the request, its due date, its state and what closes it. */
 function NextStep({ detail }: { detail: ConversationDetail }) {
   const { conversation } = detail;
@@ -134,7 +165,7 @@ function NextStep({ detail }: { detail: ConversationDetail }) {
     const schedule = scheduleLine(conversation);
     return (
       <PanelSection title="Next step">
-        <p className="text-base">{schedule ?? 'Nothing needed from you'}</p>
+        <p className="text-sm">{schedule ?? 'Nothing needed from you'}</p>
       </PanelSection>
     );
   }
@@ -159,11 +190,17 @@ function NextStep({ detail }: { detail: ConversationDetail }) {
     ) : undefined;
   return (
     <PanelSection title="Next step" menu={menu}>
-      <p className={cn('text-base break-words', asked.state === 'DONE' && 'text-text-secondary')}>
-        {title}
-      </p>
-      {!fake && <StepDue asked={asked} />}
-      <StepState asked={asked} fake={fake} />
+      {/* Laptop v2 (18 Nov 2026): a ring before the step, its state in grey words under it. */}
+      <div className="flex items-start gap-2.5">
+        <Ring kind={asked.state === 'OPEN' ? 'todo' : 'offer'} size={14} className="mt-[3px]" />
+        <div className="min-w-0 flex-1">
+          <p className={cn('text-sm break-words', asked.state === 'DONE' && 'text-text-secondary')}>
+            {title}
+          </p>
+          <StepStateLine asked={asked} fake={fake} />
+        </div>
+      </div>
+      {!fake && <StepDue asked={asked} />
       <ReadingReply detail={detail} />
       {note && <p className="text-xs text-text-secondary">{note}</p>}
       {asked.state !== 'OPEN' && (
@@ -225,7 +262,7 @@ export function JobMailPanel({ detail }: { detail: ConversationDetail }) {
     // On phones it sits above the conversation: the next step first, the rest folded.
     <aside
       aria-label="About this job mail"
-      className="flex flex-col gap-4 max-md:order-first max-md:gap-2 lg:sticky lg:top-20"
+      className="flex flex-col gap-3 max-md:order-first max-md:gap-2 lg:sticky lg:top-20"
     >
       <NextStep detail={detail} />
       {openOnPhone && applicationCard}
