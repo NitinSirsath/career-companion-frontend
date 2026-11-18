@@ -8,7 +8,6 @@ import {
   EyeIcon,
   FileTextIcon,
   InboxIcon,
-  ListIcon,
   TagIcon,
   type LucideIcon,
 } from 'lucide-react';
@@ -28,7 +27,7 @@ import { AiIcon } from '../ui/ai-icon';
 import { SectionError } from '../ui/section-error';
 import { SkeletonList } from '../ui/skeleton';
 import { usePhoneNav } from '../phone/phoneNav';
-import { PhoneGroup, PhoneLinkRow, PhoneRow, PhoneSection, RowIcon } from '../phone/PhoneList';
+import { PlainLinkRow, PlainRow, PlainSection } from '../phone/PlainList';
 
 const count = (n: number) => n.toLocaleString('en-US');
 const mails = (n: number) => `${count(n)} ${n === 1 ? 'mail' : 'mails'}`;
@@ -95,26 +94,16 @@ function Numbers({ summary }: { summary: GmailSummaryResponse }) {
   );
 }
 
+/** The four numbers as plain rows on phones: the label, the count at the right. */
 function PhoneNumbers({ summary }: { summary: GmailSummaryResponse }) {
-  return (
-    <dl className="grid grid-cols-2 overflow-hidden rounded-2xl bg-surface-subtle">
-      {NUMBERS.map((number, index) => (
-        <div
-          key={number.key}
-          className={cn(
-            'flex flex-col-reverse gap-0.5 border-border-default px-4 pt-3 pb-3.5',
-            index % 2 === 1 && 'border-l-[0.5px]',
-            index > 1 && 'border-t-[0.5px]',
-          )}
-        >
-          <dt className="text-[15px] text-text-secondary">{number.label}</dt>
-          <dd className="text-[28px] leading-[34px] font-bold tabular-nums">
-            {count(summary[number.key])}
-          </dd>
-        </div>
-      ))}
-    </dl>
-  );
+  return NUMBERS.map((number) => (
+    <PlainRow
+      key={number.key}
+      value={<span className="tabular-nums">{count(summary[number.key])}</span>}
+    >
+      {number.label}
+    </PlainRow>
+  ));
 }
 
 /**
@@ -147,9 +136,9 @@ export function ReadNumbers() {
     );
   if (phone)
     return (
-      <PhoneSection title="What the app has read" count={`Last ${summary?.days ?? 30} days`}>
+      <PlainSection label={`What the app has read · Last ${summary?.days ?? 30} days`}>
         {body}
-      </PhoneSection>
+      </PlainSection>
     );
   return (
     <section aria-labelledby="read-numbers-heading" className="flex flex-col gap-3 pt-6">
@@ -169,20 +158,9 @@ export function EveryMailLink() {
   const phone = !!usePhoneNav();
   if (phone)
     return (
-      <PhoneSection>
-        <PhoneGroup icons>
-          <PhoneLinkRow
-            to="/gmail/mails"
-            icon={
-              <RowIcon color="#0f62fe">
-                <ListIcon size={19} aria-hidden="true" />
-              </RowIcon>
-            }
-          >
-            Every mail it read
-          </PhoneLinkRow>
-        </PhoneGroup>
-      </PhoneSection>
+      <PlainSection>
+        <PlainLinkRow to="/gmail/mails">Every mail it read</PlainLinkRow>
+      </PlainSection>
     );
   return (
     <Link
@@ -220,34 +198,20 @@ function PrivacyLink({ className }: { className?: string }) {
 
 function PhoneFacts({ facts }: { facts: ReadingFact[] }) {
   return (
-    <PhoneSection
-      title="How your mail is read"
+    <PlainSection
+      label="How your mail is read"
       note={
         <>
           {WRITE_WITH_AI_NOTE} <PrivacyLink />
         </>
       }
     >
-      <PhoneGroup icons>
-        {facts.map((fact) => {
-          const Icon = FACT_ICON[fact.key];
-          return (
-            <PhoneRow
-              key={fact.key}
-              className="items-start"
-              icon={
-                <RowIcon color={fact.key === 'ai' ? '#6929c4' : '#6f6f78'}>
-                  <Icon size={18} aria-hidden="true" />
-                </RowIcon>
-              }
-              detail={fact.text}
-            >
-              {fact.term}
-            </PhoneRow>
-          );
-        })}
-      </PhoneGroup>
-    </PhoneSection>
+      {facts.map((fact) => (
+        <PlainRow key={fact.key} className="items-start" detail={fact.text}>
+          {fact.term}
+        </PlainRow>
+      ))}
+    </PlainSection>
   );
 }
 
