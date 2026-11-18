@@ -20,6 +20,11 @@ vi.mock('../api/client', () => ({
     getApplication: vi.fn(),
     getApplicationEvents: vi.fn(),
     getApplicationActions: vi.fn(),
+    // The lists' next steps: none unless a test says so.
+    getActions: vi.fn(async () => ({
+      items: [],
+      metadata: { limit: 20, offset: 0, nextOffset: null },
+    })),
     getGmailStatus: vi.fn(),
     getMessages: vi.fn(),
     triggerSync: vi.fn(),
