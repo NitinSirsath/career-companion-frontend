@@ -1,0 +1,41 @@
+name: Finish linear-look-base once (temporary)
+# Commits the deleted files on feat/linear-look-base and nothing else.
+# Lives only on the throwaway branch tmp/linear-look-base-finish, which is deleted afterwards.
+on:
+  push:
+    branches: [tmp/linear-look-base-finish]
+permissions:
+  contents: write
+concurrency:
+  group: finish-linear-look-base-once
+  cancel-in-progress: false
+jobs:
+  finish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: feat/linear-look-base
+      - name: Check the commits on the branch
+        run: |
+          if [ "$(git rev-parse 'HEAD^{tree}')" != "b1cb50b06740a27d11f7991ae416f677db00b1d8" ]; then
+            echo "The commits on feat/linear-look-base do not match the reviewed files. Nothing was changed."
+            exit 1
+          fi
+      - name: Make the reviewed change
+        run: |
+          git rm -q src/components/ApplicationStatus.tsx
+          git rm -q src/components/phone/tabIcons.tsx
+          git add -A
+          if [ "$(git write-tree)" != "29027e6ec3309ab2fb234cfc6b22e8715888a7e2" ]; then
+            echo "The result does not match the reviewed tree. Nothing was pushed."
+            git status --short
+            exit 1
+          fi
+      - name: Commit only the reviewed result
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(look): delete the old status label and tab icons'
+          git push origin HEAD:feat/linear-look-base
