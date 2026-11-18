@@ -20,14 +20,21 @@ import { SectionError } from '../ui/section-error';
 import { SkeletonList } from '../ui/skeleton';
 import { GmailLookback } from './GmailSyncSettings';
 
-/** Disconnecting stops the reading; it asks first, since connecting again goes through Google. */
-function DisconnectButton({ onDisconnected }: { onDisconnected?: () => void }) {
+/** "Disconnect Gmail?": it asks first, since connecting again goes through Google. */
+export function DisconnectDialog({
+  open,
+  onOpenChange,
+  onDisconnected,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onDisconnected?: () => void;
+}) {
   const queryClient = useQueryClient();
-  const [open, setOpen] = useState(false);
   const disconnect = useMutation({
     mutationFn: () => api.disconnectGmail(),
     onSuccess: () => {
-      setOpen(false);
+      onOpenChange(false);
       onDisconnected?.();
     },
     onSettled: () => {
@@ -36,43 +43,48 @@ function DisconnectButton({ onDisconnected }: { onDisconnected?: () => void }) {
     },
   });
   return (
+    <Dialog open={open} onOpenChange={(value) => !disconnect.isPending && onOpenChange(value)}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Disconnect Gmail?</DialogTitle>
+          <DialogDescription>
+            The app stops reading your mail and gives up its access to your Gmail. Your applications
+            and the mails it already read stay. You can connect the same account again later.
+          </DialogDescription>
+        </DialogHeader>
+        {disconnect.isError && (
+          <InlineNotification kind="error">Gmail did not disconnect. Try again.</InlineNotification>
+        )}
+        <DialogFooter>
+          <Button
+            variant="secondary"
+            disabled={disconnect.isPending}
+            onClick={() => onOpenChange(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            loading={disconnect.isPending}
+            onClick={() => disconnect.mutate()}
+          >
+            {disconnect.isPending ? 'Disconnecting…' : 'Disconnect'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/** Disconnecting stops the reading; it asks first. */
+function DisconnectButton({ onDisconnected }: { onDisconnected?: () => void }) {
+  const [open, setOpen] = useState(false);
+  return (
     <>
       <Button variant="danger-ghost" size="sm" onClick={() => setOpen(true)}>
         Disconnect
       </Button>
-      <Dialog open={open} onOpenChange={(value) => !disconnect.isPending && setOpen(value)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Disconnect Gmail?</DialogTitle>
-            <DialogDescription>
-              The app stops reading your mail and gives up its access to your Gmail. Your
-              applications and the mails it already read stay. You can connect the same account
-              again later.
-            </DialogDescription>
-          </DialogHeader>
-          {disconnect.isError && (
-            <InlineNotification kind="error">
-              Gmail did not disconnect. Try again.
-            </InlineNotification>
-          )}
-          <DialogFooter>
-            <Button
-              variant="secondary"
-              disabled={disconnect.isPending}
-              onClick={() => setOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="danger"
-              loading={disconnect.isPending}
-              onClick={() => disconnect.mutate()}
-            >
-              {disconnect.isPending ? 'Disconnecting…' : 'Disconnect'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DisconnectDialog open={open} onOpenChange={setOpen} onDisconnected={onDisconnected} />
     </>
   );
 }
