@@ -21,6 +21,10 @@ interface MailTitleProps {
   onReply?: () => void;
   /** The "…" menu beside Reply. */
   more?: ReactNode;
+  /** Laptops: the grey "who · when" line above the title. */
+  kicker?: ReactNode;
+  /** False when the facts already hold the way to the mailbox (the laptop's pills card). */
+  mailboxLink?: boolean;
 }
 
 /** Where the conversation lives: Gmail in prod, the mail sandbox in dev mode. */
@@ -50,6 +54,8 @@ export function MailTitle({
   children,
   onReply,
   more,
+  kicker,
+  mailboxLink = true,
 }: MailTitleProps) {
   const phone = useIsPhone();
   // Unsent reply text kept on this device: the phone's button opens it again.
@@ -58,12 +64,13 @@ export function MailTitle({
     <PageHeader
       breadcrumb={breadcrumb}
       title={title}
+      kicker={kicker}
       meta={
         <div className="mt-2 flex flex-col items-start gap-3">
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-text-secondary">
             {children}
           </div>
-          {threadId && <MailboxLink threadId={threadId} subject={title} />}
+          {threadId && mailboxLink && <MailboxLink threadId={threadId} subject={title} />}
         </div>
       }
       actions={
