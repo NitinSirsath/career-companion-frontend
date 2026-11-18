@@ -12,6 +12,7 @@ import {
   KEY_PROBLEM,
   whenLabel,
 } from '../../lib/admin';
+import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
 import { DataTable } from '../ui/data-table';
 import {
@@ -92,13 +93,14 @@ function resumeLabel(pending: boolean, failed: boolean) {
   return failed ? 'Try again' : 'Resume';
 }
 
-/** Resume at once: it only gives back what the account had. */
-export function ResumeButton({ account, primary }: { account: AdminAccount; primary?: boolean }) {
+/** Resume at once: it only gives back what the account had. A plain button, or a blue word. */
+export function ResumeButton({ account, link }: { account: AdminAccount; link?: boolean }) {
   const resume = useResumeAccount();
   return (
     <Button
       size="sm"
-      variant={primary ? 'primary' : 'secondary'}
+      // In a Needs a look row it reads as a blue word (laptop v2, 18 Nov 2026).
+      variant={link ? 'ghost' : 'secondary'}
       loading={resume.isPending}
       title={resume.error ? problem(resume.error) : undefined}
       onClick={() => resume.mutate({ id: account.id })}
@@ -108,40 +110,53 @@ export function ResumeButton({ account, primary }: { account: AdminAccount; prim
   );
 }
 
+/**
+ * Laptops (laptop v2, owner 18 Nov 2026): the name over the email, then Test or Suspended as a
+ * plain word, red for Suspended. No coloured labels.
+ */
 function AccountName({ account }: { account: AdminAccount }) {
+  const flags = [account.testAccount && 'Test', account.suspension && 'Suspended'].filter(Boolean);
   return (
-    <div className="flex min-w-0 flex-col gap-0.5">
-      <span className="flex flex-wrap items-center gap-1.5 break-all">
-        {account.email}
-        {account.testAccount && <Tag>Test</Tag>}
-        {account.suspension && <Tag color="red">Suspended</Tag>}
-      </span>
-      {account.name && <span className="text-xs text-text-secondary">{account.name}</span>}
+    <div className="flex min-w-0 flex-col">
+      <span className="truncate font-medium">{account.name ?? account.email}</span>
+      {account.name && (
+        <span className="truncate text-xs text-text-secondary">{account.email}</span>
+      )}
+      {flags.length > 0 && (
+        <span
+          className={cn('text-xs', account.suspension ? 'text-danger-text' : 'text-text-tertiary')}
+        >
+          {flags.join(' · ')}
+        </span>
+      )}
     </div>
   );
 }
 
+/** Gmail in words: grey while fine, red when sync fails or access was removed. */
 function GmailCell({ account }: { account: AdminAccount }) {
   const { state, lastSyncedAt } = account.gmail;
-  if (state === 'SYNC_FAILING') return <Tag color="red">Sync failing</Tag>;
-  if (state === 'ACCESS_REMOVED') return <Tag color="red">Access removed</Tag>;
+  if (state === 'SYNC_FAILING') return <span className="text-danger-text">Sync failing</span>;
+  if (state === 'ACCESS_REMOVED') return <span className="text-danger-text">Access removed</span>;
   if (state === 'NOT_CONNECTED') return <span className="text-text-tertiary">Not connected</span>;
   return (
-    <span className="flex items-center gap-1.5">
-      <span aria-hidden="true" className="size-[7px] shrink-0 rounded-full bg-ok" />
+    <span className="text-text-secondary">
       {lastSyncedAt ? `Synced ${clock(lastSyncedAt)}` : 'Connected'}
     </span>
   );
 }
 
+/** The AI in words; a key problem or a reached daily limit in red. */
 function AICell({ account }: { account: AdminAccount }) {
   const label = aiLabel(account);
   if (!label) return <span className="text-text-tertiary">Not set up</span>;
   return (
-    <div className="flex flex-col items-start gap-1">
-      <span>{label}</span>
-      {account.ai.keyProblem && <Tag color="red">{KEY_PROBLEM[account.ai.keyProblem]}</Tag>}
-      {account.limitsReached.ai && <Tag color="yellow">Daily limit reached</Tag>}
+    <div className="flex min-w-0 flex-col text-text-secondary">
+      <span className="truncate">{label}</span>
+      {account.ai.keyProblem && (
+        <span className="text-xs text-danger-text">{KEY_PROBLEM[account.ai.keyProblem]}</span>
+      )}
+      {account.limitsReached.ai && <span className="text-xs text-danger-text">Daily limit</span>}
     </div>
   );
 }
@@ -172,20 +187,30 @@ function columns(onSuspend: (account: AdminAccount) => void): ColumnDef<AdminAcc
       header: 'Account',
       cell: ({ row }) => <AccountName account={row.original} />,
     },
-    { id: 'signedUp', header: 'Signed up', cell: ({ row }) => dayLabel(row.original.createdAt) },
-    { id: 'active', header: 'Last active', cell: ({ row }) => lastActive(row.original) },
+    {
+      id: 'signedUp',
+      header: 'Signed up',
+      meta: { className: 'text-text-secondary' },
+      cell: ({ row }) => dayLabel(row.original.createdAt),
+    },
+    {
+      id: 'active',
+      header: 'Last active',
+      meta: { className: 'text-text-secondary' },
+      cell: ({ row }) => lastActive(row.original),
+    },
     { id: 'gmail', header: 'Gmail', cell: ({ row }) => <GmailCell account={row.original} /> },
     { id: 'ai', header: 'AI', cell: ({ row }) => <AICell account={row.original} /> },
     {
       id: 'mails',
-      header: 'Mails · 30 days',
-      meta: { className: 'md:text-right tabular-nums' },
+      header: () => <span title="Mails checked in the last 30 days">Mails</span>,
+      meta: { className: 'md:text-right tabular-nums text-text-secondary' },
       cell: ({ row }) => count(row.original.mailsChecked30d),
     },
     {
       id: 'applications',
-      header: 'Applications',
-      meta: { className: 'md:text-right tabular-nums' },
+      header: () => <span title="Applications">Apps</span>,
+      meta: { className: 'md:text-right tabular-nums text-text-secondary' },
       cell: ({ row }) => count(row.original.applications),
     },
     {
@@ -260,7 +285,7 @@ export function AdminAccounts({ accounts }: { accounts: readonly AdminAccount[] 
         data={page}
         columns={columns(setSuspending)}
         getRowId={(account) => account.id}
-        gridTemplate="minmax(0,2fr) minmax(0,0.7fr) minmax(0,0.9fr) minmax(0,1.25fr) minmax(0,1.1fr) minmax(0,0.75fr) minmax(0,0.85fr) 88px"
+        gridTemplate="minmax(0,1.7fr) 60px minmax(0,0.9fr) minmax(0,1fr) minmax(0,0.9fr) 48px 40px 88px"
         phoneRow={(account) => <PhoneAccount account={account} onSuspend={setSuspending} />}
         footer={
           accounts.length > ACCOUNTS_PER_PAGE && (
