@@ -5,18 +5,18 @@ import { ApplicationStatusSchema, type ApplicationResponse } from '../../contrac
 import { statusSourceLine } from '../../lib/applicationDetail';
 import { USE_AI, statusWords, type Choice, type Phase } from '../../lib/statusChoice';
 import { STATUS_LABEL } from '../../lib/statusLabels';
-import { applicationTag, statusTag, type TagLook } from '../../lib/statusTags';
+import { applicationTag, statusTag, type StatusLook } from '../../lib/statusTags';
 import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
 import { InlineNotification } from '../ui/notification';
 import { ITEM_CLASS, POPUP_CLASS } from '../ui/select';
 import { Sheet, SheetAction, SheetGroup } from '../ui/sheet';
-import { Tag } from '../ui/tag';
+import { Ring, StatusRing } from '../ui/ring';
 import { StatusPickerContext, type StatusPicker } from './statusPicker';
 
 /**
- * The status on a phone (owner, 12 Nov 2026): the tag with a small arrow opens a sheet with the
- * seven statuses, a tick on the chosen one, and "Use the AI's status".
+ * The status on a phone (owner, 12 Nov 2026): the ring and words with a small arrow open a sheet
+ * with the seven statuses, a tick on the chosen one, and "Use the AI's status".
  */
 function PhoneStatusSelect({
   application,
@@ -28,7 +28,7 @@ function PhoneStatusSelect({
 }: {
   application: ApplicationResponse;
   value: Choice;
-  shown: TagLook;
+  shown: StatusLook;
   disabled: boolean;
   onChoose: (choice: Choice) => void;
   picker: StatusPicker;
@@ -47,15 +47,20 @@ function PhoneStatusSelect({
         onClick={() => picker.onOpenChange(true)}
         className="inline-flex min-h-11 cursor-pointer items-center gap-1 pr-1 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        <Tag color={shown.color}>{shown.label}</Tag>
+        <StatusRing look={shown} size={15} />
         <ChevronDownIcon size={16} aria-hidden="true" className="text-text-secondary" />
       </button>
       <Sheet open={picker.open} onOpenChange={picker.onOpenChange} title="Status">
         <div role="radiogroup" aria-label="Status" className="flex flex-col gap-3">
           <SheetGroup>
             {ApplicationStatusSchema.options.map((status) => (
-              <SheetAction key={status} chosen={value === status} onClick={() => choose(status)}>
-                <Tag color={statusTag(status).color}>{STATUS_LABEL[status]}</Tag>
+              <SheetAction
+                key={status}
+                icon={<Ring kind={statusTag(status).ring} size={17} />}
+                chosen={value === status}
+                onClick={() => choose(status)}
+              >
+                {STATUS_LABEL[status]}
               </SheetAction>
             ))}
           </SheetGroup>
@@ -73,7 +78,7 @@ function PhoneStatusSelect({
   );
 }
 
-/** The status as a dropdown, the way it looks in lists: a coloured tag with a chevron. */
+/** The status as a dropdown, the way it looks in lists: its ring and words with a chevron. */
 function StatusSelect({
   application,
   value,
@@ -83,7 +88,7 @@ function StatusSelect({
 }: {
   application: ApplicationResponse;
   value: Choice;
-  shown: TagLook;
+  shown: StatusLook;
   disabled: boolean;
   onChoose: (choice: Choice) => void;
 }) {
@@ -98,7 +103,7 @@ function StatusSelect({
         aria-label={`Status: ${shown.label}. Change status`}
         className="group inline-flex h-8 cursor-pointer items-center gap-1 pr-2 transition-colors duration-70 ease-standard outline-none hover:bg-layer-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-border-focus data-disabled:cursor-not-allowed data-disabled:opacity-60 data-disabled:hover:bg-transparent"
       >
-        <Tag color={shown.color}>{shown.label}</Tag>
+        <StatusRing look={shown} />
         <ChevronDownIcon
           size={16}
           aria-hidden="true"
@@ -116,9 +121,10 @@ function StatusSelect({
             <BaseSelect.List aria-label="Status">
               {ApplicationStatusSchema.options.map((status) => (
                 <BaseSelect.Item key={status} value={status} className={ITEM_CLASS}>
-                  <BaseSelect.ItemText render={<Tag color={statusTag(status).color} />}>
-                    {STATUS_LABEL[status]}
-                  </BaseSelect.ItemText>
+                  <span className="flex items-center gap-2">
+                    <Ring kind={statusTag(status).ring} size={14} />
+                    <BaseSelect.ItemText>{STATUS_LABEL[status]}</BaseSelect.ItemText>
+                  </span>
                   <BaseSelect.ItemIndicator className="flex text-link">
                     <CheckIcon size={16} aria-hidden="true" />
                   </BaseSelect.ItemIndicator>
@@ -156,7 +162,7 @@ export function StatusLine({
 }: {
   application: ApplicationResponse;
   value: Choice;
-  shown: TagLook;
+  shown: StatusLook;
   disabled: boolean;
   busy: boolean;
   announcement: string;
@@ -166,7 +172,7 @@ export function StatusLine({
   const picker = useContext(StatusPickerContext);
   return (
     <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
-      {application.archivedAt && <Tag color={shown.color}>{shown.label}</Tag>}
+      {application.archivedAt && <StatusRing look={shown} />}
       {!application.archivedAt && picker && (
         <PhoneStatusSelect
           application={application}
