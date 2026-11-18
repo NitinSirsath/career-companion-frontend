@@ -79,6 +79,22 @@ import type {
 /** Pages a signed-out visitor may be on; a 401 there is a wrong password, not an expiry. */
 const SIGN_IN_PATHS = ['/login', '/test-login'];
 
+/** The server's answer to every app request from a suspended account (owner, 18 Nov 2026). */
+const ACCOUNT_SUSPENDED = 'ACCOUNT_SUSPENDED';
+let reloading = false;
+/**
+ * The body of a refused request. Suspended while the app was open: the app loads again, once, so
+ * it shows the suspended page.
+ */
+async function readRefusal(response: Response): Promise<any> {
+  const body = await response.json().catch(() => ({}));
+  if (response.status === 403 && body?.error?.code === ACCOUNT_SUSPENDED && !reloading) {
+    reloading = true;
+    window.location.reload();
+  }
+  return body;
+}
+
 /** Shared client deadline (Sprint 5). Mutations reuse it; do not add competing timeouts. */
 export const REQUEST_TIMEOUT_MS = 15_000;
 
@@ -177,7 +193,7 @@ export class ApiClient {
           }
         }
 
-        const error = await response.json().catch(() => ({}));
+        const error = await readRefusal(response);
         throw new ApiError(
           error?.error?.message || `API request failed with status ${response.status}`,
           'http',
