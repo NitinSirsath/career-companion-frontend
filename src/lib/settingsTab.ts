@@ -28,3 +28,19 @@ export const ALERT_WORDS: Partial<Record<AlertState, string>> = {
   'home-screen-first': 'Home Screen first',
   unsupported: 'Not on this browser',
 };
+
+/** NorthList Apply: "Connected" once an active token has been used, else "Not connected". */
+export function applyValue(
+  tokens: readonly { status: string; lastUsedAt: string | null }[] | undefined,
+) {
+  if (!tokens) return undefined;
+  return tokens.some((token) => token.status === 'active' && token.lastUsedAt)
+    ? 'Connected'
+    : 'Not connected';
+}
+
+/** Admin: how many things need a look, or that all is good. */
+export function adminValue(items: number | undefined) {
+  if (items === undefined) return undefined;
+  return items ? `${items} need${items === 1 ? 's' : ''} a look` : 'All good';
+}
