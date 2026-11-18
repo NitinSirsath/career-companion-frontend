@@ -19,12 +19,14 @@ import {
 } from '../../lib/phoneStack';
 import { animateSpring, NAV_SPRING } from '../../lib/spring';
 import { rememberedSearch } from '../layout/navItems';
+import type { BarMode } from './phoneNav';
 import {
   clearFrame,
   hideLayer,
   scrollerOf,
   showSnapshot,
   slideFrame,
+  tabFade,
   takeSnapshot,
   type PageSnapshot,
 } from './pageMotion';
@@ -98,6 +100,8 @@ export class PhoneStackCore {
   private busy = false;
   private ownPop = false;
   private swipeAt = 1;
+  /** Tells the bottom bar what it is about to be while a page slides back (null: as the page says). */
+  private barHint: ((mode: BarMode | null) => void) | null = null;
   /** The live page, and the layers for the still copies under it and over it. */
   private layers: {
     page: HTMLElement | null;
@@ -111,6 +115,11 @@ export class PhoneStackCore {
   ) {}
 
   setPage = (element: HTMLElement | null) => void (this.layers.page = element);
+  /** The frame listens for what the bottom bar is about to be; returns the way to stop. */
+  onBarHint = (listen: (mode: BarMode | null) => void) => {
+    this.barHint = listen;
+    return () => void (this.barHint = null);
+  };
   setUnder = (element: HTMLElement | null) => void (this.layers.under = element);
   setOver = (element: HTMLElement | null) => void (this.layers.over = element);
 
@@ -166,6 +175,7 @@ export class PhoneStackCore {
     }
     if (move === 'tab') this.memory.keep(before.id, look, false);
     if (move === 'pop' || move === 'tab') restoreScroll(page, this.memory.scrollOf(topOf(next).id));
+    if (move === 'tab') return this.crossFade(look);
     if (move !== 'pop') return;
     const browserDrew = performance.now() - browserDrewBack < 1000;
     if (this.ownPop || browserDrew) this.finish();
@@ -174,11 +184,20 @@ export class PhoneStackCore {
 
   finish = () => {
     const { page, under, over } = this.layers;
+    this.barHint?.(null);
     if (page) clearFrame(page);
     if (under) hideLayer(under);
     if (over) hideLayer(over);
     this.busy = false;
   };
+
+  /** Another tab: the old page fades out over the new one with a soft blur, nothing slides. */
+  private crossFade(from: PageSnapshot | null) {
+    const { page, over } = this.layers;
+    if (!page || !over || !from) return;
+    showSnapshot(over, from);
+    void tabFade(over, page).then(() => hideLayer(over));
+  }
 
   /** A new page slides in over the copy of the one it covers. */
   private slideIn(from: PageSnapshot | null) {
@@ -226,6 +245,7 @@ export class PhoneStackCore {
     const target = this.stack[to];
     if (!page || !under || !target) return;
     this.busy = true;
+    if (to === 0) this.barHint?.('tabs');
     showSnapshot(under, this.memory.snapshots.get(target.id));
     void animateSpring({ from, to: 0, velocity }, NAV_SPRING, (p) =>
       slideFrame(under, page, p),

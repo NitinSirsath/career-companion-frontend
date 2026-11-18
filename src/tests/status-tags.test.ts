@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { parseStoredTheme, resolveTheme } from '../lib/theme';
-import { applicationTag, statusTag, STATUS_TAG_COLOR } from '../lib/statusTags';
+import { applicationTag, statusTag, STATUS_RING } from '../lib/statusTags';
 import { initials } from '../components/ui/avatar';
 
 describe('themes', () => {
@@ -23,27 +23,25 @@ describe('themes', () => {
 });
 
 describe('one status look', () => {
-  it('gives every status its own colour, in job-search order', () => {
-    expect(STATUS_TAG_COLOR).toEqual({
-      APPLIED: 'gray',
-      RECRUITER_CONTACT: 'cyan',
-      ASSESSMENT: 'teal',
-      INTERVIEW: 'blue',
-      OFFER: 'green',
-      REJECTED: 'red',
-      CLOSED: 'outline',
+  it('gives every status a ring, in job-search order, and closes Rejected and Closed alike', () => {
+    expect(STATUS_RING).toEqual({
+      APPLIED: 'applied',
+      RECRUITER_CONTACT: 'recruiter',
+      ASSESSMENT: 'assessment',
+      INTERVIEW: 'interview',
+      OFFER: 'offer',
+      REJECTED: 'closed',
+      CLOSED: 'closed',
     });
-    expect(new Set(Object.values(STATUS_TAG_COLOR)).size).toBe(7);
-  });
-
-  it('never uses yellow for a status: yellow means only "needs action"', () => {
-    expect(Object.values(STATUS_TAG_COLOR)).not.toContain('yellow');
   });
 
   it('labels statuses in plain sentence case', () => {
-    expect(statusTag('APPLIED')).toEqual({ label: 'Applied', color: 'gray' });
-    expect(statusTag('RECRUITER_CONTACT')).toEqual({ label: 'Recruiter contact', color: 'cyan' });
-    expect(statusTag(null)).toEqual({ label: 'Status unknown', color: 'outline' });
+    expect(statusTag('APPLIED')).toEqual({ label: 'Applied', ring: 'applied' });
+    expect(statusTag('RECRUITER_CONTACT')).toEqual({
+      label: 'Recruiter contact',
+      ring: 'recruiter',
+    });
+    expect(statusTag(null)).toEqual({ label: 'Status unknown', ring: 'applied' });
   });
 
   it('says "No reply yet" only before any status exists', () => {
@@ -53,10 +51,10 @@ describe('one status look', () => {
         submittedVia: 'AUTOMATION',
         effectiveStatus: null,
       }),
-    ).toEqual({ label: 'No reply yet', color: 'outline' });
+    ).toEqual({ label: 'No reply yet', ring: 'applied' });
     expect(
       applicationTag({ statusSource: 'AI', submittedVia: 'AUTOMATION', effectiveStatus: 'OFFER' }),
-    ).toEqual({ label: 'Offer', color: 'green' });
+    ).toEqual({ label: 'Offer', ring: 'offer' });
   });
 });
 

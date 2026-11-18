@@ -15,7 +15,7 @@ export interface PhoneAction {
 /**
  * The floating glass bar at the bottom of a phone detail page (owner, 13 Nov 2026), where a tab's
  * first page has the tab bar: two to four buttons, each an icon over a short word. It goes into
- * the frame's bar place, so it slides with its page.
+ * the frame's bar place. Pages move to `PhoneBottomBar` (glass circle, field, circle).
  */
 export function ActionBar({ label, actions }: { label: string; actions: PhoneAction[] }) {
   const place = usePhoneNav()?.barTarget;
@@ -23,7 +23,7 @@ export function ActionBar({ label, actions }: { label: string; actions: PhoneAct
   return createPortal(
     <nav
       aria-label={label}
-      className="glass absolute inset-x-[18px] bottom-[max(calc(env(safe-area-inset-bottom)-12px),10px)] z-20 grid h-[62px] auto-cols-fr grid-flow-col rounded-full p-1"
+      className="glass absolute inset-x-1 bottom-0 grid h-[62px] auto-cols-fr grid-flow-col rounded-full p-1"
     >
       {actions.map((action) => (
         <button

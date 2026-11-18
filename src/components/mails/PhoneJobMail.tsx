@@ -19,7 +19,7 @@ import {
 } from '../../lib/mails';
 import { isOfflineError } from '../../lib/offline';
 import { cn } from '../../lib/utils';
-import { StatusBadge } from '../ApplicationStatus';
+import { StatusBadge } from '../ui/ring';
 import { InlineNotification } from '../ui/notification';
 import { Sheet, SheetAction, SheetGroup } from '../ui/sheet';
 import { Tag } from '../ui/tag';

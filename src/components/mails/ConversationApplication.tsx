@@ -18,7 +18,7 @@ import {
   linkProblem,
   type LinkProblem,
 } from '../../lib/mails';
-import { StatusBadge } from '../ApplicationStatus';
+import { StatusBadge } from '../ui/ring';
 import { Tag } from '../ui/tag';
 import { ApplicationPicker } from '../ApplicationPicker';
 import { Button } from '../ui/button';
