@@ -21,6 +21,11 @@ interface PageHeaderProps {
   phoneCompact?: boolean;
   /** Phones: keep the actions (a single "…") beside the title instead of on a line of their own. */
   actionsBesideTitle?: boolean;
+  /**
+   * Setup pages on phones (mock `PHONE-LINEAR-mock/` screens 9, 10, 13): no big title, only the
+   * small one in the middle of the top bar; the description is a small grey line.
+   */
+  phoneSmallTitle?: boolean;
   /** List pages on laptops: a refresh button before the actions (phones refresh from the top bar). */
   refresh?: boolean;
   className?: string;
@@ -35,14 +40,34 @@ function PhoneHeader({
   description,
   actions,
   meta,
+  phoneSmallTitle = false,
   className,
-}: Pick<PageHeaderProps, 'title' | 'description' | 'actions' | 'meta' | 'className'>) {
+}: Pick<
+  PageHeaderProps,
+  'title' | 'description' | 'actions' | 'meta' | 'phoneSmallTitle' | 'className'
+>) {
   const nav = usePhoneNav();
+  let size: 'list' | 'detail' | 'bar' = nav?.isRoot ? 'list' : 'detail';
+  if (phoneSmallTitle) size = 'bar';
   return (
-    <header className={cn('flex flex-col gap-1.5 px-1 pt-0.5 pb-4', className)}>
-      <PhoneTitle size={nav?.isRoot ? 'list' : 'detail'}>{title}</PhoneTitle>
+    <header
+      className={cn(
+        'flex flex-col gap-1.5 px-1 pt-0.5 pb-4',
+        phoneSmallTitle && 'px-0.5 pb-3',
+        className,
+      )}
+    >
+      <PhoneTitle size={size}>{title}</PhoneTitle>
       {description && (
-        <div className="text-[15px] leading-5 text-text-secondary">{description}</div>
+        <div
+          className={
+            phoneSmallTitle
+              ? 'text-phone-sub text-text-secondary'
+              : 'text-[15px] leading-5 text-text-secondary'
+          }
+        >
+          {description}
+        </div>
       )}
       {meta}
       {actions && <div className="flex flex-wrap items-center gap-3 pt-2">{actions}</div>}
