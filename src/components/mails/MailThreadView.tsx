@@ -18,6 +18,8 @@ export interface ThreadJobContext {
   askingMessageId: string | null;
   /** Reply choices and "Write with AI" in the reply box. */
   ai?: ReplyAi;
+  /** Phones: the mail whose AI reading the page shows above, under the next step. */
+  readingShownAbove?: string | null;
 }
 
 /** The reply on its way: shown at once at the end of the conversation, then replaced by the sent mail. */
@@ -46,7 +48,12 @@ function Messages({
   mailbox: string | null;
   job?: ThreadJobContext;
 }) {
-  const [folded, setFolded] = useState(() => initiallyFolded(messages.map((m) => m.id)));
+  const phone = useIsPhone();
+  // Phones: every mail starts as its first lines, newest first, like Linear's activity (owner,
+  // 18 Nov 2026, mock `PHONE-LINEAR-mock/` #2).
+  const [folded, setFolded] = useState(() =>
+    phone ? new Set(messages.map((m) => m.id)) : initiallyFolded(messages.map((m) => m.id)),
+  );
   const fold = (id: string, value: boolean) =>
     setFolded((current) => {
       const next = new Set(current);
@@ -54,17 +61,19 @@ function Messages({
       else next.delete(id);
       return next;
     });
-  return messages.map((message, index) => {
+  const shown = phone ? [...messages].reverse() : messages;
+  return shown.map((message, index) => {
     const day = dayLabel(message.date);
-    const newDay = index === 0 || dayLabel(messages[index - 1].date) !== day;
-    const last = index === messages.length - 1;
-    const reading = job ? readingFor(message.id, job.mails) : null;
+    const newDay = !phone && (index === 0 || dayLabel(shown[index - 1].date) !== day);
+    const last = !phone && index === shown.length - 1;
+    const reading =
+      job && job.readingShownAbove !== message.id ? readingFor(message.id, job.mails) : null;
     // A fake offer's step is the app's own advice, not something the mail asks.
     const asks = !!job && job.askingMessageId === message.id && !reading?.fakeOfferWarning;
     return (
       <Fragment key={message.id}>
         {newDay && (
-          <div className="flex min-h-8 items-center gap-4 text-xs text-text-secondary before:h-px before:flex-1 before:bg-border-subtle after:h-px after:flex-1 after:bg-border-subtle max-md:min-h-10 max-md:px-4 max-md:pt-2">
+          <div className="flex min-h-8 items-center gap-4 text-xs text-text-secondary before:h-px before:flex-1 before:bg-border-subtle after:h-px after:flex-1 after:bg-border-subtle">
             {day}
           </div>
         )}
@@ -113,16 +122,25 @@ export function MailThreadView({
   }, [loaded, phone]);
 
   return (
-    <section
-      aria-label="Conversation"
-      className="flex flex-col gap-2 max-md:gap-0 max-md:border-b max-md:border-border-subtle"
-    >
+    <section aria-label="Conversation" className="flex flex-col gap-2 max-md:gap-0">
+      {phone && (
+        <h2 className="flex items-baseline gap-2 px-[18px] pt-1 pb-2 text-[18px] leading-6 font-bold">
+          Mails
+          {data && (
+            <small className="text-[14px] font-medium text-text-tertiary">
+              {data.messages.length}
+            </small>
+          )}
+        </h2>
+      )}
       {isLoading && <SkeletonList rows={3} label="Reading this mail from Gmail" />}
       {error && <MailboxProblem error={error} onRetry={() => void refetch()} />}
       {data && (
         <>
+          {/* Phones list the newest mail first, so the reply on its way goes on top. */}
+          {phone && sending && <SendingCard doc={sending} />}
           <Messages key={threadId} messages={data.messages} mailbox={mailbox} job={job} />
-          {sending && <SendingCard doc={sending} />}
+          {!phone && sending && <SendingCard doc={sending} />}
           <div ref={end} />
           <MailReplyBox
             threadId={threadId}
