@@ -3,7 +3,7 @@ import { BriefcaseBusinessIcon, Building2Icon, type LucideIcon } from 'lucide-re
 import { useMailThread } from '../../api/mailbox';
 import type { Conversation } from '../../contracts/conversation';
 import { mailCounts } from '../../lib/mails';
-import { StatusBadge } from '../ApplicationStatus';
+import { StatusBadge } from '../ui/ring';
 import { Tag } from '../ui/tag';
 import { FakeOfferTag } from './FakeOffer';
 import { MailType } from './MailType';
