@@ -147,3 +147,18 @@ export function retiredLine(event: ApplicationEventResponse): string | null {
       : 'Unlinked from this application';
   return `${what} on ${longDate(event.retiredAt)}. It no longer counts toward the AI's status.`;
 }
+
+const day = (value: string | Date) => safeFormat(value, 'MMM d');
+
+/** "Applied Oct 14 · via LinkedIn": when, and how it was sent when NorthList Apply sent it. */
+export function appliedLine(
+  application: Pick<ApplicationResponse, 'appliedAt' | 'createdAt' | 'automation' | 'submittedVia'>,
+): string {
+  const when = application.appliedAt
+    ? `Applied ${day(application.appliedAt)}`
+    : `Added ${day(application.createdAt)}`;
+  if (application.automation)
+    return `${when} · via ${platformLabel(application.automation.platform)}`;
+  if (application.submittedVia === 'AUTOMATION') return `${when} · via NorthList Apply`;
+  return when;
+}
