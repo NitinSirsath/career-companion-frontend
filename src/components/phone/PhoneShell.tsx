@@ -3,6 +3,7 @@ import { Drawer } from '@base-ui/react/drawer';
 import { useRouterState } from '@tanstack/react-router';
 import { homeTab, rootTab } from '../../lib/phoneStack';
 import { useBreadcrumbSlot } from '../layout/breadcrumbSlot';
+import { InstallCard } from '../InstallCard';
 import { OfflineLine } from '../layout/OfflinePage';
 import { SHADE_CLASS } from './pageMotion';
 import { PhoneNavContext, type PhoneFrame } from './phoneNav';
@@ -131,6 +132,7 @@ export function PhoneShell({ children }: { children: ReactNode }) {
             {children}
           </LivePage>
           <CopyLayer place={core.setOver} over />
+          <InstallCard phone />
         </Drawer.Indent>
       </Drawer.Provider>
     </PhoneNavContext.Provider>
