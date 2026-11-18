@@ -16,8 +16,8 @@ export function spring(response: number, damping: number): Spring {
   return { k: w * w, c: 2 * damping * w };
 }
 
-/** Pages sliding in and out. */
-export const NAV_SPRING = spring(0.42, 1);
+/** Pages sliding in and out: ~350ms, smooth, no bounce (Linear iOS recording, 18 Nov 2026). */
+export const NAV_SPRING = spring(0.34, 1);
 /** A highlight or thumb moving to its new place. */
 export const SNAP_SPRING = spring(0.36, 0.78);
 
