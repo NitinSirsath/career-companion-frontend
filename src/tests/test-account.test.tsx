@@ -28,6 +28,8 @@ const PROFILE = {
   hasPassword: true,
   hasGoogle: false,
   testAccount: true,
+  admin: false,
+  suspension: null,
 };
 
 /** What the backend answers: its mode, and who is signed in (null: nobody). */

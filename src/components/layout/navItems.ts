@@ -1,5 +1,6 @@
 import {
   FileTextIcon,
+  ShieldIcon,
   FlaskConicalIcon,
   LayoutGridIcon,
   MailIcon,
@@ -20,7 +21,8 @@ export interface NavItem {
     | '/ai'
     | '/automation'
     | '/sandbox'
-    | '/account';
+    | '/account'
+    | '/admin';
   /** Also the page's title: a menu name and its page always say the same thing. */
   label: string;
   icon: LucideIcon;
@@ -51,6 +53,9 @@ export const SETTINGS_NAV: readonly NavItem[] = [
 export function rememberedSearch(to: NavItem['to']): Record<string, unknown> | undefined {
   return to === '/mails' || to === '/applications' ? listSearch(to) : undefined;
 }
+
+/** Only for the emails in ADMIN_EMAILS (owner, 18 Nov 2026). */
+export const ADMIN_NAV: NavItem = { to: '/admin', label: 'Admin', icon: ShieldIcon };
 
 /** Dev mode only. */
 export const SANDBOX_NAV: NavItem = {

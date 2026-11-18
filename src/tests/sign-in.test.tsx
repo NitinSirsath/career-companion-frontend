@@ -29,6 +29,8 @@ const profile = (overrides: Partial<UserProfile> = {}): UserProfile => ({
   hasPassword: false,
   hasGoogle: true,
   testAccount: false,
+  admin: false,
+  suspension: null,
   ...overrides,
 });
 

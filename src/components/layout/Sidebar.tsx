@@ -1,10 +1,11 @@
-import { Link } from '@tanstack/react-router';
+import { Link, useRouteContext } from '@tanstack/react-router';
 import { PanelLeftCloseIcon, PanelLeftOpenIcon } from 'lucide-react';
 import { useDevMode, useSandboxMailbox } from '../../api/appMode';
 import { cn } from '../../lib/utils';
 import { ReadingStatus } from './ReadingStatus';
 import { useIsPhone } from './useIsPhone';
 import {
+  ADMIN_NAV,
   MAIN_NAV,
   NAV_LINK_CLASS,
   rememberedSearch,
@@ -54,6 +55,7 @@ export function Sidebar({
 }) {
   const devMode = useDevMode();
   const sandbox = useSandboxMailbox();
+  const admin = useRouteContext({ from: '__root__', select: (context) => !!context.user?.admin });
   const ToggleIcon = collapsed ? PanelLeftOpenIcon : PanelLeftCloseIcon;
   // Phones show the reading status in the top bar instead.
   const phone = useIsPhone();
@@ -84,6 +86,19 @@ export function Sidebar({
         ))}
         {sandbox && (
           <NavLink item={SANDBOX_NAV} collapsed={collapsed} badge={devMode ? 'Dev' : 'Test'} />
+        )}
+        {admin && (
+          <>
+            <p
+              className={cn(
+                'px-3 pt-6 pb-2 text-xs whitespace-nowrap text-text-secondary',
+                collapsed && 'sr-only',
+              )}
+            >
+              Owner
+            </p>
+            <NavLink item={ADMIN_NAV} collapsed={collapsed} />
+          </>
         )}
       </nav>
 

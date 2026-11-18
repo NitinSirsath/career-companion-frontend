@@ -5,6 +5,7 @@ import {
   DownloadIcon,
   FlaskConicalIcon,
   RefreshCwIcon,
+  ShieldIcon,
   SunMoonIcon,
   UserIcon,
   WorkflowIcon,
@@ -153,6 +154,24 @@ function SandboxSection() {
   );
 }
 
+/** The Admin page, only for the emails in ADMIN_EMAILS (owner, 18 Nov 2026). */
+function AdminSection() {
+  const admin = useRouteContext({ from: '__root__', select: (context) => !!context.user?.admin });
+  if (!admin) return null;
+  return (
+    <PhoneSection>
+      <PhoneGroup icons>
+        <PhoneLinkRow
+          to="/admin"
+          icon={<RowIcon color="#8e8e93">{<ShieldIcon size={ICON} aria-hidden="true" />}</RowIcon>}
+        >
+          Admin
+        </PhoneLinkRow>
+      </PhoneGroup>
+    </PhoneSection>
+  );
+}
+
 /** "Dev mode · mail sandbox" under the title, so neither is mistaken for real Gmail. */
 function SandboxLine() {
   const devMode = useDevMode();
@@ -185,6 +204,7 @@ export function SettingsTab() {
       <PhoneSection>
         <YouRows email={email} />
       </PhoneSection>
+      <AdminSection />
       <PhoneSection>
         <PhoneGroup>
           <PhoneRow onClick={() => void logOutAndLeave()} className="text-center text-danger-text">
