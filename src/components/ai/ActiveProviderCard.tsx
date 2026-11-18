@@ -1,22 +1,18 @@
-import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '../../api/client';
-import type { AIConnection, AISettingsResponse, CheckAIProviderResponse } from '../../contracts/ai';
+import type { AIConnection, AISettingsResponse } from '../../contracts/ai';
 import { connectionTag, keyLine, spareProvider } from '../../lib/aiConnections';
 import { accessCopy, providerName } from '../../lib/aiLabels';
 import {
   checkNoteShown,
   notAffected,
   notConfirmedNotice,
-  settingsOf,
   waitingText,
 } from '../../lib/aiProviderPage';
 import { freeAIConnection, freeAIOffered } from '../../lib/freeAI';
-import { startProcessingRefresh } from '../../lib/processingRefresh';
 import { Button } from '../ui/button';
 import { InlineNotification } from '../ui/notification';
 import { Tag } from '../ui/tag';
 import { Emphasized } from './AIAccessNotice';
+import { useKeyCheck } from './useKeyCheck';
 import { ModelChoice } from './ModelChoice';
 
 export interface ProviderActions {
@@ -35,7 +31,7 @@ export interface ProviderActions {
  * A key problem also offers "Replace key", and another connected provider that could take over,
  * or else the free AI when the server offers it (owner, 24 Oct 2026). Nothing switches by itself.
  */
-function AccessProblem({
+export function AccessProblem({
   settings,
   actions,
 }: {
@@ -84,30 +80,6 @@ function AccessProblem({
       </span>
     </InlineNotification>
   );
-}
-
-/** "Check key" on the active provider, and the note it leaves. */
-function useKeyCheck(providerId: string) {
-  const queryClient = useQueryClient();
-  const [lastCheck, setLastCheck] = useState<CheckAIProviderResponse | null>(null);
-  const [failed, setFailed] = useState(false);
-  // No key is involved, so an ordinary mutation is fine here.
-  const check = useMutation({
-    mutationFn: () => api.checkAIProvider(providerId),
-    retry: false,
-    onSuccess: (response) => {
-      const next = settingsOf(response);
-      queryClient.setQueryData(['aiSettings'], next);
-      if (response.verification === 'VERIFIED' && next.waitingEmails > 0) startProcessingRefresh();
-      setFailed(false);
-      setLastCheck(response);
-    },
-    onError: () => {
-      setFailed(true);
-      queryClient.invalidateQueries({ queryKey: ['aiSettings'] });
-    },
-  });
-  return { check, lastCheck, failed };
 }
 
 /** "Check key", "Replace key" and "Remove", always in sight. */
