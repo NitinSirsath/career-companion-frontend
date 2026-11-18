@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-// ─── Messages from the Admin page (owner, 18 Nov 2026) ──────────────────────
+// ─── Messages from the Admin page (owner, 18 Nov 2026) ───────────────────────
 // The owner writes a short plain-text message to one account or to every account. It shows at the
 // top of the app until the user closes it, and can also go out as a push alert.
 
