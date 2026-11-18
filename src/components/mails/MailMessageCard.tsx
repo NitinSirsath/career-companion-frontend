@@ -191,6 +191,7 @@ function FoldedMail({ message, onOpen }: { message: MailMessage; onOpen: () => v
           </span>
           <span className="line-clamp-4 text-[14.5px] leading-5 break-words">
             {mailPreview(message) || '(No text)'}
+          </span>
         </span>
       </button>
     );
