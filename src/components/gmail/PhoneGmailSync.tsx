@@ -28,7 +28,7 @@ function Facts({ status, devMode }: { status: GmailStatusResponse; devMode: bool
         <span className="flex min-w-0 flex-1 flex-col py-2">
           <span className="break-all">{status.gmailEmail}</span>
           <span className="text-phone-sub text-text-secondary">
-            {note ? \`Connected · \${note}\` : 'Connected'}
+            {note ? `Connected · ${note}` : 'Connected'}
           </span>
         </span>
       </div>
@@ -60,7 +60,7 @@ function Lookback({ status }: { status: GmailStatusResponse }) {
   const busy = save.isPending || status.syncStatus === 'SYNCING';
   let note = LOOKBACK_HELP;
   if (save.isSuccess)
-    note = \`Saved. The next sync looks back \${chosen?.label.replace(' (default)', '')}.\`;
+    note = `Saved. The next sync looks back ${chosen?.label.replace(' (default)', '')}.`;
   if (save.isError) note = 'Not saved. Try again.';
   return (
     <PlainSection label="Look back" note={<span role="status">{note}</span>}>
@@ -117,7 +117,7 @@ export function PhoneDisconnect() {
 }
 
 /**
- * The Gmail connection on phones (owner, 18 Nov 2026, mock \`PHONE-LINEAR-mock/\` screen 9): plain
+ * The Gmail connection on phones (owner, 18 Nov 2026, mock `PHONE-LINEAR-mock/` screen 9): plain
  * rows with the facts, Sync now in blue, the look-back choices with a check. Disconnect comes last,
  * at the bottom of the page.
  */
