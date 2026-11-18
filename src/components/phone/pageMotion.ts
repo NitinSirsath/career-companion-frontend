@@ -1,7 +1,8 @@
 /**
- * The phone's page slide, drawn straight on the page elements (owner, 13 Nov 2026, approved mock
- * `IOS-LOOK-mock/`): the top page slides in from the right while the page under it moves a third
- * of the way left and darkens. React shows one live page at a time; the page under it is a still
+ * The phone's page slide, drawn straight on the page elements (owner, 13 Nov 2026; timing from the
+ * Linear iOS recording, 18 Nov 2026, `PHONE-LINEAR-mock/motion-ref/push-0.05s.jpg`): the top page
+ * slides in from the right in ~350ms with no bounce while the page under it drifts a third of the
+ * way left, slower, and darkens. React shows one live page at a time; the page under it is a still
  * copy taken as it left, so a swipe back can show it under the finger.
  */
 import { prefersReducedMotion } from '../../lib/spring';
@@ -83,4 +84,29 @@ export function clearFrame(...pages: HTMLElement[]) {
     page.style.opacity = '';
     setShade(page, 0);
   }
+}
+
+/** A tab switch takes this long (Motion rules: a cross-fade with a soft blur, no slide). */
+const TAB_FADE_MS = 220;
+
+/**
+ * Another tab comes up: the copy of the old page fades out over the new one, and both blur a
+ * little on the way. With less motion asked for it is a plain fade.
+ */
+export function tabFade(old: HTMLElement, next: HTMLElement): Promise<void> {
+  if (typeof old.animate !== 'function') return Promise.resolve();
+  const blur = prefersReducedMotion() ? 0 : 6;
+  const timing = { duration: TAB_FADE_MS, easing: 'cubic-bezier(0.2, 0, 0.38, 0.9)' };
+  next.animate([{ filter: `blur(${blur}px)` }, { filter: 'blur(0)' }], timing);
+  const fade = old.animate(
+    [
+      { opacity: 1, filter: 'blur(0)' },
+      { opacity: 0, filter: `blur(${blur}px)` },
+    ],
+    { ...timing, fill: 'forwards' },
+  );
+  return fade.finished.then(
+    () => undefined,
+    () => undefined,
+  );
 }
