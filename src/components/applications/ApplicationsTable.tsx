@@ -11,6 +11,7 @@ import { applicationTag, ARCHIVED_TAG } from '../../lib/statusTags';
 import { JobLink } from '../automation/JobLink';
 import { DataTable, ROW_LINK_CLASS } from '../ui/data-table';
 import { OverflowMenu } from '../ui/menu';
+import { StatusRing } from '../ui/ring';
 import { Tag } from '../ui/tag';
 
 const SOURCE: Record<'USER' | 'AI' | 'AUTOMATION', { icon: ReactNode; label: string }> = {
@@ -35,7 +36,7 @@ function StatusCell({ app }: { app: ApplicationResponse }) {
   const source = sourceOf(app);
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Tag color={tag.color}>{tag.label}</Tag>
+      <StatusRing look={tag} />
       {source && (
         <span className="text-text-secondary" title={SOURCE[source].label}>
           {SOURCE[source].icon}
@@ -182,7 +183,7 @@ function PhoneApplicationCard({ app }: { app: ApplicationResponse }) {
           <span className="min-w-0 flex-1 truncate text-[17px] leading-[22px] font-semibold">
             {app.companyName}
           </span>
-          <Tag color={tag.color}>{tag.label}</Tag>
+          <StatusRing look={tag} className="text-[13px] text-text-secondary" />
         </span>
         {role && (
           <span className="text-[15px] leading-5 break-words text-text-secondary">{role}</span>
