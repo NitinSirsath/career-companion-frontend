@@ -12,7 +12,7 @@ import { Button } from '../components/ui/button';
 import { InlineNotification } from '../components/ui/notification';
 import { SectionError } from '../components/ui/section-error';
 import { SkeletonList } from '../components/ui/skeleton';
-import { mailSenders } from '../lib/applicationDetail';
+import { mailPeople, mailSenders } from '../lib/applicationDetail';
 import { applicationQueryOptions } from '../lib/applicationCache';
 import type { ApplicationsSearch } from '../lib/applicationsView';
 import { listSearch } from '../lib/listMemory';
@@ -34,6 +34,7 @@ function ApplicationDetailPage() {
   const application = applicationQuery.data;
   const events = eventsQuery.data?.items;
   const senders = useMemo(() => mailSenders(events ?? []), [events]);
+  const people = useMemo(() => mailPeople(events ?? []), [events]);
   // Editing needs a currently valid application read; a stale cached copy is shown but not editable.
   const canEdit = !!application && !applicationQuery.isError;
 
@@ -64,6 +65,7 @@ function ApplicationDetailPage() {
           application={application}
           canEdit={canEdit}
           breadcrumb={breadcrumb}
+          people={people}
         />
       ) : (
         breadcrumb
