@@ -1,0 +1,40 @@
+name: Finish linear-look-apps once (temporary)
+# Commits the deleted files on feat/linear-look-apps and nothing else.
+# Lives only on the throwaway branch tmp/linear-look-apps-finish, which is deleted afterwards.
+on:
+  push:
+    branches: [tmp/linear-look-apps-finish]
+permissions:
+  contents: write
+concurrency:
+  group: finish-linear-look-apps-once
+  cancel-in-progress: false
+jobs:
+  finish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: feat/linear-look-apps
+      - name: Check the commits on the branch
+        run: |
+          if [ "$(git rev-parse 'HEAD^{tree}')" != "3f65c879f8552c3b9b472af5aa651dd53cb5280c" ]; then
+            echo "The commits on feat/linear-look-apps do not match the reviewed files. Nothing was changed."
+            exit 1
+          fi
+      - name: Make the reviewed change
+        run: |
+          git rm -q src/components/applications/PhoneApplicationBar.tsx
+          git add -A
+          if [ "$(git write-tree)" != "ccbc90c87b52f658bfb15691cfa48e144ccabb75" ]; then
+            echo "The result does not match the reviewed tree. Nothing was pushed."
+            git status --short
+            exit 1
+          fi
+      - name: Commit only the reviewed result
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(phone): delete the old application action bar'
+          git push origin HEAD:feat/linear-look-apps
