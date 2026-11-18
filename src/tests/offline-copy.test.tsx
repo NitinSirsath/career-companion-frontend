@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import {
   QueryClient,
   QueryClientProvider,
@@ -186,14 +186,15 @@ describe('opening the app with a saved copy', () => {
     const store = memoryStore(savedCopy());
     show(store);
     expect(await screen.findByText('App for other@test.local with no data')).toBeInTheDocument();
-    expect(store.clear).toHaveBeenCalled();
+    // The copy is dropped by an effect after that render: wait for it, as a slow machine may be late.
+    await waitFor(() => expect(store.clear).toHaveBeenCalled());
     cleanup();
 
     me = () => Promise.resolve(new Response('{}', { status: 401 }));
     const signedOut = memoryStore(savedCopy());
     show(signedOut);
     expect(await screen.findByText('App for nobody with no data')).toBeInTheDocument();
-    expect(signedOut.clear).toHaveBeenCalled();
+    await waitFor(() => expect(signedOut.clear).toHaveBeenCalled());
   });
 
   it('saves new data for the signed-in user', async () => {
