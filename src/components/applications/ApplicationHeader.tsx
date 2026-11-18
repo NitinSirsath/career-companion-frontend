@@ -1,13 +1,12 @@
-import { useState, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import type { ApplicationResponse } from '../../contracts/application';
+import type { mailPeople } from '../../lib/applicationDetail';
 import { PageHeader } from '../layout/PageHeader';
 import { useIsPhone } from '../layout/useIsPhone';
-import { PhoneTitle } from '../phone/PhoneTitle';
 import { Button } from '../ui/button';
 import { OverflowMenu } from '../ui/menu';
 import { InlineNotification } from '../ui/notification';
-import { PhoneApplicationBar } from './PhoneApplicationBar';
-import { StatusPickerContext } from './statusPicker';
+import { PhoneApplicationTop } from './PhoneApplicationTop';
 import { useApplicationMenu } from './useApplicationMenu';
 import { useStatusControl } from './useStatusControl';
 import { DeclineQuestion } from './DeclineQuestion';
@@ -29,51 +28,6 @@ function ArchivedNotice({ canRestore, onRestore }: { canRestore: boolean; onRest
 }
 
 /**
- * The top of an application on a phone (owner, 13 Nov 2026, approved mock `IOS-LOOK-mock/`): the
- * big company name that scrolls under the top bar, the role and the status, and a floating action
- * bar with Reply, Status and More. The status picks from a sheet.
- */
-function PhoneApplicationHeader({
-  application,
-  canEdit,
-  breadcrumb,
-  role,
-  status,
-  notices,
-  menu,
-}: {
-  application: ApplicationResponse;
-  canEdit: boolean;
-  breadcrumb: ReactNode;
-  role: string;
-  status: ReactNode;
-  notices: ReactNode;
-  menu: ReturnType<typeof useApplicationMenu>;
-}) {
-  const [picking, setPicking] = useState(false);
-  return (
-    <div className="flex flex-col gap-4">
-      {breadcrumb}
-      <header className="flex flex-col gap-[9px] px-1 pt-0.5">
-        <PhoneTitle size="detail">{application.companyName}</PhoneTitle>
-        {role && <p className="text-[15px] text-text-secondary">{role}</p>}
-        <StatusPickerContext.Provider value={{ open: picking, onOpenChange: setPicking }}>
-          {status}
-        </StatusPickerContext.Provider>
-      </header>
-      {notices}
-      {menu.dialogs}
-      <PhoneApplicationBar
-        applicationId={application.id}
-        onStatus={() => setPicking(true)}
-        canPick={canEdit && !application.archivedAt}
-        actions={menu.actions}
-      />
-    </div>
-  );
-}
-
-/**
  * Title, role, the status dropdown, and a "…" menu with Archive or Restore and Delete. Notices
  * about the status and the archive sit under it.
  */
@@ -81,10 +35,13 @@ export function ApplicationHeader({
   application,
   canEdit,
   breadcrumb,
+  people = [],
 }: {
   application: ApplicationResponse;
   canEdit: boolean;
   breadcrumb: ReactNode;
+  /** The people who wrote its mails, for the phone's fact pills. */
+  people?: ReturnType<typeof mailPeople>;
 }) {
   const status = useStatusControl(application, canEdit);
   const menu = useApplicationMenu(application, canEdit);
@@ -106,14 +63,13 @@ export function ApplicationHeader({
   );
   if (phone)
     return (
-      <PhoneApplicationHeader
+      <PhoneApplicationTop
         application={application}
-        canEdit={canEdit}
         breadcrumb={breadcrumb}
-        role={role}
         status={status.control}
         notices={notices}
         menu={menu}
+        people={people}
       />
     );
   return (
