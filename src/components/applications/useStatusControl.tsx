@@ -47,15 +47,35 @@ function useStatusSave() {
   });
 }
 
+/** The status shown while a choice saves (the draft) or after (the application's), and the choice. */
+function shownChoice(phase: Phase, application: ApplicationResponse) {
+  const saving = phase.kind === 'saving';
+  const shown = saving
+    ? statusTag(phase.draft ?? application.aiStatus)
+    : applicationTag(application);
+  const value: Choice = (saving ? phase.draft : application.userStatus) ?? USE_AI;
+  return { shown, value };
+}
+
+/** What a page needs to draw its own status trigger (the phone mail page's pill). */
+export interface StatusChoice {
+  value: Choice;
+  shown: ReturnType<typeof applicationTag>;
+  /** No choice can be made now: saving, checking, or not editable. */
+  disabled: boolean;
+  choose: (choice: Choice) => void;
+}
+
 /**
  * The application's status in the page header: a dropdown that saves the choice at once, and the
  * notice that goes with it, shown under the header. Each save uses the revision the page shows,
- * so a change made elsewhere is never overwritten.
+ * so a change made elsewhere is never overwritten. `choice`: the same, for a page that draws its
+ * own trigger (owner, 18 Nov 2026: the phone mail page's status pill opens the Status sheet).
  */
 export function useStatusControl(
   application: ApplicationResponse,
   canEdit: boolean,
-): { control: ReactNode; notice: ReactNode } {
+): { control: ReactNode; notice: ReactNode; choice: StatusChoice } {
   const queryClient = useQueryClient();
   const save = useStatusSave();
   const [phase, setPhase] = useState<Phase>({ kind: 'idle' });
@@ -63,7 +83,6 @@ export function useStatusControl(
   const noticeBox = useRef<HTMLDivElement>(null);
   // After a failed save, focus moves to the notice that explains it.
   const focusNotice = () => requestAnimationFrame(() => noticeBox.current?.focus());
-
   const reconcile = async (applicationId: string) => {
     setPhase({ kind: 'reconciling' });
     try {
@@ -105,18 +124,15 @@ export function useStatusControl(
   };
 
   const saving = phase.kind === 'saving';
-  const shown = saving
-    ? statusTag(phase.draft ?? application.aiStatus)
-    : applicationTag(application);
-  const value: Choice = (saving ? phase.draft : application.userStatus) ?? USE_AI;
+  const { shown, value } = shownChoice(phase, application);
   const locked = ['reconciling', 'unknown', 'unavailable'].includes(phase.kind);
-
+  const disabled = !canEdit || saving || locked;
   const control = (
     <StatusLine
       application={application}
       value={value}
       shown={shown}
-      disabled={!canEdit || saving || locked}
+      disabled={disabled}
       busy={saving}
       announcement={announcement}
       onChoose={choose}
@@ -135,5 +151,5 @@ export function useStatusControl(
       )}
     </div>
   );
-  return { control, notice };
+  return { control, notice, choice: { value, shown, disabled, choose } };
 }

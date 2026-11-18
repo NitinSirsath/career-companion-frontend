@@ -390,8 +390,13 @@ describe('on a phone (owner, 7 Nov 2026)', () => {
     fireEvent.click(more.getByRole('button', { name: 'Close' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
 
+    // The status is a round pill with no "Set by …" beside it; that line is in the sheet.
+    const pill = screen.getByRole('button', { name: /^Status: .*\. Change status$/ });
+    expect(pill.querySelector('[data-ring]')).not.toBeNull();
+    expect(screen.queryByText(/^Set by /)).not.toBeInTheDocument();
     fireEvent.click(bar.getByRole('button', { name: 'Status' }));
     const status = within(await screen.findByRole('dialog', { name: 'Status' }));
+    expect(status.getByText(/^Set by /)).toBeInTheDocument();
     expect(status.getAllByRole('radio')).toHaveLength(8);
     expect(status.getByRole('radio', { name: /Use the AI's status/ })).toHaveAttribute(
       'aria-checked',

@@ -88,6 +88,7 @@ function PhoneReplyScreen({ replyAsks, children }: { replyAsks: number; children
   const [askedFor, setAskedFor] = useState(replyAsks);
   const [send, setSend] = useState<HTMLElement | null>(null);
   const [note, setNote] = useState<HTMLElement | null>(null);
+  const [ai, setAi] = useState<HTMLElement | null>(null);
   const [format, setFormat] = useState<HTMLElement | null>(null);
   if (askedFor !== replyAsks) {
     setAskedFor(replyAsks);
@@ -105,14 +106,22 @@ function PhoneReplyScreen({ replyAsks, children }: { replyAsks: number; children
       }
       contentClassName="px-4 pb-3"
       footer={
-        <div className="shrink-0 border-t border-border-subtle pb-[max(0px,env(safe-area-inset-bottom)-var(--drawer-keyboard-inset,0px))]">
+        <div className="shrink-0 pb-[max(8px,env(safe-area-inset-bottom)-var(--drawer-keyboard-inset,0px))]">
           <div ref={setNote} />
-          <div ref={setFormat} />
+          {/* One glass tool bar on top of the keyboard: ✦ AI, then the text tools. */}
+          <div
+            role="group"
+            aria-label="Reply tools"
+            className="glass mx-2.5 mt-2 flex h-11 items-center gap-1 rounded-full px-1.5"
+          >
+            <div ref={setAi} className="contents" />
+            <div ref={setFormat} className="ml-auto flex min-w-0 items-center" />
+          </div>
         </div>
       }
     >
       <div className="flex flex-1 flex-col [&>form]:rounded-none [&>form]:border-0 [&>form]:bg-transparent">
-        <PhoneReplySlots.Provider value={{ send, note, format }}>
+        <PhoneReplySlots.Provider value={{ send, note, ai, format }}>
           {children}
         </PhoneReplySlots.Provider>
       </div>
@@ -262,6 +271,7 @@ export function MailReplyBox({
         replyTo={replyTo}
         replyCc={replyCc}
         hint={replyHint(!!sandbox, phone)}
+        subject={subject}
         onCheck={onCheck}
         onSending={onSending}
         ai={ai}

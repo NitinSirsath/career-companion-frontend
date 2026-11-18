@@ -238,10 +238,12 @@ describe('the AI reading status in the side menu', () => {
 });
 
 describe('the AI reading status on phones', () => {
-  it('is one line under the Mails title that opens the status in a sheet', async () => {
+  it('is the first line of the Mails ··· menu, and opens the status in a sheet', async () => {
     setWidth(375);
     show(reading, '/mails');
-    const line = await screen.findByRole('button', {
+    // The sync time and the AI's status moved from under the title into ··· (owner, 18 Nov 2026).
+    fireEvent.click(await screen.findByRole('button', { name: 'More' }));
+    const line = await screen.findByRole('menuitem', {
       name: 'AI reading status: Reading your new mails',
     });
     expect(line).toHaveTextContent('Reading your new mails · 12 of 50');

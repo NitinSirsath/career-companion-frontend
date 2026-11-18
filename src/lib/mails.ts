@@ -202,6 +202,25 @@ export function mailDate(iso: string | null): string {
   return format(date, isThisYear(date) ? 'MMM d' : 'MMM d, yyyy');
 }
 
+/**
+ * A step's due date in a phone row (owner, 18 Nov 2026): "Due Mon" within the coming week, else
+ * "Due Nov 24"; "Past due Nov 10" once past. Null without a deadline.
+ */
+export function shortDue(asked: ConversationRequest, now = new Date()): string | null {
+  if (!asked.deadline) return null;
+  const date = new Date(asked.deadline);
+  // A date without a time is the same day everywhere.
+  const day =
+    asked.deadlinePrecision === 'DATE'
+      ? new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+      : date;
+  if (requestPastDue(asked, now)) return `Past due ${format(day, 'MMM d')}`;
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const daysAhead = Math.round((day.getTime() - today.getTime()) / 86_400_000);
+  if (daysAhead < 1 && isToday(day)) return 'Due today';
+  return `Due ${format(day, daysAhead < 7 ? 'EEE' : 'MMM d')}`;
+}
+
 /** Message date: always with the time. */
 export function mailDateTime(iso: string | null): string {
   if (!iso) return 'Date unknown';
