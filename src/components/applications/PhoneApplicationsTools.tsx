@@ -1,6 +1,6 @@
-import { useState, type ReactNode } from 'react';
+import { useCallback, useState, type ReactNode } from 'react';
 import { Menu } from '@base-ui/react/menu';
-import { CheckIcon, SearchIcon, SlidersHorizontalIcon } from 'lucide-react';
+import { CheckIcon, EllipsisIcon, RefreshCwIcon, SlidersHorizontalIcon } from 'lucide-react';
 import {
   ARCHIVE_OPTIONS,
   SORT_OPTIONS,
@@ -10,10 +10,11 @@ import {
 import { cn } from '../../lib/utils';
 import { TopBarActions } from '../layout/Breadcrumb';
 import { CapsuleButton, GlassCapsule } from '../phone/GlassButton';
-import { PhoneRefresh } from '../phone/PhoneRefresh';
 import { PhoneTitle } from '../phone/PhoneTitle';
+import { useTabBarSearch } from '../phone/phoneNav';
 import { Collapse } from '../ui/collapse';
 import { ITEM_CLASS, POPUP_CLASS } from '../ui/select';
+import { useRefresh } from '../ui/useRefresh';
 
 const ROW = cn(ITEM_CLASS, 'min-h-11 justify-start gap-3 text-[17px]');
 
@@ -92,10 +93,32 @@ function FilterMenu({
   );
 }
 
+/** The capsule's ··· menu: fetch the list again. Search is the tab bar's Search circle. */
+function MoreMenu() {
+  const { refresh } = useRefresh();
+  return (
+    <Menu.Root>
+      <Menu.Trigger render={<CapsuleButton label="More" />}>
+        <EllipsisIcon size={22} aria-hidden="true" />
+      </Menu.Trigger>
+      <Menu.Portal>
+        <Menu.Positioner align="end" sideOffset={8} className="z-50 outline-none">
+          <Menu.Popup className={cn(POPUP_CLASS, 'phone-type min-w-56 rounded-[18px]')}>
+            <Menu.Item className={ROW} onClick={() => void refresh()}>
+              <RefreshCwIcon size={18} aria-hidden="true" />
+              Refresh
+            </Menu.Item>
+          </Menu.Popup>
+        </Menu.Positioner>
+      </Menu.Portal>
+    </Menu.Root>
+  );
+}
+
 /**
- * The top of Applications on phones (owner, 13 Nov 2026, approved mock `IOS-LOOK-mock/`): the big
- * title, then the filters in use; refresh, search and filters sit in the glass capsule at the top
- * right. The search row opens under the title. `search`: the page's own search box.
+ * The top of Applications on phones (owner, 18 Nov 2026, mock `PHONE-LINEAR-mock/` screen 5): the
+ * big title beside one glass capsule with the filters and ··· (refresh); then the filters in use.
+ * The tab bar's Search circle opens the search row under the title. `search`: the page's own search box.
  */
 export function PhoneApplicationsTools({
   view,
@@ -110,15 +133,14 @@ export function PhoneApplicationsTools({
   search: (onClose: () => void) => ReactNode;
 }) {
   const [searching, setSearching] = useState(!!view.search);
+  // The tab bar's Search circle opens this list's search (owner, 18 Nov 2026).
+  useTabBarSearch(useCallback(() => setSearching(true), []));
   return (
     <div className="flex flex-col px-1 pt-0.5">
       <TopBarActions>
         <GlassCapsule label="Application tools">
-          <PhoneRefresh />
-          <CapsuleButton label="Search applications" onClick={() => setSearching(true)}>
-            <SearchIcon size={22} aria-hidden="true" />
-          </CapsuleButton>
           <FilterMenu view={view} onChange={onChange} />
+          <MoreMenu />
         </GlassCapsule>
       </TopBarActions>
       <PhoneTitle>Applications</PhoneTitle>
