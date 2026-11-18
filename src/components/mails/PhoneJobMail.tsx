@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { ChevronRightIcon, CircleCheckIcon, MailIcon, RotateCcwIcon } from 'lucide-react';
 import { useSetRequestState } from '../../api/conversations';
-import type { ConversationDetail, ConversationRequest } from '../../contracts/conversation';
+import type { ConversationDetail } from '../../contracts/conversation';
 import { reopenNote, showMail, stepNote, stepSource } from '../../lib/jobStep';
-import { dueIn, keyDates } from '../../lib/mailThread';
+import { keyDates } from '../../lib/mailThread';
 import {
   CAREER_CONTACT,
   FAKE_OFFER,
@@ -16,10 +16,11 @@ import {
   requestPastDue,
   requestTitle,
   scheduleLine,
+  shortDue,
 } from '../../lib/mails';
 import { isOfflineError } from '../../lib/offline';
 import { cn } from '../../lib/utils';
-import { StatusBadge } from '../ui/ring';
+import { Ring, StatusBadge } from '../ui/ring';
 import { InlineNotification } from '../ui/notification';
 import { Sheet, SheetAction, SheetGroup } from '../ui/sheet';
 import { Tag } from '../ui/tag';
@@ -27,7 +28,7 @@ import { showToast } from '../ui/toast';
 import { DeclineQuestion } from '../applications/DeclineQuestion';
 import { ConversationApplication } from './ConversationApplication';
 import { ReadingReply, StepDue, StepState } from './StepParts';
-import { TodoState } from './TodoState';
+import { PhoneAiRead } from './MailMessageCard';
 
 /*
  * A job mail's job side on a phone (owner, 13 Nov 2026, approved mock `IOS-LOOK-mock/`): the next
@@ -35,24 +36,7 @@ import { TodoState } from './TodoState';
  * application while there is none; key dates and the application behind ⓘ.
  */
 
-const CARD = 'flex w-full items-center gap-3 rounded-2xl bg-surface-subtle px-4 py-3 text-left';
-
-/** The step's second line in its row: when it is due (red once past), else where it stands. */
-function StepRowState({ asked, fake }: { asked: ConversationRequest; fake: boolean }) {
-  if (asked.state === 'OPEN' && asked.deadline && !fake) {
-    const pastDue = requestPastDue(asked);
-    return (
-      <span className={cn('text-[15px]', pastDue ? 'text-danger-text' : 'text-text-secondary')}>
-        {requestDetail(asked)} · {dueIn(asked.deadline, new Date())}
-      </span>
-    );
-  }
-  return (
-    <span className="flex">
-      <TodoState state={asked.state} fakeOffer={fake} />
-    </span>
-  );
-}
+const ROW = 'flex min-h-10 items-center gap-[11px] -mx-4 px-[18px] py-[9px] text-[15px]';
 
 /** The step's actions: "I did this" or Reopen, and the way to the mail that asks or closed it. */
 function StepActions({ detail, onClose }: { detail: ConversationDetail; onClose: () => void }) {
@@ -143,52 +127,73 @@ function StepSheet({
   );
 }
 
-/** The next step as one row; a tap opens its sheet. With nothing asked, the row only says so. */
+/** "Next step", in the page's section heading look (mock #2). */
+function StepHeading() {
+  return <h2 className="px-0.5 pt-1 pb-2 text-[18px] leading-6 font-bold">Next step</h2>;
+}
+
+/**
+ * The next step as one plain row (owner, 18 Nov 2026, mock `PHONE-LINEAR-mock/` #2, Linear's
+ * sub-issue row): an open ring, what it asks, and when it is due, red once past; a tap opens its
+ * sheet. With nothing asked, the row only says so. The AI's reading of the mail sits under it.
+ */
 function PhoneNextStep({ detail }: { detail: ConversationDetail }) {
   const { conversation } = detail;
   const [open, setOpen] = useState(false);
   const asked = conversation.request;
   if (!asked)
     return (
-      <section aria-label="Next step" className={CARD}>
-        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="text-[13px] text-text-tertiary">Next step</span>
-          <span className="text-[17px] leading-[22px]">
+      <section aria-label="Next step">
+        <StepHeading />
+        <p className={cn(ROW, 'text-text-secondary')}>
+          <Ring kind="todo" size={17} />
+          <span className="min-w-0 flex-1">
             {scheduleLine(conversation) ?? 'Nothing needed from you'}
           </span>
-        </span>
+        </p>
+        <PhoneAiRead detail={detail} />
       </section>
     );
   const title = requestTitle(asked);
+  const closed = asked.state !== 'OPEN';
+  const due = asked.state === 'OPEN' ? shortDue(asked) : requestDetail(asked);
   return (
-    <>
+    <section aria-label="Next step">
+      <StepHeading />
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label={`Next step: ${title}`}
+        aria-label={`Next step: ${title}${due ? `, ${due}` : ''}`}
         className={cn(
-          CARD,
-          'min-h-[66px] cursor-pointer transition-colors duration-450 active:bg-surface-selected active:duration-0',
+          ROW,
+          'w-full cursor-pointer text-left transition-colors duration-450 active:bg-surface-selected active:duration-0',
         )}
       >
-        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="text-[13px] text-text-tertiary">Next step</span>
+        <Ring kind={closed ? 'offer' : 'todo'} size={17} />
+        <span
+          className={cn(
+            'min-w-0 flex-1 truncate transition-colors duration-240',
+            closed && 'text-text-secondary',
+          )}
+        >
+          <span className="strike-done" data-done={asked.state === 'DONE' ? '' : undefined}>
+            {title}
+          </span>
+        </span>
+        {due && (
           <span
             className={cn(
-              'line-clamp-2 text-[17px] leading-[22px] break-words transition-colors duration-240',
-              asked.state === 'DONE' && 'text-text-tertiary',
+              'max-w-[45%] shrink-0 truncate text-[13.5px]',
+              requestPastDue(asked) ? 'text-late' : 'text-text-secondary',
             )}
           >
-            <span className="strike-done" data-done={asked.state === 'DONE' ? '' : undefined}>
-              {title}
-            </span>
+            {due}
           </span>
-          <StepRowState asked={asked} fake={fakeOfferStep(conversation)} />
-        </span>
-        <ChevronRightIcon size={18} aria-hidden="true" className="shrink-0 text-text-tertiary" />
+        )}
       </button>
+      <PhoneAiRead detail={detail} />
       <StepSheet detail={detail} open={open} onOpenChange={setOpen} />
-    </>
+    </section>
   );
 }
 
