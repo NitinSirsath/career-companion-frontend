@@ -11,18 +11,76 @@ import { Button } from '../ui/button';
 import { InlineNotification } from '../ui/notification';
 import { ITEM_CLASS, POPUP_CLASS } from '../ui/select';
 import { Sheet, SheetAction, SheetGroup } from '../ui/sheet';
+import { PRESS } from '../phone/GlassButton';
 import { Ring, StatusRing } from '../ui/ring';
+import { Pill } from '../mails/PhoneMailParts';
 import { StatusPickerContext, type StatusPicker } from './statusPicker';
 
 /**
- * The status on a phone (owner, 12 Nov 2026): the ring and words with a small arrow open a sheet
- * with the seven statuses, a tick on the chosen one, and "Use the AI's status".
+ * The phone's Status sheet (owner, 12 and 18 Nov 2026, mock `PHONE-LINEAR-mock/` #3): the seven
+ * statuses, a tick on the chosen one, and "Use the AI's status". Picking one closes it. Used by
+ * the application page and by the mail page's status pill.
+ */
+export function PhoneStatusSheet({
+  aiStatus: ai,
+  note,
+  value,
+  open,
+  onOpenChange,
+  onChoose,
+}: {
+  aiStatus: ApplicationResponse['aiStatus'];
+  /** Who set the status and when ("Set by you · Nov 18"), as one grey line under the list. */
+  note: string;
+  value: Choice;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onChoose: (choice: Choice) => void;
+}) {
+  const choose = (choice: Choice) => {
+    onOpenChange(false);
+    onChoose(choice);
+  };
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange} title="Status">
+      <div role="radiogroup" aria-label="Status" className="flex flex-col gap-3">
+        <SheetGroup>
+          {ApplicationStatusSchema.options.map((status) => (
+            <SheetAction
+              key={status}
+              icon={<Ring kind={statusTag(status).ring} size={17} />}
+              chosen={value === status}
+              onClick={() => choose(status)}
+            >
+              {STATUS_LABEL[status]}
+            </SheetAction>
+          ))}
+        </SheetGroup>
+        <SheetGroup>
+          <SheetAction chosen={value === USE_AI} onClick={() => choose(USE_AI)}>
+            Use the AI's status ({ai ? STATUS_LABEL[ai] : 'none yet'})
+          </SheetAction>
+        </SheetGroup>
+      </div>
+      <p className="text-[13px] leading-[18px] text-text-tertiary">
+        <span className="block text-text-secondary">{note}</span>
+        Changing the status does not finish to-dos, ask the AI again or send anything.
+      </p>
+    </Sheet>
+  );
+}
+
+/**
+ * The status on a phone (owner, 12 and 18 Nov 2026, mock `PHONE-LINEAR-mock/` #6): a round pill
+ * with the ring and words, like the other facts in the card, that opens the Status sheet. Who set
+ * it is in the sheet.
  */
 function PhoneStatusSelect({
   application,
   value,
   shown,
   disabled,
+  busy,
   onChoose,
   picker,
 }: {
@@ -30,50 +88,33 @@ function PhoneStatusSelect({
   value: Choice;
   shown: StatusLook;
   disabled: boolean;
+  busy: boolean;
   onChoose: (choice: Choice) => void;
   picker: StatusPicker;
 }) {
-  const ai = application.aiStatus;
-  const choose = (choice: Choice) => {
-    picker.onOpenChange(false);
-    onChoose(choice);
-  };
   return (
     <>
       <button
         type="button"
         aria-label={`Status: ${shown.label}. Change status`}
+        aria-busy={busy || undefined}
         disabled={disabled}
         onClick={() => picker.onOpenChange(true)}
-        className="inline-flex min-h-11 cursor-pointer items-center gap-1 pr-1 disabled:cursor-not-allowed disabled:opacity-60"
+        className={cn(
+          'flex cursor-pointer rounded-full disabled:cursor-not-allowed disabled:opacity-60',
+          PRESS,
+        )}
       >
-        <StatusRing look={shown} size={15} />
-        <ChevronDownIcon size={16} aria-hidden="true" className="text-text-secondary" />
+        <Pill icon={<Ring kind={shown.ring} />}>{shown.label}</Pill>
       </button>
-      <Sheet open={picker.open} onOpenChange={picker.onOpenChange} title="Status">
-        <div role="radiogroup" aria-label="Status" className="flex flex-col gap-3">
-          <SheetGroup>
-            {ApplicationStatusSchema.options.map((status) => (
-              <SheetAction
-                key={status}
-                icon={<Ring kind={statusTag(status).ring} size={17} />}
-                chosen={value === status}
-                onClick={() => choose(status)}
-              >
-                {STATUS_LABEL[status]}
-              </SheetAction>
-            ))}
-          </SheetGroup>
-          <SheetGroup>
-            <SheetAction chosen={value === USE_AI} onClick={() => choose(USE_AI)}>
-              Use the AI's status ({ai ? STATUS_LABEL[ai] : 'none yet'})
-            </SheetAction>
-          </SheetGroup>
-        </div>
-        <p className="text-[13px] leading-[18px] text-text-tertiary">
-          Changing the status does not finish to-dos, ask the AI again or send anything.
-        </p>
-      </Sheet>
+      <PhoneStatusSheet
+        aiStatus={application.aiStatus}
+        note={statusSourceLine(application)}
+        value={value}
+        open={picker.open}
+        onOpenChange={picker.onOpenChange}
+        onChoose={onChoose}
+      />
     </>
   );
 }
@@ -179,6 +220,7 @@ export function StatusLine({
           value={value}
           shown={shown}
           disabled={disabled}
+          busy={busy}
           onChoose={onChoose}
           picker={picker}
         />
@@ -192,9 +234,12 @@ export function StatusLine({
           onChoose={onChoose}
         />
       )}
-      <span className="text-xs text-text-secondary">
-        {busy ? 'Saving…' : statusSourceLine(application)}
-      </span>
+      {/* Phones: who set it is in the Status sheet (owner, 18 Nov 2026). */}
+      {(!picker || application.archivedAt) && (
+        <span className="text-xs text-text-secondary">
+          {busy ? 'Saving…' : statusSourceLine(application)}
+        </span>
+      )}
       {/* One live region that stays the same node, so "Status saved." is read when it is set. */}
       <span className="sr-only" role="status" aria-live="polite">
         {announcement}
