@@ -11,6 +11,7 @@ import { RouteErrorPage } from './components/errors/RouteErrorPage';
 import { NotFoundPage } from './components/errors/NotFoundPage';
 import { ToastProvider } from './components/ui/toast';
 import { SignInGate } from './components/startup/SignInGate';
+import { SuspendedPage } from './components/admin/SuspendedPage';
 import { fetchLiveVersion, startQuietUpdates } from './lib/quietUpdate';
 import { createQueryClient } from './components/queryClient';
 import { startFromBrowserOnlineState } from './lib/offline';
@@ -39,9 +40,22 @@ if (import.meta.env.PROD)
 // Keeps the app's files for offline pages and shows push alerts (owner, 30 Oct 2026).
 if (import.meta.env.PROD) startServiceWorker();
 
-/** The app opens only once it knows who is signed in; until then the start-up screen shows. */
+/**
+ * The app opens only once it knows who is signed in; until then the start-up screen shows. A
+ * suspended account sees only the suspended page (owner, 18 Nov 2026).
+ */
 function App() {
-  return <SignInGate>{(user) => <RouterProvider router={router} context={{ user }} />}</SignInGate>;
+  return (
+    <SignInGate>
+      {(user) =>
+        user?.suspension ? (
+          <SuspendedPage suspension={user.suspension} />
+        ) : (
+          <RouterProvider router={router} context={{ user }} />
+        )
+      }
+    </SignInGate>
+  );
 }
 
 createRoot(document.getElementById('root')!).render(
