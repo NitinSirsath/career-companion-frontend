@@ -200,7 +200,7 @@ function NextStep({ detail }: { detail: ConversationDetail }) {
           <StepStateLine asked={asked} fake={fake} />
         </div>
       </div>
-      {!fake && <StepDue asked={asked} />
+      {!fake && <StepDue asked={asked} />}
       <ReadingReply detail={detail} />
       {note && <p className="text-xs text-text-secondary">{note}</p>}
       {asked.state !== 'OPEN' && (
