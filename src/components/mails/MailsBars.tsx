@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { Menu } from '@base-ui/react/menu';
-import { CheckIcon, SearchIcon, SlidersHorizontalIcon } from 'lucide-react';
+import { CheckIcon, EllipsisIcon, RefreshCwIcon, SlidersHorizontalIcon } from 'lucide-react';
 import { useGmailStatus, useSyncNow } from '../../api/gmail';
 import type { MailsSearch } from '../../lib/mails';
 import { cn } from '../../lib/utils';
 import { TopBarActions } from '../layout/Breadcrumb';
 import { CapsuleButton, GlassCapsule } from '../phone/GlassButton';
-import { PhoneRefresh } from '../phone/PhoneRefresh';
+import { usePullRefreshAlso, useTabBarSearch } from '../phone/phoneNav';
 import { ITEM_CLASS, POPUP_CLASS } from '../ui/select';
+import { useRefresh } from '../ui/useRefresh';
 import {
   MailFilterChips,
   MailFilterPills,
@@ -16,6 +17,8 @@ import {
   PhoneMailSearch,
 } from './ConversationFilters';
 import { Collapse } from '../ui/collapse';
+import { MailsStatusSheet, MailsSyncItem } from './MailsPhoneTitle';
+import { useOpenMailsList } from './mailsLists';
 import { MailsTabs } from './MailsTabs';
 
 type BarProps = { search: MailsSearch; onChange: (changes: Partial<MailsSearch>) => void };
@@ -47,7 +50,7 @@ function PhoneFilterMenu({ search, onChange, onAll }: BarProps & { onAll: () => 
   return (
     <Menu.Root>
       <Menu.Trigger render={<CapsuleButton label="Filter and sort" />}>
-        <SlidersHorizontalIcon size={22} aria-hidden="true" />
+        <SlidersHorizontalIcon size={20} aria-hidden="true" />
       </Menu.Trigger>
       <Menu.Portal>
         <Menu.Positioner align="end" sideOffset={8} className="z-50 outline-none">
@@ -128,27 +131,73 @@ function SortItem({ value, label }: { value: string; label: string }) {
 }
 
 /**
- * Phones (owner, 13 Nov 2026, approved mock `IOS-LOOK-mock/`): refresh, search and filters in one
- * round glass capsule at the top right. Under the title: the search row once opened, and the
- * filters in use as small pills. Refresh also asks Gmail for new mail.
+ * The Mails ··· menu on phones (owner, 18 Nov 2026, mock `PHONE-LINEAR-mock/` #1): when mail last
+ * came in and what the AI is doing, then Refresh, which also asks Gmail for new mail.
+ */
+function PhoneMoreMenu({ syncGmail }: { syncGmail: () => unknown }) {
+  const { busy, checking, refresh } = useRefresh(syncGmail);
+  const spinning = busy || checking;
+  const [status, setStatus] = useState(false);
+  return (
+    <>
+      <Menu.Root>
+        <Menu.Trigger render={<CapsuleButton label="More" aria-busy={spinning || undefined} />}>
+          <EllipsisIcon size={20} aria-hidden="true" />
+        </Menu.Trigger>
+        <Menu.Portal>
+          <Menu.Positioner align="end" sideOffset={8} className="z-50 outline-none">
+            <Menu.Popup className={cn(POPUP_CLASS, 'phone-type min-w-60 rounded-[18px]')}>
+              <MailsSyncItem onOpenStatus={() => setStatus(true)} />
+              <Menu.Item className={MENU_ROW} closeOnClick={false} onClick={() => void refresh()}>
+                <RefreshCwIcon
+                  size={18}
+                  aria-hidden="true"
+                  className={cn('shrink-0', spinning && 'animate-spin')}
+                />
+                {spinning ? 'Refreshing…' : 'Refresh'}
+              </Menu.Item>
+            </Menu.Popup>
+          </Menu.Positioner>
+        </Menu.Portal>
+      </Menu.Root>
+      <MailsStatusSheet open={status} onOpenChange={setStatus} />
+    </>
+  );
+}
+
+/**
+ * Phones (owner, 18 Nov 2026, mock `PHONE-LINEAR-mock/` #1): Filter and ··· in one round glass
+ * capsule beside the title. Under the title: the search row once opened, and the filters in use
+ * as small pills.
  */
 export function PhoneMailsTools({ search, onChange }: BarProps) {
   const [searching, setSearching] = useState(!!search.q);
   const [allFilters, setAllFilters] = useState(false);
-  const gmail = useGmailStatus();
-  const sync = useSyncNow();
   // The whole inbox and the restricted list have no search or filters of their own.
   const job = !search.tab;
+  const openList = useOpenMailsList();
+  const gmail = useGmailStatus();
+  const sync = useSyncNow();
+  // The shell keeps what these do; they read the page's latest state through a ref, so they
+  // stay the same functions and the shell does not render again each time.
+  const latest = useRef({ job, openList, connected: false, sync });
+  useLayoutEffect(() => {
+    latest.current = { job, openList, connected: !!gmail.data?.connected, sync };
+  });
+  // The tab bar's Search circle opens the job mails' search, from any of the three lists.
+  useTabBarSearch(
+    useCallback(() => {
+      if (!latest.current.job) latest.current.openList('job');
+      setSearching(true);
+    }, []),
+  );
+  // Refresh and pull to refresh also ask Gmail for new mail.
+  const syncGmail = useCallback(() => latest.current.connected && latest.current.sync.mutate(), []);
+  usePullRefreshAlso(syncGmail);
   return (
     <>
       <TopBarActions>
         <GlassCapsule label="Mail tools">
-          <PhoneRefresh also={() => gmail.data?.connected && sync.mutate()} />
-          {job && (
-            <CapsuleButton label="Search mails" onClick={() => setSearching(true)}>
-              <SearchIcon size={22} aria-hidden="true" />
-            </CapsuleButton>
-          )}
           {job && (
             <PhoneFilterMenu
               search={search}
@@ -156,6 +205,7 @@ export function PhoneMailsTools({ search, onChange }: BarProps) {
               onAll={() => setAllFilters(true)}
             />
           )}
+          <PhoneMoreMenu syncGmail={syncGmail} />
         </GlassCapsule>
       </TopBarActions>
       {/* The search slides open under the title and closes the same way (15 Nov 2026). */}
