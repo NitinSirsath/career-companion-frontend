@@ -9,6 +9,7 @@ import { allowSendingUrl, replyHint } from '../../lib/mailReply';
 import { parseSender } from '../../lib/mails';
 import { docWords } from '../../lib/replyDoc';
 import { useIsPhone } from '../layout/useIsPhone';
+import { AiIcon } from '../ui/ai-icon';
 import { Button } from '../ui/button';
 import { GmailLink } from '../ui/GmailLink';
 import { MailReplyForm } from './MailReplyForm';
@@ -129,16 +130,23 @@ function PhoneReplyScreen({ replyAsks, children }: { replyAsks: number; children
   );
 }
 
-/** The reply box while closed: one line, and "Draft" with its first words when text is kept. */
+/**
+ * The reply box while closed (laptop v2, owner 18 Nov 2026): one round bar, "Draft" with its first
+ * words when text is kept, and "AI" beside it on a job mail, which opens the reply with the AI's
+ * choices and the hint ready. "R" opens it too.
+ */
 function ClosedReplyBar({
   replyTo,
   kept,
   onOpen,
+  onAi,
   focusOnShow = false,
 }: {
   replyTo: string;
   kept: DraftDoc | null;
   onOpen: () => void;
+  /** A job mail: opens the reply with AI help. */
+  onAi?: () => void;
   /** After the user closed the box, the focus comes back here. */
   focusOnShow?: boolean;
 }) {
@@ -148,24 +156,55 @@ function ClosedReplyBar({
     if (focusOnShow) bar.current?.focus();
   }, [focusOnShow]);
   return (
-    <button
-      ref={bar}
-      type="button"
-      onClick={onOpen}
-      className="flex h-12 w-full cursor-text items-center gap-3 rounded-lg border border-border-default bg-field px-4 text-left text-sm text-text-secondary transition-colors duration-70 ease-standard hover:bg-layer-hover"
-    >
-      <ReplyIcon size={16} aria-hidden="true" />
-      {kept ? (
-        // Unsent text kept on this device: the bar says so, with its first words.
-        <span className="min-w-0 flex-1 truncate">
-          <span className="font-semibold text-text-primary">Draft</span> to {name}: {docWords(kept)}
-        </span>
-      ) : (
-        <span className="flex-1">Reply to {name}…</span>
+    <div className="flex h-10 w-full items-center gap-2 rounded-full border border-border-default bg-field pr-1.5 text-sm transition-colors duration-70 ease-standard has-[>button:first-child:hover]:bg-layer-hover">
+      <button
+        ref={bar}
+        type="button"
+        onClick={onOpen}
+        title="Reply (R)"
+        className="flex h-full min-w-0 flex-1 cursor-text items-center gap-2.5 rounded-full pl-3.5 text-left text-text-tertiary outline-none focus-visible:outline-2 focus-visible:outline-border-focus"
+      >
+        <ReplyIcon size={16} aria-hidden="true" className="shrink-0" />
+        {kept ? (
+          // Unsent text kept on this device: the bar says so, with its first words.
+          <span className="min-w-0 flex-1 truncate text-text-secondary">
+            <span className="font-semibold text-text-primary">Draft</span> to {name}:{' '}
+            {docWords(kept)}
+          </span>
+        ) : (
+          <span className="flex-1 truncate">Reply to {name}…</span>
+        )}
+      </button>
+      {onAi && (
+        <button
+          type="button"
+          onClick={onAi}
+          aria-label="Reply with AI"
+          className="inline-flex h-[30px] shrink-0 cursor-pointer items-center gap-1.5 rounded-full bg-layer-hover px-2.5 font-medium text-text-primary transition-colors duration-70 ease-standard hover:bg-surface-selected"
+        >
+          <AiIcon size={16} aria-hidden="true" className="text-text-secondary" />
+          AI
+        </button>
       )}
-      <kbd className="rounded border border-border-default px-1.5 font-mono text-xs">R</kbd>
-    </button>
+    </div>
   );
+}
+
+/**
+ * Whether the reply box is open, and on laptops the "AI" button of the closed bar: it opens the
+ * reply with the AI's choices and the hint ready. `replyAi` is the AI help to pass on, with that
+ * start; `openWithAi` is undefined without AI help.
+ */
+function useReplyOpenWithAi(replyAsks: number, startOpen: boolean, ai: ReplyAi | undefined) {
+  const [open, setOpen] = useReplyOpen(replyAsks, startOpen);
+  const [start, setStart] = useState<{ choice: string | null } | null>(null);
+  const replyAi = ai && start ? { ...ai, start, onStarted: () => setStart(null) } : ai;
+  const openWithAi = () => {
+    setStart({ choice: null });
+    setOpen(true);
+  };
+  return { open, setOpen, replyAi, openWithAi: ai ? openWithAi : undefined };
+}
 }
 
 /** The mailbox itself: Gmail in prod, the mail sandbox in dev mode. Small in the phone's note line. */
@@ -190,6 +229,17 @@ function Elsewhere({
       </Link>
     );
   return <GmailLink threadId={threadId} subject={subject} reply />;
+}
+
+/** Laptops: × and Esc close the box; the focus goes back to the closed bar. */
+function useCloseByUser(setOpen: (open: boolean) => void) {
+  const [closedByUser, setClosedByUser] = useState(false);
+  const close = () => {
+    setOpen(false);
+    setClosedByUser(true);
+  };
+  return { closedByUser, close };
+}
 }
 
 /**
@@ -227,13 +277,8 @@ export function MailReplyBox({
   const sandbox = useSandboxMailbox();
   const canSend = useCanSendMail();
   const mailPath = useLocation({ select: (location) => location.pathname });
-  const [open, setOpen] = useReplyOpen(replyAsks, startOpen);
-  const [closedByUser, setClosedByUser] = useState(false);
-  // Laptops: × and Esc close the box; the focus goes back to the closed bar.
-  const close = () => {
-    setOpen(false);
-    setClosedByUser(true);
-  };
+  const { open, setOpen, replyAi, openWithAi } = useReplyOpenWithAi(replyAsks, startOpen, ai);
+  const { closedByUser, close } = useCloseByUser(setOpen);
   const phone = useIsPhone();
   const elsewhere = <Elsewhere sandbox={!!sandbox} threadId={threadId} subject={subject} />;
 
@@ -261,6 +306,7 @@ export function MailReplyBox({
         replyTo={replyTo}
         kept={kept}
         onOpen={() => setOpen(true)}
+        onAi={openWithAi}
         focusOnShow={closedByUser}
       />
     );
@@ -274,7 +320,7 @@ export function MailReplyBox({
         subject={subject}
         onCheck={onCheck}
         onSending={onSending}
-        ai={ai}
+        ai={replyAi}
         onClose={phone ? undefined : close}
       >
         {elsewhere}
