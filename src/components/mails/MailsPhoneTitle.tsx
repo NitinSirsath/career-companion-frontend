@@ -1,6 +1,5 @@
-import { useState } from 'react';
 import { Menu } from '@base-ui/react/menu';
-import { CheckIcon, ChevronDownIcon, ChevronRightIcon } from 'lucide-react';
+import { CheckIcon, ChevronDownIcon } from 'lucide-react';
 import { useGmailStatus } from '../../api/gmail';
 import { mailsStatusWords } from '../../lib/mailsStatus';
 import { cn } from '../../lib/utils';
@@ -11,19 +10,27 @@ import { ITEM_CLASS, POPUP_CLASS } from '../ui/select';
 import { Sheet } from '../ui/sheet';
 import { useMailsLists, useOpenMailsList, type MailsTab } from './mailsLists';
 
-/** "Job mails ⌄": the big title is also the way to the other two lists (owner, 3 and 13 Nov 2026). */
+/** The big title's words on phones (owner, 18 Nov 2026): "Mails" for the job mails, else the list. */
+function titleWords(tab: MailsTab, label: string) {
+  return tab === 'job' ? 'Mails' : label;
+}
+
+/** "Mails ⌄": the big title is also the way to the other two lists (owner, 3 and 13 Nov 2026). */
 function ListMenu({ tab }: { tab: MailsTab }) {
   const lists = useMailsLists();
   const open = useOpenMailsList();
   const current = lists.find((list) => list.value === tab) ?? lists[0];
   return (
     <Menu.Root>
-      <Menu.Trigger className="group inline-flex max-w-full cursor-pointer items-center gap-1.5 text-left outline-none focus-visible:outline-2 focus-visible:outline-border-focus">
-        <span className="truncate">{current.label}</span>
+      <Menu.Trigger
+        aria-label={`${current.label}. Show another list`}
+        className="group inline-flex max-w-full cursor-pointer items-center gap-1 text-left outline-none focus-visible:outline-2 focus-visible:outline-border-focus"
+      >
+        <span className="truncate">{titleWords(tab, current.label)}</span>
         <ChevronDownIcon
-          size={22}
+          size={20}
           aria-hidden="true"
-          className="shrink-0 text-text-tertiary transition-transform duration-240 ease-spring group-data-[popup-open]:rotate-180"
+          className="mt-1 shrink-0 text-text-tertiary transition-transform duration-240 ease-spring group-data-[popup-open]:rotate-180"
         />
       </Menu.Trigger>
       <Menu.Portal>
@@ -50,52 +57,67 @@ function ListMenu({ tab }: { tab: MailsTab }) {
 }
 
 /**
- * One line under the Mails title (owner, 13 Nov 2026): when mail last came in and what the AI is
- * doing ("Synced 12:00 PM · 3 new mails wait for AI ›"). A tap opens the full AI reading status.
- * It replaces the status cell that sat in the phone's top bar.
+ * The first line of the Mails ··· menu (owner, 18 Nov 2026; it sat under the title before): when
+ * mail last came in and what the AI is doing ("Synced 12:00 PM · 3 new mails wait for AI"). With
+ * an AI status, picking it opens the full AI reading status (`onOpenStatus`).
  */
-function StatusLine() {
+export function MailsSyncItem({ onOpenStatus }: { onOpenStatus: () => void }) {
   const gmail = useGmailStatus();
   const view = useReadingView();
-  const [open, setOpen] = useState(false);
   const words = mailsStatusWords(gmail.data, view);
   if (!words.synced && !words.ai) return null;
   const line = (
-    <>
-      {words.synced}
-      {words.synced && words.ai && ' · '}
+    <span className="flex min-w-0 flex-col text-[13px] leading-[18px] text-text-secondary">
+      {words.synced && <span>{words.synced}</span>}
       {words.ai && <span className={cn(words.working && 'ai-shimmer')}>{words.ai}</span>}
-    </>
+    </span>
   );
-  if (!view) return <p className="mt-[3px] text-[15px] leading-5 text-text-secondary">{line}</p>;
   return (
     <>
-      <button
-        type="button"
-        aria-label={`AI reading status: ${view.words.title}`}
-        onClick={() => setOpen(true)}
-        className="mt-[3px] inline-flex max-w-full cursor-pointer items-center gap-1 text-left text-[15px] leading-5 text-text-secondary active:opacity-50"
-      >
-        <span className="min-w-0">{line}</span>
-        <ChevronRightIcon size={15} aria-hidden="true" className="shrink-0" />
-      </button>
-      <Sheet open={open} onOpenChange={setOpen} title="AI reading status">
-        <ReadingStatusPanel view={view} />
-      </Sheet>
+      {view ? (
+        <Menu.Item
+          aria-label={`AI reading status: ${view.words.title}`}
+          className={cn(ITEM_CLASS, 'justify-start')}
+          onClick={onOpenStatus}
+        >
+          {line}
+        </Menu.Item>
+      ) : (
+        <div className="px-4 py-2">{line}</div>
+      )}
+      <Menu.Separator className="my-1 h-px bg-border-subtle" />
     </>
   );
 }
 
-/** The top of the Mails page on phones: the big title with the lists, and the status line. */
+/** The full AI reading status in a sheet, opened from the Mails ··· menu. */
+export function MailsStatusSheet({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const view = useReadingView();
+  if (!view) return null;
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange} title="AI reading status">
+      <ReadingStatusPanel view={view} />
+    </Sheet>
+  );
+}
+
+/**
+ * The Mails title on phones (owner, 18 Nov 2026, mock `PHONE-LINEAR-mock/` #1): "Mails" in big
+ * bold type, in the same row as the glass Filter and ··· capsule, like Linear's Inbox.
+ */
 export function MailsPhoneTitle({ tab }: { tab: MailsTab }) {
   const lists = useMailsLists();
-  const label = (lists.find((list) => list.value === tab) ?? lists[0]).label;
+  const label = titleWords(tab, (lists.find((list) => list.value === tab) ?? lists[0]).label);
   return (
-    <div className="flex flex-col px-1 pt-0.5 pb-3">
-      <PhoneTitle barTitle={label}>
-        <ListMenu tab={tab} />
-      </PhoneTitle>
-      <StatusLine />
-    </div>
+    // The shell puts the list title in the first row, beside the capsule.
+    <PhoneTitle barTitle={label}>
+      <ListMenu tab={tab} />
+    </PhoneTitle>
   );
 }
