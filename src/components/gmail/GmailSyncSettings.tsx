@@ -1,28 +1,14 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { CircleCheckIcon, RefreshCwIcon } from 'lucide-react';
 import { format } from 'date-fns';
-import { api, isApiError } from '../../api/client';
 import { useSyncNow } from '../../api/gmail';
 import type { GmailStatusResponse } from '../../contracts/gmail';
 import { gmailSyncLine } from '../../lib/gmailConnection';
+import { LOOKBACK, LOOKBACK_HELP, syncProblem, useLookbackSave } from './useLookback';
 import { Button } from '../ui/button';
 import { InlineNotification } from '../ui/notification';
 import { Select } from '../ui/select';
 
-const LOOKBACK = [
-  { value: '1', label: '1 day' },
-  { value: '7', label: '7 days (default)' },
-  { value: '14', label: '14 days' },
-  { value: '30', label: '30 days' },
-] as const;
-
 const day = (iso: string) => format(new Date(iso), 'EEE d MMM yyyy');
-
-function syncProblem(error: unknown): string {
-  if (isApiError(error) && (error.code === 'SYNC_IN_PROGRESS' || error.status === 409))
-    return 'A sync is already running.';
-  return 'The sync did not start. Try again in a moment.';
-}
 
 type SyncNow = ReturnType<typeof useSyncNow>;
 
@@ -65,13 +51,7 @@ export function GmailSyncNotices({ status, sync }: { status: GmailStatusResponse
 
 /** How far back a sync looks, in the page's strip. It says when the choice is saved. */
 export function GmailLookback({ status }: { status: GmailStatusResponse }) {
-  const queryClient = useQueryClient();
-  const save = useMutation({
-    mutationFn: (days: number) => api.updateGmailSettings({ syncLookbackDays: days }),
-    onSettled: () => void queryClient.invalidateQueries({ queryKey: ['gmailStatus'] }),
-  });
-  const value = String(save.isPending ? save.variables : (status.syncLookbackDays ?? 1));
-  const chosen = LOOKBACK.find((option) => option.value === value);
+  const { save, value, chosen } = useLookbackSave(status);
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap items-end gap-x-3 gap-y-1">
@@ -94,10 +74,7 @@ export function GmailLookback({ status }: { status: GmailStatusResponse }) {
           {save.isError && <span className="text-danger-text">Not saved. Try again.</span>}
         </p>
       </div>
-      <p className="text-xs text-text-secondary">
-        How far the first sync reads. After that, each sync reads everything since the last one, up
-        to 30 days.
-      </p>
+      <p className="text-xs text-text-secondary">{LOOKBACK_HELP}</p>
     </div>
   );
 }
