@@ -4,6 +4,7 @@ import { OfflineLine, OfflinePage } from './OfflinePage';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 import { useMenuCollapsed } from './useMenuCollapsed';
+import { InstallCard } from '../InstallCard';
 
 /** Laptops: the top bar, the side menu and the page on its sheet. Phones have `PhoneShell`. */
 export function LaptopShell({ children }: { children: ReactNode }) {
@@ -29,6 +30,7 @@ export function LaptopShell({ children }: { children: ReactNode }) {
           </main>
         </div>
       </div>
+      <InstallCard />
     </div>
   );
 }

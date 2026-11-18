@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useRouteContext } from '@tanstack/react-router';
 import {
   BellIcon,
+  DownloadIcon,
   FlaskConicalIcon,
   RefreshCwIcon,
   SunMoonIcon,
@@ -11,6 +12,7 @@ import {
 import { useDevMode, useSandboxMailbox, useTestAccount } from '../../api/appMode';
 import { api } from '../../api/client';
 import { useGmailStatus } from '../../api/gmail';
+import { openInstall, useInstall } from '../../lib/install';
 import { aiValue, ALERT_WORDS, gmailValue } from '../../lib/settingsTab';
 import { THEME_CHOICES } from '../../lib/theme';
 import { useAlertSwitch } from '../auth/useAlertSwitch';
@@ -88,6 +90,21 @@ function AlertsRow() {
   );
 }
 
+/** Install app: only where the app can be installed and is not yet (owner, 18 Nov 2026). */
+function InstallRow() {
+  const { kind } = useInstall();
+  if (!kind) return null;
+  return (
+    <PhoneRow
+      icon={<RowIcon color="#0f62fe">{<DownloadIcon size={ICON} aria-hidden="true" />}</RowIcon>}
+      onClick={openInstall}
+      chevron
+    >
+      Install app
+    </PhoneRow>
+  );
+}
+
 /** Who is signed in, how the app looks, and alerts. */
 function YouRows({ email }: { email?: string }) {
   const { theme } = useTheme();
@@ -108,6 +125,7 @@ function YouRows({ email }: { email?: string }) {
       >
         Appearance
       </PhoneLinkRow>
+      <InstallRow />
       <AlertsRow />
     </PhoneGroup>
   );

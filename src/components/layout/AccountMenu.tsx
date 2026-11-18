@@ -4,6 +4,7 @@ import { onlineManager } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { logout, type User } from '../../api/auth';
 import { turnOffHere } from '../../lib/alerts';
+import { openInstall, useInstall } from '../../lib/install';
 import { dropAllKeptReplies } from '../../lib/keptReply';
 import { OFFLINE_CHANGE } from '../../lib/offline';
 import { forgetOfflineCopies } from '../../lib/offlineCopy';
@@ -34,6 +35,7 @@ export function AccountMenu({ user }: { user: User | null }) {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const name = user?.name || user?.email || 'Account';
+  const { kind: installKind } = useInstall();
   return (
     <Menu.Root>
       <Menu.Trigger
@@ -74,6 +76,12 @@ export function AccountMenu({ user }: { user: User | null }) {
                 ))}
               </Menu.RadioGroup>
             </Menu.Group>
+            {/* Only where the app can be installed and is not yet (owner, 18 Nov 2026). */}
+            {installKind && (
+              <Menu.Item className={ITEM_CLASS} onClick={openInstall}>
+                Install app
+              </Menu.Item>
+            )}
             <Menu.Separator className="my-1 h-px bg-border-subtle" />
             <Menu.Item className={ITEM_CLASS} onClick={() => void logOutAndLeave()}>
               Log out

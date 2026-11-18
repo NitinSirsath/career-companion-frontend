@@ -15,8 +15,11 @@ import { fetchLiveVersion, startQuietUpdates } from './lib/quietUpdate';
 import { createQueryClient } from './components/queryClient';
 import { startFromBrowserOnlineState } from './lib/offline';
 import { startServiceWorker } from './lib/serviceWorker';
+import { startInstallWatch } from './lib/install';
 
 startFromBrowserOnlineState();
+// Keeps the browser's install offer for the "Install NorthList" card (owner, 18 Nov 2026).
+startInstallWatch();
 const queryClient = createQueryClient();
 
 // Create router outside the component tree
