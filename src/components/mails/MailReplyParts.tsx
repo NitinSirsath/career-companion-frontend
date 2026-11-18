@@ -1,10 +1,13 @@
-import { XIcon } from 'lucide-react';
+import { ArrowUpIcon, XIcon } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { replyChoice, type ReplyProblem } from '../../lib/mailReply';
 import { parseSender } from '../../lib/mails';
+import { useIsPhone } from '../layout/useIsPhone';
+import { Avatar } from '../ui/avatar';
 import { Button } from '../ui/button';
 import { InlineNotification } from '../ui/notification';
 import { Select } from '../ui/select';
+import { Spinner } from '../ui/spinner';
 
 /** The small parts of the reply box: what became of a send, Send, who gets the reply, Close. */
 
@@ -56,6 +59,21 @@ export function ReplyButtons({
   /** No text yet: the phone's Send is grey until there is some, as in iPhone Mail. */
   empty?: boolean;
 }) {
+  // Phones: a blue round ↑ in the sheet's top bar (owner, 18 Nov 2026, mock `PHONE-LINEAR-mock/` #4).
+  if (!unconfirmed && short)
+    return (
+      <button
+        type="submit"
+        form={form}
+        disabled={empty || pending}
+        aria-busy={pending || undefined}
+        aria-label={pending ? 'Sending…' : 'Send'}
+        title="Send reply (⌘ Enter)"
+        className="flex size-[38px] cursor-pointer items-center justify-center rounded-full bg-accent text-white transition-[opacity,scale] duration-450 ease-[cubic-bezier(0.25,1.6,0.4,1)] active:scale-110 active:duration-120 disabled:cursor-default disabled:opacity-40"
+      >
+        {pending ? <Spinner /> : <ArrowUpIcon size={18} strokeWidth={2.4} aria-hidden="true" />}
+      </button>
+    );
   if (!unconfirmed)
     return (
       <Button
@@ -99,21 +117,40 @@ export function ReplyReceivers({
   toAll: boolean;
   onToAll: (toAll: boolean) => void;
 }) {
-  const line = (label: string, people: string[]) => (
-    <span className="flex min-w-0 flex-wrap items-center gap-2">
-      <span className="w-6 text-xs text-text-secondary">{label}</span>
-      {people.map((person) => (
-        <span
-          key={person}
-          className="rounded-full bg-tag-gray-bg px-2.5 text-xs leading-6 text-tag-gray"
-        >
-          {parseSender(person).name}
-        </span>
-      ))}
-    </span>
-  );
+  const phone = useIsPhone();
+  const line = (label: string, people: string[]) =>
+    // Phones: a plain row with each person as a pill with their picture (mock #4).
+    phone ? (
+      <span className="-mx-4 flex min-w-0 flex-wrap items-center gap-2.5 border-b border-border-subtle px-[18px] py-[9px] text-[14.5px]">
+        <span className="w-[26px] text-text-secondary">{label}</span>
+        {people.map((person) => {
+          const name = parseSender(person).name;
+          return (
+            <span
+              key={person}
+              className="inline-flex h-[27px] max-w-full items-center gap-1.5 rounded-full bg-[var(--glass-pill)] pr-2.5 pl-1 text-[13.5px] font-medium"
+            >
+              <Avatar name={name} className="size-5 text-[8.5px]" />
+              <span className="truncate">{name}</span>
+            </span>
+          );
+        })}
+      </span>
+    ) : (
+      <span className="flex min-w-0 flex-wrap items-center gap-2">
+        <span className="w-6 text-xs text-text-secondary">{label}</span>
+        {people.map((person) => (
+          <span
+            key={person}
+            className="rounded-full bg-tag-gray-bg px-2.5 text-xs leading-6 text-tag-gray"
+          >
+            {parseSender(person).name}
+          </span>
+        ))}
+      </span>
+    );
   const chips = (
-    <span className="flex min-w-0 flex-col gap-1">
+    <span className={cn('flex min-w-0 flex-col', !phone && 'gap-1')}>
       {line('To', [replyTo])}
       {toAll && line('Cc', others)}
     </span>
