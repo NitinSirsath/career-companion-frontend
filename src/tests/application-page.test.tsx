@@ -391,7 +391,7 @@ describe('on a phone (owner, 7 Nov 2026)', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
 
     // The status is a round pill with no "Set by …" beside it; that line is in the sheet.
-    const pill = screen.getByRole('button', { name: /^Status: .*\\. Change status$/ });
+    const pill = screen.getByRole('button', { name: /^Status: .*\. Change status$/ });
     expect(pill.querySelector('[data-ring]')).not.toBeNull();
     expect(screen.queryByText(/^Set by /)).not.toBeInTheDocument();
     fireEvent.click(bar.getByRole('button', { name: 'Status' }));
