@@ -9,6 +9,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { api } from '../api/client';
 import { AdminMessages } from '../components/admin/AdminMessages';
+import { LaptopOwnerMessages } from '../components/messages/LaptopOwnerMessages';
 import { OwnerMessages } from '../components/messages/OwnerMessages';
 import type { AdminAccount } from '../contracts/admin';
 import type { AdminMessagesResponse, MyMessagesResponse } from '../contracts/messages';
@@ -43,7 +44,7 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-describe('the notice', () => {
+describe('the phone notice', () => {
   it('shows the message and closes it at once', async () => {
     wrap(<OwnerMessages />);
     const notice = await screen.findByRole('region', { name: 'Messages from NorthList' });
@@ -61,6 +62,21 @@ describe('the notice', () => {
     wrap(<OwnerMessages />);
     await waitFor(() => expect(api.get).toHaveBeenCalledWith('/api/messages', expect.anything()));
     expect(screen.queryByRole('region')).not.toBeInTheDocument();
+  });
+});
+
+describe('the laptop notice (laptop v2, 18 Nov 2026)', () => {
+  it('is a plain card with the blue dot, and × closes it', async () => {
+    wrap(<LaptopOwnerMessages />);
+    const notice = await screen.findByRole('region', { name: 'Messages from NorthList' });
+    expect(notice).toHaveTextContent('Down tonight from 11 PM.');
+    expect(notice.firstElementChild).toHaveClass('bg-surface-subtle');
+    expect(notice.querySelector('.bg-link')).toBeInTheDocument();
+    fireEvent.click(within(notice).getByRole('button', { name: 'Close message' }));
+    await waitFor(() =>
+      expect(screen.queryByText('Down tonight from 11 PM.')).not.toBeInTheDocument(),
+    );
+    expect(api.post).toHaveBeenCalledWith(`/api/messages/${ID}/dismiss`);
   });
 });
 
