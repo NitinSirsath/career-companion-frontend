@@ -20,7 +20,7 @@ import {
   scheduleLine,
 } from '../../lib/mails';
 import { cn } from '../../lib/utils';
-import { StatusBadge } from '../ApplicationStatus';
+import { StatusBadge } from '../ui/ring';
 import { useSwipeRight } from '../ui/swipe';
 import { FakeOfferTag } from './FakeOffer';
 import { useRequestChange } from './useRequestChange';
