@@ -6,12 +6,17 @@ import { useBreadcrumbSlot } from '../layout/breadcrumbSlot';
 import { InstallCard } from '../InstallCard';
 import { OfflineLine } from '../layout/OfflinePage';
 import { OwnerMessages } from '../messages/OwnerMessages';
+import { Spinner } from '../ui/spinner';
+import { useFingerMenus } from '../ui/useFingerMenus';
+import { useRefresh } from '../ui/useRefresh';
+import { cn } from '../../lib/utils';
+import { BarHost } from './BarHost';
 import { SHADE_CLASS } from './pageMotion';
-import { PhoneNavContext, type PhoneFrame } from './phoneNav';
+import { PhoneNavContext, type BarMode, type PhoneFrame } from './phoneNav';
 import { PhoneTopBar } from './PhoneTopBar';
-import { TabBar } from './TabBar';
 import { usePageScroll } from './usePageScroll';
 import { usePhoneStack, type PhoneStackCore, type PhoneView } from './usePhoneStack';
+import { usePullToRefresh } from './usePullToRefresh';
 import { useSwipeBack } from './useSwipeBack';
 
 /** Before the stack has read the first address: what the address alone says. */
@@ -21,7 +26,26 @@ function useFirstView(): PhoneView {
   return { tab: root ?? homeTab(path), depth: root ? 1 : 2, isRoot: !!root };
 }
 
-/** The live page: the top bar, the page that scrolls, and the tab bar or the page's action bar. */
+/** The page's own scroll: the big title, the blurred edges, and pull to refresh. */
+function useLiveScroll(nav: PhoneFrame) {
+  const { setScroller, edge, topBar, shown } = usePageScroll(nav.titleWords, nav.isRoot);
+  const { refresh } = useRefresh(nav.pullAlso ?? undefined);
+  const { setScroller: setPullScroller, setContent, setSpinner } = usePullToRefresh(refresh);
+  const placeScroller = useCallback(
+    (element: HTMLDivElement | null) => {
+      setScroller(element);
+      setPullScroller(element);
+    },
+    [setScroller, setPullScroller],
+  );
+  return { edge, topBar, shown, placeScroller, setContent, setSpinner };
+}
+
+/**
+ * The live page: the top bar, the page that scrolls under it and under the bar at the bottom,
+ * with blurred edges at both ends (owner, 18 Nov 2026, mock `PHONE-LINEAR-mock/`). On a tab's
+ * first page the big title sits in the same row as the top buttons.
+ */
 function LivePage({
   nav,
   core,
@@ -31,8 +55,8 @@ function LivePage({
   core: PhoneStackCore;
   children: ReactNode;
 }) {
-  const { isRoot, setBarTarget, titleWords, swipe } = nav;
-  const { scroller, edge, topBar, shown } = usePageScroll(titleWords);
+  const { isRoot, swipe, setTitleTarget } = nav;
+  const { edge, topBar, shown, placeScroller, setContent, setSpinner } = useLiveScroll(nav);
   const swipeOn = useSwipeBack(swipe);
   const place = useCallback(
     (element: HTMLDivElement | null) => {
@@ -46,19 +70,42 @@ function LivePage({
       <div
         ref={edge}
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 z-10 h-[calc(env(safe-area-inset-top)+64px)] bg-linear-to-b from-background/90 from-30% to-transparent opacity-0 backdrop-blur-[8px] [mask-image:linear-gradient(to_bottom,#000_50%,transparent)]"
+        className="edge-top absolute inset-x-0 top-0 z-10 h-[calc(env(safe-area-inset-top)+66px)] opacity-0"
+      />
+      <div
+        aria-hidden="true"
+        className="edge-bottom absolute inset-x-0 bottom-0 z-10 h-[calc(env(safe-area-inset-bottom)+96px)]"
       />
       <PhoneTopBar ref={topBar} nav={nav} shown={shown} />
       <div
-        ref={scroller}
-        data-phone-scroller=""
-        className="absolute inset-0 touch-pan-y overflow-x-hidden overflow-y-auto overscroll-y-contain px-4 pt-[calc(env(safe-area-inset-top)+52px)] pb-[calc(env(safe-area-inset-bottom)+112px)] [scrollbar-width:none]"
+        ref={setSpinner}
+        aria-hidden="true"
+        className={cn(
+          'pointer-events-none absolute inset-x-0 z-0 flex justify-center opacity-0',
+          isRoot
+            ? 'top-[calc(env(safe-area-inset-top)+4px)]'
+            : 'top-[calc(env(safe-area-inset-top)+52px)]',
+        )}
       >
-        <OfflineLine />
-        <OwnerMessages phone />
-        <main>{children}</main>
+        <Spinner className="size-5 text-text-tertiary" />
       </div>
-      {isRoot ? <TabBar nav={nav} /> : <div ref={setBarTarget} className="contents" />}
+      <div
+        ref={placeScroller}
+        data-phone-scroller=""
+        className={cn(
+          'absolute inset-0 touch-pan-y overflow-x-hidden overflow-y-auto overscroll-y-contain px-4 pb-[calc(env(safe-area-inset-bottom)+112px)] [scrollbar-width:none]',
+          isRoot
+            ? 'pt-[calc(env(safe-area-inset-top)+4px)]'
+            : 'pt-[calc(env(safe-area-inset-top)+52px)]',
+        )}
+      >
+        <div ref={setContent}>
+          {isRoot && <div ref={setTitleTarget} />}
+          <OfflineLine />
+          <OwnerMessages phone />
+          <main>{children}</main>
+        </div>
+      </div>
       <div data-phone-shade="" aria-hidden="true" className={SHADE_CLASS} />
     </div>
   );
@@ -92,38 +139,94 @@ function CopyLayer({
   );
 }
 
+/** Search on the tab bar: the page's own search, else Mails, which opens its search on arrival. */
+function useSearchCircle(openTab: (tab: 'mails') => void) {
+  const [open, setOpen] = useState<(() => void) | null>(null);
+  const [wanted, setWanted] = useState(false);
+  const setSearch = useCallback((next: (() => void) | null) => setOpen(() => next), []);
+  if (open && wanted) {
+    setWanted(false);
+    queueMicrotask(open);
+  }
+  const onSearch = useCallback(() => {
+    if (open) return open();
+    setWanted(true);
+    openTab('mails');
+  }, [open, openTab]);
+  return { setSearch, onSearch };
+}
+
 /** The frame's state and parts, for the pages and the bars. */
-function usePhoneFrame(view: PhoneView | null, core: PhoneStackCore): PhoneFrame {
+function usePhoneFrame(view: PhoneView | null, core: PhoneStackCore) {
   const first = useFirstView();
   const actionsPlace = useBreadcrumbSlot()?.setActionsTarget;
   const [titleWords, setBigTitle] = useState<string | null>(null);
   const [barTarget, setBarTarget] = useState<HTMLElement | null>(null);
+  const [titleTarget, setTitleTarget] = useState<HTMLElement | null>(null);
+  const [pullAlso, setPullAlsoState] = useState<(() => unknown) | null>(null);
+  const setPullAlso = useCallback(
+    (also: (() => unknown) | null) => setPullAlsoState(() => also),
+    [],
+  );
+  const { setSearch, onSearch } = useSearchCircle(core.openTab);
   const shown = view ?? first;
-  return useMemo(
+  const nav = useMemo<PhoneFrame>(
     () => ({
       ...shown,
       back: core.back,
       openTab: core.openTab,
       barTarget,
       setBarTarget,
+      titleTarget,
+      setTitleTarget,
       setBigTitle,
+      setSearch,
+      setPullAlso,
+      pullAlso,
       titleWords,
       actionsPlace,
       swipe: core,
     }),
-    [shown, core, barTarget, titleWords, actionsPlace],
+    [
+      shown,
+      core,
+      barTarget,
+      titleTarget,
+      titleWords,
+      actionsPlace,
+      setSearch,
+      setPullAlso,
+      pullAlso,
+    ],
   );
+  return { nav, onSearch };
+}
+
+/** What the bottom bar becomes while a page slides back, before the address changes. */
+function useBarHint(core: PhoneStackCore, view: PhoneView | null) {
+  const [hint, setHint] = useState<BarMode | null>(null);
+  const [seen, setSeen] = useState(view);
+  if (seen !== view) {
+    setSeen(view);
+    setHint(null);
+  }
+  useEffect(() => core.onBarHint(setHint), [core]);
+  return hint;
 }
 
 /**
- * The signed-in app on phones (owner, 13 Nov 2026, approved mock `IOS-LOOK-mock/`): one page at a
- * time with frosted buttons over it and a big title, a floating tab bar on each tab's first page,
- * pages that slide in and swipe back, and a page that shrinks a little behind an open sheet.
+ * The signed-in app on phones (owner, 13 Nov 2026; Linear iOS look 18 Nov 2026, mock
+ * `PHONE-LINEAR-mock/`): one page at a time with glass buttons floating over it and a big title,
+ * one glass bar at the bottom that is the tab bar on a tab's first page and the page's bottom bar
+ * on a detail page, pages that slide in and swipe back, tabs that cross-fade, and a page that is
+ * pushed back behind a tall sheet.
  */
 export function PhoneShell({ children }: { children: ReactNode }) {
   const { view, core } = usePhoneStack();
-  const nav = usePhoneFrame(view, core);
+  const { nav, onSearch } = usePhoneFrame(view, core);
+  const hint = useBarHint(core, view);
   usePressedLook();
+  useFingerMenus();
   return (
     <PhoneNavContext.Provider value={nav}>
       <Drawer.Provider>
@@ -134,6 +237,7 @@ export function PhoneShell({ children }: { children: ReactNode }) {
             {children}
           </LivePage>
           <CopyLayer place={core.setOver} over />
+          <BarHost nav={nav} hint={hint} onSearch={onSearch} />
           <InstallCard phone />
         </Drawer.Indent>
       </Drawer.Provider>
