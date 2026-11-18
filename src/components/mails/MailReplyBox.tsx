@@ -205,7 +205,6 @@ function useReplyOpenWithAi(replyAsks: number, startOpen: boolean, ai: ReplyAi |
   };
   return { open, setOpen, replyAi, openWithAi: ai ? openWithAi : undefined };
 }
-}
 
 /** The mailbox itself: Gmail in prod, the mail sandbox in dev mode. Small in the phone's note line. */
 function Elsewhere({
@@ -239,7 +238,6 @@ function useCloseByUser(setOpen: (open: boolean) => void) {
     setClosedByUser(true);
   };
   return { closedByUser, close };
-}
 }
 
 /**
