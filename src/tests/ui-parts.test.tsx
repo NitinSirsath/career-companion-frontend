@@ -90,3 +90,14 @@ describe('Combobox', () => {
     await waitFor(() => expect(onValueChange).toHaveBeenCalledWith(APPS[1]));
   });
 });
+
+describe('cn with the phone type sizes (owner, 18 Nov 2026)', () => {
+  it('keeps a phone size next to a text colour', async () => {
+    const { cn } = await import('../lib/utils');
+    expect(cn('text-phone-row text-text-primary', 'text-text-secondary')).toBe(
+      'text-phone-row text-text-secondary',
+    );
+    expect(cn('text-phone-sub', 'text-late')).toBe('text-phone-sub text-late');
+    expect(cn('text-phone-sub', 'text-phone-row')).toBe('text-phone-row');
+  });
+});
