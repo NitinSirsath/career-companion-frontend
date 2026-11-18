@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { api } from '../api/client';
 import type { AIReadingStatusResponse } from '../contracts/ai';
 import { FREE_AI_CONSENT } from '../lib/freeAI';
+import { chooseOption } from './choose';
 import { dashboardFixture } from './dashboard-fixture';
 import { makeAISettings } from './fixtures';
 
