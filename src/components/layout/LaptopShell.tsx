@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { useRouteContext, useRouterState } from '@tanstack/react-router';
+import { OwnerMessages } from '../messages/OwnerMessages';
 import { OfflineLine, OfflinePage } from './OfflinePage';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
@@ -25,6 +26,7 @@ export function LaptopShell({ children }: { children: ReactNode }) {
           <main className="flex-1 px-12 py-8">
             {/* One width for every page: the full width up to 1584px, centred beyond. */}
             <div key={section} className="mx-auto w-full max-w-[1584px] animate-page-in">
+              <OwnerMessages />
               <OfflinePage>{children}</OfflinePage>
             </div>
           </main>

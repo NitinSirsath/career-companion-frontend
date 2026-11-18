@@ -5,6 +5,7 @@ import { homeTab, rootTab } from '../../lib/phoneStack';
 import { useBreadcrumbSlot } from '../layout/breadcrumbSlot';
 import { InstallCard } from '../InstallCard';
 import { OfflineLine } from '../layout/OfflinePage';
+import { OwnerMessages } from '../messages/OwnerMessages';
 import { SHADE_CLASS } from './pageMotion';
 import { PhoneNavContext, type PhoneFrame } from './phoneNav';
 import { PhoneTopBar } from './PhoneTopBar';
@@ -54,6 +55,7 @@ function LivePage({
         className="absolute inset-0 touch-pan-y overflow-x-hidden overflow-y-auto overscroll-y-contain px-4 pt-[calc(env(safe-area-inset-top)+52px)] pb-[calc(env(safe-area-inset-bottom)+112px)] [scrollbar-width:none]"
       >
         <OfflineLine />
+        <OwnerMessages phone />
         <main>{children}</main>
       </div>
       {isRoot ? <TabBar nav={nav} /> : <div ref={setBarTarget} className="contents" />}

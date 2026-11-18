@@ -19,6 +19,7 @@ import { PhoneRefreshCapsule } from '../phone/PhoneRefresh';
 import { SectionError } from '../ui/section-error';
 import { SkeletonList } from '../ui/skeleton';
 import { AdminAccounts, ResumeButton } from './AdminAccounts';
+import { AdminMessages } from './AdminMessages';
 
 function SectionTitle({ title, note }: { title: string; note?: string }) {
   return (
@@ -364,6 +365,8 @@ export function AdminPage() {
           }
         />
         <NeedsALook items={items} />
+        <SectionTitle title="Messages" note="Shown at the top of the app until closed" />
+        <AdminMessages accounts={data.accounts} />
         <SectionTitle
           title="Accounts"
           note={(() => {
