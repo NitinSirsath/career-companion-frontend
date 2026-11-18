@@ -90,7 +90,8 @@ function FormatButton({
         onClick={onPress}
         className={cn(
           'inline-flex shrink-0 cursor-pointer items-center justify-center text-text-secondary transition-colors duration-70 ease-standard hover:bg-layer-hover hover:text-text-primary',
-          large ? 'size-11' : 'size-7',
+          // Phones: round 34 px keys in the glass tool bar (mock `PHONE-LINEAR-mock/` #4).
+          large ? 'size-[34px] rounded-full text-text-primary' : 'size-7',
           active && 'bg-surface-selected text-text-primary',
         )}
       >
@@ -415,8 +416,10 @@ function FormatRow({
           className="px-4 pt-2"
         />
       )}
-      {/* Phones: 44 px buttons, the first letter in line with the text above. */}
-      <div className={cn('flex items-center gap-3', phone ? 'pr-2' : 'flex-wrap py-2 pr-2 pl-3')}>
+      {/* Phones: the keys sit at the end of the glass tool bar, after ✦ AI. */}
+      <div
+        className={cn('flex items-center gap-3', phone ? 'min-w-0' : 'flex-wrap py-2 pr-2 pl-3')}
+      >
         <div role="toolbar" aria-label="Format" className="flex items-center gap-0.5">
           <FormatButtons editor={editor} large={phone} onLink={link.open} />
         </div>
