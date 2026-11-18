@@ -13,7 +13,7 @@ import type { ProviderActions } from './ActiveProviderCard';
  * Why the free AI does not read now: its pause shared by everyone, the free AI switched off, or
  * NorthList's daily limit. Every one ends by itself; the user's own key reads at once.
  */
-function FreeAIWait({
+export function FreeAIWait({
   settings,
   onConnectOwn,
 }: {

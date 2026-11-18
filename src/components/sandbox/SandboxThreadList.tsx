@@ -4,8 +4,30 @@ import { useSandboxThreads } from '../../api/sandbox';
 import type { SandboxFolder, SandboxThread } from '../../contracts/sandbox';
 import { mailDate, parseSender } from '../../lib/mails';
 import { sandboxProblem, threadMark } from '../../lib/sandbox';
+import { usePhoneNav } from '../phone/phoneNav';
+import { PlainLinkRow, PlainSection } from '../phone/PlainList';
 import { Tag } from '../ui/tag';
 import { Button } from '../ui/button';
+
+/** One conversation on phones: a plain row with who, the subject and its state in grey. */
+function PhoneThreadRow({ thread, folder }: { thread: SandboxThread; folder: SandboxFolder }) {
+  return (
+    <PlainLinkRow
+      to="/sandbox/$threadId"
+      params={{ threadId: thread.threadId }}
+      detail={`${thread.subject || '(No subject)'} · ${threadMark(thread).label}`}
+      value={mailDate(thread.date)}
+    >
+      <span className="font-medium">
+        {folder === 'sent' && <span className="font-normal text-text-secondary">To: </span>}
+        {parseSender(thread.party).name}
+        {thread.messageCount > 1 && (
+          <span className="font-normal text-text-secondary"> {thread.messageCount}</span>
+        )}
+      </span>
+    </PlainLinkRow>
+  );
+}
 
 function ThreadRow({ thread, folder }: { thread: SandboxThread; folder: SandboxFolder }) {
   const mark = threadMark(thread);
@@ -37,6 +59,35 @@ function ThreadRow({ thread, folder }: { thread: SandboxThread; folder: SandboxF
   );
 }
 
+/** The folder's conversations: plain rows on phones, a framed list on laptops. */
+function ThreadItems({
+  items,
+  folder,
+  phone,
+}: {
+  items: SandboxThread[];
+  folder: SandboxFolder;
+  phone: boolean;
+}) {
+  if (phone)
+    return (
+      <PlainSection label={folder === 'inbox' ? 'Inbox' : 'Sent'}>
+        {items.map((thread) => (
+          <PhoneThreadRow key={thread.threadId} thread={thread} folder={folder} />
+        ))}
+      </PlainSection>
+    );
+  return (
+    <ul className="divide-y divide-border-subtle border border-border-default">
+      {items.map((thread) => (
+        <li key={thread.threadId}>
+          <ThreadRow thread={thread} folder={folder} />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 const EMPTY: Record<SandboxFolder, string> = {
   inbox: 'No mail yet. Compose a mail to yourself from any address, then sync.',
   sent: 'No replies yet. Open a conversation and reply.',
@@ -48,6 +99,7 @@ export function SandboxThreadList({ folder }: { folder: SandboxFolder }) {
   const [tokens, setTokens] = useState<string[]>([]);
   const { data, error, isLoading } = useSandboxThreads(folder, tokens[tokens.length - 1] ?? null);
   const older = data?.nextPageToken ?? null;
+  const phone = !!usePhoneNav();
 
   return (
     <section aria-label={folder === 'inbox' ? 'Inbox' : 'Sent'} className="space-y-4">
@@ -67,13 +119,7 @@ export function SandboxThreadList({ folder }: { folder: SandboxFolder }) {
         </p>
       )}
       {data && data.items.length > 0 && (
-        <ul className="divide-y divide-border-subtle border border-border-default">
-          {data.items.map((thread) => (
-            <li key={thread.threadId}>
-              <ThreadRow thread={thread} folder={folder} />
-            </li>
-          ))}
-        </ul>
+        <ThreadItems items={data.items} folder={folder} phone={phone} />
       )}
       {(tokens.length > 0 || older) && (
         <div className="flex justify-end gap-2">

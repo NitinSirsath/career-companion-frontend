@@ -1,3 +1,5 @@
+import { cn } from '../../lib/utils';
+import { PLAIN_ROW } from '../phone/PlainList';
 import { useState } from 'react';
 import { useResetSandbox } from '../../api/sandbox';
 import { sandboxProblem } from '../../lib/sandbox';
@@ -12,7 +14,7 @@ import {
 } from '../ui/dialog';
 
 /** Empties the sandbox mailbox and what the app made from it, after an explicit confirmation. */
-export function ResetSandboxDialog() {
+export function ResetSandboxDialog({ phone = false }: { phone?: boolean }) {
   const reset = useResetSandbox();
   const [open, setOpen] = useState(false);
   const confirm = () => reset.mutate(undefined, { onSuccess: () => setOpen(false) });
@@ -20,9 +22,19 @@ export function ResetSandboxDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="tertiary" className="text-status-error">
-          Reset dev data
-        </Button>
+        {phone ? (
+          // Phones: the risky action, a red plain row, last on the page.
+          <button
+            type="button"
+            className={cn(PLAIN_ROW, 'cursor-pointer justify-center text-late')}
+          >
+            Reset dev data
+          </button>
+        ) : (
+          <Button variant="tertiary" className="text-status-error">
+            Reset dev data
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

@@ -6,6 +6,7 @@ import { SubmittedApplications } from '../components/automation/SubmittedApplica
 import { SubmissionReview } from '../components/automation/SubmissionReview';
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
 import { PageHeader } from '../components/layout/PageHeader';
+import { usePhoneNav } from '../components/phone/phoneNav';
 import { PhoneRefreshCapsule } from '../components/phone/PhoneRefresh';
 import { TabPanel, Tabs } from '../components/ui/tabs';
 
@@ -32,17 +33,26 @@ type PageTab = (typeof PAGE_TABS)[number]['value'];
 function AutomationPage() {
   const tab: PageTab = Route.useSearch().tab ?? 'submitted';
   const navigate = Route.useNavigate();
+  const phone = !!usePhoneNav();
   const setTab = (next: PageTab) =>
     void navigate({ search: next === 'submitted' ? {} : { tab: next }, replace: true });
   return (
     <div className="flex flex-col">
       <PhoneRefreshCapsule />
       <PageHeader
+        phoneSmallTitle
         refresh
         title="NorthList Apply"
         description="Let your own job-application automation tell NorthList about each application it sends. NorthList never applies to jobs itself."
       />
-      <Tabs<PageTab> label="NorthList Apply" items={PAGE_TABS} value={tab} onValueChange={setTab}>
+      {/* Phones: the segmented control, as on Applications (mock `PHONE-LINEAR-mock/` screen 5). */}
+      <Tabs<PageTab>
+        label="NorthList Apply"
+        items={PAGE_TABS}
+        value={tab}
+        onValueChange={setTab}
+        look={phone ? 'underline' : undefined}
+      >
         <TabPanel value="submitted" className="flex flex-col gap-8 pt-6">
           <SubmissionReview />
           <SubmittedApplications />

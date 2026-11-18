@@ -20,6 +20,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as GmailRouteImport } from './routes/gmail'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as TestLoginRouteImport } from './routes/test-login'
+import { Route as AdminMoneyRouteImport } from './routes/admin_.money'
 import { Route as ApplicationsIdRouteImport } from './routes/applications.$id'
 import { Route as GmailMailsRouteImport } from './routes/gmail_.mails'
 import { Route as MailsIndexRouteImport } from './routes/mails.index'
@@ -29,6 +30,7 @@ import { Route as SandboxThreadIdRouteImport } from './routes/sandbox.$threadId'
 import { Route as SandboxComposeRouteImport } from './routes/sandbox.compose'
 import { Route as SettingsIndexRouteImport } from './routes/settings.index'
 import { Route as SettingsAppearanceRouteImport } from './routes/settings.appearance'
+import { Route as AdminAccountsAccountIdRouteImport } from './routes/admin_.accounts.$accountId'
 import { Route as MailsGmailThreadIdRouteImport } from './routes/mails.gmail.$threadId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -86,6 +88,11 @@ const TestLoginRoute = TestLoginRouteImport.update({
   path: '/test-login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminMoneyRoute = AdminMoneyRouteImport.update({
+  id: '/admin_/money',
+  path: '/admin/money',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApplicationsIdRoute = ApplicationsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -131,6 +138,11 @@ const SettingsAppearanceRoute = SettingsAppearanceRouteImport.update({
   path: '/settings/appearance',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminAccountsAccountIdRoute = AdminAccountsAccountIdRouteImport.update({
+  id: '/admin_/accounts/$accountId',
+  path: '/admin/accounts/$accountId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MailsGmailThreadIdRoute = MailsGmailThreadIdRouteImport.update({
   id: '/mails/gmail/$threadId',
   path: '/mails/gmail/$threadId',
@@ -149,6 +161,7 @@ export interface FileRoutesByFullPath {
   '/gmail': typeof GmailRoute
   '/login': typeof LoginRoute
   '/test-login': typeof TestLoginRoute
+  '/admin/money': typeof AdminMoneyRoute
   '/applications/$id': typeof ApplicationsIdRoute
   '/gmail/mails': typeof GmailMailsRoute
   '/mails/$key': typeof MailsKeyRoute
@@ -158,6 +171,7 @@ export interface FileRoutesByFullPath {
   '/mails/': typeof MailsIndexRoute
   '/sandbox/': typeof SandboxIndexRoute
   '/settings/': typeof SettingsIndexRoute
+  '/admin/accounts/$accountId': typeof AdminAccountsAccountIdRoute
   '/mails/gmail/$threadId': typeof MailsGmailThreadIdRoute
 }
 export interface FileRoutesByTo {
@@ -172,6 +186,7 @@ export interface FileRoutesByTo {
   '/gmail': typeof GmailRoute
   '/login': typeof LoginRoute
   '/test-login': typeof TestLoginRoute
+  '/admin/money': typeof AdminMoneyRoute
   '/applications/$id': typeof ApplicationsIdRoute
   '/gmail/mails': typeof GmailMailsRoute
   '/mails/$key': typeof MailsKeyRoute
@@ -181,6 +196,7 @@ export interface FileRoutesByTo {
   '/mails': typeof MailsIndexRoute
   '/sandbox': typeof SandboxIndexRoute
   '/settings': typeof SettingsIndexRoute
+  '/admin/accounts/$accountId': typeof AdminAccountsAccountIdRoute
   '/mails/gmail/$threadId': typeof MailsGmailThreadIdRoute
 }
 export interface FileRoutesById {
@@ -196,6 +212,7 @@ export interface FileRoutesById {
   '/gmail': typeof GmailRoute
   '/login': typeof LoginRoute
   '/test-login': typeof TestLoginRoute
+  '/admin_/money': typeof AdminMoneyRoute
   '/applications/$id': typeof ApplicationsIdRoute
   '/gmail_/mails': typeof GmailMailsRoute
   '/mails/$key': typeof MailsKeyRoute
@@ -205,6 +222,7 @@ export interface FileRoutesById {
   '/mails/': typeof MailsIndexRoute
   '/sandbox/': typeof SandboxIndexRoute
   '/settings/': typeof SettingsIndexRoute
+  '/admin_/accounts/$accountId': typeof AdminAccountsAccountIdRoute
   '/mails/gmail/$threadId': typeof MailsGmailThreadIdRoute
 }
 export interface FileRouteTypes {
@@ -221,6 +239,7 @@ export interface FileRouteTypes {
     | '/gmail'
     | '/login'
     | '/test-login'
+    | '/admin/money'
     | '/applications/$id'
     | '/gmail/mails'
     | '/mails/$key'
@@ -230,6 +249,7 @@ export interface FileRouteTypes {
     | '/mails/'
     | '/sandbox/'
     | '/settings/'
+    | '/admin/accounts/$accountId'
     | '/mails/gmail/$threadId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -244,6 +264,7 @@ export interface FileRouteTypes {
     | '/gmail'
     | '/login'
     | '/test-login'
+    | '/admin/money'
     | '/applications/$id'
     | '/gmail/mails'
     | '/mails/$key'
@@ -253,6 +274,7 @@ export interface FileRouteTypes {
     | '/mails'
     | '/sandbox'
     | '/settings'
+    | '/admin/accounts/$accountId'
     | '/mails/gmail/$threadId'
   id:
     | '__root__'
@@ -267,6 +289,7 @@ export interface FileRouteTypes {
     | '/gmail'
     | '/login'
     | '/test-login'
+    | '/admin_/money'
     | '/applications/$id'
     | '/gmail_/mails'
     | '/mails/$key'
@@ -276,6 +299,7 @@ export interface FileRouteTypes {
     | '/mails/'
     | '/sandbox/'
     | '/settings/'
+    | '/admin_/accounts/$accountId'
     | '/mails/gmail/$threadId'
   fileRoutesById: FileRoutesById
 }
@@ -291,6 +315,7 @@ export interface RootRouteChildren {
   GmailRoute: typeof GmailRoute
   LoginRoute: typeof LoginRoute
   TestLoginRoute: typeof TestLoginRoute
+  AdminMoneyRoute: typeof AdminMoneyRoute
   GmailMailsRoute: typeof GmailMailsRoute
   MailsKeyRoute: typeof MailsKeyRoute
   SandboxThreadIdRoute: typeof SandboxThreadIdRoute
@@ -299,6 +324,7 @@ export interface RootRouteChildren {
   MailsIndexRoute: typeof MailsIndexRoute
   SandboxIndexRoute: typeof SandboxIndexRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
+  AdminAccountsAccountIdRoute: typeof AdminAccountsAccountIdRoute
   MailsGmailThreadIdRoute: typeof MailsGmailThreadIdRoute
 }
 
@@ -381,6 +407,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TestLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin_/money': {
+      id: '/admin_/money'
+      path: '/admin/money'
+      fullPath: '/admin/money'
+      preLoaderRoute: typeof AdminMoneyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/applications/$id': {
       id: '/applications/$id'
       path: '/$id'
@@ -444,6 +477,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsAppearanceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin_/accounts/$accountId': {
+      id: '/admin_/accounts/$accountId'
+      path: '/admin/accounts/$accountId'
+      fullPath: '/admin/accounts/$accountId'
+      preLoaderRoute: typeof AdminAccountsAccountIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/mails/gmail/$threadId': {
       id: '/mails/gmail/$threadId'
       path: '/mails/gmail/$threadId'
@@ -478,6 +518,7 @@ const rootRouteChildren: RootRouteChildren = {
   GmailRoute: GmailRoute,
   LoginRoute: LoginRoute,
   TestLoginRoute: TestLoginRoute,
+  AdminMoneyRoute: AdminMoneyRoute,
   GmailMailsRoute: GmailMailsRoute,
   MailsKeyRoute: MailsKeyRoute,
   SandboxThreadIdRoute: SandboxThreadIdRoute,
@@ -486,6 +527,7 @@ const rootRouteChildren: RootRouteChildren = {
   MailsIndexRoute: MailsIndexRoute,
   SandboxIndexRoute: SandboxIndexRoute,
   SettingsIndexRoute: SettingsIndexRoute,
+  AdminAccountsAccountIdRoute: AdminAccountsAccountIdRoute,
   MailsGmailThreadIdRoute: MailsGmailThreadIdRoute,
 }
 export const routeTree = rootRouteImport

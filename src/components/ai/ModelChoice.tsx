@@ -12,7 +12,34 @@ import {
 } from '../../lib/aiConnections';
 import { modelState, saveProblem, settingsOf } from '../../lib/aiProviderPage';
 import { Select } from '../ui/select';
+import { cn } from '../../lib/utils';
 import { Tag } from '../ui/tag';
+
+const FRAME = {
+  laptop:
+    'grid items-center gap-x-6 gap-y-2 border-t border-border-subtle px-6 py-4 md:grid-cols-[minmax(160px,1fr)_minmax(240px,320px)_minmax(140px,1fr)]',
+  phone:
+    'flex flex-col gap-2 border-b border-border-subtle px-[18px] py-3 text-phone-row last:border-b-0',
+};
+
+/** A role's row: a grid line on laptops, a plain row on phones with the choice under the name. */
+function ModelFrame({ phone, children }: { phone: boolean; children: React.ReactNode }) {
+  return <div className={FRAME[phone ? 'phone' : 'laptop']}>{children}</div>;
+}
+
+/** "Fast step" and what it does. */
+function RoleName({ role, labelId, phone }: { role: AIRole; labelId: string; phone: boolean }) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span id={labelId} className={phone ? undefined : 'text-sm'}>
+        {ROLE_LABELS[role]}
+      </span>
+      <span className={cn('text-text-secondary', phone ? 'text-[13.5px]' : 'text-xs')}>
+        {ROLE_HELP[role]}
+      </span>
+    </div>
+  );
+}
 
 /**
  * One role of the active provider: its model, changed in place. A new model is checked with the
@@ -22,10 +49,13 @@ export function ModelChoice({
   settings,
   role,
   onSaved,
+  phone = false,
 }: {
   settings: AISettingsResponse;
   role: AIRole;
   onSaved: (note: string) => void;
+  /** A plain row on phones, with the choice under its name. */
+  phone?: boolean;
 }) {
   const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
@@ -57,13 +87,8 @@ export function ModelChoice({
   }
 
   return (
-    <div className="grid items-center gap-x-6 gap-y-2 border-t border-border-subtle px-6 py-4 md:grid-cols-[minmax(160px,1fr)_minmax(240px,320px)_minmax(140px,1fr)]">
-      <div className="flex flex-col gap-0.5">
-        <span id={labelId} className="text-sm">
-          {ROLE_LABELS[role]}
-        </span>
-        <span className="text-xs text-text-secondary">{ROLE_HELP[role]}</span>
-      </div>
+    <ModelFrame phone={phone}>
+      <RoleName role={role} labelId={labelId} phone={phone} />
       <Select<string>
         id={`${labelId}-select`}
         label={ROLE_LABELS[role]}
@@ -86,6 +111,6 @@ export function ModelChoice({
           </span>
         )}
       </div>
-    </div>
+    </ModelFrame>
   );
 }

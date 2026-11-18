@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useRemoveMessage, useSendMessage, useSentMessages } from '../../api/messages';
 import type { AdminAccount } from '../../contracts/admin';
 import { OWNER_MESSAGE_MAX_LENGTH, type AdminSentMessage } from '../../contracts/messages';
-import { count, whenLabel } from '../../lib/admin';
+import { count } from '../../lib/admin';
+import { devicesWord, EVERYONE, sentLine } from '../../lib/adminMessages';
 import { Button } from '../ui/button';
 import { InlineNotification } from '../ui/notification';
 import { Select } from '../ui/select';
@@ -11,16 +12,6 @@ import { SkeletonList } from '../ui/skeleton';
 import { Switch } from '../ui/switch';
 import { Tag } from '../ui/tag';
 import { Textarea } from '../ui/textarea';
-
-const EVERYONE = 'EVERYONE';
-const devicesWord = (n: number) => `${count(n)} ${n === 1 ? 'device' : 'devices'}`;
-
-/** "Today, 4:12 PM · To everyone · Alert sent to 12 devices". */
-function sentLine(message: AdminSentMessage) {
-  const parts = [whenLabel(message.sentAt), `To ${message.toEmail ?? 'everyone'}`];
-  if (message.alertsSent !== null) parts.push(`Alert sent to ${devicesWord(message.alertsSent)}`);
-  return parts.join(' · ');
-}
 
 function SentRow({ message }: { message: AdminSentMessage }) {
   const remove = useRemoveMessage();
