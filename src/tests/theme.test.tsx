@@ -54,7 +54,7 @@ describe('flat themes', () => {
     );
     const bars = document.head.querySelectorAll('meta[name="theme-color"]');
     expect(bars).toHaveLength(1);
-    expect(bars[0]).toHaveAttribute('content', '#0d0d0d');
+    expect(bars[0]).toHaveAttribute('content', '#111113');
 
     fireEvent.click(screen.getByRole('button', { name: 'Light' }));
     expect(bars[0]).toHaveAttribute('content', '#ffffff');
