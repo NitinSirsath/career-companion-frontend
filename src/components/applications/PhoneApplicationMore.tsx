@@ -60,9 +60,11 @@ export function PhoneApplicationMore({
                   {actions.map((action) => (
                     <Menu.Item
                       key={action.label}
+                      disabled={action.disabled}
                       className={cn(ROW, action.danger && 'text-danger-text')}
                       onClick={action.onSelect}
                     >
+                      {action.icon}
                       {action.label}
                     </Menu.Item>
                   ))}
