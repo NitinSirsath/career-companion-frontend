@@ -1,4 +1,4 @@
-import type { Ref } from 'react';
+import type { ReactNode, Ref } from 'react';
 import { Menu as BaseMenu } from '@base-ui/react/menu';
 import { EllipsisVerticalIcon } from 'lucide-react';
 import { cn } from '../../lib/utils';
@@ -10,6 +10,8 @@ export interface MenuAction {
   /** Destructive actions read red and sit last. */
   danger?: boolean;
   disabled?: boolean;
+  /** The phone menus' icon before the label; the laptop menu shows none. */
+  icon?: ReactNode;
 }
 
 interface OverflowMenuProps {
