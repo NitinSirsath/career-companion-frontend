@@ -34,7 +34,7 @@ export function BarCircle({
       type="button"
       aria-label={label}
       className={cn(
-        'glass flex size-12 shrink-0 cursor-pointer items-center justify-center rounded-full text-text-primary outline-none focus-visible:outline-2 focus-visible:outline-border-focus disabled:cursor-default disabled:opacity-40',
+        'glass flex size-[58px] shrink-0 cursor-pointer items-center justify-center rounded-full text-text-primary outline-none focus-visible:outline-2 focus-visible:outline-border-focus disabled:cursor-default disabled:opacity-40',
         PRESS,
         className,
       )}
@@ -61,7 +61,7 @@ export function BarField({
       type="button"
       data-bar-field=""
       className={cn(
-        'flex h-12 min-w-0 flex-1 cursor-pointer items-center gap-[9px] rounded-full px-4 text-left text-[16px] text-text-secondary outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-border-focus disabled:cursor-default disabled:opacity-50',
+        'flex h-[58px] min-w-0 flex-1 cursor-pointer items-center gap-[9px] rounded-full px-4 text-left text-[16px] text-text-secondary outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-border-focus disabled:cursor-default disabled:opacity-50',
         className,
       )}
       {...props}

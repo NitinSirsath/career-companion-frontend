@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { ChevronRightIcon, CircleCheckIcon, MailIcon, RotateCcwIcon } from 'lucide-react';
-import { useSetRequestState } from '../../api/conversations';
+import { useReadReplyAgain, useSetRequestState } from '../../api/conversations';
 import type { ConversationDetail } from '../../contracts/conversation';
-import { reopenNote, showMail, stepNote, stepSource } from '../../lib/jobStep';
+import { canReadReplyAgain, reopenNote, showMail, stepNote, stepSource } from '../../lib/jobStep';
 import { keyDates } from '../../lib/mailThread';
 import {
   CAREER_CONTACT,
@@ -22,6 +22,7 @@ import { isOfflineError } from '../../lib/offline';
 import { cn } from '../../lib/utils';
 import { Ring, StatusBadge } from '../ui/ring';
 import { InlineNotification } from '../ui/notification';
+import { AiIcon } from '../ui/ai-icon';
 import { Sheet, SheetAction, SheetGroup } from '../ui/sheet';
 import { Tag } from '../ui/tag';
 import { showToast } from '../ui/toast';
@@ -42,6 +43,7 @@ const ROW = 'flex min-h-10 items-center gap-[11px] -mx-4 px-[18px] py-[9px] text
 function StepActions({ detail, onClose }: { detail: ConversationDetail; onClose: () => void }) {
   const { conversation } = detail;
   const change = useSetRequestState(conversation.key);
+  const readAgain = useReadReplyAgain(conversation.key);
   const asked = conversation.request!;
   const title = requestTitle(asked);
   const fake = fakeOfferStep(conversation);
@@ -81,6 +83,22 @@ function StepActions({ detail, onClose }: { detail: ConversationDetail; onClose:
             onClick={() => setState('OPEN', `Reopened: ${title}`)}
           >
             Reopen
+          </SheetAction>
+        )}
+        {canReadReplyAgain(asked) && !fake && (
+          <SheetAction
+            icon={<AiIcon size={22} aria-hidden="true" />}
+            disabled={readAgain.isPending}
+            onClick={() =>
+              readAgain.mutate(undefined, {
+                onSuccess: () => {
+                  onClose();
+                  showToast('Reading your reply again');
+                },
+              })
+            }
+          >
+            Read my reply again
           </SheetAction>
         )}
         {source && (
