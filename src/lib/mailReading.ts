@@ -24,7 +24,7 @@ export const FREE_AI_READER =
   "OpenRouter, on NorthList's account. It passes each mail to GPT-6 Luna on Microsoft Azure servers in the US or Europe. NorthList asks for servers that keep nothing, so they cannot train on your mail.";
 
 /** What goes to the AI, and when: the free AI's "What is sent". */
-export const WHAT_IS_SENT = `For each new mail: the sender, subject, Gmail labels and a short preview (up to ${chars(MAIL_LIMITS.preview)}). For job mails, also the mail text (up to ${chars(MAIL_LIMITS.body)}). When a conversation still needs something from you, also the new text of your own replies in it. When you ask the AI to write a reply, the whole conversation, any hint you type or reply choice you click, and your first name. Nothing else from your mailbox.`;
+export const WHAT_IS_SENT = `For each new mail: the sender, subject, Gmail labels and a short preview (up to ${chars(MAIL_LIMITS.preview)}). For job mails, also the mail text (up to ${chars(MAIL_LIMITS.body)}). When a conversation still needs something from you, also the new text of your own replies in it. When you ask to reanalyze a conversation, the same again for its job mails and your replies in it. When you ask the AI to write a reply, the whole conversation, any hint you type or reply choice you click, and your first name. Nothing else from your mailbox.`;
 
 /** The line under "How your mail is read": the one time more than the above is sent. */
 export const WRITE_WITH_AI_NOTE =
