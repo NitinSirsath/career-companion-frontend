@@ -104,17 +104,17 @@ export function TabBar({
               }}
               style={{ flexGrow: on ? ON_GROW : 1 }}
               className={cn(
-                'relative z-10 flex h-[42px] basis-0 items-center justify-center rounded-full transition-[flex-grow,color,opacity] duration-200 ease-morph select-none',
+                'relative z-10 flex h-[50px] basis-0 items-center justify-center rounded-full transition-[flex-grow,color,opacity] duration-200 ease-morph select-none',
                 on ? 'text-accent' : 'text-text-primary opacity-85',
               )}
             >
-              <Icon size={22} strokeWidth={1.9} aria-hidden="true" />
+              <Icon size={24} strokeWidth={1.9} aria-hidden="true" />
               <span className="sr-only">{label}</span>
               {tab === 'mails' && newMails && (
                 <>
                   <span
                     aria-hidden="true"
-                    className="absolute top-[7px] right-[calc(50%-17px)] size-[9px] rounded-full border-[1.5px] border-background bg-accent"
+                    className="absolute top-[9px] right-[calc(50%-18px)] size-[9px] rounded-full border-[1.5px] border-background bg-accent"
                   />
                   <span className="sr-only">, new mails</span>
                 </>
@@ -128,11 +128,11 @@ export function TabBar({
         aria-label="Search"
         onClick={onSearch}
         className={cn(
-          'glass flex size-[50px] shrink-0 cursor-pointer items-center justify-center rounded-full text-text-primary outline-none focus-visible:outline-2 focus-visible:outline-border-focus',
+          'glass flex size-[58px] shrink-0 cursor-pointer items-center justify-center rounded-full text-text-primary outline-none focus-visible:outline-2 focus-visible:outline-border-focus',
           PRESS,
         )}
       >
-        <SearchIcon size={23} strokeWidth={1.9} aria-hidden="true" />
+        <SearchIcon size={24} strokeWidth={1.9} aria-hidden="true" />
       </button>
     </div>
   );
