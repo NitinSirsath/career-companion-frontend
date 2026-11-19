@@ -19,6 +19,18 @@ describe('what a reply draft sends', () => {
   });
 });
 
+describe('what a Reanalyze sends (owner, 19 Nov 2026)', () => {
+  it('is named in the privacy policy, the Your data page and both texts shown before AI consent', () => {
+    for (const text of [AI_DATA_SENT_SUMMARY, freeAIText])
+      expect(text).toContain(
+        'When you ask to reanalyze a conversation, the same again for its job mails and your replies in it.',
+      );
+    expect(policy).toContain(
+      'When you ask to reanalyze a conversation: the same again for its job mails and your replies in it, with the same limits.',
+    );
+    expect(yourData).toContain('You ask to reanalyze a conversation');
+  });
+
 describe('the connected Gmail address', () => {
   it('is named in the privacy policy, also that it stays after a disconnect', () => {
     expect(policy).toContain('NorthList also keeps the address of the Gmail account you connect');
