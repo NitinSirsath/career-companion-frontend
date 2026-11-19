@@ -204,7 +204,6 @@
   --animate-count-in: page-in 320ms cubic-bezier(0, 0, 0.38, 0.9);
   --animate-shimmer: shimmer 1.4s linear infinite;
   --animate-ai-shimmer: ai-shimmer 1.8s linear infinite;
-  --animate-startup-line: startup-line 1.4s cubic-bezier(0.2, 0, 0.38, 0.9) infinite;
   /* A tapped tab's icon gives a small squeeze, as on an iPhone. */
   --animate-tab-bounce: tab-bounce 500ms cubic-bezier(0.3, 1.6, 0.5, 1);
   /* An empty list (15 Nov 2026): its picture springs in, then its words rise in one after another. */
@@ -296,14 +295,6 @@
     }
   }
   /* The start-up screen's thin line: a short bar runs across it, again and again. */
-  @keyframes startup-line {
-    from {
-      transform: translateX(-100%);
-    }
-    to {
-      transform: translateX(260%);
-    }
-  }
   @keyframes tab-bounce {
     30% {
       transform: scale(0.8);
