@@ -1,12 +1,12 @@
 import { useState, type ReactNode } from 'react';
 import { ArrowDownIcon, ChevronDownIcon } from 'lucide-react';
-import { useSetRequestState } from '../../api/conversations';
+import { useReadReplyAgain, useSetRequestState } from '../../api/conversations';
 import type {
   ConversationDetail,
   ConversationMail,
   ConversationRequest,
 } from '../../contracts/conversation';
-import { closedByYourReply, showMail, stepNote } from '../../lib/jobStep';
+import { canReadReplyAgain, closedByYourReply, showMail, stepNote } from '../../lib/jobStep';
 import { askingMessageId, keyDates } from '../../lib/mailThread';
 import {
   CAREER_CONTACT,
@@ -156,6 +156,38 @@ function StepStateLine({ asked, fake }: { asked: ConversationRequest; fake: bool
   );
 }
 
+/**
+ * The Next step's ⋯ menu: "I did this" only on an open request done outside mail (never a big
+ * button), and "Read my reply again" for a reply read as not answering it (owner, 19 Nov 2026).
+ */
+function StepMenu({
+  conversationKey,
+  asked,
+  fake,
+  onDone,
+  doing,
+}: {
+  conversationKey: string;
+  asked: ConversationRequest;
+  fake: boolean;
+  onDone: () => void;
+  doing: boolean;
+}) {
+  const readAgain = useReadReplyAgain(conversationKey);
+  const actions = [];
+  if (asked.state === 'OPEN' && closesByHand(asked) && !fake)
+    actions.push({ label: 'I did this', disabled: doing, onSelect: onDone });
+  if (canReadReplyAgain(asked) && !fake)
+    actions.push({
+      label: 'Read my reply again',
+      disabled: readAgain.isPending,
+      onSelect: () =>
+        readAgain.mutate(undefined, { onSuccess: () => showToast('Reading your reply again') }),
+    });
+  if (!actions.length) return null;
+  return <OverflowMenu label={`More for ${requestTitle(asked)}`} actions={actions} />;
+}
+
 /** What the conversation needs now: the request, its due date, its state and what closes it. */
 function NextStep({ detail }: { detail: ConversationDetail }) {
   const { conversation } = detail;
@@ -174,20 +206,15 @@ function NextStep({ detail }: { detail: ConversationDetail }) {
   const note = fake ? null : stepNote(asked, requestPastDue(asked));
   const setState = (state: 'DONE' | 'OPEN', toast: string) =>
     change.mutate({ emailId: asked.emailId, state }, { onSuccess: () => showToast(toast) });
-  // "I did this" only on an open request done outside mail; never a big button.
-  const menu =
-    asked.state === 'OPEN' && closesByHand(asked) && !fake ? (
-      <OverflowMenu
-        label={`More for ${title}`}
-        actions={[
-          {
-            label: 'I did this',
-            disabled: change.isPending,
-            onSelect: () => setState('DONE', `Done: ${title}`),
-          },
-        ]}
-      />
-    ) : undefined;
+  const menu = (
+    <StepMenu
+      conversationKey={conversation.key}
+      asked={asked}
+      fake={!!fake}
+      onDone={() => setState('DONE', `Done: ${title}`)}
+      doing={change.isPending}
+    />
+  );
   return (
     <PanelSection title="Next step" menu={menu}>
       {/* Laptop v2 (18 Nov 2026): a ring before the step, its state in grey words under it. */}
