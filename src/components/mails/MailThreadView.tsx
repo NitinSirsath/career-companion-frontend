@@ -49,8 +49,8 @@ function Messages({
   job?: ThreadJobContext;
 }) {
   const phone = useIsPhone();
-  // Phones: every mail starts as its first lines, newest first, like Linear's activity (owner,
-  // 18 Nov 2026, mock `PHONE-LINEAR-mock/` #2).
+  // Phones: every mail starts as its first lines (owner, 18 Nov 2026, mock `PHONE-LINEAR-mock/`
+  // #2), oldest at the top like the laptop (owner, 19 Nov 2026).
   const [folded, setFolded] = useState(() =>
     phone ? new Set(messages.map((m) => m.id)) : initiallyFolded(messages.map((m) => m.id)),
   );
@@ -61,11 +61,11 @@ function Messages({
       else next.delete(id);
       return next;
     });
-  const shown = phone ? [...messages].reverse() : messages;
-  return shown.map((message, index) => {
+
+  return messages.map((message, index) => {
     const day = dayLabel(message.date);
-    const newDay = !phone && (index === 0 || dayLabel(shown[index - 1].date) !== day);
-    const last = !phone && index === shown.length - 1;
+    const newDay = !phone && (index === 0 || dayLabel(messages[index - 1].date) !== day);
+    const last = !phone && index === messages.length - 1;
     const reading =
       job && job.readingShownAbove !== message.id ? readingFor(message.id, job.mails) : null;
     // A fake offer's step is the app's own advice, not something the mail asks.
@@ -137,10 +137,9 @@ export function MailThreadView({
       {error && <MailboxProblem error={error} onRetry={() => void refetch()} />}
       {data && (
         <>
-          {/* Phones list the newest mail first, so the reply on its way goes on top. */}
-          {phone && sending && <SendingCard doc={sending} />}
+
           <Messages key={threadId} messages={data.messages} mailbox={mailbox} job={job} />
-          {!phone && sending && <SendingCard doc={sending} />}
+          {sending && <SendingCard doc={sending} />}
           <div ref={end} />
           <MailReplyBox
             threadId={threadId}
