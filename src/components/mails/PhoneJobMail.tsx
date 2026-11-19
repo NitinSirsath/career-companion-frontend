@@ -84,7 +84,6 @@ function StepActions({ detail, onClose }: { detail: ConversationDetail; onClose:
             onClick={() => setState('OPEN', `Reopened: ${title}`)}
           >
             Reopen
-
           </SheetAction>
         )}
         {source && (
