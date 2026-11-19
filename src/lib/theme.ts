@@ -13,7 +13,7 @@ export type ResolvedTheme = 'light' | 'dark';
  */
 export const WINDOW_BAR_COLOR: Record<ResolvedTheme, string> = {
   light: '#ffffff',
-  dark: '#0d0d0d',
+  dark: '#111113',
 };
 
 export const THEME_CHOICES: readonly { value: ThemeChoice; label: string }[] = [
