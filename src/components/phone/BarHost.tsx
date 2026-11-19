@@ -5,8 +5,8 @@ import type { BarMode, PhoneFrame } from './phoneNav';
 import { TabBar } from './TabBar';
 
 /** The bar's height and the Search circle's width with its gap (mock: 50px, 50 + 8px). */
-const BAR_H = 50;
-const SEARCH_W = 58;
+const BAR_H = 58;
+const SEARCH_W = 66;
 
 interface Box {
   left: number;
@@ -104,7 +104,7 @@ export function BarHost({
     <div
       ref={place}
       data-bar-mode={mode}
-      className="pointer-events-none absolute inset-x-[14px] bottom-[max(calc(env(safe-area-inset-bottom)-12px),10px)] z-50 h-[50px]"
+      className="pointer-events-none absolute inset-x-6 bottom-[max(calc(env(safe-area-inset-bottom)-10px),12px)] z-50 h-[58px]"
     >
       <div
         className={cn(
