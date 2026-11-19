@@ -40,6 +40,7 @@ function useReanalyzeApplication(application: ApplicationResponse, canEdit: bool
 /**
  * An application's "…" actions: Reanalyze, Archive (or Restore) and Delete, none when it cannot be
  * changed. `dialogs` must be in the page; `more` is the button that opened the actions, for focus.
+ */
 export function useApplicationMenu(application: ApplicationResponse, canEdit: boolean) {
   const archive = useRef<DialogHandle>(null);
   const more = useRef<HTMLButtonElement>(null);
