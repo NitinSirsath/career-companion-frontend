@@ -4,6 +4,9 @@
  */
 export type ThemeChoice = 'system' | 'light' | 'dark';
 
+/** Where the choice is saved on this device; `index.html` reads it too, before the app loads. */
+export const THEME_STORAGE_KEY = 'career-companion-theme';
+
 /** What the page actually shows. */
 export type ResolvedTheme = 'light' | 'dark';
 
