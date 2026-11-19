@@ -1,12 +1,8 @@
 import { Link } from '@tanstack/react-router';
-import { ArrowRightIcon, CheckIcon, ReplyIcon } from 'lucide-react';
 import { useSandboxMailbox } from '../../api/appMode';
 import type { Conversation } from '../../contracts/conversation';
 import {
-  CATEGORY_LABEL,
   fakeOfferStep,
-  mailCounts,
-  mailCompany,
   mailDate,
   parseSender,
   requestDetail,
@@ -14,9 +10,11 @@ import {
   requestTitle,
   scheduleLine,
 } from '../../lib/mails';
+import { statusTag } from '../../lib/statusTags';
 import { cn } from '../../lib/utils';
 import { getGmailConversationUrl } from '../../utils/gmail';
 import { Avatar } from '../ui/avatar';
+import { Ring } from '../ui/ring';
 import { OverflowMenu, type MenuAction } from '../ui/menu';
 import { ConversationApplication } from './ConversationApplication';
 import { FakeOfferTag } from './FakeOffer';
@@ -47,128 +45,92 @@ export function RowMenu({ conversation }: { conversation: Conversation }) {
   );
 }
 
-/** The mark before a step: an arrow while it is open, a reply mark once replied, a check when done. */
-const STEP_MARK = {
-  OPEN: { Icon: ArrowRightIcon, color: 'text-link' },
-  REPLIED: { Icon: ReplyIcon, color: 'text-text-secondary' },
-  DONE: { Icon: CheckIcon, color: 'text-ok' },
-} as const;
-
-/** A mail that asks for nothing: its interview or test date, else "Nothing needed". */
-function NoStep({ conversation }: { conversation: Conversation }) {
-  const schedule = scheduleLine(conversation);
-  return (
-    <p className={cn('mt-0.5', schedule ? 'font-medium' : 'text-text-tertiary')}>
-      {schedule ?? 'Nothing needed'}
-    </p>
-  );
-}
+/** The mark before a step, in the row's grey: an arrow while open, a reply mark, a check when done. */
+const STEP_MARK = { OPEN: '→', REPLIED: '↩', DONE: '✓' } as const;
 
 /**
- * The next step with a blue arrow and its due date (red when late); a replied step with a reply
- * mark, a done one with a green check; else an interview or test date, or "Nothing needed".
- * `dueApart`: the due date on its own line (phones).
+ * The row's one grey line (laptop v2, owner 18 Nov 2026): "→ Pick a time · Due Mon" while open,
+ * "↩ You replied Nov 13" once replied, else an interview or test date, or "Nothing needed". Red
+ * only when past due.
  */
-export function StepLine({
-  conversation: c,
-  dueApart = false,
-}: {
-  conversation: Conversation;
-  dueApart?: boolean;
-}) {
+export function StepLine({ conversation: c }: { conversation: Conversation }) {
   const asked = c.request;
-  if (!asked) return <NoStep conversation={c} />;
+  if (!asked)
+    return (
+      <p className="mt-0.5 truncate text-text-secondary">{scheduleLine(c) ?? 'Nothing needed'}</p>
+    );
   const detail = requestDetail(asked);
-  const { Icon, color } = STEP_MARK[asked.state];
   const due = detail && (
-    <span className={requestPastDue(asked) ? 'text-danger-text' : 'text-text-secondary'}>
-      {detail}
-    </span>
+    <span className={cn(requestPastDue(asked) && 'text-danger-text')}>{detail}</span>
   );
+  // Replied: the reply says it all ("You replied Nov 13"); else the step, then its due date.
+  const words = asked.state === 'REPLIED' && due ? due : requestTitle(asked);
   return (
-    <>
-      <p className="mt-0.5 flex gap-2">
-        <Icon size={16} aria-hidden="true" className={cn('mt-0.5 shrink-0', color)} />
-        <span className={cn('min-w-0', asked.state !== 'OPEN' && 'text-text-secondary')}>
-          <span className="max-md:line-clamp-2">{requestTitle(asked)}</span>
-          {due && !dueApart && <> · {due}</>}
-          {fakeOfferStep(c) && (
-            <span className="ml-2 inline-flex align-middle">
-              <FakeOfferTag />
-            </span>
-          )}
-        </span>
-      </p>
-      {due && dueApart && <p className="mt-0.5 ml-6 text-xs">{due}</p>}
-    </>
-  );
-}
-
-/**
- * "Lumen Apps · Riya Kapoor · Recruiter · 5 mails, 2 from you": where, who, what, how many. The
- * company leads, in the text colour, so it stands out on every row (owner, 17 Nov 2026).
- */
-export function MetaLine({ conversation: c }: { conversation: Conversation }) {
-  const company = mailCompany(c);
-  const rest = [
-    parseSender(c.sender).name,
-    c.category && CATEGORY_LABEL[c.category],
-    mailCounts(c.mailCount + c.sentCount, c.sentCount),
-  ];
-  return (
-    <p className="mt-1 truncate text-xs text-text-tertiary">
-      {company && (
-        <>
-          <span className="font-medium text-text-primary">{company}</span>
-          {' · '}
-        </>
-      )}
-      {rest.filter(Boolean).join(' · ')}
+    <p className="mt-0.5 flex min-w-0 items-center gap-2 text-text-secondary">
+      <span className="min-w-0 truncate">
+        <span aria-hidden="true">{STEP_MARK[asked.state]} </span>
+        {words}
+        {due && asked.state !== 'REPLIED' && <> · {due}</>}
+      </span>
+      {fakeOfferStep(c) && <FakeOfferTag />}
     </p>
   );
 }
 
 /**
- * One job mail on a laptop (owner, 3 Nov 2026): coloured initials; the subject, the next step and
- * a grey line of who, where and how many; the application; the date; the "…" menu when pointed
- * at. The whole row opens the mail.
+ * One job mail on a laptop (laptop v2, owner 18 Nov 2026, `PHONE-LINEAR-mock/desktop.html`): the
+ * photo with the status ring on it; the person, then the subject on the same line; one grey line
+ * for the ask and its due date; the company with the status ring and word; the date; the "…" menu
+ * when pointed at. A blue dot marks a new mail. The whole row opens the mail.
  */
 export function MailRow({ conversation: c }: { conversation: Conversation }) {
   const sender = parseSender(c.sender).name;
   return (
-    <div className="group relative grid grid-cols-[32px_minmax(0,1fr)_minmax(180px,240px)_64px_32px] gap-4 border-b border-border-subtle px-3 py-3.5 transition-colors duration-70 ease-standard hover:bg-layer-hover">
-      <span
-        className={cn(
-          'absolute top-[26px] left-0.5 size-1.5 rounded-full bg-link transition-[scale,opacity] duration-300 ease-standard',
-          c.isNew ? 'scale-100 opacity-100' : 'scale-0 opacity-0 delay-200',
+    <div className="group relative grid grid-cols-[30px_minmax(0,1fr)_210px_64px_32px] items-center gap-3.5 border-b border-border-subtle px-2.5 py-2.5 transition-colors duration-70 ease-standard hover:bg-layer-hover">
+      <span className="relative size-[30px] shrink-0">
+        <Avatar name={sender} className="size-[30px] text-[11px]" />
+        {c.application && (
+          // The application's status as a small ring on the photo, as on the phone.
+          <span className="absolute -right-[3px] -bottom-[3px] flex rounded-full bg-background p-[1.5px]">
+            <Ring kind={statusTag(c.application.effectiveStatus).ring} size={12} />
+          </span>
         )}
-      >
-        {c.isNew && <span className="sr-only">New</span>}
       </span>
-      <Avatar name={sender} className="mt-px" />
       <div className="min-w-0">
-        <Link
-          to="/mails/$key"
-          params={{ key: c.key }}
-          className={cn(
-            'block truncate font-medium text-text-primary outline-none after:absolute after:inset-0 focus-visible:after:outline-2 focus-visible:after:-outline-offset-2 focus-visible:after:outline-border-focus',
-            c.isNew && 'font-semibold',
-          )}
-        >
-          {c.subject || '(No subject)'}
-        </Link>
+        <p className="flex min-w-0 items-baseline gap-2 whitespace-nowrap">
+          <span
+            className={cn(
+              'size-[7px] shrink-0 -translate-y-px self-center rounded-full bg-link transition-[scale,opacity,margin] duration-300 ease-standard',
+              c.isNew ? 'scale-100 opacity-100' : '-mr-2 w-0 scale-0 opacity-0 delay-200',
+            )}
+          >
+            {c.isNew && <span className="sr-only">New</span>}
+          </span>
+          <span className={cn('shrink-0', c.isNew ? 'font-semibold' : 'font-medium')}>
+            {sender}
+          </span>
+          <Link
+            to="/mails/$key"
+            params={{ key: c.key }}
+            className={cn(
+              'min-w-0 truncate outline-none after:absolute after:inset-0 focus-visible:after:outline-2 focus-visible:after:-outline-offset-2 focus-visible:after:outline-border-focus',
+              c.isNew ? 'text-text-primary' : 'text-text-secondary',
+            )}
+          >
+            {c.subject || '(No subject)'}
+          </Link>
+        </p>
         <StepLine conversation={c} />
-        <MetaLine conversation={c} />
       </div>
       <div className={cn('min-w-0 text-[13px]', ABOVE_LINK)}>
         <ConversationApplication conversation={c} appearance="row" />
       </div>
-      <p className="text-right text-xs leading-5 text-text-tertiary tabular-nums">
+      <p className="self-start pt-0.5 text-right text-xs leading-5 text-text-tertiary tabular-nums">
         {mailDate(c.lastReceivedAt)}
       </p>
       <div
         className={cn(
-          '-mt-1.5 opacity-0 transition-opacity duration-70 group-focus-within:opacity-100 group-hover:opacity-100 has-[[aria-expanded=true]]:opacity-100',
+          'opacity-0 transition-opacity duration-70 group-focus-within:opacity-100 group-hover:opacity-100 has-[[aria-expanded=true]]:opacity-100',
           ABOVE_LINK,
         )}
       >

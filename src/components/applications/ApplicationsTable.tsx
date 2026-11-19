@@ -12,6 +12,7 @@ import { shortAgo } from '../../lib/shortAgo';
 import { cn } from '../../lib/utils';
 import { applicationTag, ARCHIVED_TAG } from '../../lib/statusTags';
 import { JobLink } from '../automation/JobLink';
+import { LaptopTodoCell } from './LaptopTodoCell';
 import { DataTable, ROW_LINK_CLASS } from '../ui/data-table';
 import { OverflowMenu } from '../ui/menu';
 import { Tag } from '../ui/tag';
@@ -126,12 +127,8 @@ const COLUMNS: ColumnDef<ApplicationResponse>[] = [
   column(
     'todo',
     'To do',
-    (app) =>
-      app.pendingActionCount > 0 ? (
-        <Tag color="yellow">{app.pendingActionCount} to do</Tag>
-      ) : (
-        <span className="text-text-tertiary">None</span>
-      ),
+    // Plain words with the next step under them (laptop v2, 18 Nov 2026).
+    (app) => <LaptopTodoCell app={app} />,
     { phoneLabel: 'To do' },
   ),
   column('applied', 'Applied', (app) => <AppliedCell app={app} />, { phoneLabel: 'Applied' }),
@@ -234,7 +231,7 @@ export function ApplicationsTable({ applications, ...rest }: ApplicationsTablePr
       data={applications}
       columns={COLUMNS}
       getRowId={(app) => app.id}
-      gridTemplate="minmax(220px,2fr) minmax(170px,1.3fr) 112px 128px minmax(200px,1.6fr) 32px"
+      gridTemplate="minmax(220px,2fr) minmax(170px,1.3fr) minmax(150px,1.3fr) 112px minmax(200px,1.6fr) 32px"
       phoneRow={(app) => <PhoneApplicationRow app={app} />}
       phonePlain
       {...rest}

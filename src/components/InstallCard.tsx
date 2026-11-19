@@ -126,14 +126,14 @@ export function InstallCard({ phone = false }: { phone?: boolean }) {
   return (
     <aside
       aria-label="Install NorthList"
-      className="fixed right-6 bottom-6 z-40 flex w-96 animate-page-in items-start gap-3.5 rounded-[20px] border border-border-subtle glass-menu p-4 text-sm text-text-primary shadow-popup"
+      className="fixed right-[18px] bottom-[18px] z-40 flex w-[330px] animate-fade-in items-start gap-3 rounded-2xl glass-menu p-3.5 text-sm text-text-primary"
     >
       <img
         src="/icon-192.png"
         alt=""
-        width={44}
-        height={44}
-        className="size-11 shrink-0 rounded-[11px]"
+        width={40}
+        height={40}
+        className="size-10 shrink-0 rounded-[10px]"
       />
       <div className="min-w-0 flex-1">
         <p className="font-semibold">

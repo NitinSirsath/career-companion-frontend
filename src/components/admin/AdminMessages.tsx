@@ -17,7 +17,7 @@ function SentRow({ message }: { message: AdminSentMessage }) {
   const remove = useRemoveMessage();
   const removed = message.removedAt !== null;
   return (
-    <li className="flex items-start gap-4 border-t border-border-subtle px-6 py-3.5 text-sm max-md:px-4 max-md:text-[15px]">
+    <li className="flex items-start gap-3 border-t border-border-subtle px-3.5 py-3 text-sm max-md:px-4 max-md:text-[15px]">
       <div className="min-w-0 flex-1">
         <p className="mb-1 flex flex-wrap items-center gap-2 text-xs text-text-secondary max-md:text-[13px]">
           {sentLine(message)}
@@ -99,9 +99,10 @@ export function AdminMessages({ accounts }: { accounts: readonly AdminAccount[] 
   ];
   const ready = text.trim().length > 0;
   return (
-    <div className="panel max-md:rounded-2xl">
+    // Laptops (laptop v2, 18 Nov 2026): a flat panel on the right of the Admin page.
+    <section aria-label="Messages" className="panel max-md:rounded-2xl">
       <form
-        className="flex flex-col gap-3.5 px-6 py-5 max-md:px-4 max-md:py-4"
+        className="flex flex-col gap-3 p-3.5 max-md:px-4 max-md:py-4"
         onSubmit={(event) => {
           event.preventDefault();
           if (!ready) return;
@@ -116,6 +117,10 @@ export function AdminMessages({ accounts }: { accounts: readonly AdminAccount[] 
           );
         }}
       >
+        <h2 className="text-xs font-semibold text-text-secondary">
+          Message to users{' '}
+          <span className="font-medium">· shown at the top of the app until closed</span>
+        </h2>
         <Select
           label="To"
           options={options}
@@ -150,6 +155,6 @@ export function AdminMessages({ accounts }: { accounts: readonly AdminAccount[] 
         )}
       </form>
       <SentList sent={sent} />
-    </div>
+    </section>
   );
 }

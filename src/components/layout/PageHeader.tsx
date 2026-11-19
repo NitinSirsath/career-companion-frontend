@@ -14,6 +14,8 @@ interface PageHeaderProps {
   actions?: React.ReactNode;
   /** A line of facts under the title, such as company and role. */
   meta?: React.ReactNode;
+  /** Laptops: a small grey line above the title, such as "Riya Kapoor · Oct 22" on a mail. */
+  kicker?: React.ReactNode;
   /**
    * List pages: on phones the top bar already names the page, so the title and description are
    * kept for screen readers only and the actions move to the page itself.
@@ -96,6 +98,7 @@ function LaptopHeader({
   breadcrumb,
   actions,
   meta,
+  kicker,
   phoneCompact = false,
   actionsBesideTitle = false,
   refresh = false,
@@ -124,6 +127,7 @@ function LaptopHeader({
             actionsBesideTitle && 'max-md:basis-0',
           )}
         >
+          {kicker}
           <h1 className="text-[22px] leading-7 font-semibold tracking-[-0.025em] break-words md:text-[26px] md:leading-8">
             {title}
           </h1>

@@ -20,7 +20,7 @@ vi.mock('../api/client', () => ({
     getApplication: vi.fn(),
     getApplicationEvents: vi.fn(),
     getApplicationActions: vi.fn(),
-    // The lists' next steps: none unless a test says so.
+    // The open steps under each "N to do": none unless a test says so.
     getActions: vi.fn(async () => ({
       items: [],
       metadata: { limit: 20, offset: 0, nextOffset: null },
@@ -207,6 +207,48 @@ describe('Applications Dashboard (/applications)', () => {
     renderWithProviders(queryClient, '/applications');
 
     expect(await screen.findByText('2 to do')).toBeInTheDocument();
+  });
+
+  it('shows the next step under the count, red only when past due (laptop v2)', async () => {
+    vi.mocked(api.listApplications).mockResolvedValue({
+      items: [
+        makeApp({ id: 'app-1', companyName: 'Brightwave', pendingActionCount: 1 }),
+        makeApp({ id: 'app-2', companyName: 'BrightPath', pendingActionCount: 1 }),
+      ],
+      metadata: { limit: 20, offset: 0, nextOffset: null },
+    });
+    const step = {
+      origin: 'EMAIL' as const,
+      actionRevision: 0,
+      clientRequestId: null,
+      snoozedUntil: null,
+      emailId: null,
+      type: 'REPLY',
+      deadlinePrecision: 'DATETIME' as const,
+      status: 'PENDING',
+      createdAt: '2026-10-01T10:00:00.000Z',
+      application: { companyName: 'x', jobTitle: null },
+      email: null,
+    };
+    vi.mocked(api.getActions).mockResolvedValueOnce({
+      items: [
+        { ...step, id: 'a1', applicationId: 'app-1', description: 'Pick a time', deadline: null },
+        {
+          ...step,
+          id: 'a2',
+          applicationId: 'app-2',
+          description: 'Let them know your decision',
+          deadline: '2026-11-10T10:00:00.000Z',
+        },
+      ],
+      metadata: { limit: 20, offset: 0, nextOffset: null },
+    });
+    renderWithProviders(queryClient, '/applications');
+
+    expect(await screen.findByText('Pick a time')).toHaveClass('text-text-secondary');
+    expect(screen.getByText('Past due · Let them know your decision')).toHaveClass(
+      'text-danger-text',
+    );
   });
 
   it('names each value on phones, where the header row is hidden', async () => {

@@ -171,14 +171,14 @@ describe('a mail the AI thinks is a fake job offer', () => {
 });
 
 describe('a fake job offer in the Mails list', () => {
-  it('tags the row by its type, and shows the next step without "Needs action"', async () => {
+  it('tags the row Probably fake, and shows the next step without "Needs action"', async () => {
     show('/mails');
     const cells = within(
       (await screen.findByRole('link', { name: SUBJECT })).closest<HTMLElement>('li')!,
     );
-    expect(cells.getByText(/· Offer ·/)).toBeInTheDocument();
+    // Laptop v2 (18 Nov 2026): the mail's type is no longer on the row (no third grey line).
     expect(cells.getByText('Probably fake')).toBeInTheDocument();
-    expect(cells.getByText(SAFE_STEP)).toBeInTheDocument();
+    expect(cells.getByText(new RegExp(SAFE_STEP))).toBeInTheDocument();
     expect(cells.queryByText('Needs action')).not.toBeInTheDocument();
   });
 

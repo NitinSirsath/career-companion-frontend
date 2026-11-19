@@ -216,19 +216,20 @@ describe('Job mails tab', () => {
     show();
     const cells = await row('Interview: first round availability');
     expect(cells.getByText('New')).toBeInTheDocument();
-    // One line says where, who, what type and how many (owner, 3 Nov 2026); the company leads in
-    // the text colour, even with no application (owner, 17 Nov 2026).
+    // Laptop v2 (18 Nov 2026): the person first, then the subject on the same line; one grey line
+    // for the ask. The company leads the right column in the text colour, even with no application
+    // (owner, 17 Nov 2026), so "Not linked" is not needed there.
+    expect(cells.getByText('Priya Nair').parentElement).toHaveTextContent(
+      /^NewPriya NairInterview: first round availability$/,
+    );
     const company = cells.getByText('Northwind Robotics');
     expect(company).toHaveClass('font-medium', 'text-text-primary');
-    expect(company.parentElement).toHaveTextContent(
-      /^Northwind Robotics · Priya Nair · Interview · 1 mail$/,
-    );
-    expect(cells.getByText('Send your available dates')).toBeInTheDocument();
+    expect(cells.getByText(/Send your available dates/)).toBeInTheDocument();
     // One list, newest first: no "Needs action" tag on each row; the blue arrow marks the step.
     expect(cells.queryByText('Needs action')).not.toBeInTheDocument();
     // The fixture's deadline has passed: the request stays open and says so.
     expect(cells.getByText('Past due · Oct 13, 2026')).toHaveClass('text-danger-text');
-    expect(cells.getByText('Not linked')).toBeInTheDocument();
+    expect(cells.queryByText('Not linked')).not.toBeInTheDocument();
     expect(
       cells.getByRole('link', { name: 'Interview: first round availability' }),
     ).toHaveAttribute('href', '/mails/thread-1');
@@ -261,7 +262,8 @@ describe('Job mails tab', () => {
     ];
     show();
     const cells = await row('Interview: first round availability');
-    expect(cells.getByText(/· Update ·/)).toBeInTheDocument();
+    // No third grey line with the mail's type any more (laptop v2, 18 Nov 2026).
+    expect(cells.queryByText(/· Update ·/)).not.toBeInTheDocument();
     expect(cells.getByText('Nothing needed')).toBeInTheDocument();
     expect(cells.queryByText('New')).not.toBeInTheDocument();
     expect(cells.getByRole('link', { name: 'Umbrella Labs' })).toHaveAttribute(
@@ -307,7 +309,7 @@ describe('Job mails tab', () => {
     show();
     const cells = await row('Interview: first round availability');
     // A done step is grey, with its reason.
-    expect(cells.getByText('Send your available dates').closest('span.min-w-0')).toHaveClass(
+    expect(cells.getByText(/Send your available dates/).closest('p')).toHaveClass(
       'text-text-secondary',
     );
     expect(cells.getByText('Your reply answered it')).toBeInTheDocument();
@@ -567,14 +569,13 @@ describe('career contacts and the "Link to" offer (owner, 17 Nov 2026)', () => {
     ];
     show();
     const cells = await row('Listing NorthList Apply on Agensi');
-    expect(cells.getByText('Agensi').parentElement).toHaveTextContent(
-      /^Agensi · Joeri Brons · Career contact · 1 mail$/,
-    );
+    expect(cells.getByText('Agensi')).toHaveClass('font-medium', 'text-text-primary');
+    expect(cells.getByText('Career contact')).toBeInTheDocument();
     expect(cells.getByText('No application needed')).toBeInTheDocument();
     expect(cells.queryByText('Not linked')).not.toBeInTheDocument();
     expect(cells.queryByRole('button', { name: 'Create application' })).not.toBeInTheDocument();
     // The next step works as for any job mail.
-    expect(cells.getByText('Send your available dates')).toBeInTheDocument();
+    expect(cells.getByText(/Send your available dates/)).toBeInTheDocument();
   });
 
   it('offers the type as a filter', async () => {

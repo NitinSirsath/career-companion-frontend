@@ -32,7 +32,7 @@ import { MailType } from './MailType';
 /**
  * The conversation's application, or the one-click way to give it one. In a table row ("cell")
  * the way to create one is a quiet link; on a mail's page it is a full button. In a Mails list row
- * ("row") the company is plain text and the status tag sits beside the role.
+ * ("row", laptops only) the company is plain text with the status under it.
  */
 export function ConversationApplication({
   conversation,
@@ -44,18 +44,19 @@ export function ConversationApplication({
   const { application } = conversation;
   if (application && appearance === 'row')
     return (
-      <div className="flex min-w-0 flex-col items-start gap-1">
+      // Laptop Mails row (laptop v2, 18 Nov 2026): the company, then the status ring and word.
+      <div className="flex min-w-0 flex-col items-start gap-0.5">
         <Link
           to="/applications/$id"
           params={{ id: application.id }}
+          title={application.jobTitle ?? undefined}
           className="max-w-full truncate font-medium text-text-primary hover:underline"
         >
           {application.companyName}
         </Link>
-        <div className="flex max-w-full items-center gap-2 text-xs text-text-secondary">
+        <div className="flex max-w-full items-center gap-2 text-text-secondary">
           <StatusBadge status={application.effectiveStatus} />
           {application.archived && <Tag color="outline">Archived</Tag>}
-          {application.jobTitle && <span className="truncate">{application.jobTitle}</span>}
         </div>
       </div>
     );
@@ -90,6 +91,16 @@ export function ConversationApplication({
         )}
       </div>
     );
+  // Laptop Mails row: the company leads, in the text colour, even with no application (owner,
+  // 17 Nov 2026); "Not linked" only when no company is known (laptop v2, 18 Nov 2026).
+  const company = appearance === 'row' ? conversation.company : null;
+  if (company)
+    return (
+      <div className="flex min-w-0 flex-col items-start gap-0.5">
+        <span className="max-w-full truncate font-medium text-text-primary">{company}</span>
+        <NoApplication conversation={conversation} appearance={appearance} named />
+      </div>
+    );
   return <NoApplication conversation={conversation} appearance={appearance} />;
 }
 
@@ -97,9 +108,12 @@ export function ConversationApplication({
 function NoApplication({
   conversation,
   appearance,
+  named = false,
 }: {
   conversation: Conversation;
   appearance: 'cell' | 'row' | 'panel';
+  /** The row already names the company above: no "Not linked" line. */
+  named?: boolean;
 }) {
   // The user said earlier that this mail belongs to no application.
   if (conversation.link === 'IGNORED')
@@ -113,7 +127,7 @@ function NoApplication({
         <span className="text-xs text-text-tertiary">{CAREER_CONTACT.noApplication}</span>
       </div>
     );
-  return <CreateApplication conversation={conversation} appearance={appearance} />;
+  return <CreateApplication conversation={conversation} appearance={appearance} named={named} />;
 }
 
 /**
@@ -188,9 +202,11 @@ function LinkButtons({
 function CreateApplication({
   conversation,
   appearance,
+  named = false,
 }: {
   conversation: Conversation;
   appearance: 'cell' | 'row' | 'panel';
+  named?: boolean;
 }) {
   const link = useLinkConversation(conversation.key);
   const [problem, setProblem] = useState<LinkProblem | null>(null);
@@ -225,7 +241,7 @@ function CreateApplication({
   const offers = conversation.sameCompanyApplications;
   return (
     <div className="flex flex-col items-start gap-1">
-      {cell && <span className="text-text-secondary">Not linked</span>}
+      {cell && !named && <span className="text-text-secondary">Not linked</span>}
       <LinkButtons
         conversation={conversation}
         cell={cell}

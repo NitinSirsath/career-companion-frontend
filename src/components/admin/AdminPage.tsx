@@ -1,6 +1,5 @@
 import { useState, type ReactNode } from 'react';
 import { format } from 'date-fns';
-import { CircleCheckIcon, MailIcon, TriangleAlertIcon } from 'lucide-react';
 import { useAdminOverview, useFreeAIMoney } from '../../api/admin';
 import type { AdminFreeAIMoney, AdminOverview } from '../../contracts/admin';
 import {
@@ -16,36 +15,36 @@ import { cn } from '../../lib/utils';
 import { PageHeader } from '../layout/PageHeader';
 import { usePhoneNav } from '../phone/phoneNav';
 import { PhoneRefreshCapsule } from '../phone/PhoneRefresh';
+import { Ring } from '../ui/ring';
 import { SectionError } from '../ui/section-error';
 import { SkeletonList } from '../ui/skeleton';
 import { AdminAccounts, ResumeButton } from './AdminAccounts';
 import { AdminMessages } from './AdminMessages';
 import { PhoneAdmin } from './PhoneAdmin';
 
+/** A small grey heading over a part of the page (laptop v2, owner 18 Nov 2026). */
 function SectionTitle({ title, note }: { title: string; note?: string }) {
   return (
-    <div className="mt-6 flex items-baseline gap-2.5 max-md:mt-4 max-md:px-1">
-      <h2 className="text-base leading-[22px] font-semibold max-md:text-[17px]">{title}</h2>
-      {note && <span className="text-[13px] text-text-tertiary max-md:text-[15px]">{note}</span>}
-    </div>
+    <h2 className="mt-5 mb-1.5 flex items-baseline gap-2 text-xs font-semibold text-text-secondary first:mt-0">
+      {title}
+      {note && <span className="font-medium">{note}</span>}
+    </h2>
   );
 }
 
-function Tiles({ overview }: { overview: AdminOverview }) {
+/** The four numbers in one line between two thin lines, instead of tiles (laptop v2). */
+function Numbers({ overview }: { overview: AdminOverview }) {
   const counts = accountCounts(overview.accounts);
   const limit = overview.betaUserLimit;
   const callsToday = overview.aiCallsByDay[overview.aiCallsByDay.length - 1]?.calls ?? 0;
-  const tiles: { label: string; value: ReactNode; note: string }[] = [
+  const numbers: { label: string; value: ReactNode; note: string }[] = [
     {
       label: 'Accounts',
       value: (
         <>
           {count(counts.real)}
           {limit > 0 && (
-            <span className="text-base font-medium tracking-normal text-text-tertiary">
-              {' '}
-              / {count(limit)}
-            </span>
+            <span className="text-sm font-medium text-text-tertiary"> / {count(limit)}</span>
           )}
         </>
       ),
@@ -65,55 +64,42 @@ function Tiles({ overview }: { overview: AdminOverview }) {
     { label: 'AI calls today', value: count(callsToday), note: 'All accounts, UTC day' },
   ];
   return (
-    <dl className="grid grid-cols-2 panel md:grid-cols-4 max-md:rounded-2xl">
-      {tiles.map((tile, index) => (
+    <dl className="grid grid-cols-4 border-y border-border-subtle">
+      {numbers.map((number) => (
+        // "41 / 99" over "Accounts · 58 beta places left", as the mock draws it.
         <div
-          key={tile.label}
-          className={cn(
-            'flex flex-col gap-1.5 border-border-subtle px-6 pt-[18px] pb-5 max-md:flex-col-reverse max-md:gap-0.5 max-md:px-4 max-md:pt-3 max-md:pb-3.5',
-            index % 2 === 1 && 'border-l',
-            index === 2 && 'md:border-l',
-            index > 1 && 'max-md:border-t',
-          )}
+          key={number.label}
+          className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-1 py-3 text-[13px]"
         >
-          <dt className="text-xs text-text-secondary max-md:text-[15px]">{tile.label}</dt>
-          <dd className="text-[28px] leading-[34px] font-semibold tracking-[-0.02em] tabular-nums max-md:font-bold">
-            {tile.value}
+          <dt className="row-start-2 text-text-secondary">{number.label}</dt>
+          <dd className="col-span-2 row-start-1 text-[22px] leading-7 font-semibold tracking-[-0.015em] tabular-nums">
+            {number.value}
           </dd>
-          <dd className="text-xs text-text-tertiary max-md:hidden">{tile.note}</dd>
+          <dd className="row-start-2 truncate text-text-tertiary before:mr-1 before:content-['·']">
+            {number.note}
+          </dd>
         </div>
       ))}
     </dl>
   );
 }
 
-const TONE: Record<LookItem['tone'], string> = {
-  red: 'text-danger-text',
-  yellow: 'text-tag-yellow',
-  blue: 'text-link',
-};
-
+/** One thing to look at: a ring, its title and grey detail, and Resume for a resume request. */
 function LookRow({ item }: { item: LookItem }) {
-  const Icon = item.tone === 'blue' ? MailIcon : TriangleAlertIcon;
   return (
-    <li className="flex gap-3.5 border-border-subtle px-6 py-3.5 text-sm not-first:border-t max-md:px-4 max-md:text-[17px] max-md:leading-[22px] md:grid md:grid-cols-[20px_260px_1fr_auto] md:items-start">
-      <Icon size={18} aria-hidden="true" className={cn('mt-0.5 shrink-0', TONE[item.tone])} />
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5 md:contents">
-        <b className="font-semibold max-md:font-normal">{item.title}</b>
-        <div className="leading-5 break-words text-text-secondary max-md:text-[15px]">
-          {item.detail}
-          {item.resume && (
-            <p className="mt-1.5 rounded-[10px] bg-surface px-3 py-2 text-[13px] leading-[19px] text-text-primary ring-1 ring-border-subtle ring-inset max-md:text-[15px]">
-              &ldquo;{item.resume.text}&rdquo;
-            </p>
-          )}
-        </div>
+    <li className="flex items-start gap-3 border-b border-border-subtle px-2.5 py-2.5 text-sm">
+      {/* An empty ring for a request to answer, a grey × ring for a problem (laptop v2). */}
+      <Ring kind={item.tone === 'blue' ? 'applied' : 'closed'} size={14} className="mt-[3px]" />
+      <div className="min-w-0 flex-1">
+        <p className={cn(item.tone === 'red' && 'text-danger-text')}>{item.title}</p>
+        <p className="leading-5 break-words text-text-secondary">{item.detail}</p>
         {item.resume && (
-          <div className="max-md:mt-2">
-            <ResumeButton account={item.resume.account} primary />
-          </div>
+          <p className="mt-0.5 leading-5 break-words text-text-secondary">
+            &ldquo;{item.resume.text}&rdquo;
+          </p>
         )}
       </div>
+      {item.resume && <ResumeButton account={item.resume.account} link />}
     </li>
   );
 }
@@ -121,13 +107,12 @@ function LookRow({ item }: { item: LookItem }) {
 function NeedsALook({ items }: { items: LookItem[] }) {
   if (!items.length)
     return (
-      <div className="flex items-center gap-3.5 panel px-6 py-3.5 text-sm max-md:rounded-2xl max-md:px-4 max-md:text-[15px]">
-        <CircleCheckIcon size={18} aria-hidden="true" className="shrink-0 text-ok" />
+      <p className="border-b border-border-subtle px-2.5 py-2.5 text-sm text-text-secondary">
         All good. No paused AI, failing syncs, unread mails, key problems or limits reached.
-      </div>
+      </p>
     );
   return (
-    <ul className="panel max-md:rounded-2xl">
+    <ul>
       {items.map((item) => (
         <LookRow key={item.key} item={item} />
       ))}
@@ -307,7 +292,7 @@ export function MoneyLine({
         ? Math.max(0, Math.min(1, money.leftUsd / money.limitUsd))
         : null;
     body = (
-      <span className="flex flex-wrap items-center gap-x-4 gap-y-1 tabular-nums">
+      <span className="flex flex-wrap items-center gap-x-4 gap-y-1.5 tabular-nums">
         <span>
           <span className="text-text-tertiary">Today</span>{' '}
           <b className="font-semibold">{usd(money.todayUsd)}</b>
@@ -325,7 +310,7 @@ export function MoneyLine({
             </span>
             <span
               aria-hidden="true"
-              className="h-1.5 w-[180px] overflow-hidden rounded-full bg-surface-selected max-md:w-full"
+              className="h-1.5 w-full overflow-hidden rounded-full bg-surface-selected"
             >
               <span
                 className={cn('block h-full rounded-full', low ? 'bg-tag-yellow' : 'bg-ok')}
@@ -338,10 +323,10 @@ export function MoneyLine({
     );
   }
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border-subtle px-6 py-3.5 text-sm max-md:px-4 max-md:text-[15px]">
-      <span>Free AI on OpenRouter</span>
+    <section aria-label="Free AI money" className="panel p-3.5 text-sm">
+      <h2 className="mb-2 text-xs font-semibold text-text-secondary">Free AI on OpenRouter</h2>
       {body}
-    </div>
+    </section>
   );
 }
 
@@ -366,35 +351,35 @@ export function AdminPage() {
     const items = needsALook(data, money.data);
     body = (
       <>
-        <Tiles overview={data} />
-        <SectionTitle
-          title="Needs a look"
-          note={
-            items.length ? `${items.length} ${items.length === 1 ? 'thing' : 'things'}` : undefined
-          }
-        />
-        <NeedsALook items={items} />
-        <SectionTitle title="Messages" note="Shown at the top of the app until closed" />
-        <AdminMessages accounts={data.accounts} />
-        <SectionTitle
-          title="Accounts"
-          note={(() => {
-            const counts = accountCounts(data.accounts);
-            return `${count(data.accounts.length)}${counts.test ? ` · ${counts.test} test ${counts.test === 1 ? 'account' : 'accounts'} not counted` : ''}`;
-          })()}
-        />
-        <AdminAccounts accounts={data.accounts} />
-        <SectionTitle title="AI use" note="AI calls per day, all accounts, last 14 days" />
-        <div className="panel max-md:rounded-2xl">
-          <div className="px-6 pt-[18px] pb-4 max-md:px-3 max-md:pt-3.5 max-md:pb-2.5">
+        <Numbers overview={data} />
+        {/* Laptop v2 (18 Nov 2026): the lists on the left, Messages and the money on the right. */}
+        <div className="grid grid-cols-[minmax(0,1fr)_300px] items-start gap-8">
+          <div className="min-w-0">
+            <SectionTitle
+              title="Needs a look"
+              note={items.length ? `· ${items.length}` : undefined}
+            />
+            <NeedsALook items={items} />
+            <SectionTitle
+              title="Accounts"
+              note={(() => {
+                const counts = accountCounts(data.accounts);
+                return `· ${count(data.accounts.length)}${counts.test ? ` (${counts.test} test ${counts.test === 1 ? 'account' : 'accounts'} not counted)` : ''}`;
+              })()}
+            />
+            <AdminAccounts accounts={data.accounts} />
+            <SectionTitle title="AI use" note="· AI calls per day, all accounts, last 14 days" />
             <CallsChart days={data.aiCallsByDay} />
+            <p className="mt-2 text-xs leading-[18px] text-text-tertiary">
+              Today&rsquo;s bar is lighter: the day is not over. Days are UTC days, like the AI
+              daily limits.
+            </p>
           </div>
-          <MoneyLine money={money.data} loading={money.isLoading} />
+          <div className="flex flex-col gap-3 lg:sticky lg:top-20">
+            <AdminMessages accounts={data.accounts} />
+            <MoneyLine money={money.data} loading={money.isLoading} />
+          </div>
         </div>
-        <p className="m-0 text-xs leading-[18px] text-text-tertiary max-md:px-4 max-md:text-[13px]">
-          Today&rsquo;s bar is lighter: the day is not over. Days are UTC days, like the AI daily
-          limits.
-        </p>
       </>
     );
   }
@@ -403,7 +388,7 @@ export function AdminPage() {
       <PhoneRefreshCapsule />
       <PageHeader
         phoneSmallTitle
-        className="mb-2"
+        className={phone ? 'mb-2' : 'mb-0'}
         title="Admin"
         description={
           phone

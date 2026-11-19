@@ -476,8 +476,13 @@ describe('job mail details', () => {
       name: 'Interview: first round availability',
     });
     const header = within(title.closest('header')!);
+    // Laptop v2 (18 Nov 2026): "who · when" above the title, "For" the application under it, then
+    // the facts as pills in one card.
+    expect(header.getByText(/^Priya Nair · /)).toBeInTheDocument();
+    expect(
+      header.getByRole('link', { name: 'Northwind Robotics · Senior Platform Engineer' }),
+    ).toHaveAttribute('href', '/applications/33333333-3333-4333-8333-333333333333');
     expect(header.getByText('Northwind Robotics')).toBeInTheDocument();
-    expect(header.getByText('Senior Platform Engineer')).toBeInTheDocument();
     expect(header.getByText('Interview')).toBeInTheDocument();
     expect(await header.findByText('1 mail')).toBeInTheDocument();
     expect(header.getByRole('link', { name: /in Gmail$/ })).toBeInTheDocument();
@@ -625,6 +630,13 @@ describe('replying from the mail details page', () => {
     await screen.findByRole('button', { name: /^Reply to .*…/ });
     fireEvent.keyDown(document.body, { key: 'r' });
     await waitFor(async () => expect(await replyBox()).toHaveFocus());
+  });
+
+  it('opens the reply with the AI help ready from "AI" on the closed bar (laptop v2)', async () => {
+    show('/mails/thread-1');
+    fireEvent.click(await screen.findByRole('button', { name: 'Reply with AI' }));
+    const form = within(await screen.findByRole('form', { name: 'Reply' }));
+    await waitFor(() => expect(form.getByPlaceholderText(/^Optional: what to say/)).toHaveFocus());
   });
 
   it('closes the open box with × or Esc on a laptop, keeps the text and returns the focus', async () => {

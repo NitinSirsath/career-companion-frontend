@@ -7,7 +7,7 @@ import { InlineNotification } from '../ui/notification';
 import { ConversationMenu } from './ConversationMenu';
 import { FakeOfferNotice } from './FakeOffer';
 import { JobMailPanel } from './JobMailPanel';
-import { MailFacts } from './MailFacts';
+import { LaptopMailFacts, MailKicker } from './LaptopMailHead';
 import { MailThreadView } from './MailThreadView';
 import { MailTitle } from './MailTitle';
 import { PhoneMailPage } from './PhoneMailPage';
@@ -33,8 +33,10 @@ export function LoadedMail({
         breadcrumb={breadcrumb}
         onReply={() => setReplyAsks((asks) => asks + 1)}
         more={<ConversationMenu conversation={conversation} />}
+        kicker={<MailKicker conversation={conversation} />}
+        mailboxLink={false}
       >
-        <MailFacts conversation={conversation} />
+        <LaptopMailFacts conversation={conversation} />
       </MailTitle>
       {conversation.fakeOfferWarning && <FakeOfferNotice reason={conversation.fakeOfferWarning} />}
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">

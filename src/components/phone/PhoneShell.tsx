@@ -102,7 +102,7 @@ function LivePage({
         <div ref={setContent}>
           {isRoot && <div ref={setTitleTarget} />}
           <OfflineLine />
-          <OwnerMessages phone />
+          <OwnerMessages />
           <main>{children}</main>
         </div>
       </div>

@@ -16,6 +16,7 @@ import { Select } from '../components/ui/select';
 
 import { Pagination } from '../components/ui/pagination';
 import { ApplicationsTable } from '../components/applications/ApplicationsTable';
+import { LaptopStatusFilter } from '../components/applications/LaptopStatusFilter';
 import {
   ApplicationListTabs,
   ApplicationsEmpty,
@@ -158,7 +159,6 @@ function ApplicationsDashboard({
         <PageHeader
           phoneCompact
           title="Applications"
-          description="Every job you applied for, where it stands, and what is next."
           actions={
             <>
               <Button
@@ -195,14 +195,23 @@ function ApplicationsDashboard({
                   />
                 }
                 filters={(layout) => (
-                  <Select<DiscoveryView['archive']>
-                    id={`application-archive-filter-${layout}`}
-                    label="Application visibility"
-                    appearance={layout === 'inline' ? 'inline' : 'field'}
-                    value={archive}
-                    options={ARCHIVE_OPTIONS}
-                    onValueChange={(next) => changeFilters({ archive: next })}
-                  />
+                  <>
+                    {/* Laptops: the status filter as one small segmented control (18 Nov 2026). */}
+                    {list === 'progress' && (
+                      <LaptopStatusFilter
+                        value={tab}
+                        onValueChange={(next) => changeFilters({ tab: next })}
+                      />
+                    )}
+                    <Select<DiscoveryView['archive']>
+                      id={`application-archive-filter-${layout}`}
+                      label="Application visibility"
+                      appearance={layout === 'inline' ? 'inline' : 'field'}
+                      value={archive}
+                      options={ARCHIVE_OPTIONS}
+                      onValueChange={(next) => changeFilters({ archive: next })}
+                    />
+                  </>
                 )}
                 end={(layout) => (
                   <Select<DiscoveryView['sort']>
