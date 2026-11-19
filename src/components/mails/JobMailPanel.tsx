@@ -178,7 +178,7 @@ function StepMenu({
       label={`More for ${requestTitle(asked)}`}
       actions={[{ label: 'I did this', disabled: doing, onSelect: onDone }]}
     />
-  );;
+  );
 }
 
 /** What the conversation needs now: the request, its due date, its state and what closes it. */
