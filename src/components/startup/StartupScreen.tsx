@@ -68,7 +68,6 @@ export function StartupScreen({
         aria-live="polite"
         className="flex w-full max-w-110 flex-col items-center text-center"
       >
-
         {stage === 'checking' && <span className="sr-only">Loading NorthList</span>}
         {stage === 'waking' && (
           <Message title="Waking up the server" busy>
