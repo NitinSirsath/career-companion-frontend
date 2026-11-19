@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { ChevronRightIcon, CircleCheckIcon, MailIcon, RotateCcwIcon } from 'lucide-react';
-import { useReadReplyAgain, useSetRequestState } from '../../api/conversations';
+import { useSetRequestState } from '../../api/conversations';
+import { useReanalyzing } from '../../api/reanalysis';
 import type { ConversationDetail } from '../../contracts/conversation';
-import { canReadReplyAgain, reopenNote, showMail, stepNote, stepSource } from '../../lib/jobStep';
+import { reopenNote, showMail, stepNote, stepSource } from '../../lib/jobStep';
 import { keyDates } from '../../lib/mailThread';
 import {
   CAREER_CONTACT,
@@ -22,7 +23,6 @@ import { isOfflineError } from '../../lib/offline';
 import { cn } from '../../lib/utils';
 import { Ring, StatusBadge } from '../ui/ring';
 import { InlineNotification } from '../ui/notification';
-import { AiIcon } from '../ui/ai-icon';
 import { Sheet, SheetAction, SheetGroup } from '../ui/sheet';
 import { Tag } from '../ui/tag';
 import { showToast } from '../ui/toast';
@@ -30,6 +30,7 @@ import { DeclineQuestion } from '../applications/DeclineQuestion';
 import { ConversationApplication } from './ConversationApplication';
 import { ReadingReply, StepDue, StepState } from './StepParts';
 import { PhoneAiRead } from './MailMessageCard';
+import { ReanalyzeLine } from '../reanalysis/ReanalyzeLine';
 
 /*
  * A job mail's job side on a phone (owner, 13 Nov 2026, approved mock `IOS-LOOK-mock/`): the next
@@ -43,7 +44,6 @@ const ROW = 'flex min-h-10 items-center gap-[11px] -mx-4 px-[18px] py-[9px] text
 function StepActions({ detail, onClose }: { detail: ConversationDetail; onClose: () => void }) {
   const { conversation } = detail;
   const change = useSetRequestState(conversation.key);
-  const readAgain = useReadReplyAgain(conversation.key);
   const asked = conversation.request!;
   const title = requestTitle(asked);
   const fake = fakeOfferStep(conversation);
@@ -83,22 +83,6 @@ function StepActions({ detail, onClose }: { detail: ConversationDetail; onClose:
             onClick={() => setState('OPEN', `Reopened: ${title}`)}
           >
             Reopen
-          </SheetAction>
-        )}
-        {canReadReplyAgain(asked) && !fake && (
-          <SheetAction
-            icon={<AiIcon size={22} aria-hidden="true" />}
-            disabled={readAgain.isPending}
-            onClick={() =>
-              readAgain.mutate(undefined, {
-                onSuccess: () => {
-                  onClose();
-                  showToast('Reading your reply again');
-                },
-              })
-            }
-          >
-            Read my reply again
           </SheetAction>
         )}
         {source && (
@@ -145,6 +129,23 @@ function StepSheet({
   );
 }
 
+/**
+ * The AI's read under the step; while Reanalyze reads, its line takes that place, and when it
+ * stopped, its reason shows under the read (owner, 19 Nov 2026, mock P3 and P5).
+ */
+function PhoneStepReading({ detail }: { detail: ConversationDetail }) {
+  const target = { kind: 'conversation' as const, key: detail.conversation.key };
+  const running = useReanalyzing(target);
+  return (
+    <>
+      {!running && <PhoneAiRead detail={detail} />}
+      <div className="-mx-4 pr-[18px] pl-[46px] empty:hidden">
+        <ReanalyzeLine target={target} className="pb-3.5 text-[13.5px] leading-[18px]" />
+      </div>
+    </>
+  );
+}
+
 /** "Next step", in the page's section heading look (mock #2). */
 function StepHeading() {
   return <h2 className="px-0.5 pt-1 pb-2 text-[18px] leading-6 font-bold">Next step</h2>;
@@ -169,7 +170,7 @@ function PhoneNextStep({ detail }: { detail: ConversationDetail }) {
             {scheduleLine(conversation) ?? 'Nothing needed from you'}
           </span>
         </p>
-        <PhoneAiRead detail={detail} />
+        <PhoneStepReading detail={detail} />
       </section>
     );
   const title = requestTitle(asked);
@@ -209,7 +210,7 @@ function PhoneNextStep({ detail }: { detail: ConversationDetail }) {
           </span>
         )}
       </button>
-      <PhoneAiRead detail={detail} />
+      <PhoneStepReading detail={detail} />
       <StepSheet detail={detail} open={open} onOpenChange={setOpen} />
     </section>
   );

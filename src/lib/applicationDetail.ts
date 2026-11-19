@@ -138,13 +138,16 @@ export function historyEntry(event: ApplicationEventResponse): HistoryEntry {
   };
 }
 
+const RETIRED_EVENT = {
+  EMAIL_MOVED: 'Moved to another application',
+  EMAIL_UNLINKED: 'Unlinked from this application',
+  REANALYZED: 'No longer found when the mail was reanalyzed',
+} as const;
+
 /** Why a history row no longer counts. */
 export function retiredLine(event: ApplicationEventResponse): string | null {
   if (!event.retiredAt) return null;
-  const what =
-    event.retiredReason === 'EMAIL_MOVED'
-      ? 'Moved to another application'
-      : 'Unlinked from this application';
+  const what = RETIRED_EVENT[event.retiredReason ?? 'EMAIL_UNLINKED'];
   return `${what} on ${longDate(event.retiredAt)}. It no longer counts toward the AI's status.`;
 }
 

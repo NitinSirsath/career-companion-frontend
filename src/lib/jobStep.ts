@@ -32,14 +32,6 @@ export function stepNote(
   return `They answered your question${when}. ${how}`;
 }
 
-/**
- * "Read my reply again" (owner, 19 Nov 2026): a reply the AI read as not answering the step, or
- * could not read, may be read once more with today's rules.
- */
-export const canReadReplyAgain = (asked: ConversationRequest) =>
-  (asked.state === 'OPEN' && asked.replyRead === 'NOT_ANSWERED') ||
-  (asked.state === 'REPLIED' && asked.replyRead === 'NOT_READ');
-
 /** Under a replied step: a question back waits for them; an unread reply can't tell. */
 function repliedNote(asked: ConversationRequest): string | null {
   if (asked.replyRead === 'ASKED_BACK')

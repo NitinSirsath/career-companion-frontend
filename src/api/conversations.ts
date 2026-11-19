@@ -11,7 +11,6 @@ import { api } from './client';
 import {
   ConversationDetailSchema,
   ConversationSchema,
-  ReadReplyAgainResponseSchema,
   ConversationSummarySchema,
   LinkConversationResponseSchema,
   ListConversationsResponseSchema,
@@ -88,13 +87,6 @@ export async function getConversation(
 
 export async function markConversationSeen(key: string): Promise<void> {
   await api.post<unknown>(`${conversationPath(key)}/seen`, {});
-}
-
-/** "Read my reply again": the AI reads the newest reply once more (owner, 19 Nov 2026). */
-export async function readReplyAgain(key: string): Promise<void> {
-  ReadReplyAgainResponseSchema.parse(
-    await api.post<unknown>(`${conversationPath(key)}/read-reply-again`, {}),
-  );
 }
 
 export async function setRequestState(key: string, body: SetRequestState): Promise<Conversation> {
@@ -189,15 +181,6 @@ export function useSetRequestState(key: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (body: SetRequestState) => setRequestState(key, body),
-    onSettled: () => refreshDomain(queryClient),
-  });
-}
-
-/** Refreshes after a refusal too: the step then shows how the reply stands now. */
-export function useReadReplyAgain(key: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: () => readReplyAgain(key),
     onSettled: () => refreshDomain(queryClient),
   });
 }

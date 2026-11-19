@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, isApiError } from '../api/client';
 import type { AgendaItem, AgendaQuery, UpdateAgenda } from '../contracts/agenda';
 import { browserTimeZone } from '../lib/workspace';
+import { agendaRetiredText } from '../lib/reanalysis';
 import { resolveTemporal } from '../contracts/temporal';
 import { Button } from './ui/button';
 import { Select } from './ui/select';
@@ -148,12 +149,7 @@ export function Agenda() {
                   )}
                 </div>
               </details>
-              {item.retiredAt && (
-                <p className="text-sm">
-                  Retired after the email link was{' '}
-                  {item.retiredReason === 'EMAIL_MOVED' ? 'moved' : 'removed'}.
-                </p>
-              )}
+              {item.retiredAt && <p className="text-sm">{agendaRetiredText(item.retiredReason)}</p>}
               <div className="flex flex-wrap gap-3 items-center">
                 <Link
                   className="underline text-sm"

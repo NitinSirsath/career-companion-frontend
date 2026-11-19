@@ -398,23 +398,6 @@ describe('phone mail details', () => {
     expect(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it('offers "Read my reply again" in the step sheet (owner, 19 Nov 2026)', async () => {
-    const request = {
-      ...detail.conversation.request!,
-      state: 'OPEN' as const,
-      repliedAt: '2026-10-12T05:12:00.000Z',
-      replyRead: 'NOT_ANSWERED' as const,
-    };
-    detail = { ...detail, conversation: { ...detail.conversation, request } };
-    vi.mocked(api.post).mockResolvedValue({ reading: true });
-    show('/mails/conv-1');
-    fireEvent.click(await screen.findByRole('button', { name: /^Next step/ }));
-    fireEvent.click(await screen.findByRole('button', { name: 'Read my reply again' }));
-    await waitFor(() =>
-      expect(api.post).toHaveBeenCalledWith('/api/conversations/thread-1/read-reply-again', {}),
-    );
-  });
-
   it('replies full screen from the floating button, and keeps the text when closed', async () => {
     show('/mails/thread-1');
     await screen.findByText('Send your available dates');

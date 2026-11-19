@@ -1,12 +1,12 @@
 import { useState, type ReactNode } from 'react';
 import { ArrowDownIcon, ChevronDownIcon } from 'lucide-react';
-import { useReadReplyAgain, useSetRequestState } from '../../api/conversations';
+import { useSetRequestState } from '../../api/conversations';
 import type {
   ConversationDetail,
   ConversationMail,
   ConversationRequest,
 } from '../../contracts/conversation';
-import { canReadReplyAgain, closedByYourReply, showMail, stepNote } from '../../lib/jobStep';
+import { closedByYourReply, showMail, stepNote } from '../../lib/jobStep';
 import { askingMessageId, keyDates } from '../../lib/mailThread';
 import {
   CAREER_CONTACT,
@@ -27,6 +27,7 @@ import { cn } from '../../lib/utils';
 import { useIsPhone } from '../layout/useIsPhone';
 import { Button } from '../ui/button';
 import { Collapse } from '../ui/collapse';
+import { ReanalyzeLine } from '../reanalysis/ReanalyzeLine';
 import { OverflowMenu } from '../ui/menu';
 import { Ring } from '../ui/ring';
 import { InlineNotification } from '../ui/notification';
@@ -158,34 +159,26 @@ function StepStateLine({ asked, fake }: { asked: ConversationRequest; fake: bool
 
 /**
  * The Next step's ⋯ menu: "I did this" only on an open request done outside mail (never a big
- * button), and "Read my reply again" for a reply read as not answering it (owner, 19 Nov 2026).
+ * button). Reading a reply again is Reanalyze, in the conversation's own ⋯ menu.
  */
 function StepMenu({
-  conversationKey,
   asked,
   fake,
   onDone,
   doing,
 }: {
-  conversationKey: string;
   asked: ConversationRequest;
   fake: boolean;
   onDone: () => void;
   doing: boolean;
 }) {
-  const readAgain = useReadReplyAgain(conversationKey);
-  const actions = [];
-  if (asked.state === 'OPEN' && closesByHand(asked) && !fake)
-    actions.push({ label: 'I did this', disabled: doing, onSelect: onDone });
-  if (canReadReplyAgain(asked) && !fake)
-    actions.push({
-      label: 'Read my reply again',
-      disabled: readAgain.isPending,
-      onSelect: () =>
-        readAgain.mutate(undefined, { onSuccess: () => showToast('Reading your reply again') }),
-    });
-  if (!actions.length) return null;
-  return <OverflowMenu label={`More for ${requestTitle(asked)}`} actions={actions} />;
+  if (asked.state !== 'OPEN' || !closesByHand(asked) || fake) return null;
+  return (
+    <OverflowMenu
+      label={`More for ${requestTitle(asked)}`}
+      actions={[{ label: 'I did this', disabled: doing, onSelect: onDone }]}
+    />
+  );
 }
 
 /** What the conversation needs now: the request, its due date, its state and what closes it. */
@@ -198,6 +191,7 @@ function NextStep({ detail }: { detail: ConversationDetail }) {
     return (
       <PanelSection title="Next step">
         <p className="text-sm">{schedule ?? 'Nothing needed from you'}</p>
+        <ReanalyzeLine target={{ kind: 'conversation', key: conversation.key }} />
       </PanelSection>
     );
   }
@@ -208,7 +202,6 @@ function NextStep({ detail }: { detail: ConversationDetail }) {
     change.mutate({ emailId: asked.emailId, state }, { onSuccess: () => showToast(toast) });
   const menu = (
     <StepMenu
-      conversationKey={conversation.key}
       asked={asked}
       fake={!!fake}
       onDone={() => setState('DONE', `Done: ${title}`)}
@@ -229,6 +222,7 @@ function NextStep({ detail }: { detail: ConversationDetail }) {
       </div>
       {!fake && <StepDue asked={asked} />}
       <ReadingReply detail={detail} />
+      <ReanalyzeLine target={{ kind: 'conversation', key: conversation.key }} />
       {note && <p className="text-xs text-text-secondary">{note}</p>}
       {asked.state !== 'OPEN' && (
         <div className="flex flex-wrap gap-2 pt-1">

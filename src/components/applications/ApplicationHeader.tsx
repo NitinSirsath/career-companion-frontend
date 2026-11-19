@@ -6,6 +6,7 @@ import { useIsPhone } from '../layout/useIsPhone';
 import { Button } from '../ui/button';
 import { OverflowMenu } from '../ui/menu';
 import { InlineNotification } from '../ui/notification';
+import { ReanalyzeLine } from '../reanalysis/ReanalyzeLine';
 import { PhoneApplicationTop } from './PhoneApplicationTop';
 import { useApplicationMenu } from './useApplicationMenu';
 import { useStatusControl } from './useStatusControl';
@@ -50,6 +51,7 @@ export function ApplicationHeader({
   const role = [application.jobTitle, application.location].filter(Boolean).join(' · ');
   const notices = (
     <>
+      <ReanalyzeLine target={{ kind: 'application', id: application.id }} />
       {application.decline && (
         <DeclineQuestion
           applicationId={application.id}
