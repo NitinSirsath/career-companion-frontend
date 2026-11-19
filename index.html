@@ -12,8 +12,153 @@
     <!-- No apple-mobile-web-app-status-bar-style tag: without it the installed iPhone app colours
          its status bar like the page (theme-color), so bar and header read as one surface. -->
     <title>NorthList</title>
+    <script>
+      // The saved theme before anything is drawn, so a dark-mode user never sees a white page while
+      // the app's code loads. Same key and rule as ThemeProvider, which takes over once the app runs.
+      (function () {
+        try {
+          var choice = localStorage.getItem('career-companion-theme');
+          var dark =
+            choice === 'dark' ||
+            (choice !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+          var root = document.documentElement;
+          root.classList.add(dark ? 'theme-dark' : 'theme-light');
+          if (!dark) return;
+          root.classList.add('dark');
+          root.style.colorScheme = 'dark';
+          document.querySelector('meta[name="theme-color"]').content = '#0d0d0d';
+        } catch (e) {
+          // No storage (private mode): the light page, as before.
+        }
+      })();
+    </script>
+    <style>
+      /* The start-up mark (owner, 19 Nov 2026, mock `APP-LOADER-mock/`, direction A). It lives here,
+         outside the app, so it shows the moment the page opens and keeps moving without a restart
+         when the app's code arrives; `lib/startupMark.ts` makes it still or lets it go. It shows
+         after 250 ms, so a fast start shows nothing. The half sun rises over the horizon, the three
+         list lines draw in, then breathe one after another while the app waits. */
+      .startup {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+      }
+      /* How far the mark sits from the middle; the words under it use the same. */
+      .startup,
+      .startup-below {
+        --startup-shift: 0px;
+      }
+      .startup-mark {
+        width: 56px;
+        height: 56px;
+        overflow: visible;
+        fill: var(--accent, #2563eb);
+        transform: translateY(var(--startup-shift));
+        animation: startup-appear 200ms ease-out 250ms both;
+      }
+      .startup-sun {
+        animation: startup-rise 640ms cubic-bezier(0.32, 0.72, 0, 1) 250ms both;
+      }
+      .startup-line {
+        transform-box: fill-box;
+        transform-origin: left center;
+        animation:
+          startup-draw 420ms cubic-bezier(0.2, 0, 0.38, 0.9) var(--draw) both,
+          startup-breathe 1.6s ease-in-out var(--breathe) infinite;
+      }
+      /* Can't reach the server, or offline: nothing moves and the mark turns grey. */
+      .startup[data-still]:not(.startup-leave) * {
+        animation: none !important;
+      }
+      .startup[data-still] .startup-mark {
+        fill: var(--text-secondary, #52525b);
+        opacity: 0.45;
+      }
+      /* The app is ready: the mark fades and shrinks a little over the app (STARTUP_LEAVE_MS). */
+      .startup-leave .startup-mark {
+        animation: startup-leave 180ms ease-in both;
+      }
+      /* The start-up screen's words start under the mark. */
+      .startup-below {
+        padding-top: calc(50dvh + var(--startup-shift) + 56px);
+      }
+      /* Phones: a little above the middle, like an iPhone app's launch screen. */
+      @media (max-width: 767px) {
+        .startup,
+        .startup-below {
+          --startup-shift: -40px;
+        }
+      }
+      /* Reduce Motion: no rise or draw; the lines only fade slowly, so it still reads as busy. */
+      @media (prefers-reduced-motion: reduce) {
+        .startup .startup-mark,
+        .startup .startup-sun {
+          animation: none !important;
+        }
+        .startup .startup-line {
+          animation: startup-breathe 2.4s ease-in-out var(--breathe) infinite !important;
+        }
+        .startup-leave .startup-mark {
+          animation: startup-leave 180ms ease-in both !important;
+        }
+      }
+      @keyframes startup-appear {
+        from {
+          opacity: 0;
+        }
+      }
+      @keyframes startup-rise {
+        from {
+          transform: translateY(15px);
+        }
+      }
+      @keyframes startup-draw {
+        from {
+          transform: scaleX(0);
+        }
+      }
+      @keyframes startup-breathe {
+        50% {
+          opacity: 0.28;
+        }
+      }
+      @keyframes startup-leave {
+        to {
+          opacity: 0;
+          transform: translateY(var(--startup-shift)) scale(0.96);
+        }
+      }
+    </style>
   </head>
   <body>
+    <div id="startup" class="startup" aria-hidden="true">
+      <!-- The mark from components/layout/Logo.tsx (large), in parts so each can move. -->
+      <svg class="startup-mark" viewBox="2 2 28 28">
+        <clipPath id="startup-horizon"><rect width="32" height="16" /></clipPath>
+        <g clip-path="url(#startup-horizon)">
+          <path class="startup-sun" d="M2 16A14 14 0 0 1 30 16Z" />
+        </g>
+        <path
+          class="startup-line"
+          style="--draw: 520ms; --breathe: 1100ms"
+          d="M2.081 17.5H24.5A1.5 1.5 0 0 1 24.5 20.5H2.743A14 14 0 0 1 2.081 17.5Z"
+        />
+        <path
+          class="startup-line"
+          style="--draw: 600ms; --breathe: 1300ms"
+          d="M3.351 22H19.5A1.5 1.5 0 0 1 19.5 25H5.276A14 14 0 0 1 3.351 22Z"
+        />
+        <path
+          class="startup-line"
+          style="--draw: 680ms; --breathe: 1500ms"
+          d="M6.74 26.5H15A1.5 1.5 0 0 1 15 29.5H12.292A14 14 0 0 1 6.74 26.5Z"
+        />
+      </svg>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

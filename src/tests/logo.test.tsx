@@ -17,7 +17,6 @@ vi.mock('../api/client', async (importOriginal) => {
 
 import { SignInLayout } from '../components/auth/SignInLayout';
 import { Logo, Wordmark } from '../components/layout/Logo';
-import { StartupScreen } from '../components/startup/StartupScreen';
 import { routeTree } from '../routeTree.gen';
 
 const settings = {
@@ -169,12 +168,5 @@ describe('where the logo shows: the name, or the mark alone, never both', () => 
     const bar = screen.getByRole('banner');
     expect(within(bar).getByRole('img', { name: 'NorthList' })).toBeInTheDocument();
     expect(bar.querySelectorAll('svg')).toHaveLength(1);
-  });
-
-  it('shows the name on the start-up screen', () => {
-    render(<StartupScreen stage="checking" waitedMs={0} onRetry={() => undefined} />);
-    const status = screen.getByRole('status');
-    expect(within(status).getByRole('img', { name: 'NorthList' })).toBeInTheDocument();
-    expect(status.querySelectorAll('svg')).toHaveLength(1);
   });
 });

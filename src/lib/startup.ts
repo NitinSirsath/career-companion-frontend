@@ -21,3 +21,5 @@ export function waitedLabel(waitedMs: number): string {
   const seconds = Math.floor(waitedMs / 1000);
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
 }
+/** How long the start-up mark takes to fade away once the app is ready (`startup-leave` in index.html). */
+export const STARTUP_LEAVE_MS = 180;

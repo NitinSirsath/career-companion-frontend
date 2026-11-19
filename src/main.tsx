@@ -6,6 +6,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { LucideProvider } from 'lucide-react';
 import { routeTree } from './routeTree.gen';
 import { ThemeProvider } from './components/ThemeProvider';
+import { THEME_STORAGE_KEY } from './lib/theme';
 import { AppErrorBoundary } from './components/errors/AppErrorBoundary';
 import { RouteErrorPage } from './components/errors/RouteErrorPage';
 import { NotFoundPage } from './components/errors/NotFoundPage';
@@ -66,7 +67,7 @@ createRoot(document.getElementById('root')!).render(
     {/* Lucide icons with thin lines (owner, 13 Nov 2026), 16px unless a size is given. */}
     <LucideProvider size={16} strokeWidth={1.75}>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider storageKey="career-companion-theme">
+        <ThemeProvider storageKey={THEME_STORAGE_KEY}>
           <ToastProvider>
             <AppErrorBoundary>
               <App />
