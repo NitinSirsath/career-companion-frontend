@@ -113,7 +113,7 @@ describe('the start-up screen', () => {
     vi.useFakeTimers({ shouldAdvanceTime: false });
   });
 
-  it('shows only the logo and a moving line while it checks, never the app', async () => {
+  it('shows only the moving mark while it checks, never the app', async () => {
     answers = [() => new Promise<Response>(() => undefined)];
     showGate();
     expect(screen.getByRole('status')).toHaveTextContent('Loading NorthList');
@@ -141,7 +141,7 @@ describe('the start-up screen', () => {
     await wait(0);
     expect(screen.queryByText(/^App for/)).not.toBeInTheDocument();
     await wait(5_000);
-    expect(screen.getByText('Waking up the server…')).toBeInTheDocument();
+    expect(screen.getByText('Waking up the server')).toBeInTheDocument();
     expect(screen.getByText(/takes about a minute/)).toBeInTheDocument();
     expect(screen.getByText('Waiting 0:05')).toBeInTheDocument();
     expect(tries()).toBeGreaterThanOrEqual(2);
@@ -153,7 +153,7 @@ describe('the start-up screen', () => {
     answers = [networkDown];
     showGate();
     await wait(119_000);
-    expect(screen.getByText('Waking up the server…')).toBeInTheDocument();
+    expect(screen.getByText('Waking up the server')).toBeInTheDocument();
     await wait(2_000);
     expect(screen.getByText("Can't reach the server")).toBeInTheDocument();
     expect(screen.getByRole('main')).toHaveAttribute('aria-busy', 'false');
