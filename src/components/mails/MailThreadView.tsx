@@ -137,7 +137,6 @@ export function MailThreadView({
       {error && <MailboxProblem error={error} onRetry={() => void refetch()} />}
       {data && (
         <>
-
           <Messages key={threadId} messages={data.messages} mailbox={mailbox} job={job} />
           {sending && <SendingCard doc={sending} />}
           <div ref={end} />
