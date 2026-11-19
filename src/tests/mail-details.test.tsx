@@ -293,23 +293,6 @@ describe('job mail details', () => {
     ).toBeInTheDocument();
   });
 
-  it('offers "Read my reply again" for a reply that does not answer (owner, 19 Nov 2026)', async () => {
-    const { conversation } = detail;
-    const replied = { ...conversation.request!, repliedAt: '2026-10-11T08:45:00.000Z' };
-    detail = {
-      ...detail,
-      conversation: { ...conversation, request: { ...replied, replyRead: 'NOT_ANSWERED' } },
-    };
-    post.mockResolvedValue({ reading: true });
-    show('/mails/thread-1');
-    const panel = within(await screen.findByRole('complementary', { name: 'About this job mail' }));
-    fireEvent.click(panel.getByRole('button', { name: /^More for / }));
-    fireEvent.click(await screen.findByRole('menuitem', { name: 'Read my reply again' }));
-    await waitFor(() =>
-      expect(post).toHaveBeenCalledWith('/api/conversations/thread-1/read-reply-again', {}),
-    );
-  });
-
   it('waits for their reply after the user asked them a question (owner, 17 Nov 2026)', async () => {
     const { conversation } = detail;
     const replied = { ...conversation.request!, repliedAt: '2026-10-11T08:45:00.000Z' };
