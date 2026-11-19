@@ -77,6 +77,15 @@ function PhoneThread({
   );
 }
 
+/** Block's and Delete's icons, for the items that bring none of their own. */
+function ActionIcon({ danger }: { danger?: boolean }) {
+  return danger ? (
+    <Trash2Icon size={18} aria-hidden="true" className="shrink-0" />
+  ) : (
+    <BanIcon size={18} aria-hidden="true" className="shrink-0" />
+  );
+}
+
 /**
  * Done (or Reopen) and ··· in one glass capsule at the top right (mock #2). ··· holds the key
  * dates and the application, then Block and Delete.
@@ -116,11 +125,7 @@ function PhoneMailTools({ detail, onInfo }: { detail: ConversationDetail; onInfo
                       className={cn(MENU_ROW, action.danger && 'text-danger-text')}
                       onClick={action.onSelect}
                     >
-                      {action.danger ? (
-                        <Trash2Icon size={18} aria-hidden="true" className="shrink-0" />
-                      ) : (
-                        <BanIcon size={18} aria-hidden="true" className="shrink-0" />
-                      )}
+                      {action.icon ?? <ActionIcon danger={action.danger} />}
                       {action.label}
                     </Menu.Item>
                   ))}
