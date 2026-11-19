@@ -30,6 +30,7 @@ describe('what a Reanalyze sends (owner, 19 Nov 2026)', () => {
     );
     expect(yourData).toContain('You ask to reanalyze a conversation');
   });
+});
 
 describe('the connected Gmail address', () => {
   it('is named in the privacy policy, also that it stays after a disconnect', () => {
