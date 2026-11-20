@@ -1,0 +1,158 @@
+/*
+ * Home's hero (owner, 20 Nov 2026): a film of the laptop app behind the words (site/home/film.ts), as on
+ * /mobile and stockypro.com's paid-app heroes. Classes start with hf-.
+ */
+
+/* ---------- Hero: words alone at the bottom left, the film behind ---------- */
+.hf-hero { position: relative; display: flex; align-items: flex-end; min-height: min(calc(100vh - 64px), 820px); overflow: hidden; border-bottom: 1px solid var(--line); }
+.hf-stage { position: absolute; inset: 0; pointer-events: none; opacity: 0.75;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 16%, #000 62%, transparent 100%); mask-image: linear-gradient(to bottom, transparent 0%, #000 16%, #000 62%, transparent 100%); }
+.hf-scene { position: absolute; top: 0; left: calc(50% - 720px); width: 1440px; height: 100%; opacity: 0; }
+.hf-scene[data-on] { opacity: 1; }
+/* Scenes not on screen are not drawn at all (performance, owner 20 Nov 2026) */
+.hf-scene:not([data-on]) { visibility: hidden; content-visibility: hidden; }
+.hf-copy { position: absolute; inset: 0; }
+/* The blur: one veil over the sharp picture, clear inside the focus ellipse */
+.hf-veil { position: absolute; inset: 0; -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); -webkit-mask-image: var(--mask); mask-image: var(--mask); -webkit-mask-size: 1440px 820px; mask-size: 1440px 820px; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; pointer-events: none; }
+.hf-hero[data-lite] .hf-veil { display: none; }
+.hf-move { position: absolute; inset: 0; transform-origin: var(--sx) var(--sy); }
+.hf-lens { position: absolute; inset: 0; perspective: var(--persp); perspective-origin: var(--pox) var(--poy); }
+/* The camera: the aim pinned on screen, zoom by CSS zoom (a scaled 3D plane draws soft), then turn, tilt and lean */
+.hf-plane { position: absolute; left: calc(var(--sx) - var(--ox) * var(--cs)); top: calc(var(--sy) - var(--oy) * var(--cs)); width: calc(3552px * var(--cs));
+  transform-origin: calc(var(--ox) * var(--cs)) calc(var(--oy) * var(--cs)); transform: rotateX(var(--rx)) rotateY(var(--ry)) rotateZ(var(--rz)); }
+/* A camera tilt (scene 2's crane) is a plain 3D transform on its own layer, so the graphics chip moves it (performance, 20 Nov 2026) */
+.hf-tilt { position: absolute; inset: 0; transform-style: preserve-3d; transform-origin: var(--sx) var(--sy); }
+.hf-plane > .hf-board { zoom: var(--cs); }
+/* The board: laptop screens, 3 across, 2 down; the others quieter */
+.hf-board { display: grid; grid-template-columns: repeat(3, 1120px); gap: 96px; width: 3552px; }
+.hf-cell { height: 700px; }
+.hf-cell:not(.story) { opacity: 0.6; }
+.hf-sa { width: 1120px; height: 700px; border-color: #2e2e33; box-shadow: 0 60px 120px rgb(0 0 0 / 0.55); }
+.hf-sa .sa-grid { height: 100%; }
+.hf-sa .sa-main { overflow: hidden; }
+.hf-sa textarea { resize: none; }
+.hf-sa .sa-spark i, .hf-sa .sa-funnel i { transform-origin: 50% 100%; }
+.hf-fern { background: rgb(255 255 255 / 0.045); box-shadow: inset 2px 0 0 #d4d4d8; }
+/* Scene 3 picks the "Recruiter contact" filter and the other rows fold away; scene 4 looks at Your progress */
+.hf-segrc { background: var(--tint); color: var(--tint-text); font-weight: 500; }
+.hf-fold { max-height: 0; padding-block: 0; border-bottom-width: 0; opacity: 0; overflow: hidden; }
+.sa-count .hf-roll { vertical-align: baseline; }
+/* Scene 4: the Dashboard has scrolled down to Your progress and the running total */
+.is-dash .sa-main > .sa-page { transform: translateY(-250px); }
+/* Scene 4: the end marks of the running total (as in the app: a dot and the value at each line's end) */
+.hf-plot { position: relative; }
+.hf-ends { position: absolute; left: 0; right: 0; top: 10px; height: 120px; pointer-events: none; }
+.hf-end { position: absolute; left: 100%; display: flex; align-items: center; gap: 6px; transform: translate(-4px, -50%); }
+.hf-end i { position: relative; width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 0 2px #18181b; }
+.hf-end i::after { content: ''; position: absolute; inset: -2px; border-radius: 50%; border: 1px solid currentColor; opacity: 0; }
+.hf-end em { font: 500 11px/1 var(--sans); font-style: normal; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.hf-end.c1 i { background: var(--chart-1); color: var(--chart-1); }
+.hf-end.c2 i { background: var(--chart-2); color: var(--chart-2); }
+.hf-end.c3 i { background: var(--chart-3); color: var(--chart-3); }
+.hf-end em .hf-roll { vertical-align: baseline; }
+/* Scene 4's counts: the old number rolls up and out, the new one in */
+.hf-roll { position: relative; display: inline-grid; overflow: hidden; vertical-align: bottom; }
+.hf-roll > span { grid-area: 1 / 1; }
+.hf-roll .was { visibility: hidden; }
+/* The new mail: the list starts one row up, the new row sits in the gap */
+.hf-shot-mails .story .sa-list > :first-child { position: relative; z-index: 1; }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* A different move per shot: pan across the list, crane down over the reply, swing around the status, rise and pull back */
+  .hf-shot-mails[data-on] { animation: hf-fade-start 700ms cubic-bezier(0.23, 1, 0.32, 1) both; }
+  .hf-shot-mails[data-on] .hf-move { animation: hf-move-a 4000ms linear both; }
+  .hf-shot-mail[data-on] .hf-move { animation: hf-move-b 4000ms cubic-bezier(0.45, 0, 0.25, 1) both; }
+  .hf-shot-mail[data-on] .hf-tilt { animation: hf-crane 4000ms cubic-bezier(0.45, 0, 0.25, 1) both; }
+  .hf-shot-apps[data-on] .hf-move { animation: hf-move-c 4000ms linear both; }
+  .hf-shot-dash[data-on] { animation: hf-fade-end 4000ms linear both; }
+  /* What lands in each shot */
+  .hf-shot-mails[data-on] .story .sa-list > :first-child { animation: hf-reveal 670ms cubic-bezier(0.23, 1, 0.32, 1) 900ms both; }
+  .hf-shot-mails[data-on] .story .sa-list > :not(:first-child) { animation: hf-push 1200ms cubic-bezier(0.23, 1, 0.32, 1) 500ms both; }
+  .hf-shot-mail[data-on] .story .sa-ta { animation: hf-type 1800ms steps(36) 900ms both; }
+  .hf-shot-mail[data-on] .story .sa-cards > :first-child { animation: hf-glow 900ms cubic-bezier(0.23, 1, 0.32, 1) 400ms both; }
+  .hf-shot-dash[data-on] .story .hf-roll .was { animation: hf-roll-out 520ms cubic-bezier(0.23, 1, 0.32, 1) var(--at) both; }
+  .hf-shot-dash[data-on] .story .hf-roll .now { animation: hf-roll-in 520ms cubic-bezier(0.23, 1, 0.32, 1) var(--at) both; }
+  .hf-shot-apps[data-on] .hf-segall { animation: hf-seg-off 260ms ease-out 600ms both; }
+  .hf-shot-apps[data-on] .hf-segrc { animation: hf-seg-on 260ms ease-out 600ms both; }
+  .hf-shot-apps[data-on] .hf-fold { animation: hf-fold 700ms cubic-bezier(0.45, 0, 0.25, 1) 900ms both; }
+  .hf-shot-apps[data-on] .story .hf-roll .was { animation: hf-roll-out 520ms cubic-bezier(0.23, 1, 0.32, 1) var(--at) both; }
+  .hf-shot-apps[data-on] .story .hf-roll .now { animation: hf-roll-in 520ms cubic-bezier(0.23, 1, 0.32, 1) var(--at) both; }
+  .hf-shot-apps[data-on] .hf-fern { animation: hf-row-on 700ms cubic-bezier(0.23, 1, 0.32, 1) 1900ms both; }
+  /* Scene 4: a slow drift down over the charts; only today's change moves */
+  .hf-shot-dash[data-on] .sa-main > .sa-page { animation: hf-settle 2400ms cubic-bezier(0.45, 0, 0.25, 1) both; }
+  .hf-shot-dash[data-on] .sa-line { animation: hf-wipe-end 1800ms cubic-bezier(0.45, 0, 0.25, 1) 1000ms both; }
+  .hf-shot-dash[data-on] .hf-ends { animation: hf-reveal 600ms ease-out 2400ms both; }
+  .hf-shot-dash[data-on] .hf-end i::after { animation: hf-ping 1600ms cubic-bezier(0.23, 1, 0.32, 1) 2500ms both; }
+  .hf-shot-dash[data-on] .sa-stats > .sa-stat:nth-child(2) .sa-spark i.top { animation: hf-grow-last 1400ms cubic-bezier(0.45, 0, 0.25, 1) 2200ms both; }
+  .hf-shot-dash[data-on] .hf-reply-bar i { animation: hf-grow-last 1400ms cubic-bezier(0.45, 0, 0.25, 1) 2400ms both; }
+  .hf-shot-dash[data-on] .hf-roll .was, .hf-shot-dash[data-on] .hf-roll .now { animation-duration: 900ms; animation-timing-function: cubic-bezier(0.45, 0, 0.25, 1); }
+  .hf-shot-dash[data-on] .hf-move { animation: hf-move-d 4000ms cubic-bezier(0.37, 0, 0.63, 1) both; }
+}
+@keyframes hf-move-a { from { transform: translate(90px, 10px); } to { transform: translate(-150px, -16px); } }
+@keyframes hf-move-b { from { transform: translate(40px, 30px) scale(0.96); } to { transform: translate(-30px, -24px) scale(1.06); } }
+@keyframes hf-crane { from { transform: rotateX(6deg); } to { transform: rotateX(-2deg); } }
+@keyframes hf-move-c { from { transform: translate(-40px, 70px); } to { transform: translate(30px, -60px); } }
+@keyframes hf-fade-end { 0%, 90% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes hf-fade-start { from { opacity: 0; } }
+@keyframes hf-reveal { from { opacity: 0; } }
+@keyframes hf-push { from { transform: translateY(-72px); } to { transform: none; } }
+@keyframes hf-type { from { clip-path: inset(0 0 100% 0); } }
+@keyframes hf-row-on { from { background: transparent; box-shadow: inset 0 0 0 #d4d4d8; } }
+@keyframes hf-roll-out { from { visibility: visible; transform: none; opacity: 1; } to { visibility: visible; transform: translateY(-100%); opacity: 0; } }
+@keyframes hf-roll-in { from { transform: translateY(100%); opacity: 0; } }
+@keyframes hf-seg-off { from { background: var(--tint); color: var(--tint-text); font-weight: 500; } }
+@keyframes hf-seg-on { from { background: transparent; color: var(--text-2); font-weight: 400; } }
+@keyframes hf-fold { from { max-height: 80px; padding-block: 12px; border-bottom-width: 1px; opacity: 1; } 40% { opacity: 0; } }
+@keyframes hf-settle { from { transform: translateY(-170px); } }
+@keyframes hf-ping { 0% { opacity: 0.7; transform: scale(1); } 100% { opacity: 0; transform: scale(2.6); } }
+@keyframes hf-grow-last { from { transform: scaleY(0.6); } }
+@keyframes hf-wipe-end { from { clip-path: inset(0 7% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes hf-move-d { from { transform: translate(30px, 70px) scale(1.02); } to { transform: translate(-30px, -70px) scale(1.04); } }
+@keyframes hf-glow { from { box-shadow: 0 0 0 0 rgb(255 255 255 / 0); } 50% { box-shadow: 0 0 0 4px rgb(255 255 255 / 0.08); } to { box-shadow: 0 0 0 0 rgb(255 255 255 / 0); } }
+
+/* Paused, before the page settles: everything in the film holds; then the film fades in moving and the words blur in */
+.hf-hero[data-paused] .hf-stage * { animation-play-state: paused !important; }
+.hf-hero:not([data-ready]) .hf-stage, .hf-hero:not([data-ready]) .hf-words > :not(.hf-ctl) { opacity: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .hf-hero[data-ready]:not([data-still]) .hf-stage { animation: hf-film-in 3000ms ease both; }
+  .hf-hero[data-ready]:not([data-still]) .hf-words > :not(.hf-ctl) { animation: hf-blur-in 1000ms cubic-bezier(0.23, 1, 0.32, 1) both; }
+  .hf-hero[data-ready]:not([data-still]) .hf-words > .hf-row { animation-delay: 120ms; }
+}
+@keyframes hf-film-in { from { opacity: 0; } }
+@keyframes hf-blur-in { from { opacity: 0; filter: blur(8px); transform: translateY(8px); } }
+
+/* The words, bottom left */
+.hf-words { position: relative; padding-bottom: 80px; }
+.hf-display { font-size: 72px; line-height: 1.04; letter-spacing: -0.032em; font-weight: 520; text-wrap: balance; }
+.hf-row { display: flex; justify-content: space-between; align-items: flex-end; gap: 48px; margin-top: 32px; }
+.hf-lead { max-width: 560px; font-size: 18px; line-height: 28px; letter-spacing: -0.01em; color: var(--text-3); text-wrap: pretty; }
+.hf-cta { display: flex; align-items: center; gap: 24px; flex: none; }
+.hf-ctl { position: absolute; right: var(--gut); bottom: 24px; width: 32px; height: 32px; display: grid; place-items: center; border: 1px solid var(--line-2); border-radius: 50%; background: var(--bg); color: var(--text-3); cursor: pointer; transition: color 150ms, border-color 200ms; }
+.hf-ctl:hover { color: var(--text); border-color: var(--line-3); }
+.hf-ctl .pl, .hf-ctl[aria-pressed='true'] .pz { display: none; }
+.hf-ctl[aria-pressed='true'] .pl { display: block; }
+.hf-hero[data-still] .hf-ctl { display: none; }
+/* Try it yourself: the working app under its heading */
+.hf-try { margin-top: 56px; }
+
+@media (max-width: 1023px) {
+  .hf-display { font-size: 60px; }
+  .hf-row { flex-direction: column; align-items: flex-start; gap: 32px; }
+  .hf-words { padding-bottom: 72px; }
+}
+@media (max-width: 599px) {
+  .hf-hero { min-height: calc(100svh - 64px); }
+  .hf-stage { opacity: 0.85; -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 7%, #000 46%, rgb(0 0 0 / 0.35) 60%, rgb(0 0 0 / 0.2) 76%, transparent 92%);
+    mask-image: linear-gradient(to bottom, transparent 0%, #000 7%, #000 46%, rgb(0 0 0 / 0.35) 60%, rgb(0 0 0 / 0.2) 76%, transparent 92%); }
+  .hf-move { transform-origin: var(--p-sx) var(--p-sy); scale: var(--p-drift); }
+  .hf-lens { transform-origin: 0 0; transform: var(--p-lens); }
+  .hf-veil { -webkit-mask-image: var(--p-mask); mask-image: var(--p-mask); }
+  .hf-display { font-size: 36px; line-height: 1.1; letter-spacing: -0.025em; }
+  .hf-lead { font-size: 16px; line-height: 26px; }
+  .hf-row { gap: 24px; margin-top: 16px; }
+  .hf-cta { width: 100%; flex-direction: column; align-items: stretch; gap: 16px; }
+  .hf-cta .btn { justify-content: center; }
+  .hf-cta .lh-new { justify-content: center; }
+  .hf-ctl { bottom: 20px; }
+  .hf-try { margin-top: 32px; }
+}
