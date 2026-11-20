@@ -340,7 +340,7 @@ html.no-motion .pr-main .rv { filter: none; transition: none; }
 .pr-photo-band { padding-top: 64px; }
 .pr-photo { position: relative; margin: 0; aspect-ratio: 16 / 7; border: 1px solid var(--line); border-radius: var(--pr-r-frame); overflow: hidden; background: var(--surface); }
 .pr-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.pr-photo::after { content: ''; position: absolute; inset: 0 0 0; height: 40%; background: linear-gradient(to top, rgb(8 9 10 / 0.72), transparent); pointer-events: none; }
+.pr-photo::after { content: ''; position: absolute; inset: auto 0 0; height: 40%; background: linear-gradient(to top, rgb(8 9 10 / 0.72), transparent); pointer-events: none; }
 .pr-photo .pr-cap { left: 40px; bottom: 32px; }
 .pr-photo .pr-cap span { color: var(--text-2); }
 @media (max-width: 1023px) { .pr-photo-band { padding-top: 48px; } }
