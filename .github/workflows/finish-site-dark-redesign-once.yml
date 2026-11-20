@@ -1,0 +1,57 @@
+name: Finish site-dark-redesign once (temporary)
+# Commits the About photo and the deleted files on feat/site-dark-redesign and nothing else.
+# Lives only on the throwaway branch tmp/site-dark-redesign-finish, which is deleted afterwards.
+on:
+  push:
+    branches: [tmp/site-dark-redesign-finish]
+permissions:
+  contents: write
+concurrency:
+  group: finish-site-dark-redesign-once
+  cancel-in-progress: false
+jobs:
+  finish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: feat/site-dark-redesign
+      - name: Check the commits on the branch
+        run: |
+          if [ "$(git rev-parse 'HEAD^{tree}')" != "8d3dfa8da6ea960630a993ef035943beb1822225" ]; then
+            echo "The commits on feat/site-dark-redesign do not match the reviewed files. Nothing was changed."
+            exit 1
+          fi
+      - name: Make the reviewed change
+        run: |
+          git rm -q site/runtime/toc.ts
+          git rm -q site/styles/automation.css
+          git add -A
+          if [ "$(git write-tree)" != "a7eb1953a219506b87f6623e6da510fff2e03334" ]; then
+            echo "The result does not match the reviewed tree. Nothing was pushed."
+            git status --short
+            exit 1
+          fi
+      - name: Add the About photo (Wikimedia Commons, Ashwin Kumar, CC BY-SA 2.0)
+        run: |
+          command -v convert >/dev/null || { sudo apt-get update -q; sudo apt-get install -y -q imagemagick; }
+          curl -fsSL --retry 3 --retry-delay 10 -A 'NorthList-site-build/1.0 (one-time GitHub Action)' -o /tmp/night.jpg 'https://upload.wikimedia.org/wikipedia/commons/1/10/View_of_Bangalore_at_night_as_seen_from_the_High_Ultra_Lounge_at_the_World_Trade_Centre%2C_Malleshwaram.jpg'
+          echo 'aacbe21ee7e9c32fea909aefaf5491b914019babf56e2c58200c694efb931d49  /tmp/night.jpg' | sha256sum -c -
+          convert -define jpeg:size=4800x1498 /tmp/night.jpg -resize '2400x749!' -strip -sampling-factor 4:2:0 -interlace JPEG -quality 68 site/about/bengaluru-night.jpg
+          test "$(identify -format '%wx%h' site/about/bengaluru-night.jpg)" = 2400x749
+          convert -define jpeg:size=2560x798 /tmp/night.jpg -resize '1280x399!' -strip -sampling-factor 4:2:0 -interlace JPEG -quality 68 site/about/bengaluru-night-1280.jpg
+          test "$(identify -format '%wx%h' site/about/bengaluru-night-1280.jpg)" = 1280x399
+          git add site/about/bengaluru-night.jpg site/about/bengaluru-night-1280.jpg
+          changed="$(git diff --cached --no-renames --name-status HEAD | tr '\t' ' ' | paste -sd ';' - | sed 's/;/; /g')"
+          if [ "$changed" != "A site/about/bengaluru-night-1280.jpg; A site/about/bengaluru-night.jpg; D site/runtime/toc.ts; D site/styles/automation.css" ]; then
+            echo "Unexpected change: $changed. Nothing was pushed."
+            exit 1
+          fi
+          ls -l site/about/bengaluru-night.jpg site/about/bengaluru-night-1280.jpg
+      - name: Commit only the reviewed result
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(site): add the About photo and delete the old table of contents and automation styles'
+          git push origin HEAD:feat/site-dark-redesign
