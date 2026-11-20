@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Your data · NorthList</title>
-<meta name="description" content="What NorthList reads, keeps, sends and never keeps from your Gmail, in plain words.">
+<title>About · NorthList</title>
+<meta name="description" content="Why NorthList exists: a job search lives in your inbox, and the mail that needs an answer gets lost in the pile.">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -12,219 +12,74 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=Geist+Mono:wght@400..500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/styles/site.css">
-<link rel="stylesheet" href="/styles/data.css">
+<link rel="stylesheet" href="/styles/info.css">
 </head>
-<body data-page="privacy">
+<body data-page="about">
 <div data-site-header></div>
-<main class="dt">
+<main class="pr-main">
 
-  <!-- 1. Head: words left, as on Home -->
-  <section class="wrap dt-hero" aria-labelledby="dt-title">
-    <h1 id="dt-title" class="dt-display">Your mail stays yours.</h1>
-    <div class="dt-hero-row">
-      <p class="dt-lead">What NorthList reads, keeps, sends and never keeps, in plain words.</p>
-      <p class="dt-note">A summary of the <a class="dt-a" href="/privacy.html">privacy policy</a> of 18 November 2026.<br>If anything here differs, the policy counts.</p>
+  <!-- 1. One statement, the second line grey -->
+  <section class="wrap pr-hero" aria-labelledby="ab-title">
+    <h1 id="ab-title" class="pr-display pr-display-wide rv pr-blur">Job hunting is hard enough.<br><span>Your inbox shouldn’t make it harder.</span></h1>
+    <p class="pr-built rv">Built in Bengaluru.</p>
+  </section>
+
+  <!-- 1b. One photo: wide, framed, its caption inside. A free Bengaluru photo until the owner sends their own. -->
+  <section class="wrap pr-photo-band" aria-label="Bengaluru">
+    <figure class="pr-photo rv">
+      <img src="./bengaluru-night.jpg" srcset="./bengaluru-night-1280.jpg 1280w, ./bengaluru-night.jpg 2400w" sizes="(max-width: 1279px) 100vw, 1248px" width="2400" height="749" alt="Bengaluru at night, seen from Malleshwaram." decoding="async">
+      <figcaption class="pr-cap"><b>Bengaluru, India</b><span>Where NorthList is made.</span></figcaption>
+      <a class="pr-credit" href="https://commons.wikimedia.org/wiki/File:View_of_Bangalore_at_night_as_seen_from_the_High_Ultra_Lounge_at_the_World_Trade_Centre,_Malleshwaram.jpg">Photo: Ashwin Kumar, CC BY-SA 2.0</a>
+    </figure>
+  </section>
+
+  <!-- 2. The story: heading and drawing left, words right -->
+  <section class="wrap pr-story-band" aria-labelledby="story-title">
+    <div class="pr-story">
+      <div class="pr-story-head rv">
+        <h2 id="story-title" class="pr-h2">Why NorthList exists</h2>
+        <figure class="pr-fig" data-fig><svg class="pr-fig-svg" viewBox="23 -7 389 301" aria-hidden="true"><polygon class="l" points="26.8,164.0 234.6,284.0 234.6,290.0 26.8,170.0"/><polygon class="r" points="407.8,184.0 234.6,284.0 234.6,290.0 407.8,190.0"/><polygon class="t" points="200.0,64.0 407.8,184.0 234.6,284.0 26.8,164.0"/><polygon class="l" points="120.3,131.0 182.7,167.0 182.7,170.0 120.3,134.0"/><polygon class="r" points="262.4,121.0 182.7,167.0 182.7,170.0 262.4,124.0"/><polygon class="t" points="200.0,85.0 262.4,121.0 182.7,167.0 120.3,131.0"/><path class="m" d="M196.5 101.0 L235.2 123.3"/><path class="m" d="M184.4 108.0 L214.3 125.3"/><path class="m" d="M172.3 115.0 L193.5 127.2"/><polygon class="l" points="187.9,160.0 250.2,196.0 250.2,199.0 187.9,163.0"/><polygon class="r" points="329.9,150.0 250.2,196.0 250.2,199.0 329.9,153.0"/><polygon class="t" points="267.5,114.0 329.9,150.0 250.2,196.0 187.9,160.0"/><path class="m" d="M264.1 130.0 L302.7 152.3"/><path class="m" d="M252.0 137.0 L281.9 154.3"/><path class="m" d="M239.8 144.0 L261.0 156.2"/><polygon class="l" points="82.2,161.0 144.6,197.0 144.6,200.0 82.2,164.0"/><polygon class="r" points="224.2,151.0 144.6,197.0 144.6,200.0 224.2,154.0"/><polygon class="t" points="161.9,115.0 224.2,151.0 144.6,197.0 82.2,161.0"/><path class="m" d="M158.4 131.0 L197.1 153.3"/><path class="m" d="M146.3 138.0 L176.2 155.3"/><path class="m" d="M134.2 145.0 L155.4 157.2"/><polygon class="l" points="160.2,192.0 222.5,228.0 222.5,231.0 160.2,195.0"/><polygon class="r" points="302.2,182.0 222.5,228.0 222.5,231.0 302.2,185.0"/><polygon class="t" points="239.8,146.0 302.2,182.0 222.5,228.0 160.2,192.0"/><path class="m" d="M236.4 162.0 L275.0 184.3"/><path class="m" d="M224.2 169.0 L254.2 186.3"/><path class="m" d="M212.1 176.0 L233.3 188.2"/><polygon class="l" points="135.9,152.0 198.3,188.0 198.3,191.0 135.9,155.0"/><polygon class="r" points="277.9,142.0 198.3,188.0 198.3,191.0 277.9,145.0"/><polygon class="t" points="215.6,106.0 277.9,142.0 198.3,188.0 135.9,152.0"/><path class="m" d="M212.1 122.0 L250.8 144.3"/><path class="m" d="M200.0 129.0 L229.9 146.3"/><path class="m" d="M187.9 136.0 L209.1 148.2"/><polygon class="l" points="54.5,145.0 116.9,181.0 116.9,184.0 54.5,148.0"/><polygon class="r" points="196.5,135.0 116.9,181.0 116.9,184.0 196.5,138.0"/><polygon class="t" points="134.2,99.0 196.5,135.0 116.9,181.0 54.5,145.0"/><path class="m" d="M130.7 115.0 L169.4 137.3"/><path class="m" d="M118.6 122.0 L148.5 139.3"/><path class="m" d="M106.5 129.0 L127.7 141.2"/><polygon class="l" points="129.0,188.0 191.3,224.0 191.3,227.0 129.0,191.0"/><polygon class="r" points="271.0,178.0 191.3,224.0 191.3,227.0 271.0,181.0"/><polygon class="t" points="208.7,142.0 271.0,178.0 191.3,224.0 129.0,188.0"/><path class="m" d="M205.2 158.0 L243.9 180.3"/><path class="m" d="M193.1 165.0 L223.0 182.3"/><path class="m" d="M180.9 172.0 L202.1 184.2"/><polygon class="l" points="146.3,124.0 208.7,160.0 208.7,163.0 146.3,127.0"/><polygon class="r" points="288.3,114.0 208.7,160.0 208.7,163.0 288.3,117.0"/><polygon class="t" points="226.0,78.0 288.3,114.0 208.7,160.0 146.3,124.0"/><path class="m" d="M222.5 94.0 L261.2 116.3"/><path class="m" d="M210.4 101.0 L240.3 118.3"/><path class="m" d="M198.3 108.0 L219.5 120.2"/><path class="m dash" d="M234.6 112.0 L297.0 148.0 L217.3 194.0 L155.0 158.0 L234.6 112.0"/><path class="m path" d="M155.0 158.0 L155.0 58.0"/><path class="m path" d="M217.3 194.0 L217.3 94.0"/><path class="m path" d="M297.0 148.0 L297.0 48.0"/><g class="lift"><polygon class="l" points="155.0,55.0 217.3,91.0 217.3,94.0 155.0,58.0"/><polygon class="r" points="297.0,45.0 217.3,91.0 217.3,94.0 297.0,48.0"/><polygon class="t" points="234.6,9.0 297.0,45.0 217.3,91.0 155.0,55.0"/><path class="m a" d="M231.2 25.0 L269.8 47.3"/><path class="m" d="M219.1 32.0 L249.0 49.3"/><path class="m" d="M206.9 39.0 L228.1 51.2"/></g></svg></figure>
+      </div>
+      <div class="pr-story-text pr-stagger">
+        <p class="rv">A job search lives in your inbox. Applications confirmed, recruiters asking for a call, tests with deadlines, interviews to schedule, and rejections, all mixed in with newsletters and alerts.</p>
+        <p class="rv">Most people keep a spreadsheet next to it. It is out of date the day after you make it, and the mail that needed an answer by Friday is still somewhere in the pile.</p>
+        <p class="rv">NorthList starts from the mails you already get, so your time goes into the next step, not into finding it.</p>
+        <p class="rv">It is a small, independent app run by one person, and free while in beta.</p>
+      </div>
     </div>
   </section>
 
-  <!-- 2. The one big drawing: how a new mail moves (the app can't show this). Labels sit under it in HTML. -->
-  <div class="wrap">
-    <figure class="dt-stage rv" data-loop aria-labelledby="dt-stage-cap">
-      <div class="dt-stage-pic"><!--fig:flow--><div class="dt-fig-box"><svg class="dt-fig dt-fig-flow" width="829" height="167" viewBox="-104 -73 829 167" aria-hidden="true" focusable="false"><path class="p" d="M0.0 39.0 L207.2 39.0"/><path class="p" d="M207.2 39.0 L414.3 39.0"/><path class="p" d="M414.3 39.0 L621.5 39.0"/><path class="o" d="M-67.5 31.2 L0.0 70.2 L0.0 78.0 L-67.5 39.0 Z"/><path class="o" d="M67.5 31.2 L0.0 70.2 L0.0 78.0 L67.5 39.0 Z"/><path class="o" d="M0.0 -7.8 L67.5 31.2 L0.0 70.2 L-67.5 31.2 Z"/><path class="i" d="M-2.3 6.5 L42.8 32.5 L2.3 55.9 L-42.8 29.9 Z"/><path class="i" d="M-2.3 6.5 L0.0 31.2 L42.8 32.5"/><path class="o" d="M139.6 31.2 L207.2 70.2 L207.2 78.0 L139.6 39.0 Z"/><path class="o" d="M274.7 31.2 L207.2 70.2 L207.2 78.0 L274.7 39.0 Z"/><path class="o" d="M207.2 -7.8 L274.7 31.2 L207.2 70.2 L139.6 31.2 Z"/><path class="o" d="M139.6 15.1 L207.2 54.1 L207.2 61.9 L139.6 22.9 Z"/><path class="o" d="M274.7 15.1 L207.2 54.1 L207.2 61.9 L274.7 22.9 Z"/><path class="o" d="M207.2 -23.9 L274.7 15.1 L207.2 54.1 L139.6 15.1 Z"/><path class="o" d="M139.6 -1.0 L207.2 38.0 L207.2 45.8 L139.6 6.8 Z"/><path class="o" d="M274.7 -1.0 L207.2 38.0 L207.2 45.8 L274.7 6.8 Z"/><path class="o" d="M207.2 -40.0 L274.7 -1.0 L207.2 38.0 L139.6 -1.0 Z"/><path class="i" d="M202.6 -24.4 L247.7 1.6"/><path class="i" d="M184.6 -14.0 L216.2 4.2"/><path class="i" d="M166.6 -3.6 L206.0 19.1"/><path class="d" d="M414.3 5.2 L472.8 39.0 L414.3 72.8 L355.8 39.0 Z"/><path class="d" d="M414.3 -57.2 L472.8 -23.4 L414.3 10.4 L355.8 -23.4 Z"/><path class="d" d="M414.3 5.2 L414.3 -57.2"/><path class="d" d="M472.8 39.0 L472.8 -23.4"/><path class="d" d="M414.3 72.8 L414.3 10.4"/><path class="d" d="M355.8 39.0 L355.8 -23.4"/><path class="o" d="M553.9 31.2 L621.5 70.2 L621.5 78.0 L553.9 39.0 Z"/><path class="o" d="M689.0 31.2 L621.5 70.2 L621.5 78.0 L689.0 39.0 Z"/><path class="o" d="M621.5 -7.8 L689.0 31.2 L621.5 70.2 L553.9 31.2 Z"/><path class="i" d="M621.5 5.2 L666.5 31.2"/><path class="i" d="M607.5 13.3 L639.0 31.5"/><path class="i" d="M593.5 21.3 L632.9 44.1"/><path class="i" d="M579.6 29.4 L604.3 43.7"/></svg><svg class="dt-fig dt-fig-over dt-mv-b" width="829" height="167" viewBox="-104 -73 829 167" aria-hidden="true" focusable="false"><path class="a" d="M611.3 17.8 L638.3 33.4 L638.3 37.0 L611.3 21.4 Z"/><path class="a" d="M651.9 25.6 L638.3 33.4 L638.3 37.0 L651.9 29.2 Z"/><path class="af" d="M624.8 10.0 L651.9 25.6 L638.3 33.4 L611.3 17.8 Z"/></svg><svg class="dt-fig dt-fig-over dt-mv-a" width="829" height="167" viewBox="-104 -73 829 167" aria-hidden="true" focusable="false"><path class="a" d="M-27.0 22.9 L0.0 38.5 L0.0 46.8 L-27.0 31.2 Z"/><path class="a" d="M27.0 22.9 L0.0 38.5 L0.0 46.8 L27.0 31.2 Z"/><path class="af" d="M0.0 7.3 L27.0 22.9 L0.0 38.5 L-27.0 22.9 Z"/></svg></div><!--/fig:flow--></div>
-      <ol class="dt-stations">
-        <li><span class="n">01</span><b>Your Gmail</b><span>Stays as it is</span></li>
-        <li><span class="n">02</span><b>NorthList</b><span>Sends only what the AI needs</span></li>
-        <li><span class="n">03</span><b>AI service</b><span>Asked to keep nothing</span></li>
-        <li><span class="n">04</span><b>Your list</b><span>Never the text of a mail</span></li>
-      </ol>
-      <figcaption id="dt-stage-cap" class="dt-stage-cap"><b>How a new mail moves</b><span>About once an hour. Only what the AI needs leaves NorthList, and what comes back becomes your list.</span></figcaption>
-      <button type="button" class="dt-pause" data-pause aria-label="Pause the mail flow drawing" aria-pressed="false"><svg class="ic-pause" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 3.5v9M10.5 3.5v9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><svg class="ic-play" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3.5l7 4.5-7 4.5z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></button>
-    </figure>
-  </div>
-
-  <!-- 3. The details: a sticky contents list on the left, as in Linear's docs; hairline rows on the right -->
-  <div class="wrap dt-doc">
-    <details class="dt-otp" data-otp>
-      <summary><span>On this page</span><b data-otp-now>At a glance</b><i data-icon="chevronDown" data-size="14"></i></summary>
-      <nav aria-label="On this page, phones">
-        <a href="#glance">At a glance</a>
-        <a href="#moves">How your mail moves</a>
-        <a href="#reads">What NorthList reads</a>
-        <a href="#keeps">What it keeps</a>
-        <a href="#never">What it never keeps</a>
-        <a href="#ai">AI and your mail</a>
-        <a href="#protect">How it is protected</a>
-        <a href="#others">Who else takes part</a>
-        <a href="#choices">Your choices</a>
-        <a href="#policy">The full policy</a>
-      </nav>
-    </details>
-
-    <nav class="dt-toc" aria-label="On this page">
-      <span class="dt-toc-t">On this page</span>
-      <a href="#glance" class="on">At a glance</a>
-      <a href="#moves">How your mail moves</a>
-      <a href="#reads">What NorthList reads</a>
-      <a href="#keeps">What it keeps</a>
-      <a href="#never">What it never keeps</a>
-      <a href="#ai">AI and your mail</a>
-      <a href="#protect">How it is protected</a>
-      <a href="#others">Who else takes part</a>
-      <a href="#choices">Your choices</a>
-      <a href="#policy">The full policy</a>
-    </nav>
-
-    <div class="dt-body">
-
-      <section class="dt-sec" id="glance" aria-labelledby="h-glance">
-        <h2 id="h-glance">At a glance</h2>
-        <p data-lead></p>
-        <div class="dt-promises" data-promises></div>
-      </section>
-
-      <section class="dt-sec" id="moves" aria-labelledby="h-moves">
-        <h2 id="h-moves">How your mail moves</h2>
-        <p>New mail goes from your Gmail to NorthList, and only what the AI needs goes on to the AI service. What comes back becomes your list.</p>
-        <ol class="dt-steps">
-          <li><span class="n">01</span><div><b>Your Gmail</b><p>Stays as it is. NorthList reads it and sends only the replies you write. It can't change or delete anything.</p></div></li>
-          <li class="pass"><span class="n"></span><span>New mail, about once an hour</span></li>
-          <li><span class="n">02</span><div><b>NorthList</b><p>Skips Promotions, Social and Spam, except LinkedIn mail under Social. Sends only what the AI needs.</p></div></li>
-          <li class="pass"><span class="n"></span><span>Sender, subject, labels, preview; text of job mails</span></li>
-          <li><span class="n">03</span><div><b>AI service</b><p>Reads it and answers. NorthList asks it to keep nothing (zero data retention), so it can't store your mail or train on it.</p></div></li>
-          <li class="pass"><span class="n"></span><span>Company, role, next step</span></li>
-          <li><span class="n">04</span><div><b>Your list</b><p>Subject, sender, date and what the AI found. Never the text of the mail.</p></div></li>
-        </ol>
-        <p class="dt-aside"><b>When you open a mail,</b> NorthList reads it live from Gmail and shows it to you. Its servers don't save it.</p>
-      </section>
-
-      <section class="dt-sec" id="reads" aria-labelledby="h-reads">
-        <h2 id="h-reads">What NorthList reads</h2>
-        <p>When you sign in with Google, NorthList gets your name and email address. It uses them to sign you in and to show who is signed in, and your first name to sign AI reply drafts. When you connect Gmail, you give two permissions:</p>
-        <div class="dt-two">
-          <div><b>Read your mail</b><code>gmail.readonly</code><p>NorthList looks at the mail in your inbox from the last 1 to 30 days (you choose), then at new mail about once an hour.</p></div>
-          <div><b>Send mail</b><code>gmail.send</code><p>Only when you write a reply in NorthList and press Send. It never sends anything by itself.</p></div>
-        </div>
-        <p class="dt-small">On Google's screen these appear as "View your email messages and settings" and "Send email on your behalf". NorthList uses them only as described here.</p>
-        <p>NorthList also keeps the address of the Gmail account you connect, to show which account it reads and to tell your own mails from other people's. It keeps the address after you disconnect too, so that only the same account can connect again.</p>
-      </section>
-
-      <section class="dt-sec" id="keeps" aria-labelledby="h-keeps">
-        <h2 id="h-keeps">What NorthList keeps</h2>
-        <p>From your job mails, NorthList builds your applications, their history and your to-do list.</p>
-        <div class="dt-keep rv" data-loop>
-          <figure><div class="dt-keep-pic"><!--fig:job--><div class="dt-fig-box"><svg class="dt-fig dt-fig-keep" width="227" height="213" viewBox="-102 -84 227 213" aria-hidden="true" focusable="false"><path class="o" d="M-90.1 44.2 L22.5 109.2 L22.5 117.0 L-90.1 52.0 Z"/><path class="o" d="M112.6 57.2 L22.5 109.2 L22.5 117.0 L112.6 65.0 Z"/><path class="s" d="M0.0 -7.8 L112.6 57.2 L22.5 109.2 L-90.1 44.2 Z"/><path class="p" d="M-51.8 -22.1 L-51.8 35.1"/><path class="a" d="M-51.8 37.7 L20.3 79.3 L20.3 87.1 L-51.8 45.5 Z"/><path class="a" d="M74.3 48.1 L20.3 79.3 L20.3 87.1 L74.3 55.9 Z"/><path class="af" d="M2.3 6.5 L74.3 48.1 L20.3 79.3 L-51.8 37.7 Z"/><path class="ai" d="M1.1 18.9 L52.9 48.8"/><path class="ai" d="M-9.0 24.7 L29.3 46.8"/><path class="ai" d="M-19.1 30.6 L27.0 57.2"/><path class="ai" d="M-29.3 36.4 L2.3 54.6"/></svg><svg class="dt-fig dt-fig-over dt-mv-t" width="227" height="213" viewBox="-102 -84 227 213" aria-hidden="true" focusable="false"><path class="d" d="M2.3 -55.9 L74.3 -14.3 L20.3 16.9 L-51.8 -24.7 Z"/><path class="d" d="M1.1 -43.5 L46.2 -17.5"/><path class="d" d="M-9.0 -37.7 L22.5 -19.5"/><path class="d" d="M-19.1 -31.8 L21.4 -8.4"/><path class="d" d="M-29.3 -26.0 L-2.3 -10.4"/><path class="d" d="M18.0 -6.5 L31.5 1.3 L18.0 9.1 L4.5 1.3 Z"/></svg></div><!--/fig:job--></div><figcaption><b>A job mail</b><span>Kept: the subject, sender, date, Gmail's ids and what the AI found. Not kept: the text and the attachments (dashed).</span></figcaption></figure>
-          <figure><div class="dt-keep-pic"><!--fig:other--><div class="dt-fig-box"><svg class="dt-fig dt-fig-keep" width="227" height="213" viewBox="-102 -84 227 213" aria-hidden="true" focusable="false"><path class="o" d="M-90.1 44.2 L22.5 109.2 L22.5 117.0 L-90.1 52.0 Z"/><path class="o" d="M112.6 57.2 L22.5 109.2 L22.5 117.0 L112.6 65.0 Z"/><path class="s" d="M0.0 -7.8 L112.6 57.2 L22.5 109.2 L-90.1 44.2 Z"/><path class="p" d="M-51.8 -22.1 L-51.8 35.1"/><path class="a" d="M-51.8 37.7 L-27.0 52.0 L-27.0 59.8 L-51.8 45.5 Z"/><path class="a" d="M0.0 36.4 L-27.0 52.0 L-27.0 59.8 L0.0 44.2 Z"/><path class="af" d="M-24.8 22.1 L0.0 36.4 L-27.0 52.0 L-51.8 37.7 Z"/><path class="ai" d="M-27.0 31.2 L-12.4 39.6"/><path class="ai" d="M-37.2 37.1 L-28.1 42.3"/><path class="d" d="M2.3 -55.9 L74.3 -14.3 L20.3 16.9 L-51.8 -24.7 Z"/><path class="d" d="M1.1 -43.5 L46.2 -17.5"/><path class="d" d="M-9.0 -37.7 L22.5 -19.5"/><path class="d" d="M-19.1 -31.8 L21.4 -8.4"/><path class="d" d="M-29.3 -26.0 L-2.3 -10.4"/></svg></div><!--/fig:other--></div><figcaption><b>A mail that is not about a job</b><span>Kept: only Gmail's id, its date and that it is not a job mail. Deleted after 35 days.</span></figcaption></figure>
-          <button type="button" class="dt-pause" data-pause aria-label="Pause the what is kept drawing" aria-pressed="false"><svg class="ic-pause" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 3.5v9M10.5 3.5v9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><svg class="ic-play" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3.5l7 4.5-7 4.5z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></button>
-        </div>
-        <p>In full, NorthList keeps:</p>
-        <ul class="dt-rows">
-          <li><b>For a job mail</b><span>The subject, the sender, the date, and Gmail's id for the mail and its conversation.</span></li>
-          <li><b>What the AI found in it</b><span>The company, the job title, the recruiter's name and email, interview, test, offer or rejection details, what the mail asks you to do and by when, and a warning if an offer looks like a scam.</span></li>
-          <li><b>A short quote</b><span>Up to 280 characters, may be kept to show interview times correctly.</span></li>
-          <li><b>Your replies to job mails</b><span>Only that you replied, when, and whether the AI read the reply. Not the text.</span></li>
-          <li><b>Mail that is not about a job</b><span>Only Gmail's id, its date and that it is not a job mail, so it is not read twice. No subject, no sender. Deleted after 35 days.</span></li>
-          <li><b>Inbox mails checked each day</b><span>Only the number, no mail details. Kept until you delete your account.</span></li>
-          <li><b>When you last used the app</b><span>Updated at most once an hour, and which messages from NorthList's owner you closed.</span></li>
-          <li><b>If the owner suspends your account</b><span>The reason you are shown and, if you ask to resume it, the text you send, until it is resumed.</span></li>
-          <li><b>If you turn on alerts</b><span>That device's push address and keys, until you turn alerts off or sign out there.</span></li>
-          <li><b>If you use the automation link</b><span>For each job it applied to: company, job title, job site, the job's link and ID, where the job was found, the link and address of the page where it applied, location, work mode, when it applied, the confirmation text (up to 300 characters), the name of your CV file (never the file) and your answers to the application questions.</span></li>
-          <li><b>For each job it did not apply to</b><span>Company, job title, job site, the job's link, whether it skipped the job or left it for you, why (up to 1,000 characters) and when.</span></li>
-        </ul>
-        <p class="dt-small">Everything else stays until you ask for it to be deleted.</p>
-      </section>
-
-      <section class="dt-sec" id="never" aria-labelledby="h-never">
-        <h2 id="h-never">What it never keeps</h2>
-        <ul class="dt-rows">
-          <li><b>The text of your mails</b><span>Their attachments or Gmail's preview.</span></li>
-          <li><b>A mail you open</b><span>It is read live from Gmail and shown to you. NorthList's servers don't save it. Your browser keeps a copy for offline pages, on your device only, for up to 7 days, and removes it when you sign out.</span></li>
-          <li><b>The text of your replies</b><span>And anything about your replies to other mail.</span></li>
-          <li><b>AI drafts</b><span>A draft is shown to you and never kept.</span></li>
-          <li><b>A reply you haven't sent</b><span>It stays in your browser only, until you send it, discard it or sign out.</span></li>
-        </ul>
-      </section>
-
-      <section class="dt-sec" id="ai" aria-labelledby="h-ai">
-        <h2 id="h-ai">AI and your mail</h2>
-        <p>NorthList uses AI to tell job mails from other mail, and to read what a job mail asks of you. This is what it sends, and when.</p>
-        <div class="dt-table" role="table" aria-label="What is sent to the AI, and when">
-          <div class="dt-tr dt-th" role="row"><span role="columnheader">When</span><span role="columnheader">What is sent</span><span role="columnheader">Limit</span></div>
-          <div class="dt-tr" role="row"><b role="cell">Each new mail</b><span role="cell">The sender, the subject, Gmail's labels and Gmail's short preview</span><span role="cell" class="lim">1,000 characters</span></div>
-          <div class="dt-tr" role="row"><b role="cell">Job mails only</b><span role="cell">The text of the mail and the date it arrived, with what is still open in that conversation</span><span role="cell" class="lim">8,000 characters</span></div>
-          <div class="dt-tr" role="row"><b role="cell">A conversation still waits on you</b><span role="cell">The new text of your own reply in it, without the earlier mail it quotes, so the AI can tell which requests it answers</span><span role="cell" class="lim">4,000 characters</span></div>
-          <div class="dt-tr" role="row"><b role="cell">You ask to reanalyze a conversation</b><span role="cell">The same again for its job mails and your own replies in it</span><span role="cell" class="lim">Same limits</span></div>
-          <div class="dt-tr" role="row"><b role="cell">You ask the AI to write a reply</b><span role="cell">The whole conversation, both sides, any hint you type or reply choice you click, and your first name. The draft is shown to you and never kept</span><span role="cell" class="lim">Whole conversation</span></div>
-          <div class="dt-tr" role="row"><b role="cell">Promotions, Social, Spam</b><span role="cell">Nothing. LinkedIn mail under Social is the exception</span><span role="cell" class="lim">Not sent</span></div>
-        </div>
-        <h3 class="dt-h3">Which AI service</h3>
-        <p>NorthList free AI reads your mail from the moment you connect Gmail; the line under the Connect Gmail button says so. You can connect your own key on the AI providers page at any time.</p>
-        <div class="dt-two">
-          <div><b>NorthList free AI</b><p>Your mail goes to OpenRouter on NorthList's account. OpenRouter passes it to the GPT-6 Luna model on Microsoft Azure servers in the US or Europe.</p></div>
-          <div><b>Your own key</b><p>Your mail goes to your own account with that AI service (today: OpenRouter), under that service's own terms.</p></div>
-        </div>
-        <p class="dt-aside"><b>No training, no keeping.</b> For every request to OpenRouter, NorthList asks for servers that keep nothing ("zero data retention"), so they cannot store your mail or train on it. NorthList itself never uses your mail to train any AI.</p>
-      </section>
-
-      <section class="dt-sec" id="protect" aria-labelledby="h-protect">
-        <h2 id="h-protect">How it is protected</h2>
-        <ul class="dt-rows">
-          <li><b>Gmail access</b><span>Your Gmail access is stored encrypted (AES-256-GCM).</span></li>
-          <li><b>AI keys</b><span>AI keys you add are encrypted with a separate key, and are never shown again, not even to you.</span></li>
-          <li><b>Automation tokens</b><span>Stored as a fingerprint (a hash) and their first 12 characters, so you can tell them apart. The full token is never stored.</span></li>
-          <li><b>Logs</b><span>NorthList's logs leave out mail subjects, senders, mail text, keys and passwords.</span></li>
-          <li><b>Admin page</b><span>Only NorthList's owner can open it. It shows account facts and counts, never the text, subject or sender of any mail.</span></li>
-          <li><b>Where it runs</b><span>The app runs on Render and its database on Supabase, both in Singapore.</span></li>
-        </ul>
-      </section>
-
-      <section class="dt-sec" id="others" aria-labelledby="h-others">
-        <h2 id="h-others">Who else takes part</h2>
-        <p>NorthList does not sell your data, does not show ads, and does not use analytics or tracking tools. Only these services take part:</p>
-        <ul class="dt-rows">
-          <li><b>Google</b><span>For sign-in and Gmail, because you connect them.</span></li>
-          <li><b>The AI service you choose</b><span>As described above.</span></li>
-          <li><b>Render</b><span>Hosts the app.</span></li>
-          <li><b>Supabase</b><span>Hosts the app's database.</span></li>
-          <li><b>Google Fonts</b><span>Serves the font. Your browser asks Google for the font file, as on most websites.</span></li>
-          <li><b>Your browser's push service</b><span>Only if you turn on alerts. It carries each alert, such as "Acme: Reply with your availability". The alert is encrypted, so the push service cannot read it.</span></li>
-        </ul>
-      </section>
-
-      <section class="dt-sec" id="choices" aria-labelledby="h-choices">
-        <h2 id="h-choices">Your choices</h2>
-        <ul class="dt-rows">
-          <li><b>Disconnect Gmail</b><span>On the Gmail sync page. NorthList stops reading your mail and asks Google to cancel its access. You can also remove access in your <a class="dt-a" href="https://myaccount.google.com/permissions">Google account</a>.</span></li>
-          <li><b>Delete a conversation</b><span>From its "…" menu. Its subjects, senders, AI results and to-dos go at once. Gmail's ids and dates stay for 35 days, so those mails are not read again. Your Gmail is not changed.</span></li>
-          <li><b>Block a company</b><span>From a mail's "…" menu, or when you delete a conversation. NorthList then does not read or keep new mail from its domain. LinkedIn and mail providers anyone can use can't be blocked. Unblock it in Mails › Restricted.</span></li>
-          <li><b>Delete an application</b><span>From its "…" menu. Its to-dos, history and what your automation reported for it go at once; its mails stay in Mails.</span></li>
-          <li><b>Remove an AI key</b><span>On the AI providers page. It is deleted at once.</span></li>
-          <li><b>Turn off alerts</b><span>On the Account page, on each phone or computer. Signing out there turns them off too.</span></li>
-          <li><b>Revoke an automation token</b><span>On the NorthList Apply page. It stops working at once and stays listed with its name and dates.</span></li>
-          <li><b>Jobs your automation did not apply to</b><span>And jobs you ignore in Waiting for a match, can't be deleted one by one. They stay until you delete everything.</span></li>
-          <li><b>Delete everything</b><span>Write to <a class="dt-a" href="mailto:nitinsirsath8855@gmail.com">nitinsirsath8855@gmail.com</a> from the email you sign in with. Your account and all its data are deleted within 7 days.</span></li>
-        </ul>
-      </section>
-
-      <section class="dt-sec" id="policy" aria-labelledby="h-policy">
-        <h2 id="h-policy">The full policy</h2>
-        <p>NorthList's use and transfer to any other app of information received from Google APIs will adhere to the <a class="dt-a" href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>, including the Limited Use requirements.</p>
-        <a class="n4-link dt-policy" href="/privacy.html"><span>The privacy policy has the complete text, cookies included.</span><span class="go">Read the privacy policy <i data-icon="arrowRight" data-size="14"></i></span></a>
-      </section>
-
+  <!-- 3. How NorthList treats you: the four promises in one lined row -->
+  <section class="wrap pr-band" aria-labelledby="pr-title">
+    <div class="pr-split-end rv">
+      <h2 id="pr-title" class="pr-h2">How NorthList<br>treats you.</h2>
+      <a class="pr-link" href="/privacy/">How NorthList handles your mail <i data-icon="arrowRight" data-size="16"></i></a>
     </div>
-  </div>
+    <ul class="pr-promises pr-stagger">
+      <li class="rv"><i data-icon="mail" data-size="20"></i><b>Read and send, never change</b><p>When you connect Gmail, you give two permissions: read mail, to find your job mails and show you your mail, and send mail, for your replies only. NorthList can’t change or delete anything in your Gmail.</p></li>
+      <li class="rv"><i data-icon="mailOff" data-size="20"></i><b>Never the text of your mails</b><p>For each job mail, NorthList keeps the subject, sender, date, Gmail’s ids and what the AI found, sometimes with a short quote for interview times. Not the text or the attachments. Ask, and everything is deleted within 7 days.</p></li>
+      <li class="rv"><i data-icon="shield" data-size="20"></i><b>The AI keeps nothing</b><p>NorthList asks the AI service to keep nothing, so it can’t store your mail or train on it.</p></li>
+      <li class="rv"><i data-icon="eyeOff" data-size="20"></i><b>No ads, no tracking</b><p>NorthList doesn’t show ads, sell your data, or use analytics or tracking tools.</p></li>
+    </ul>
+  </section>
 
-  <!-- 4. Close, as on Home -->
-  <section class="wrap n3-close n4-close dt-close">
-    <div class="n3-close-in rv">
-      <h2 class="n3-close-title">Start free today.</h2>
-      <div><div class="n3-ctas"><a class="btn btn-primary btn-lg" href="https://app.northlist.site/login">Start free</a></div><p class="n3-note">Questions about your data? Write to <a class="dt-a" href="mailto:nitinsirsath8855@gmail.com">nitinsirsath8855@gmail.com</a>.</p></div>
+  <!-- 4. Say hello: the contact address is the close -->
+  <section class="wrap pr-close" aria-labelledby="contact-title">
+    <div class="pr-close-in rv">
+      <div>
+        <h2 id="contact-title" class="pr-close-title">Say hello.</h2>
+        <p class="pr-hello">Questions, ideas, or something that doesn’t work? Write any time.</p>
+      </div>
+      <div class="pr-close-act pr-contact">
+        <a class="pr-mail" href="mailto:nitinsirsath8855@gmail.com">nitinsirsath8855@gmail.com</a>
+        <a class="btn btn-primary btn-lg" href="https://app.northlist.site/login">Start free</a>
+      </div>
     </div>
   </section>
 
 </main>
 <div data-site-footer></div>
 <script type="module" src="/main.ts"></script>
-<script type="module" src="./data.ts"></script>
+<script type="module" src="./about.ts"></script>
 </body>
 </html>
