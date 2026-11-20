@@ -1,0 +1,106 @@
+/*
+ * Home's sections (owner, 19-20 Nov 2026): "One mail, start to finish" (a lit stage with two windows that plays
+ * in), the four promises and "Try it yourself". Classes start with n4-.
+ */
+
+/* ---------- Hero ---------- */
+.n4-shot-wrap { max-width: calc(var(--max) + 2 * var(--gut) + 48px); margin: 64px auto 0; padding-inline: var(--gut); }
+.n4-shot { padding: 8px; border: 1px solid var(--line); border-radius: 16px; background: linear-gradient(180deg, #121315, var(--bg) 70%); }
+.n4-shot .sa { border-radius: 12px; border-color: var(--line-2); }
+.n4-shot .sa-fit { border-radius: 12px; -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent); mask-image: linear-gradient(to bottom, #000 62%, transparent); }
+.n4-shot .sa-fit:has(.sa.used) { -webkit-mask-image: none; mask-image: none; }
+.n4-cap { padding: 12px 8px 0; }
+
+/* ---------- Bands ---------- */
+.n4-band { padding-top: 128px; }
+.n4-h2 { font-size: 48px; line-height: 1.1; letter-spacing: -0.022em; font-weight: 520; text-wrap: balance; }
+
+/* ---------- One mail, start to finish: linear.app's lit stage, the story plays in row by row ---------- */
+.n4-stage2 { height: 800px; }
+.n4-stage2::after { height: 150px; }
+.n4-stage2 .lh-win-front { height: 628px; top: 64px; }
+.n4-stage2 .lh-win-back { top: 112px; }
+.n4-stage2 .lh-page { padding: 28px 40px; }
+.n4-stage2 .lh-act { gap: 14px; }
+.n4-stepcard .lbl { grid-row: 1; }
+.n4-stepcard b { grid-row: 2; }
+.n4-stepcard .n4-open, .n4-stepcard .n4-closed { grid-row: 2; grid-column: 2; justify-self: end; }
+.n4-stage2 .lh-msg .av.me { background: #26272a; color: var(--text); }
+.n4-act li { width: 100%; }
+.n4-act .w { margin-left: auto; font: 400 12px/1 var(--mono); color: var(--dim); }
+.n4-act .d.ok { border-color: var(--ok); background: var(--ok); }
+.n4-stepcard { position: relative; }
+.n4-closed { display: none; align-items: center; gap: 6px; font-size: 12px; color: var(--ok); }
+.n4-status { position: relative; }
+.n4-now { display: none; align-items: center; gap: 6px; }
+.n4-was { display: inline-flex; align-items: center; gap: 6px; }
+/* Before it plays: only the first row; while playing: each row rises in turn (0.9 s apart); at the end: all shown */
+.n4-stage2:not(.end) .n4-s { opacity: 0; }
+.n4-stage2.play .n4-s { animation: n4-in 700ms var(--ease-intro) calc(var(--d) * 900ms + 400ms) both; }
+@keyframes n4-in { from { opacity: 0; transform: translateY(8px); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
+.n4-stage2.play .n4-open { animation: n4-hide 1ms linear 4900ms both; }
+.n4-stage2.play .n4-closed { display: inline-flex; animation: n4-show 500ms var(--ease-intro) 4900ms both; }
+.n4-stage2.play .n4-was { animation: n4-hide 1ms linear 5800ms both; }
+.n4-stage2.play .n4-now { display: inline-flex; position: absolute; left: 12px; top: 50%; translate: 0 -50%; animation: n4-show 500ms var(--ease-intro) 5800ms both; }
+@keyframes n4-hide { to { opacity: 0; } }
+@keyframes n4-show { from { opacity: 0; } to { opacity: 1; } }
+.n4-stage2.end .n4-open, .n4-stage2.end .n4-was { display: none; }
+.n4-stage2.end .n4-closed, .n4-stage2.end .n4-now { display: inline-flex; }
+.n4-replay { position: absolute; right: 24px; bottom: 28px; z-index: 3; }
+@media (max-width: 1023px) { .n4-stage2 { height: 720px; } .n4-stage2 .lh-win-front { height: 560px; } }
+@media (max-width: 599px) {
+  /* Phones: the window first, cut at the right edge as on linear.app, then the words under it */
+  .n4-stage2 { height: auto; display: flex; flex-direction: column; padding: 24px 0 0 16px; }
+  .n4-stage2::after { display: none; }
+  .n4-stage2 .lh-win-front { position: relative; inset: auto; left: auto; top: auto; right: auto; width: auto; height: 560px; margin-right: -64px;
+    -webkit-mask-image: linear-gradient(to bottom, #000 84%, transparent); mask-image: linear-gradient(to bottom, #000 84%, transparent); }
+  .n4-stage2 .lh-pills .lh-pill:nth-child(n + 2), .n4-stage2 .lh-meta { display: none; }
+  .n4-stage2 .lh-pills { margin-top: 12px; }
+  .n4-stage2 .n4-stepcard { grid-template-columns: 1fr; margin-top: 16px; margin-right: 48px; }
+  .n4-stepcard .n4-open, .n4-stepcard .n4-closed { grid-row: 3; grid-column: 1; justify-self: start; margin-top: 6px; }
+  .n4-stage2 .lh-page h4 { margin-top: 20px; }
+  .n4-stage2 .n4-act { padding-right: 56px; gap: 12px; }
+  .n4-stage2 .lh-page { padding: 22px 20px; }
+  .n4-stage2 .lh-page h3 { padding-right: 56px; }
+  .n4-stage2 .n4-act .w { display: none; }
+  .n4-stage2 .n4-act li { align-items: center; }
+  .n4-stage2 .lh-stage-cap, .n4-stage2 .lh-stage-cap:where(*) { position: static; padding: 8px 64px 24px 4px; }
+  .n4-stage2 .lh-page h3 { font-size: 18px; line-height: 25px; }
+  .n4-act { font-size: 12px; }
+  .n4-replay { right: 16px; bottom: 20px; }
+  .n4-stage2 .lh-stage-cap { right: 64px; }
+}
+
+/* ---------- Promises only ---------- */
+.n4-split { display: flex; justify-content: space-between; align-items: end; gap: 24px; }
+.n4-more { color: var(--text-2); }
+.n4-promises { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 48px; border-top: 1px solid var(--line); }
+.n4-promises li { display: grid; gap: 16px; align-content: start; padding: 32px 32px 8px; border-right: 1px solid var(--line); color: var(--text-3); }
+.n4-promises li:first-child { padding-left: 0; }
+.n4-promises li:last-child { border-right: 0; padding-right: 0; }
+.n4-promises li b { font-size: 14px; font-weight: 500; color: var(--text); }
+.n4-promises li p { margin-top: 8px; font-size: 14px; line-height: 22px; color: var(--text-3); text-wrap: pretty; }
+
+/* ---------- Two plain links ---------- */
+
+/* ---------- Tablet ---------- */
+@media (max-width: 1023px) {
+  .n4-h2 { font-size: 36px; line-height: 1.12; }
+  .n4-band { padding-top: 96px; }
+  .n4-promises { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .n4-promises li:nth-child(2) { border-right: 0; padding-right: 0; }
+  .n4-promises li:nth-child(3) { padding-left: 0; }
+  .n4-promises li:nth-child(n + 3) { border-top: 1px solid var(--line); padding-top: 28px; margin-top: 24px; }
+}
+/* ---------- Phone ---------- */
+@media (max-width: 599px) {
+  .n4-shot-wrap { margin-top: 40px; padding-right: 0; }
+  .n4-shot { padding: 6px 0 0 6px; border-right: 0; border-radius: 14px 0 0 14px; }
+  .n4-shot .sa, .n4-shot .sa-fit { border-radius: 10px 0 0 10px; }
+  .n4-cap { padding-right: var(--gut); }
+  .n4-band { padding-top: 80px; }
+  .n4-h2 { font-size: 30px; line-height: 1.15; }
+  .n4-promises { grid-template-columns: minmax(0, 1fr); margin-top: 32px; }
+  .n4-promises li, .n4-promises li:nth-child(n) { padding: 22px 0; margin: 0; border-right: 0; border-top: 1px solid var(--line); }
+  .n4-promises li:first-child { border-top: 0; }
+}
