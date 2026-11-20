@@ -105,4 +105,5 @@
   .n4-promises { grid-template-columns: minmax(0, 1fr); margin-top: 32px; }
   .n4-promises li, .n4-promises li:nth-child(n) { padding: 22px 0; margin: 0; border-right: 0; border-top: 1px solid var(--line); }
   .n4-promises li:first-child { border-top: 0; }
+  .n4-split { flex-direction: column; align-items: start; }
 }
