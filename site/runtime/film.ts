@@ -152,9 +152,21 @@ function buildStage(film: Film, stage: HTMLElement) {
   const show = (ms: number) => {
     const on = Math.min(shots.length - 1, Math.floor(ms / SHOT_MS));
     fill(scenes[on]);
-    scenes.forEach((s, i) => s.toggleAttribute('data-on', i === on));
+    scenes.forEach((s, i) => {
+      const was = s.hasAttribute('data-on');
+      s.toggleAttribute('data-on', i === on);
+      if (i === on && !was) restart(s);
+    });
   };
   return { scenes, fill, show };
+}
+
+/*
+ * A hidden scene skips style updates (content-visibility), so CSS keeps its finished animations when it comes
+ * back and the shot would stand still from the second loop on. Its animations start again here instead.
+ */
+function restart(scene: HTMLElement): void {
+  for (const a of scene.getAnimations({ subtree: true })) a.currentTime = 0;
 }
 
 /** Draws one shot after another when the page is idle, so none is drawn at load but the first. */

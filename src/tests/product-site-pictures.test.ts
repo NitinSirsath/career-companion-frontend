@@ -217,6 +217,7 @@ describe('the run on the Automation page', () => {
 });
 
 describe("Home's hero film", () => {
+  const played = new Map<Element, { currentTime: number; pause: () => void }>();
   async function loadFilm({ reduceMotion = false, search = '', cores = 8 } = {}) {
     vi.resetModules();
     stubBrowser(reduceMotion);
@@ -224,6 +225,15 @@ describe("Home's hero film", () => {
     Object.defineProperty(document, 'fonts', {
       configurable: true,
       value: { ready: Promise.resolve() },
+    });
+    // jsdom has no Web Animations: each element gets one stand-in animation, so a test can see it start again.
+    played.clear();
+    Object.defineProperty(Element.prototype, 'getAnimations', {
+      configurable: true,
+      value(this: Element) {
+        if (!played.has(this)) played.set(this, { currentTime: 0, pause: () => undefined });
+        return [played.get(this)];
+      },
     });
     window.history.replaceState(null, '', `/${search}`);
     document.body.innerHTML = new DOMParser().parseFromString(home(), 'text/html').body.innerHTML;
@@ -233,7 +243,10 @@ describe("Home's hero film", () => {
   const hero = () => $('[data-film-hero]');
   const scenes = () => [...document.querySelectorAll<HTMLElement>('.hf-scene')];
   const onScene = () => $('.hf-scene[data-on]')?.dataset.shot;
-  afterEach(() => window.history.replaceState(null, '', '/'));
+  afterEach(() => {
+    window.history.replaceState(null, '', '/');
+    Reflect.deleteProperty(Element.prototype, 'getAnimations');
+  });
 
   it('draws four scenes: the first at once, the others later, each one copy under a blur veil', async () => {
     await loadFilm();
@@ -262,6 +275,21 @@ describe("Home's hero film", () => {
     expect(onScene()).toBe('dash');
     await vi.advanceTimersByTimeAsync(4000);
     expect(onScene()).toBe('mails');
+  });
+
+  it('plays each shot from its start on every loop, and a pause keeps its place', async () => {
+    await loadFilm();
+    await vi.advanceTimersByTimeAsync(1700);
+    const first = scenes()[0];
+    first.getAnimations()[0].currentTime = 4000; // the shot has played to its end
+    await vi.advanceTimersByTimeAsync(16000);
+    expect(onScene()).toBe('mails');
+    expect(first.getAnimations()[0].currentTime).toBe(0);
+    first.getAnimations()[0].currentTime = 1200;
+    const btn = $<HTMLButtonElement>('[data-film-toggle]');
+    btn.click();
+    btn.click();
+    expect(first.getAnimations()[0].currentTime).toBe(1200);
   });
 
   it('pauses with its button, and holds the scene it was on', async () => {
