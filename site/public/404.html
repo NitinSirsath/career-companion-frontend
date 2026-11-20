@@ -17,42 +17,26 @@
   while the server sleeps. "404" is drawn from small mail tiles in the app's tag colours.
 -->
 <style>
+  /* Dark only, a light pill, no blue (owner, 19-20 Nov 2026), as on the rest of the site. The logo keeps its mark. */
   :root {
-    color-scheme: light dark;
-    --background: #ffffff;
-    --text-primary: #161616;
-    --text-secondary: #525252;
-    --text-tertiary: #6f6f6f;
-    --border-subtle: #e0e0e0;
-    --layer-hover: #f4f4f4;
-    --link: #0f62fe;
-    --link-hover: #0043ce;
-    --mark: #0f62fe;
-    --button: #0f62fe;
-    --button-hover: #0050e6;
-    --blue-bg: #d0e2ff; --blue: #002d9c;
-    --cyan-bg: #bae6ff; --cyan: #003a6d;
-    --teal-bg: #9ef0f0; --teal: #004144;
-    --green-bg: #a7f0ba; --green: #044317;
-    --yellow-bg: #fcf4d6; --yellow: #483700;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --background: #0d0d0d;
-      --text-primary: #f0f0f0;
-      --text-secondary: #b3b3b3;
-      --text-tertiary: #8f8f8f;
-      --border-subtle: #272727;
-      --layer-hover: #141414;
-      --link: #78a9ff;
-      --link-hover: #a6c8ff;
-      --mark: #4589ff;
-      --blue-bg: #0f2350; --blue: #a6c8ff;
-      --cyan-bg: #0a2a40; --cyan: #82cfff;
-      --teal-bg: #082d2e; --teal: #3ddbd9;
-      --green-bg: #0b2a17; --green: #6fdc8c;
-      --yellow-bg: #2e2600; --yellow: #fddc69;
-    }
+    color-scheme: dark;
+    --background: #08090a;
+    --text-primary: #f7f8f8;
+    --text-secondary: #b4b8bf;
+    --text-tertiary: #8a8f98;
+    --border-subtle: #1c1d1f;
+    --layer-hover: #101112;
+    --link: #f7f8f8;
+    --link-hover: #ffffff;
+    --mark: #4c86ff;
+    --button: #e6e6e6;
+    --button-hover: #ffffff;
+    --button-text: #08090a;
+    --blue-bg: #1c1d1f; --blue: #b4b8bf;
+    --cyan-bg: #26272a; --cyan: #d0d3d8;
+    --teal-bg: #082d2e; --teal: #3ddbd9;
+    --green-bg: #0b2a17; --green: #6fdc8c;
+    --yellow-bg: #2e2600; --yellow: #fddc69;
   }
   * { box-sizing: border-box; }
   body {
@@ -102,7 +86,7 @@
   .t { --bg: var(--teal-bg); --fg: var(--teal); }
   .g { --bg: var(--green-bg); --fg: var(--green); }
   .y { --bg: var(--yellow-bg); --fg: var(--yellow); }
-  .m { --bg: var(--mark); --fg: #ffffff; }
+  .m { --bg: #3e3f43; --fg: #f7f8f8; }
   /* Sorted in one by one, like mails the AI has read. */
   @keyframes sort-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
   @media (prefers-reduced-motion: reduce) { .tiles b { animation: none; opacity: 1; } }
@@ -112,9 +96,9 @@
   .lead { margin: 16px auto 0; max-width: 560px; font-size: 18px; line-height: 28px; color: var(--text-secondary); }
   .button {
     display: inline-flex; align-items: center; justify-content: space-between; gap: 48px; margin-top: 32px;
-    height: 48px; padding: 0 20px 0 22px; border-radius: 999px; background: var(--button); color: #ffffff; font-size: 14px;
+    height: 48px; padding: 0 20px 0 22px; border-radius: 999px; background: var(--button); color: var(--button-text); font-size: 14px; font-weight: 500;
   }
-  .button:hover { background: var(--button-hover); color: #ffffff; text-decoration: none; }
+  .button:hover { background: var(--button-hover); color: var(--button-text); text-decoration: none; }
   .button svg { width: 16px; height: 16px; fill: currentColor; }
   .moved { margin: 16px 0 0; font-size: 13px; line-height: 18px; color: var(--text-secondary); }
   .moved b { color: var(--text-primary); font-weight: 600; }

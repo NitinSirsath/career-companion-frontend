@@ -1,0 +1,244 @@
+/*
+ * The "Your data" page (owner, 19-20 Nov 2026), finished after the owner's own site rules (stockypro.com
+ * docs/FIG_DRAWINGS.md, DESIGN_TOKENS.md, MOTION_DISCIPLINE.md): fixed type sizes, a 4px rhythm, one radius
+ * for framed pictures (16), hairline rows, calm quick motion, drawings at one scale with no text inside.
+ * Words left, one framed drawing, then Linear-docs details: a sticky contents list and hairline rows.
+ * Classes start with dt-. No blue: links are grey words with a grey underline, focus rings are light grey.
+ */
+.dt {
+  --dt-ease: cubic-bezier(0.23, 1, 0.32, 1);
+  /* Drawing roles (FIG_DRAWINGS.md), greys only */
+  --fig-bg: var(--surface);
+  --fig-soft: #121315;
+  --fig-line: #2c2d31;
+  --fig-strong: #4a4c52;
+  --fig-accent: #d9dbe0;
+  --fig-accent-fill: #2a2b2f;
+}
+.dt :focus-visible { outline: 2px solid var(--text-2); outline-offset: 3px; border-radius: 4px; }
+.dt .rv { transition: opacity 560ms var(--dt-ease), transform 560ms var(--dt-ease); }
+
+/* ---------- Head ---------- */
+.dt-hero { padding-top: 160px; }
+.dt-display { font-size: 72px; line-height: 1.04; letter-spacing: -0.03em; font-weight: 520; text-wrap: balance; }
+.dt-hero-row { display: flex; justify-content: space-between; align-items: end; gap: 32px; margin-top: 32px; }
+.dt-lead { max-width: 520px; font-size: 18px; line-height: 1.6; letter-spacing: -0.01em; color: var(--text-3); text-wrap: pretty; }
+.dt-note { font-size: 14px; line-height: 1.6; color: var(--text-3); text-align: right; }
+.dt-a { color: var(--text-2); text-decoration: underline; text-decoration-color: var(--line-3); text-underline-offset: 3px; text-decoration-thickness: 1px;
+  transition: color 150ms var(--dt-ease), text-decoration-color 150ms var(--dt-ease); }
+.dt-a:hover { color: var(--text); text-decoration-color: var(--text-3); }
+
+/* ---------- The framed drawing: how a new mail moves ---------- */
+.dt-stage { position: relative; margin: 64px 0 0; padding: 64px 48px 40px; border: 1px solid var(--line); border-radius: 16px; overflow: hidden;
+  background: radial-gradient(100% 70% at 50% 0%, #17181b 0%, var(--surface) 60%); }
+.dt-stage-pic { display: grid; place-items: center; }
+.dt-stations { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); width: min(100%, 828px); margin: 32px auto 0; text-align: center; }
+.dt-stations li { display: grid; align-content: start; gap: 4px; padding: 0 8px; }
+.dt-stations .n { font: 400 12px/1.5 var(--mono); color: var(--text-3); }
+.dt-stations b { font-size: 16px; line-height: 1.5; font-weight: 500; }
+.dt-stations span:last-child { font-size: 14px; line-height: 1.5; color: var(--text-3); text-wrap: balance; }
+.dt-stage-cap { display: grid; gap: 4px; max-width: 460px; margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--line); }
+.dt-stage-cap b { font-size: 16px; line-height: 1.5; font-weight: 500; }
+.dt-stage-cap span { font-size: 16px; line-height: 1.6; color: var(--text-3); }
+
+/* The drawings (FIG rules): 1px lines that never scale, round joins, no gradients, no shadows, one accent */
+.dt-fig { display: block; width: auto; max-width: 100%; height: auto; overflow: visible; }
+.dt-fig * { vector-effect: non-scaling-stroke; stroke-width: 1; stroke-linejoin: round; stroke-linecap: round; }
+.dt-fig .o { fill: var(--fig-bg); stroke: var(--fig-strong); }
+.dt-fig .s { fill: var(--fig-soft); stroke: var(--fig-strong); }
+.dt-fig .i { fill: none; stroke: var(--fig-line); }
+.dt-fig .d { fill: none; stroke: var(--fig-strong); stroke-dasharray: 2 3; }
+.dt-fig .p { fill: none; stroke: var(--fig-strong); stroke-dasharray: 1 4; }
+.dt-fig .a { fill: var(--fig-bg); stroke: var(--fig-accent); }
+.dt-fig .af { fill: var(--fig-accent-fill); stroke: var(--fig-accent); }
+.dt-fig .ai { fill: none; stroke: var(--fig-accent); stroke-opacity: 0.5; }
+.dt-fig-box { position: relative; max-width: 100%; }
+/* Each moving part is its own svg laid over the drawing, so a loop moves an element (transform, opacity) and never re-lays out the drawing */
+.dt-fig-over { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; pointer-events: none; }
+.dt-mv-a { opacity: 0; } /* the moving mail shows only while the loop plays; the still pose is the row on the list */
+
+/* One slow loop per drawing, only while it is on screen, never under reduced motion, ?static or after Pause */
+@media (prefers-reduced-motion: no-preference) {
+/*fig:keyframes*/
+@keyframes fig-flow-mail {
+  0%, 6% { transform: translate(0, 0); opacity: 0; }
+  12%, 20% { transform: translate(0, 0); opacity: 1; }
+  32%, 38% { transform: translate(25.000%, -19.282%); opacity: 1; }
+  50% { transform: translate(50.000%, -12.440%); opacity: 1; }
+  58%, 100% { transform: translate(50.000%, -12.440%); opacity: 0; }
+}
+@keyframes fig-flow-row {
+  0%, 2% { transform: translate(0, 0); opacity: 1; }
+  8%, 54% { transform: translate(0, 0); opacity: 0; }
+  56% { transform: translate(-25.000%, -12.440%); opacity: 0; }
+  62% { transform: translate(-25.000%, -12.440%); opacity: 1; }
+  78%, 100% { transform: translate(0, 0); opacity: 1; }
+}
+@keyframes fig-keep-text {
+  0%, 15% { transform: translate(0, 0); opacity: 1; }
+  50%, 62% { transform: translate(0, -6.576%); opacity: .25; }
+  95%, 100% { transform: translate(0, 0); opacity: 1; }
+}
+/*/fig:keyframes*/
+  .dt-loops.dt-on:not(.dt-stopped) .dt-fig-over { will-change: transform, opacity; }
+  .dt-loops.dt-on:not(.dt-stopped) .dt-mv-a { animation: fig-flow-mail 12s ease-in-out infinite; }
+  .dt-loops.dt-on:not(.dt-stopped) .dt-mv-b { animation: fig-flow-row 12s ease-in-out infinite; }
+  .dt-loops.dt-on:not(.dt-stopped) .dt-mv-t { animation: fig-keep-text 10s ease-in-out infinite; }
+}
+.dt-pause { position: absolute; top: 16px; right: 16px; z-index: 2; width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%;
+  background: var(--surface); color: var(--text-3); cursor: pointer; transition: color 150ms var(--dt-ease), border-color 200ms var(--dt-ease), transform 150ms var(--dt-ease); }
+.dt-pause:hover { color: var(--text); border-color: var(--line-3); }
+.dt-pause:active { transform: scale(0.97); }
+.dt-pause .ic-play, .dt-stopped .dt-pause .ic-pause { display: none; }
+.dt-stopped .dt-pause .ic-play { display: block; }
+.dt-pause[hidden] { display: none; }
+@media (prefers-reduced-motion: reduce) { .dt-pause { display: none; } }
+
+/* ---------- Details: contents list left, hairline rows right ---------- */
+.dt-doc { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 0 96px; padding-top: 128px; }
+.dt-otp { display: none; }
+.dt-toc { position: sticky; top: 112px; align-self: start; display: grid; gap: 0; }
+.dt-toc-t { font-size: 12px; line-height: 1.5; color: var(--text-3); margin-bottom: 12px; }
+.dt-toc a { display: block; padding: 6px 0; font-size: 14px; line-height: 20px; color: var(--text-3); text-decoration: none; transition: color 150ms var(--dt-ease); }
+.dt-toc a:hover { color: var(--text-2); }
+.dt-toc a.on { color: var(--text); }
+
+.dt-body { max-width: 760px; min-width: 0; }
+.dt-sec { padding-block: 64px; border-top: 1px solid var(--line); scroll-margin-top: 24px; }
+.dt-sec:first-child { padding-top: 0; border-top: 0; }
+.dt-sec:last-child { padding-bottom: 0; }
+.dt-sec h2 { font-size: 30px; line-height: 1.15; letter-spacing: -0.02em; font-weight: 520; text-wrap: balance; }
+.dt-sec > p { margin-top: 16px; max-width: 680px; font-size: 16px; line-height: 1.6; letter-spacing: -0.01em; color: var(--text-2); text-wrap: pretty; }
+.dt-sec > p.dt-small { font-size: 14px; line-height: 1.6; letter-spacing: 0; color: var(--text-3); }
+.dt-h3 { margin-top: 48px; font-size: 20px; line-height: 1.25; font-weight: 520; letter-spacing: -0.01em; }
+.dt-aside { margin-top: 32px !important; padding-left: 16px; border-left: 1px solid var(--line-3); color: var(--text-3) !important; }
+.dt-aside b { color: var(--text); font-weight: 500; }
+
+/* The four promises (words from data.ts): two by two, hairlines between */
+.dt-promises { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 32px; border-top: 1px solid var(--line); }
+.dt-promises .promise { display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: 8px; padding: 32px 32px 32px 0; border-bottom: 1px solid var(--line); }
+.dt-promises .promise:nth-child(2n) { padding: 32px 0 32px 32px; border-left: 1px solid var(--line); }
+.dt-promises .promise:nth-last-child(-n + 2) { border-bottom: 0; }
+.dt-promises .promise svg { grid-row: auto; margin: 0 0 8px; color: var(--text-3); }
+.dt-promises .promise b { font-size: 16px; line-height: 1.5; font-weight: 500; color: var(--text); }
+.dt-promises .promise p { font-size: 14px; line-height: 1.6; color: var(--text-3); }
+
+/* How mail moves: four numbered rows with what passes between them */
+.dt-steps { margin-top: 32px; border-top: 1px solid var(--line); }
+.dt-steps li { display: grid; grid-template-columns: 48px minmax(0, 1fr); padding: 20px 0; border-bottom: 1px solid var(--line); }
+.dt-steps li:has(+ .pass) { border-bottom: 0; padding-bottom: 8px; }
+.dt-steps li.pass { padding: 0 0 20px; }
+.dt-steps .n { font: 400 12px/24px var(--mono); color: var(--text-3); }
+.dt-steps b { font-size: 16px; line-height: 1.6; font-weight: 500; }
+.dt-steps p { font-size: 16px; line-height: 1.6; color: var(--text-3); }
+.dt-steps li.pass span:last-child { position: relative; padding-left: 20px; font: 400 12px/1.5 var(--mono); color: var(--text-3); }
+.dt-steps li.pass span:last-child::before { content: '↓'; position: absolute; left: 0; color: var(--text-3); }
+
+/* Two side by side, a hairline between */
+.dt-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 32px; border-block: 1px solid var(--line); }
+.dt-two > div { display: grid; align-content: start; gap: 4px; padding: 24px 32px 24px 0; }
+.dt-two > div + div { padding: 24px 0 24px 32px; border-left: 1px solid var(--line); }
+.dt-two b { font-size: 16px; line-height: 1.5; font-weight: 500; }
+.dt-two code { font: 400 12px/1.5 var(--mono); color: var(--text-3); }
+.dt-two p { margin-top: 4px; font-size: 16px; line-height: 1.6; color: var(--text-3); }
+
+/* What is kept: one framed panel, two drawings at the same scale and crop, a hairline between */
+.dt-keep { position: relative; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 32px; border: 1px solid var(--line); border-radius: 16px; overflow: hidden;
+  background: radial-gradient(100% 70% at 50% 0%, #17181b 0%, var(--surface) 60%); }
+.dt-keep figure { margin: 0; display: grid; grid-template-rows: auto 1fr; gap: 32px; padding: 48px 32px 32px; }
+.dt-keep figure + figure { border-left: 1px solid var(--line); }
+.dt-keep-pic { display: grid; place-items: center; }
+.dt-keep figcaption { display: grid; align-content: start; gap: 4px; }
+.dt-keep + p { margin-top: 32px; }
+.dt-keep figcaption b { font-size: 16px; line-height: 1.5; font-weight: 500; }
+.dt-keep figcaption span { font-size: 14px; line-height: 1.6; color: var(--text-3); }
+
+/* Hairline rows: the label left in white, the words right in grey */
+.dt-rows { margin-top: 32px; border-top: 1px solid var(--line); }
+.dt-rows li { display: grid; grid-template-columns: 232px minmax(0, 1fr); gap: 4px 32px; padding: 20px 0; border-bottom: 1px solid var(--line); font-size: 16px; line-height: 1.6; }
+.dt-rows b { font-weight: 500; color: var(--text); text-wrap: balance; }
+.dt-rows span { color: var(--text-3); }
+.dt-sec > .dt-rows + .dt-small { margin-top: 24px; }
+
+/* What goes to the AI: a table in hairline rows */
+.dt-table { margin-top: 32px; }
+.dt-tr { display: grid; grid-template-columns: 200px minmax(0, 1fr) 152px; gap: 32px; padding: 20px 0; border-bottom: 1px solid var(--line); font-size: 16px; line-height: 1.6; }
+.dt-tr b { font-weight: 500; text-wrap: balance; }
+.dt-tr span { color: var(--text-3); }
+.dt-tr .lim { font: 400 14px/1.8 var(--mono); color: var(--text-2); text-align: right; }
+.dt-th { padding: 0 0 12px; border-bottom-color: var(--line-2); }
+.dt-th span { font-size: 12px; color: var(--text-3); }
+.dt-th span:last-child { text-align: right; }
+
+/* The full policy: one plain link row, as on Home */
+.dt-policy { margin-top: 32px; font-size: 20px; letter-spacing: -0.01em; border-bottom: 1px solid var(--line); }
+.dt-policy .go { font-size: 14px; font-weight: 500; color: var(--text-2); }
+
+/* Close, as on Home, on the type scale */
+.dt-close { padding-block: 128px; }
+.dt-close .n3-close-title { font-size: 60px; line-height: 1.04; letter-spacing: -0.03em; }
+.dt-close .n3-note { margin-top: 16px; font-size: 14px; line-height: 1.6; color: var(--text-3); }
+.dt-close .btn:active { transform: scale(0.97); }
+
+/* ---------- Smaller laptops ---------- */
+@media (max-width: 1279px) {
+  .dt-display { font-size: 60px; }
+  .dt-doc { gap: 0 64px; }
+}
+/* ---------- Tablet ---------- */
+@media (max-width: 1023px) {
+  .dt-hero { padding-top: 112px; }
+  .dt-display { font-size: 48px; line-height: 1.06; }
+  .dt-hero-row { flex-direction: column; align-items: start; gap: 16px; }
+  .dt-note { text-align: left; }
+  .dt-stage { padding: 64px 32px 32px; }
+  .dt-doc { grid-template-columns: minmax(0, 1fr); padding-top: 96px; }
+  .dt-toc { display: none; }
+  /* Phones and tablets: one quiet bar under the header that names the section being read and opens the list */
+  .dt-otp { display: block; position: sticky; top: 64px; z-index: 20; margin: 0 calc(-1 * var(--gut)) 48px; background: var(--bg); border-block: 1px solid var(--line); }
+  .dt-otp summary { display: flex; align-items: center; gap: 12px; height: 48px; padding: 0 var(--gut); list-style: none; cursor: pointer; font-size: 14px; }
+  .dt-otp summary::-webkit-details-marker { display: none; }
+  .dt-otp summary span { color: var(--text-3); }
+  .dt-otp summary b { flex: 1; min-width: 0; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dt-otp summary svg { color: var(--text-3); transition: transform 200ms var(--dt-ease); }
+  .dt-otp[open] summary svg { transform: rotate(180deg); }
+  .dt-otp nav { display: grid; padding: 4px var(--gut) 12px; border-top: 1px solid var(--line); }
+  .dt-otp nav a { display: flex; align-items: center; min-height: 44px; font-size: 16px; color: var(--text-3); text-decoration: none; }
+  .dt-otp nav a.on { color: var(--text); }
+  .dt-sec { padding-block: 48px; scroll-margin-top: 40px; }
+  .dt-close { padding-block: 96px; }
+  .dt-close .n3-close-title { font-size: 48px; }
+}
+/* ---------- Phone ---------- */
+@media (max-width: 599px) {
+  .dt-hero { padding-top: 64px; }
+  .dt-display { font-size: 40px; line-height: 1.08; }
+  .dt-lead { font-size: 18px; }
+  .dt-hero-row { margin-top: 20px; }
+  /* The drawing is a diagram: it fits the width; its labels go two by two under it */
+  .dt-stage { margin-top: 48px; padding: 48px 16px 24px; }
+  .dt-stations { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 0; margin-top: 32px; }
+  .dt-stage-cap { margin-top: 40px; padding: 20px 4px 0; }
+  .dt-pause { top: 8px; right: 8px; }
+  .dt-doc { padding-top: 80px; }
+  .dt-otp { margin-bottom: 40px; }
+  .dt-sec { padding-block: 40px; }
+  .dt-sec h2 { font-size: 24px; line-height: 1.2; }
+  .dt-promises { grid-template-columns: minmax(0, 1fr); }
+  .dt-promises .promise, .dt-promises .promise:nth-child(2n) { padding: 24px 0; border-left: 0; border-bottom: 1px solid var(--line); }
+  .dt-promises .promise:last-child { border-bottom: 0; }
+  .dt-steps li { grid-template-columns: 40px minmax(0, 1fr); }
+  .dt-two { grid-template-columns: minmax(0, 1fr); }
+  .dt-two > div, .dt-two > div + div { padding: 20px 0; border-left: 0; }
+  .dt-two > div + div { border-top: 1px solid var(--line); }
+  .dt-keep { grid-template-columns: minmax(0, 1fr); }
+  .dt-keep figure { padding: 40px 24px 24px; gap: 24px; }
+  .dt-keep figure + figure { border-left: 0; border-top: 1px solid var(--line); }
+  .dt-rows li { grid-template-columns: minmax(0, 1fr); padding: 16px 0; }
+  .dt-tr { grid-template-columns: minmax(0, 1fr); gap: 4px; padding: 16px 0; }
+  .dt-th { display: none; }
+  .dt-tr .lim { text-align: left; font-size: 12px; }
+  .dt-policy { font-size: 18px; }
+  .dt-close { padding-block: 80px; }
+  .dt-close .n3-close-title { font-size: 36px; }
+}

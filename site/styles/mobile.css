@@ -1,0 +1,419 @@
+/*
+ * The Mobile page (owner, 19-20 Nov 2026): linear.app/mobile with our content, finished by the brief's
+ * rules (stockypro.com's Linear study): two big phone pictures, one notification panel, small cards
+ * that show one piece each. Fixed type sizes, a 4px grid, radius 8 / 12 / 16. Classes start with mb-.
+ */
+
+/* No blue (owner, 19 Nov 2026: the app no longer uses blue): inside these phones the app's blue turns white and grey */
+body[data-page='mobile'] .device, body[data-page='mobile'] .device .sa { --link: var(--text); --blue: #e6e6e6; --blue-hover: #ffffff; --mark: var(--text); --tint: #1c1d1f; --tint-text: var(--text-2);
+  --tag-blue-bg: #1c1c1f; --tag-blue: #d4d4d8; --tag-blue-ring: #2c2c30; --tag-cyan-bg: #1c1c1f; --tag-cyan: #d4d4d8; --tag-cyan-ring: #2c2c30;
+  --avatar-1: #1c1c1f; --avatar-1-text: #d4d4d8; --link-hover: #ffffff; --chart-1: #d0d3d8; --focus: var(--text-2); }
+body[data-page='mobile'] .device .sa-btn.pri { color: var(--btn-text); }
+
+/* Reveals: once, a soft 8px rise, 560ms, calm easing (the brief's motion rules) */
+body[data-page='mobile'] { --mb-ease: cubic-bezier(0.23, 1, 0.32, 1); }
+body[data-page='mobile'] .rv { transition: opacity 560ms var(--mb-ease), transform 560ms var(--mb-ease); }
+
+/* ---------- 1. Hero: the words alone at the bottom left, the film behind (film.ts; stockypro.com's FilmHero) ---------- */
+.mb-hero { position: relative; display: flex; align-items: flex-end; min-height: min(calc(100vh - 64px), 820px); overflow: hidden; border-bottom: 1px solid var(--line); }
+/* The film, dimmed once as a whole, faded at the top and bottom so the words read */
+.mb-stage { position: absolute; inset: 0; pointer-events: none; opacity: 0.8;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 18%, #000 66%, transparent 100%); mask-image: linear-gradient(to bottom, transparent 0%, #000 18%, #000 66%, transparent 100%); }
+/* A shot: the 1440 × 820 frame, centred; hard cuts */
+.mb-scene { position: absolute; top: 0; left: calc(50% - 720px); width: 1440px; height: 100%; opacity: 0; }
+.mb-scene[data-on] { opacity: 1; }
+.mb-copy { position: absolute; inset: 0; }
+/* Scenes not on screen are not drawn at all (performance, owner 20 Nov 2026) */
+.mb-scene:not([data-on]) { visibility: hidden; content-visibility: hidden; }
+/* The blur: one veil over the sharp picture, clear inside the focus ellipse; weak devices skip it */
+.mb-veil { position: absolute; inset: 0; -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); -webkit-mask-image: var(--mask); mask-image: var(--mask); -webkit-mask-size: 1440px 820px; mask-size: 1440px 820px; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; pointer-events: none; }
+.mb-hero[data-lite] .mb-veil { display: none; }
+.mb-move { position: absolute; inset: 0; transform-origin: var(--sx) var(--sy); }
+.mb-lens { position: absolute; inset: 0; perspective: var(--persp); perspective-origin: var(--pox) var(--poy); }
+/* The camera: the aim (--ox, --oy) pinned at (--sx, --sy); zoom by CSS zoom (a scaled 3D plane draws soft), then turn, tilt, lean */
+.mb-plane { position: absolute; left: calc(var(--sx) - var(--ox) * var(--cs)); top: calc(var(--sy) - var(--oy) * var(--cs)); width: calc(1904px * var(--cs));
+  transform-origin: calc(var(--ox) * var(--cs)) calc(var(--oy) * var(--cs)); transform: rotateX(var(--rx)) rotateY(var(--ry)) rotateZ(var(--rz)); }
+.mb-orb > .mb-board { zoom: var(--cs); }
+/* Camera moves on the angle itself, each a plain transform on its own layer (performance, 20 Nov 2026):
+   .mb-tilt leans the whole plane over the aim (shot 3 cranes down), .mb-orb turns the picture around the aim in its own plane (shot 4) */
+.mb-tilt { position: absolute; inset: 0; transform-style: preserve-3d; transform-origin: var(--sx) var(--sy); }
+.mb-orb { transform-origin: calc(var(--ox) * var(--cs)) calc(var(--oy) * var(--cs)); }
+/* The board: the story's phone among the app's other screens, quieter */
+.mb-board { display: grid; grid-template-columns: repeat(4, 422px); gap: 72px; width: 1904px; }
+.b-cell:not(.story) { opacity: 0.75; }
+.b-cell:not(.story) .mb-ph { box-shadow: 0 0 0 2px #2a2a2e; }
+
+/* The phone and its screens, drawn as the app (grey; one accent per shot) */
+.mb-ph { width: 422px; height: 894px; padding: 10px; border-radius: 68px; background: #050506; box-shadow: 0 0 0 2px #3a3a3e, 0 60px 120px rgb(0 0 0 / 0.6); }
+.mb-scr { position: relative; height: 874px; overflow: hidden; border-radius: 58px; background: #111113; color: #ededef; font-size: 15px; line-height: 20px; letter-spacing: -0.005em; }
+.mb-sb { height: 54px; display: flex; justify-content: space-between; align-items: center; padding: 0 30px 0 52px; font-size: 16px; font-weight: 600; }
+.mb-sb .i { display: inline-flex; gap: 6px; align-items: center; }
+.mb-island { position: absolute; top: 11px; left: 50%; width: 125px; height: 37px; margin-left: -62.5px; border-radius: 19px; background: #000; }
+.mb-homebar { position: absolute; bottom: 8px; left: 50%; width: 134px; height: 5px; margin-left: -67px; border-radius: 3px; background: #ededef; }
+.mb-scr .pill { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 12px; border: 1px solid #2e2e33; font-size: 13px; color: #a1a1aa; }
+.mb-scr svg { flex: none; }
+/* Shot 1: the lock screen */
+.mb-scr.lock { background: #050608; text-align: center; color: #f5f5f7; }
+/* The wallpaper: soft grey light, a few long curves, as a calm iOS wallpaper */
+.lock .l-wall { position: absolute; inset: 0; background:
+  radial-gradient(70% 45% at 20% 12%, rgb(120 122 130 / 0.32), transparent 70%),
+  radial-gradient(60% 40% at 90% 70%, rgb(90 92 100 / 0.28), transparent 70%),
+  radial-gradient(90% 50% at 50% 110%, rgb(70 72 80 / 0.35), transparent 70%),
+  linear-gradient(160deg, #1a1b1f, #0a0b0d 60%); }
+.lock .l-wall::after { content: ''; position: absolute; inset: 0; background:
+  radial-gradient(140% 90% at -20% 40%, transparent 48%, rgb(255 255 255 / 0.06) 48.4%, transparent 49%),
+  radial-gradient(140% 90% at 120% 20%, transparent 58%, rgb(255 255 255 / 0.05) 58.4%, transparent 59%); }
+.lock > :not(.l-wall) { position: relative; }
+.lock .l-lock { display: block; margin-top: 2px; color: #f5f5f7; }
+.lock .l-date { margin-top: 10px; font-size: 21px; line-height: 26px; font-weight: 600; color: rgb(245 245 247 / 0.85); }
+.lock .l-time { margin-top: -2px; font-size: 112px; line-height: 1; font-weight: 600; letter-spacing: -0.03em; color: rgb(245 245 247 / 0.92); }
+/* Widgets: one wide (weather) and two round (battery, temperature), frosted */
+.lock .l-widgets { display: flex; justify-content: center; gap: 12px; margin-top: 14px; }
+.lock .w-rect { display: inline-flex; align-items: center; gap: 10px; height: 64px; padding: 0 16px 0 12px; border-radius: 20px; background: rgb(255 255 255 / 0.1); text-align: left; }
+.lock .w-rect b { display: block; font-size: 15px; font-weight: 600; }
+.lock .w-rect em { font-style: normal; font-size: 13px; color: rgb(245 245 247 / 0.7); }
+.lock .w-ring { width: 64px; height: 64px; display: grid; place-content: center; border-radius: 50%; font-size: 17px; line-height: 1;
+  background: radial-gradient(closest-side, #1d1e22 78%, transparent 80% 100%), conic-gradient(rgb(245 245 247 / 0.9) calc(var(--p) * 1%), rgb(255 255 255 / 0.15) 0); }
+.lock .w-ring b { font-weight: 600; }
+.lock .w-ring em { font-style: normal; font-size: 11px; color: rgb(245 245 247 / 0.7); }
+/* The notification stack, low on the screen as on iOS: NorthList lands on top of Gmail's mail */
+.lock .l-stack { position: absolute; left: 12px; right: 12px; top: 470px; text-align: left; }
+.lock .l-n { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 12px; align-items: start; margin-bottom: 8px; padding: 14px 16px; border-radius: 24px;
+  background: rgb(58 58 64 / 0.86); box-shadow: 0 8px 24px rgb(0 0 0 / 0.25); font-size: 15px; line-height: 20px; }
+.lock .l-n .ic { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 10px; background: #0b0c0e; }
+.lock .l-n.old .ic { background: #4a4b52; }
+.lock .l-n .h { display: flex; justify-content: space-between; gap: 8px; }
+.lock .l-n .h b { font-weight: 600; }
+.lock .l-n .h span { font-size: 13px; color: rgb(245 245 247 / 0.6); }
+.lock .l-n .b { color: rgb(245 245 247 / 0.92); }
+.lock .l-n .a { margin-top: 2px; font-size: 12px; color: rgb(245 245 247 / 0.5); }
+.lock .l-n.old { opacity: 0.85; }
+.lock .l-more { display: block; height: 12px; margin: -16px 14px 0; border-radius: 0 0 20px 20px; background: rgb(58 58 64 / 0.6); }
+.lock .l-more.two { height: 10px; margin: -2px 26px 0; background: rgb(58 58 64 / 0.35); }
+.lock .l-btns { position: absolute; left: 46px; right: 46px; bottom: 50px; display: flex; justify-content: space-between; }
+.lock .l-btns span { width: 50px; height: 50px; display: grid; place-items: center; border-radius: 50%; background: rgb(60 60 66 / 0.7); color: #f5f5f7; }
+/* Shot 2: Mails */
+.m-top { display: flex; justify-content: flex-end; padding: 4px 16px 0; height: 52px; }
+.m-top.two { justify-content: space-between; }
+.mb-cap3 { display: inline-flex; gap: 18px; align-items: center; height: 48px; padding: 0 16px; border-radius: 24px; background: rgb(42 42 47 / 0.8); color: #ededef; }
+.mb-gb { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 50%; background: rgb(42 42 47 / 0.8); color: #ededef; }
+.m-big { display: flex; align-items: center; gap: 4px; padding: 6px 20px 0; font-size: 34px; line-height: 41px; font-weight: 700; letter-spacing: 0.01em; }
+.m-sync { padding: 2px 20px 12px; font-size: 13px; color: #8b8b94; }
+.m-rows { overflow: hidden; }
+.m-row { position: relative; display: flex; height: 128px; padding: 12px 20px 12px 34px; border-bottom: 1px solid #232327; }
+.m-row .dot { position: absolute; left: 13px; top: 18px; width: 10px; height: 10px; border-radius: 50%; background: #ededef; }
+.m-row.seen .dot { display: none; }
+.m-row .c { flex: 1; min-width: 0; }
+.m-row p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.m-row .t { display: flex; justify-content: space-between; }
+.m-row .t b { font-weight: 600; font-size: 16px; }
+.m-row .t span { display: inline-flex; align-items: center; gap: 2px; font-size: 13px; color: #8b8b94; }
+.m-row .s { color: #ededef; }
+.m-row .st { display: flex; align-items: center; gap: 6px; color: #a1a1aa; }
+.m-row .tg { display: flex; align-items: center; gap: 8px; margin-top: 4px; font-size: 13px; color: #8b8b94; }
+.m-row.seen .t b, .m-row.seen .s { color: #a1a1aa; font-weight: 500; }
+
+.mb-tabs { position: absolute; left: 24px; right: 96px; bottom: 30px; display: flex; gap: 4px; padding: 4px; border-radius: 32px; background: rgb(42 42 47 / 0.85); color: #8b8b94; }
+.mb-tabs span { flex: 1; height: 52px; display: grid; place-items: center; border-radius: 26px; }
+.mb-tabs span.on { flex: 1.25; background: rgb(255 255 255 / 0.1); color: #ededef; }
+/* The board's quieter screens */
+.b-h { padding: 18px 20px 8px; font-size: 15px; font-weight: 600; }
+.b-tile { display: flex; justify-content: space-between; align-items: center; margin: 0 16px 8px; padding: 14px 16px; border-radius: 14px; background: #1d1d20; }
+.b-tile span { display: inline-flex; align-items: center; gap: 8px; }
+.b-tile b { font-size: 26px; font-weight: 500; }
+.b-tile.dim { color: #6b6b73; }
+.b-bars { display: flex; align-items: flex-end; gap: 10px; height: 120px; margin: 0 20px; }
+.b-bars i { flex: 1; height: var(--h); border-radius: 6px; background: #2a2a2e; }
+.b-seg { display: flex; gap: 4px; margin: 4px 16px 12px; padding: 4px; border-radius: 20px; background: #1d1d20; font-size: 14px; color: #8b8b94; }
+.b-seg span { flex: 1; height: 32px; display: grid; place-items: center; border-radius: 16px; }
+.b-seg .on { background: #2e2e33; color: #ededef; }
+.b-app { margin: 0 16px; padding: 12px 4px; border-bottom: 1px solid #232327; }
+.b-app p { display: flex; justify-content: space-between; align-items: center; }
+.b-app b { font-weight: 600; }
+.b-app .j { color: #8b8b94; font-size: 14px; }
+.b-group { margin: 0 16px; border-radius: 22px; background: #1d1d20; }
+.b-set { display: flex; align-items: center; gap: 8px; min-height: 52px; padding: 0 14px 0 18px; border-bottom: 1px solid #2a2a2e; }
+.b-set:last-child { border-bottom: 0; }
+.b-set span { flex: 1; }
+.b-set em { font-style: normal; color: #8b8b94; }
+.b-set svg { color: #6b6b73; }
+/* Shots 3 and 4: the mail */
+.d-title { padding: 8px 20px 0; font-size: 26px; line-height: 32px; font-weight: 700; }
+.d-meta { display: flex; align-items: center; gap: 6px; padding: 8px 20px 0; font-size: 14px; color: #a1a1aa; }
+.d-meta svg:last-of-type { margin-left: 10px; }
+.d-pills { padding: 12px 20px 0; }
+.d-step { position: relative; display: grid; gap: 2px; margin: 18px 16px 0; padding: 14px 16px; border-radius: 16px; background: #1d1d20; }
+.d-step .o { font-size: 12px; color: #8b8b94; }
+.d-step b { font-size: 17px; font-weight: 500; }
+.d-step .due { font-size: 14px; color: #a1a1aa; }
+.d-step .due em { font-style: normal; color: #f2c94c; }
+.mb-scrim { position: absolute; inset: 0; background: rgb(0 0 0 / 0.4); }
+.r-sheet { position: absolute; left: 8px; right: 8px; bottom: 8px; top: 300px; padding: 8px 18px; border-radius: 34px 34px 50px 50px; background: #1d1d20; }
+.r-sheet .grab { display: block; width: 36px; height: 5px; margin: 0 auto 10px; border-radius: 3px; background: #48484e; }
+.r-head { display: flex; justify-content: space-between; align-items: center; height: 40px; }
+.r-head b { font-size: 17px; font-weight: 600; }
+.r-head .send { height: 32px; padding: 0 14px; display: grid; place-items: center; border-radius: 16px; background: #2e2e33; color: #8b8b94; font-weight: 600; }
+.r-to { padding: 12px 0; border-bottom: 1px solid #2a2a2e; color: #8b8b94; }
+.r-to b { font-weight: 500; color: #ededef; }
+.r-ai { display: flex; align-items: center; gap: 6px; margin-top: 14px; font-size: 13px; color: #8b8b94; }
+.r-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.r-chips .chip { height: 34px; padding: 0 14px; display: inline-flex; align-items: center; border-radius: 17px; border: 1px solid #2e2e33; font-size: 14px; color: #a1a1aa; }
+.r-chips .chip.pick { background: #ededef; border-color: #ededef; color: #111113; }
+.r-text { margin-top: 18px; font-size: 16px; line-height: 24px; }
+.r-text .ty:first-child { margin-bottom: 12px; }
+/* Shot 4: sent, done */
+.toast { position: absolute; z-index: 3; top: 60px; left: 50%; translate: -50% 0; display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 20px; background: #2a2a2f; font-size: 14px; white-space: nowrap; opacity: 0; }
+.swap { position: relative; }
+.swap .now, .swap .was, .d-step .state > span { display: inline-flex; align-items: center; gap: 6px; }
+.mb-scr .swap .was, .mb-scr .state .was { display: none; }
+html.no-motion .mb-scr .swap .was, html.no-motion .mb-scr .state .was { display: none !important; }
+.mb-scr .pill { white-space: nowrap; }
+.swap .was { position: absolute; left: 10px; }
+.d-step .state { position: relative; margin-top: 4px; font-size: 14px; color: #a1a1aa; }
+.d-step .state .was { position: absolute; left: 0; top: 0; }
+.d-step .state .ok { color: #4cb782; }
+.d-h { padding: 24px 20px 0; font-size: 16px; font-weight: 600; }
+.d-act { display: grid; gap: 14px; padding: 14px 20px; font-size: 14px; color: #a1a1aa; }
+.d-act li { display: flex; align-items: center; gap: 10px; }
+.d-act i { width: 7px; height: 7px; border-radius: 50%; border: 1px solid #52525b; }
+.d-act span { margin-left: auto; color: #6b6b73; font-size: 12px; }
+
+/* What lands, per shot (only while its shot is on; base styles are each shot's end) */
+@media (prefers-reduced-motion: no-preference) {
+  /* A different move per shot: push in, pan, crane down with a push along the reply, a swing around the done step that settles */
+  .mb-shot-alert[data-on] .mb-move { animation: mb-move-a 4000ms cubic-bezier(0.33, 0, 0.2, 1) both; }
+  .mb-shot-inbox[data-on] .mb-move { animation: mb-move-b 4000ms linear both; }
+  .mb-shot-mail[data-on] .mb-move { animation: mb-move-c 4000ms cubic-bezier(0.45, 0, 0.25, 1) both; }
+  .mb-shot-mail[data-on] .mb-tilt { animation: mb-crane 4000ms cubic-bezier(0.45, 0, 0.25, 1) both; }
+  /* The finish: the camera rises and pulls back slowly over the done step and the screens around it, then the story fades out; the next loop fades back in */
+  .mb-shot-done[data-on] .mb-move { animation: mb-move-d 4000ms linear both; }
+  .mb-shot-done[data-on] { animation: mb-fade-end 4000ms linear both; }
+  .mb-shot-done[data-on] .mb-tilt { animation: mb-swing-tilt 4000ms linear both; }
+  .mb-shot-done[data-on] .mb-orb { animation: mb-swing-orb 4000ms linear both; }
+  .mb-shot-alert[data-on] { animation: mb-fade-start 700ms cubic-bezier(0.23, 1, 0.32, 1) both; }
+  /* NorthList's alert lands on top; Gmail's mail and the stack under it move down to make room */
+  .mb-shot-alert[data-on] .l-n.new { animation: mb-drop 700ms cubic-bezier(0.23, 1, 0.32, 1) 900ms both; }
+  .mb-shot-alert[data-on] .l-n.new ~ * { animation: mb-make-room 600ms cubic-bezier(0.23, 1, 0.32, 1) 800ms both; }
+  .mb-shot-inbox[data-on] .story .push { animation: mb-push 1200ms cubic-bezier(0.23, 1, 0.32, 1) 400ms both; }
+  .mb-shot-inbox[data-on] .story .m-row.new { animation: mb-reveal 670ms cubic-bezier(0.23, 1, 0.32, 1) 800ms both; }
+  .mb-shot-mail[data-on] .mb-scrim { animation: mb-reveal 300ms ease-out 500ms both; }
+  .mb-shot-mail[data-on] .r-sheet { animation: mb-rise 600ms cubic-bezier(0.23, 1, 0.32, 1) 500ms both; }
+  .mb-shot-mail[data-on] .chip.pick { animation: mb-pick 200ms ease-out 1300ms both; }
+  .mb-shot-mail[data-on] .ty { animation: mb-type 400ms steps(20) calc(1200ms + var(--n) * 300ms) both; }
+  .mb-shot-done[data-on] .toast { animation: mb-toast 1400ms ease-out 200ms both; }
+  .mb-shot-done[data-on] .state .was { display: inline-flex; animation: mb-out 150ms ease-out 1500ms both; }
+  .mb-shot-done[data-on] .state .now { animation: mb-reveal 300ms cubic-bezier(0.23, 1, 0.32, 1) 1500ms both; }
+  .mb-shot-done[data-on] .swap .was { display: inline-flex; animation: mb-out 150ms ease-out 2100ms both; }
+  .mb-shot-done[data-on] .swap .now { animation: mb-reveal 300ms cubic-bezier(0.23, 1, 0.32, 1) 2100ms both; }
+  .mb-shot-done[data-on] .d-act .late { animation: mb-reveal 500ms cubic-bezier(0.23, 1, 0.32, 1) 1500ms both; }
+  .mb-shot-done[data-on] .d-act .late + .late { animation-delay: 2100ms; }
+}
+.mb-shot-done .toast { opacity: 0; }
+@keyframes mb-move-a { from { transform: translate(10px, 14px) scale(0.92); } to { transform: translate(-8px, -6px) scale(1.04); } }
+@keyframes mb-move-b { from { transform: translate(70px, 8px); } to { transform: translate(-150px, -14px); } }
+/* Shot 3: the camera cranes down over the reply and pushes in, following the draft as it types */
+@keyframes mb-move-c { from { transform: translate(-20px, 70px) scale(0.94); } to { transform: translate(16px, -60px) scale(1.1); } }
+@keyframes mb-crane { from { transform: rotateX(14deg); } to { transform: rotateX(-6deg); } }
+/* Shot 4: starts close on the step and swings out around it, then settles still for the last second */
+/* Shot 4: swings out around the step (fast, then easing), then keeps drifting in slowly to the cut */
+/* Shot 4: swings out around the step as it turns Done, then one long, eased rise and pull back to the end */
+@keyframes mb-move-d { 0% { transform: translate(-40px, 30px) scale(1.2); animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); } 45% { transform: translate(6px, -2px) scale(1); animation-timing-function: cubic-bezier(0.45, 0, 0.25, 1); } 100% { transform: translate(-10px, -36px) scale(0.86); } }
+@keyframes mb-swing-orb { 0% { transform: rotateZ(14deg); animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); } 45% { transform: rotateZ(0deg); animation-timing-function: cubic-bezier(0.45, 0, 0.25, 1); } 100% { transform: rotateZ(-3deg); } }
+@keyframes mb-swing-tilt { 0% { transform: rotateX(0deg); animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); } 45% { transform: rotateX(0deg); animation-timing-function: cubic-bezier(0.45, 0, 0.25, 1); } 100% { transform: rotateX(-10deg); } }
+@keyframes mb-fade-end { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes mb-fade-start { from { opacity: 0; } }
+@keyframes mb-make-room { from { transform: translateY(-104px); } }
+@keyframes mb-drop { from { opacity: 0; transform: translateY(-24px) scale(0.96); } }
+@keyframes mb-push { from { transform: translateY(-128px); } to { transform: none; } }
+@keyframes mb-reveal { from { opacity: 0; } }
+@keyframes mb-out { to { opacity: 0; } }
+@keyframes mb-rise { from { transform: translateY(100%); } }
+@keyframes mb-pick { from { background: transparent; border-color: #2e2e33; color: #a1a1aa; } }
+@keyframes mb-type { from { clip-path: inset(0 100% 0 0); } }
+@keyframes mb-toast { 0% { opacity: 0; transform: translateY(-8px); } 15%, 75% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+/* The new mail pushes in from above the list: the list starts one row up, the new row sits in the gap */
+.m-rows { position: relative; }
+.mb-shot-inbox .story .m-row.new { position: absolute; z-index: 1; left: 0; right: 0; top: 0; }
+.mb-shot-inbox .story .push { padding-top: 128px; }
+
+/* Paused (by the button, off screen, a hidden tab, or before the page settles): everything in the film holds */
+.mb-hero[data-paused] .mb-stage * { animation-play-state: paused !important; }
+/* Load: the film and words wait hidden until the page settles, then the film fades in moving and the words blur in */
+.mb-hero:not([data-ready]) .mb-stage, .mb-hero:not([data-ready]) .mb-words > :not(.mb-ctl) { opacity: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .mb-hero[data-ready]:not([data-still]) .mb-stage { animation: mb-film-in 3000ms ease both; }
+  .mb-hero[data-ready]:not([data-still]) .mb-words > :not(.mb-ctl) { animation: mb-blur-in 1000ms cubic-bezier(0.23, 1, 0.32, 1) both; }
+  .mb-hero[data-ready]:not([data-still]) .mb-words > .mb-hero-row { animation-delay: 120ms; }
+}
+@keyframes mb-film-in { from { opacity: 0; } }
+@keyframes mb-blur-in { from { opacity: 0; filter: blur(8px); transform: translateY(8px); } }
+
+/* The words, bottom left */
+.mb-words { position: relative; padding-bottom: 80px; }
+.mb-hero-row { display: flex; justify-content: space-between; align-items: flex-end; gap: 48px; margin-top: 32px; }
+/* The small grey label over the title, as linear.app/mobile has it; grey, as nothing on the site is blue */
+.mb-label { margin-bottom: 20px; font-size: 16px; line-height: 1.5; color: var(--text-3); }
+.mb-display { font-size: 72px; line-height: 1.04; letter-spacing: -0.03em; font-weight: 520; text-wrap: balance; }
+.mb-lead { max-width: 520px; font-size: 20px; line-height: 1.5; letter-spacing: -0.01em; color: var(--text-3); text-wrap: pretty; }
+.mb-cta { display: flex; align-items: center; gap: 24px; flex: none; }
+/* Pause / play: under the words, bottom right, outside the picture */
+.mb-ctl { position: absolute; right: var(--gut); bottom: 24px; width: 32px; height: 32px; display: grid; place-items: center; border: 1px solid var(--line-2); border-radius: 50%; background: var(--bg); color: var(--text-3); cursor: pointer; transition: color 150ms, border-color 200ms; }
+.mb-ctl:hover { color: var(--text); border-color: var(--line-3); }
+.mb-ctl:focus-visible { outline: 2px solid var(--text-2); outline-offset: 3px; }
+.mb-ctl .pl, .mb-ctl[aria-pressed='true'] .pz { display: none; }
+.mb-ctl[aria-pressed='true'] .pl { display: block; }
+.mb-hero[data-still] .mb-ctl { display: none; }
+
+/* One quiet "scan to open" card; the install steps sit behind a text link (laptops) or show (phones) */
+.mb-get { display: grid; justify-items: start; gap: 16px; }
+.mb-scan { display: flex; align-items: center; gap: 24px; padding: 12px 12px 12px 20px; border: 1px solid var(--line-2); border-radius: 12px; background: var(--surface); font-size: 14px; line-height: 20px; color: var(--text-2); }
+.mb-qr-code { width: 80px; height: 80px; flex: none; border-radius: 8px; }
+.mb-textlink { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 14px; color: var(--text-3); text-decoration: none; transition: color 150ms var(--mb-ease); }
+.mb-textlink:hover { color: var(--text); }
+.mb-textlink:focus-visible { outline: 2px solid var(--text-2); outline-offset: 4px; border-radius: 4px; }
+.mb-get-phone { display: none; }
+
+/* ---------- Sections: heading left, words right, then one picture ---------- */
+.mb-side-col { display: grid; gap: 24px; justify-items: start; }
+.mb-band { padding-top: 128px; }
+.mb-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; align-items: end; }
+.mb-h2 { font-size: 48px; line-height: 1.1; letter-spacing: -0.02em; font-weight: 520; text-wrap: balance; }
+.mb-side { max-width: 480px; font-size: 18px; line-height: 1.6; letter-spacing: -0.01em; color: var(--text-3); text-wrap: pretty; }
+
+/* A big framed picture: soft light from the top, the caption inside, bottom left */
+.mb-frame { position: relative; margin: 48px 0 0; height: 600px; overflow: hidden; border: 1px solid var(--line); border-radius: 16px;
+  background: radial-gradient(70% 60% at 50% 0%, #1c1d20, #0e0f11 60%, #0b0c0d); }
+.mb-frame::after { content: ''; position: absolute; inset: auto 0 0; height: 260px; background: linear-gradient(to top, #0b0c0d 30%, transparent); pointer-events: none; }
+.mb-cap { position: absolute; z-index: 2; left: 32px; bottom: 32px; display: grid; gap: 4px; font-size: 16px; line-height: 1.5; color: var(--text-3); }
+.mb-cap b { font-weight: 500; color: var(--text); }
+
+/* Two phones, the back one dimmer and further away; the front one carries the point. Text a little larger than the app's. */
+.mb-pair-back, .mb-pair-front { position: absolute; top: 64px; }
+.mb-pair-back { left: calc(50% - 400px); top: 112px; opacity: 0.38; filter: blur(1px); }
+.mb-pair-front { left: calc(50% - 40px); }
+.mb-frame-pair .device { zoom: 1.04 !important; box-shadow: 0 40px 80px rgb(0 0 0 / 0.5); }
+
+/* Small cards: one piece, centred, about half the card, fading at the edges; the words under it */
+.mb-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; margin-top: 32px; }
+.mb-card { margin: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: radial-gradient(80% 70% at 50% 0%, #17181b, #0d0e10 70%); }
+.mb-card-pic { height: 280px; display: grid; place-items: center;
+  -webkit-mask-image: radial-gradient(70% 80% at 50% 50%, #000 55%, transparent); mask-image: radial-gradient(70% 80% at 50% 50%, #000 55%, transparent); }
+.mb-card figcaption { padding: 0 32px 32px; max-width: 480px; font-size: 16px; line-height: 1.6; color: var(--text-3); text-wrap: pretty; }
+.mb-card figcaption b { font-weight: 500; color: var(--text); }
+
+/* The pieces: grey app parts at the app's size, one accent each */
+.mb-piece { width: min(300px, 62%); color: #ededef; font-size: 14px; line-height: 20px; }
+.mb-piece .o { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: #8b8b94; }
+.mb-p-step { display: grid; gap: 4px; padding: 16px 20px; border-radius: 12px; background: #18181b; border: 1px solid #26262a; }
+.mb-p-step b { font-size: 16px; font-weight: 500; }
+.mb-p-step .due { display: inline-flex; align-items: center; gap: 8px; color: #a1a1aa; }
+.mb-p-step .row { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #26262a; color: #4cb782; }
+.mb-p-list, .mb-p-share { border-radius: 12px; background: #18181b; border: 1px solid #26262a; overflow: hidden; }
+.mb-p-list .r, .mb-p-share .r { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 48px; padding: 0 16px; border-bottom: 1px solid #26262a; color: #8b8b94; }
+.mb-p-list .r:last-child, .mb-p-share .r:last-child { border-bottom: 0; }
+.mb-p-list .r span:first-child, .mb-p-share .r span { color: #a1a1aa; }
+.mb-p-list .r em { font-style: normal; }
+.mb-p-list .r.on span:first-child, .mb-p-list .r.on em, .mb-p-share .r.on, .mb-p-share .r.on span { color: #ededef; }
+.mb-p-share .r.on { background: #232327; }
+.mb-switch { position: relative; flex: none; width: 40px; height: 24px; border-radius: 12px; background: #3a3b3f; }
+.mb-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: #d4d4d8; }
+.mb-p-ai { width: auto; display: grid; justify-items: center; gap: 8px; }
+.mb-p-ai .chip { display: inline-flex; align-items: center; min-height: 36px; padding: 0 16px; border-radius: 18px; border: 1px solid #3a3a40; background: #1d1d20; color: #ededef; }
+.mb-p-ai .chip.dim { color: #8b8b94; border-color: #26262a; background: #141416; }
+.mb-p-tabs { width: auto; display: flex; align-items: center; gap: 12px; }
+.mb-p-tabs .bar { display: flex; gap: 4px; padding: 4px; border-radius: 32px; background: rgb(42 42 47 / 0.8); border: 1px solid rgb(255 255 255 / 0.08); color: #8b8b94; }
+.mb-p-tabs .bar > span { width: 56px; height: 48px; display: grid; place-items: center; border-radius: 24px; }
+.mb-p-tabs .bar > span.on { width: 72px; background: rgb(255 255 255 / 0.1); color: #ededef; }
+.mb-p-tabs .sr { width: 56px; height: 56px; display: grid; place-items: center; border-radius: 50%; background: rgb(42 42 47 / 0.8); border: 1px solid rgb(255 255 255 / 0.08); color: #8b8b94; }
+.mb-p-off { width: min(420px, 80%); border-radius: 12px; background: #111113; border: 1px solid #26262a; overflow: hidden; }
+.mb-p-off .line { display: flex; gap: 8px; align-items: flex-start; padding: 12px 16px; background: #1d1d20; border-bottom: 1px solid #26262a; }
+.mb-p-off .line svg { flex: none; margin-top: 2px; }
+.mb-p-off .line em { font-style: normal; color: #8b8b94; }
+.mb-p-off .r { display: grid; padding: 12px 16px; border-bottom: 1px solid #1d1d20; color: #8b8b94; }
+.mb-p-off .r:last-child { border-bottom: 0; }
+.mb-p-off .r b { font-weight: 500; color: #a1a1aa; }
+
+/* The lock screen: big quiet time, two alerts stacked, the front one carries the point */
+.mb-frame-lock { height: 520px; }
+.mb-lock { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; padding-top: 72px; color: #ededef; }
+.mb-lock .date { font-size: 18px; font-weight: 500; color: #8b8b94; }
+.mb-lock .time { font-size: 72px; line-height: 1.04; font-weight: 600; letter-spacing: -0.02em; color: #a1a1aa; }
+.mb-lock .stack { position: relative; width: min(420px, calc(100% - 48px)); margin-top: 48px; }
+.mb-lock .n { position: relative; display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 16px; border-radius: 20px;
+  background: rgb(44 44 49 / 0.92); border: 1px solid rgb(255 255 255 / 0.08); box-shadow: 0 24px 60px rgb(0 0 0 / 0.5); font-size: 16px; line-height: 1.4; }
+.mb-lock .n.back { position: absolute; z-index: 0; left: 0; right: 0; top: 14px; transform: scale(0.92); transform-origin: 50% 100%; background: #202024; box-shadow: none; }
+.mb-lock .n.back > * { visibility: hidden; }
+.mb-lock .n:not(.back) { z-index: 1; }
+.mb-lock .n .ic { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 10px; background: #0b0c0e; }
+.mb-lock .n b { display: block; font-weight: 600; }
+.mb-lock .n .when { align-self: start; font-size: 12px; color: #a1a1aa; }
+.mb-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin-top: 32px; font-size: 16px; line-height: 1.6; color: var(--text-3); }
+.mb-facts b { font-weight: 500; color: var(--text); }
+
+/* ---------- 5. Close ---------- */
+.mb-close { padding-block: 160px 128px; display: grid; justify-items: center; gap: 40px; text-align: center; }
+.mb-close-title { font-size: 48px; line-height: 1.1; letter-spacing: -0.02em; font-weight: 520; text-wrap: balance; }
+.mb-close .mb-get { justify-items: center; }
+
+/* ---------- Narrower laptops ---------- */
+@media (max-width: 1279px) { .mb-display { font-size: 60px; } }
+/* ---------- Tablet ---------- */
+@media (max-width: 1023px) {
+  .mb-band { padding-top: 96px; }
+  .mb-display { font-size: 48px; }
+  .mb-h2, .mb-close-title { font-size: 36px; }
+  .mb-head { grid-template-columns: 1fr; gap: 16px; }
+  .mb-hero-row { flex-direction: column; align-items: flex-start; gap: 32px; }
+  .mb-words { padding-bottom: 72px; }
+  .mb-frame { height: 520px; }
+  .mb-pair-back { left: calc(50% - 320px); }
+  .mb-pair-front { left: calc(50% - 60px); }
+  .mb-frame-pair .device { zoom: 0.9 !important; }
+  .mb-close { padding-block: 128px 96px; }
+}
+/* ---------- Phone: words first, the steps instead of the code ---------- */
+@media (max-width: 599px) {
+  /* The film keeps the laptop's angle: zoomed and panned flat so each shot's aim sits in a band above the words; the drift scaled down */
+  .mb-hero { min-height: calc(100svh - 64px); }
+  .mb-stage { opacity: 0.85; -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 7%, #000 32%, rgb(0 0 0 / 0.25) 42%, rgb(0 0 0 / 0.18) 76%, transparent 92%);
+    mask-image: linear-gradient(to bottom, transparent 0%, #000 7%, #000 32%, rgb(0 0 0 / 0.25) 42%, rgb(0 0 0 / 0.18) 76%, transparent 92%); }
+  .mb-move { transform-origin: var(--p-sx) var(--p-sy); scale: var(--p-drift); }
+  .mb-lens { transform-origin: 0 0; transform: var(--p-lens); }
+  .mb-veil { -webkit-mask-image: var(--p-mask); mask-image: var(--p-mask); }
+  .mb-words { padding-bottom: 72px; }
+  .mb-hero-row { gap: 24px; margin-top: 16px; }
+  .mb-label { margin-bottom: 12px; }
+  .mb-display { font-size: 36px; line-height: 1.1; }
+  .mb-lead { font-size: 18px; }
+  .mb-cta { width: 100%; flex-direction: column; align-items: stretch; gap: 8px; }
+  .mb-cta .btn { justify-content: center; }
+  .mb-cta .mb-textlink { justify-content: center; }
+  .mb-ctl { bottom: 20px; }
+  .mb-get { display: none; }
+  .mb-get-phone { display: block; width: 100%; margin-top: 32px; }
+  .mb-get-phone .btn { width: 100%; justify-content: center; }
+  .mb-band { padding-top: 80px; }
+  .mb-h2, .mb-close-title { font-size: 36px; }
+  .mb-side { font-size: 16px; }
+  .mb-frame { margin-top: 32px; height: 460px; border-radius: 16px; }
+  .mb-cap { left: 24px; right: 24px; bottom: 24px; }
+  .mb-cap br { display: none; }
+  .mb-pair-back { display: none; }
+  .mb-pair-front { left: calc(50% - 150px); top: 40px; }
+  .mb-frame-pair .device { zoom: 0.72 !important; }
+  .mb-cards { grid-template-columns: 1fr; gap: 16px; margin-top: 16px; }
+  .mb-card-pic { height: 220px; }
+  .mb-card figcaption { padding: 0 24px 24px; }
+  .mb-piece { width: min(280px, 78%); }
+  .mb-p-tabs .bar > span { width: 44px; }
+  .mb-p-tabs .bar > span.on { width: 56px; }
+  .mb-p-tabs .sr { width: 48px; height: 48px; }
+  .mb-frame-lock { height: 420px; }
+  .mb-lock { padding-top: 40px; }
+  .mb-lock .time { font-size: 60px; }
+  .mb-lock .stack { margin-top: 32px; }
+  .mb-lock .n { font-size: 14px; }
+  .mb-facts { grid-template-columns: 1fr; gap: 16px; }
+  .mb-close { padding-block: 96px 80px; gap: 32px; justify-items: stretch; text-align: left; }
+  .mb-close .mb-get-phone { margin-top: 0; }
+}

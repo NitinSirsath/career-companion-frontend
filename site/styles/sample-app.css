@@ -8,7 +8,6 @@
 .sa { position: relative; overflow: hidden; border: 1px solid var(--line-2); border-radius: 12px; background: var(--canvas); color: var(--text); font-size: 14px; line-height: 20px; letter-spacing: -0.006em; text-align: left; }
 .device .sa { border-radius: 0; } /* inside a phone frame the screen has its own corners */
 .sa button { font: inherit; color: inherit; letter-spacing: inherit; }
-.sa .muted { color: var(--text-2); }
 .sa .spin { animation: sa-spin 900ms linear infinite; }
 @keyframes sa-spin { to { transform: rotate(360deg); } }
 
@@ -443,3 +442,9 @@ button.sa-grow:active { background: var(--bg-3); transition: none; }
 /* Hero picture on smaller screens: the laptop layout, scaled down and cropped at the screen edge */
 .sa-fit { position: relative; overflow: hidden; }
 .sa-fit > .sa { transform-origin: 0 0; max-width: none; }
+
+/* Reply choices as chips (Home and Mobile pictures) */
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { height: 32px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line-2); background: var(--bg); font-size: 14px; color: var(--text); cursor: pointer; transition: background-color 70ms var(--ease), border-color 70ms var(--ease); }
+.chip:hover { background: var(--bg-2); border-color: var(--line-3); }

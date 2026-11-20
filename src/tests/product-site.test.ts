@@ -3,11 +3,13 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { RELEASES, anchor } from '../../site/parts/changelog';
+import { PROMISES } from '../../site/parts/data';
 import { fillParts } from '../../site/parts/index';
 
-/** The product site's six pages, as the build writes them (shared parts filled in). */
+/** The product site's seven pages, as the build writes them (shared parts filled in). */
 const PAGES = {
   home: 'index.html',
+  mobile: 'mobile/index.html',
   automation: 'automation/index.html',
   pricing: 'pricing/index.html',
   privacy: 'privacy/index.html',
@@ -49,6 +51,7 @@ describe('the product site pages', () => {
       for (const href of [
         '/',
         '/#features',
+        '/mobile',
         '/automation',
         '/privacy/',
         '/pricing',
@@ -76,7 +79,20 @@ describe('the product site pages', () => {
     expect(doc('automation').querySelector('.nav [aria-current="page"]')?.textContent).toBe(
       'NorthList Apply',
     );
+    expect(doc('mobile').querySelector('.nav [aria-current="page"]')?.textContent).toBe('Mobile');
     expect(doc('home').querySelector('.nav [aria-current="page"]')).toBeNull();
+  });
+
+  it('shows four links in the header; Privacy, Changelog and About sit in the footer and the phone menu', () => {
+    const d = doc('pricing');
+    expect([...d.querySelectorAll('.nav a')].map((a) => a.textContent)).toEqual([
+      'Features',
+      'Mobile',
+      'NorthList Apply',
+      'Pricing',
+    ]);
+    const menu = [...d.querySelectorAll('#site-sheet a.row')].map((a) => a.textContent?.trim());
+    for (const label of ['Privacy', 'Changelog', 'About']) expect(menu).toContain(label);
   });
 });
 
@@ -84,7 +100,10 @@ describe('the Automation page', () => {
   const REPO = 'https://github.com/NitinSirsath/northlist-apply';
 
   it('is linked from Home, and both its Start buttons open the automation on GitHub', () => {
-    expect(doc('home').querySelector('#automation a[href="/automation"]')).not.toBeNull();
+    expect(doc('home').querySelector('.hf-hero a[href="/automation"]')?.textContent).toContain(
+      'NorthList Apply',
+    );
+    expect(doc('home').querySelector('.n4-link[href="/automation"]')).not.toBeNull();
     const start = [...doc('automation').querySelectorAll('a')].filter((a) =>
       a.textContent?.startsWith('Start on GitHub'),
     );
@@ -110,7 +129,9 @@ describe('the Automation page', () => {
   it('shows a run in Antigravity, Claude Code or Codex, named in words only (no logos)', () => {
     const page = doc('automation');
     expect(page.body.textContent).toContain('like Antigravity, Claude Code or Codex.');
-    const tabs = [...page.querySelectorAll('.run [role="tab"]')].map((t) => t.textContent);
+    const tabs = [...page.querySelectorAll('[role="tablist"] [role="tab"]')].map((t) =>
+      t.textContent?.trim(),
+    );
     expect(tabs).toEqual(['Antigravity', 'Claude Code', 'Codex']);
     expect(page.querySelectorAll('.run img, .run picture, .run image')).toHaveLength(0);
     expect(page.body.textContent).toContain('It asked for your OK on the first job');
@@ -119,22 +140,10 @@ describe('the Automation page', () => {
 
   it('says how far it is tested, and makes no claims about speed or results', () => {
     const text = doc('automation').body.textContent ?? '';
-    expect(text).toContain('In beta. Tested on');
-    const chips = [...doc('automation').querySelectorAll('.site-chips li')].map(
-      (li) => li.textContent,
+    // Names in words only, never logos.
+    expect(text).toContain(
+      'Tested on LinkedIn, Naukri, Indeed, Wellfound, Instahyre, Workday, Greenhouse, Lever and Ashby.',
     );
-    expect(chips).toEqual([
-      'LinkedIn',
-      'Naukri',
-      'Indeed',
-      'Wellfound',
-      'Instahyre',
-      'Workday',
-      'Greenhouse',
-      'Lever',
-      'Ashby',
-    ]);
-    expect(doc('automation').querySelector('.site-chips img, .site-chips svg')).toBeNull();
     expect(text).not.toMatch(
       /\b(fast|faster|quickly|instantly|in minutes|success rate|guarantee)/i,
     );
@@ -151,18 +160,24 @@ describe('the Automation page', () => {
 });
 
 describe('the data wording', () => {
-  it('is the same, word for word, on Home, Privacy and About', () => {
-    const parts = (page: Page) => {
-      const d = doc(page);
-      return { promises: d.querySelector('.promises')?.textContent, lead: d.body.textContent };
-    };
-    const home = parts('home');
-    expect(home.promises).toContain('Never the text of your mails');
-    for (const page of ['privacy', 'about'] as Page[])
-      expect(parts(page).promises).toBe(home.promises);
-    const lead = 'It reads the text of job mails only.';
-    expect(parts('home').lead).toContain(lead);
-    expect(parts('privacy').lead).toContain(lead);
+  const words = (t: string | null | undefined) =>
+    (t ?? '').replace(/\u2019/g, "'").replace(/\s+/g, ' ');
+
+  it('shows the four promises: word for word on Privacy and About, by their titles on Home', () => {
+    for (const page of ['privacy', 'about'] as Page[]) {
+      const text = words(doc(page).body.textContent);
+      for (const [, title, body] of PROMISES) {
+        expect(text).toContain(title);
+        expect(text).toContain(words(body));
+      }
+    }
+    const home = words(doc('home').querySelector('.n4-promises')?.textContent);
+    for (const [, title] of PROMISES) expect(home).toContain(title);
+    const links = [...doc('home').querySelectorAll('main a[href="/privacy/"]')];
+    expect(links.map((a) => a.textContent?.trim())).toContain('How your mail is handled');
+    expect(words(doc('privacy').body.textContent)).toContain(
+      'It reads the text of job mails only.',
+    );
   });
 
   it.each(Object.keys(PAGES) as Page[])('%s never says that NorthList stores nothing', (page) => {
@@ -177,7 +192,7 @@ describe('the changelog', () => {
   it('lists the releases newest first, each with its date as its anchor', () => {
     const dates = RELEASES.map((r) => r.date);
     expect([...dates].sort().reverse()).toEqual(dates);
-    const ids = [...doc('changelog').querySelectorAll('article.entry')].map((a) => a.id);
+    const ids = [...doc('changelog').querySelectorAll('article.pr-ent')].map((a) => a.id);
     expect(ids).toEqual(dates.map(anchor));
     expect(new Set(ids).size).toBe(ids.length);
     expect(ids[0]).toBe('nov-4');
@@ -185,45 +200,46 @@ describe('the changelog', () => {
 });
 
 describe("Home's hero", () => {
-  it('is calm: the headline in two lines, one line, one action with its note, then the product', () => {
-    const hero = doc('home').querySelector('.hero')!;
-    expect([...hero.querySelectorAll('h1 .hl')].map((l) => l.textContent)).toEqual([
-      'Your job search,',
-      'sorted from your Gmail.',
-    ]);
-    expect(hero.querySelectorAll('.ctas .btn')).toHaveLength(1);
-    expect(hero.querySelector('.ctas .hero-how')?.getAttribute('href')).toBe('#features');
-    expect(hero.querySelector('.ctas .note')?.textContent).toBe(
-      'Free while in beta. No card, no AI key.',
+  it('has the words alone at the bottom left, one action, and a film of the app behind them', () => {
+    const hero = doc('home').querySelector('.hf-hero')!;
+    expect(hero.querySelector('h1')?.textContent).toBe('Your job search,sorted from your Gmail.');
+    expect(hero.querySelectorAll('.btn')).toHaveLength(1);
+    expect(hero.querySelector('.btn')?.textContent).toBe('Start free');
+    const stage = hero.querySelector('.hf-stage')!;
+    expect(stage.getAttribute('aria-hidden')).toBe('true');
+    expect(stage.innerHTML).toBe(''); // drawn by site/home/film.ts
+    expect(hero.querySelector('[data-film-toggle]')?.getAttribute('aria-label')).toBe(
+      'Pause the hero animation',
     );
-    expect(hero.querySelector('.announce, .hint, .btn-secondary')).toBeNull();
-    expect(hero.querySelector('.hero-shot [data-sample][data-autoplay="sync"]')).not.toBeNull();
+    expect(html('home')).toContain('<script type="module" src="/home/home.ts"></script>');
   });
 
-  it('on phones does not repeat the header buttons: a link, then the phone on a band with a Next step card', () => {
-    const hero = doc('home').querySelector('.hero')!;
-    expect(hero.querySelector('.hero-how')?.textContent?.trim()).toBe('See how it works');
-    const card = hero.querySelector('.hero-shot .hero-float')!;
-    expect(card.getAttribute('aria-hidden')).toBe('true');
-    expect(card.textContent).toContain('Choose an interview time');
-    const css = readFileSync(resolve(__dirname, '../../site/styles/home.css'), 'utf8');
-    expect(css).toContain('.hero .hero-how, .hero-float { display: none; }');
-    const phones = css.slice(css.indexOf('@media (max-width: 599px)'));
-    expect(phones).toContain('.hero .ctas .btn { display: none; }');
-    expect(phones).toContain(
-      '.hero-shot:has(.sa.used)::after, .hero-shot:has(.sa.used) .hero-float { display: none; }',
-    );
+  it('keeps the working example of the app, under "Try it yourself"', () => {
+    const tryIt = doc('home').querySelector('#try')!;
+    expect(tryIt.querySelector('h2')?.textContent).toBe('Try it yourself.');
+    expect(tryIt.querySelector('.sa-fit[data-fit-phone] [data-sample="mails"]')).not.toBeNull();
+    expect(tryIt.textContent).toContain('Nothing you do here leaves this page.');
   });
 
-  it('waits hidden from the first paint for its intro, except with less motion, ?static or a #link', () => {
-    const head = html('home').split('</head>')[0];
-    expect(head).toContain("d.classList.add('intro')");
-    expect(head).toContain("matchMedia('(prefers-reduced-motion: reduce)').matches");
-    expect(head).toContain("has('static')");
-    expect(head).toContain('location.hash.length>1');
-    expect(head).toContain("d.classList.add('intro-go')},2500)"); // shown even if the script never runs
-    for (const page of ['pricing', 'automation', 'privacy'] as Page[])
+  it('no longer hides the page for an intro on load', () => {
+    for (const page of Object.keys(PAGES) as Page[])
       expect(html(page)).not.toContain("classList.add('intro')");
+  });
+});
+
+describe('the Mobile page', () => {
+  it('has a film of the phone app behind its words, and a code that opens the app', () => {
+    const d = doc('mobile');
+    expect(d.querySelector('[data-film-hero] .mb-stage')?.getAttribute('aria-hidden')).toBe('true');
+    expect(d.querySelector('#install')).not.toBeNull();
+    expect(d.body.innerHTML).toContain('app.northlist.site');
+    expect(html('mobile')).toContain('<script type="module" src="./mobile.ts"></script>');
+  });
+
+  it('says it installs from the browser, with no app store', () => {
+    const text = doc('mobile').body.textContent ?? '';
+    expect(text).toMatch(/Add to Home Screen/);
+    expect(text).not.toMatch(/App Store|Google Play|Play Store/);
   });
 });
 
@@ -249,24 +265,29 @@ describe('the glass header', () => {
 describe("the site's own controls", () => {
   const css = (file: string) => readFileSync(resolve(__dirname, '../../site/styles', file), 'utf8');
 
-  it('are round like the app: buttons, icon buttons, menu links, the theme switch, chips and tags', () => {
+  it('are round like the app: buttons, icon buttons, menu links, replay buttons and tags', () => {
     expect(css('base.css')).toMatch(/\.btn \{[^}]*border-radius: 999px;/);
     expect(css('base.css')).toMatch(/\.icon-btn \{[^}]*border-radius: 50%;/);
     expect(css('chrome.css')).toMatch(/\.nav a \{[^}]*border-radius: 999px;/);
-    expect(css('chrome.css')).toMatch(/\.seg \{[^}]*border-radius: 999px;/);
-    expect(css('chrome.css')).toMatch(/\.seg button \{[^}]*border-radius: 999px;/);
     expect(css('sections.css')).toMatch(/\.replay \{[^}]*border-radius: 50%;/);
-    expect(css('pages.css')).toMatch(/\.toc-m a \{[^}]*border-radius: 999px;/);
-    expect(css('pages.css')).toMatch(/\.site-chips li \{[^}]*border-radius: 999px;/);
     expect(css('states.css')).toMatch(/\.tag \{[^}]*border-radius: 999px;/);
     const notFound = readFileSync(resolve(__dirname, '../../site/public/404.html'), 'utf8');
     expect(notFound).toMatch(/\.button \{[^}]*border-radius: 999px;/);
-    for (const file of ['base.css', 'chrome.css', 'sections.css', 'pages.css', 'states.css'])
+    for (const file of ['base.css', 'chrome.css', 'sections.css', 'states.css'])
       expect(css(file)).not.toContain('border-radius: 0;');
+  });
+
+  it('have one light action and no blue: the light pill, and the app pictures in grey', () => {
+    expect(css('base.css')).toContain('--btn: #e6e6e6;');
+    expect(css('base.css')).toMatch(
+      /\.btn-primary \{ background: var\(--btn, var\(--blue\)\); color: var\(--btn-text, #fff\); \}/,
+    );
+    expect(css('no-blue.css')).toContain('--tag-blue-bg: #1c1c1f;');
+    expect(css('app.css').trim().split('\n').pop()).toBe("@import './no-blue.css';");
   });
 });
 
-describe('the theme switch and the phone menu', () => {
+describe('dark only, and the phone menu', () => {
   beforeAll(async () => {
     vi.stubGlobal('matchMedia', (query: string) => ({
       matches: false,
@@ -275,21 +296,18 @@ describe('the theme switch and the phone menu', () => {
     }));
     const page = doc('pricing');
     document.body.innerHTML = page.body.innerHTML;
-    delete document.documentElement.dataset.theme;
     await import('../../site/main');
   });
   afterEach(() => localStorage.clear());
 
-  it('starts light, switches to dark and back, and remembers the choice', () => {
-    expect(document.documentElement.dataset.theme).toBeUndefined();
-    const dark = document.querySelector<HTMLElement>('.ftr [data-theme-set="dark"]')!;
-    dark.click();
-    expect(document.documentElement.dataset.theme).toBe('dark');
-    expect(localStorage.getItem('northlist-site-theme')).toBe('dark');
-    expect(dark.getAttribute('aria-pressed')).toBe('true');
-    document.querySelector<HTMLElement>('.ftr [data-theme-set="light"]')!.click();
-    expect(document.documentElement.dataset.theme).toBeUndefined();
-  });
+  it.each(Object.keys(PAGES) as Page[])(
+    '%s is dark, with no theme switch and nothing kept',
+    (page) => {
+      expect(html(page)).toMatch(/<html lang="en" data-theme="dark">/);
+      expect(doc(page).querySelector('[data-theme-set], .seg')).toBeNull();
+      expect(html(page)).not.toContain('localStorage');
+    },
+  );
 
   it('opens the phone menu, and closes it on a link tap', () => {
     const btn = document.querySelector<HTMLElement>('.menu-btn')!;

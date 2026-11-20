@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -18,192 +18,112 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=Geist+Mono:wght@400..500&display=swap" rel="stylesheet">
-<script>try{if(localStorage.getItem('northlist-site-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
-<!-- Hero intro: the hero waits hidden from the first paint until runtime/motion.ts plays it once. Not for reduced motion, ?static or a #link. -->
-<script>(function(){var d=document.documentElement;try{if(matchMedia('(prefers-reduced-motion: reduce)').matches||new URLSearchParams(location.search).has('static')||location.hash.length>1)return;d.classList.add('intro');if(document.fonts)document.fonts.load('560 16px Geist');setTimeout(function(){if(d.classList.contains('intro'))d.classList.add('intro-go')},2500)}catch(e){d.classList.remove('intro')}})()</script>
 <link rel="stylesheet" href="/styles/site.css">
+<link rel="stylesheet" href="/styles/app.css">
+<link rel="stylesheet" href="/styles/home.css">
 </head>
 <body data-page="home">
 <div data-site-header></div>
+<main>
 
-<main class="wrap">
-
-  <!-- 1. What NorthList is, one action, then the product. It plays in once on load (styles/states.css "Hero intro"). -->
-  <section class="band hero" aria-labelledby="hero-title">
-    <h1 id="hero-title" class="display"><span class="hl">Your job search,</span><br><span class="hl">sorted from your Gmail.</span></h1>
-    <p class="lead">NorthList reads the job mails in your Gmail, finds what each one asks of you, and keeps every application up to date.</p>
-    <div class="ctas">
-      <a class="btn btn-primary btn-lg btn-carbon" href="https://app.northlist.site/login">Start free <i data-icon="arrowRight"></i></a>
-      <a class="arrow-link hero-how" href="#features">See how it works <i data-icon="arrowRight" data-size="14"></i></a>
-      <p class="note">Free while in beta. No card, no AI key.</p>
-    </div>
-
-    <div class="hero-shot">
-      <div class="device phone-only" data-frame><div class="sa-fit"><div data-sample="mails" data-autoplay="sync" role="region" aria-label="A working example of NorthList with made-up mails"></div></div></div>
-      <div class="hero-float app-look" aria-hidden="true"><span class="lbl">Next step</span><b>Choose an interview time</b><span class="sub">Brightwave · Due Mon, Nov 3</span><span class="tag tag-yellow">Needs action</span></div>
-      <div class="shot-cap">
-        <span>A working example with made-up mails. Nothing you do here leaves this page.</span>
-        <button type="button" class="replay" data-replay="hero" aria-label="Play the example again" title="Play the example again"><i data-icon="renew"></i></button>
+  <!-- 1. Hero (owner, 20 Nov 2026): the words alone at the bottom left; behind them a film of the laptop app (site/home/film.ts), as on /mobile and stockypro.com's paid-app heroes -->
+  <section class="hf-hero" data-film-hero aria-labelledby="hero-title">
+    <div class="hf-stage" aria-hidden="true"></div>
+    <div class="wrap hf-words">
+      <h1 id="hero-title" class="hf-display">Your job search,<br>sorted from your Gmail.</h1>
+      <div class="hf-row">
+        <p class="hf-lead">NorthList reads your job mails, finds what each one asks of you, and keeps every application up to date.</p>
+        <div class="hf-cta"><a class="btn btn-primary btn-lg" href="https://app.northlist.site/login">Start free</a><a class="lh-new" href="/automation"><b>New</b> NorthList Apply <i data-icon="arrowRight" data-size="14"></i></a></div>
       </div>
+      <button type="button" class="hf-ctl" data-film-toggle aria-pressed="false" aria-label="Pause the hero animation"><svg class="pz" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="4" y="3" width="2.5" height="10" rx="1"/><rect x="9.5" y="3" width="2.5" height="10" rx="1"/></svg><svg class="pl" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M5 3.2v9.6a.6.6 0 0 0 .9.5l7.6-4.8a.6.6 0 0 0 0-1L5.9 2.7a.6.6 0 0 0-.9.5z"/></svg></button>
     </div>
   </section>
 
-  <!-- 2. Every ask, found and closed -->
-  <section class="band" id="features" aria-labelledby="asks-title">
-    <h2 id="asks-title" class="statement rv">Every job mail asks something of you. <span class="dim">Pick a time, finish a test, send your notice period. NorthList finds each ask and its due date, and closes it when it's done.</span></h2>
-    <div class="life-wrap rv">
-      <div class="life-bar"><span></span></div>
-      <div class="life" data-life>
-        <div class="life-step">
-          <span class="lbl">1 · Mail arrives</span>
-          <div class="card app-look"><span style="font-weight:600">Interview invitation: Frontend Engineer</span><span class="sub">Priya Nair · Brightwave · 9:12 AM</span></div>
-          <p class="cap">NorthList checks Gmail about once an hour and picks out the job mails.</p>
-        </div>
-        <div class="life-step">
-          <span class="lbl">2 · AI finds the ask</span>
-          <div class="card app-look"><span>Choose an interview time</span><span class="sub">Due Mon, Nov 3</span><span class="tag tag-yellow">Needs action</span></div>
-          <p class="cap">One clear step, read from the mail itself.</p>
-        </div>
-        <div class="life-step">
-          <span class="lbl">3 · You reply</span>
-          <div class="card app-look"><span>"Tuesday at 11:00 AM works well for me."</span><span class="sub">Sent from your Gmail</span><span class="state"><i data-app-icon="reply" data-size="14"></i> Replied</span></div>
-          <p class="cap">From NorthList or straight from Gmail. Both count.</p>
-        </div>
-        <div class="life-step">
-          <span class="lbl">4 · It closes itself</span>
-          <div class="card app-look"><span class="state" style="color:var(--text);font-size:14px"><i data-app-icon="checkCircle" data-size="16"></i> Done</span><span class="sub">Your reply answered it</span></div>
-          <p class="cap">The AI reads your reply and closes the ask it answers.</p>
+  <!-- 2. One mail, start to finish (linear.app's lit stage with windows): title left, words right; Gmail behind, NorthList in front; the story plays in, row by row -->
+  <section class="wrap n4-band" id="features" aria-labelledby="story-title">
+    <div class="lh-split rv">
+      <h2 id="story-title" class="n4-h2">One mail,<br>start to finish.</h2>
+      <p class="lh-side">A recruiter writes on Monday morning. NorthList reads it, writes down what it asks, and closes it when your reply answers. You only write the reply.</p>
+    </div>
+    <div class="lh-stage n4-stage2 rv" data-story>
+      <div class="lh-win lh-win-back" aria-hidden="true">
+        <div class="lh-win-bar"><i data-app-icon="mail" data-size="14"></i><b>Interview invitation</b><span>Gmail</span></div>
+        <div class="lh-thread">
+          <div class="lh-msg"><span class="av">PN</span><div><b>Priya Nair</b> <span class="t">9:12 AM</span><p>Hi Alex, thanks for applying to Brightwave. Could you pick a time for a 45-minute video interview? Mon 11:00, Tue 11:00 or Wed 15:00.</p></div></div>
+          <div class="lh-msg n4-s" style="--d:4"><span class="av me">A</span><div><b>You</b> <span class="t">10:03 AM</span><p>Tuesday at 11:00 works well for me. Looking forward to it.</p></div></div>
         </div>
       </div>
-      <div class="replay-row"><button type="button" class="replay" data-replay="life" aria-label="Play the steps again" title="Play the steps again"><i data-icon="renew"></i></button></div>
-    </div>
-    <div class="life-foot rv">
-      <p class="fake-line app-look"><span class="tag tag-yellow"><i data-app-icon="warning" data-size="12"></i> Probably fake</span> A mail that asks you to pay for a job is marked. It stays in your list, and you decide.</p>
-    </div>
-  </section>
-
-  <!-- 3. Applications that update themselves -->
-  <section class="band" aria-labelledby="apps-title">
-    <div class="sec-head">
-      <h2 id="apps-title" class="h2 rv">Applications that<br>update themselves.</h2>
-      <div class="side rv"><p>Every job you applied for, in one list. Its status moves from Applied to Interview to Offer as the mails come in. Nothing to type.</p></div>
-    </div>
-    <div class="appcard rv app-look" data-appdemo>
-      <div>
-        <div class="top">
-          <div><div class="h4">Brightwave</div><div class="xs body-2">Frontend Engineer</div></div>
-          <span class="tag tag-blue" data-apptag>Interview</span>
+      <div class="lh-win lh-win-front" aria-hidden="true">
+        <div class="lh-win-bar"><i data-app-icon="mail" data-size="14"></i><b>Mails</b><span>NorthList</span><span class="lh-dots">···</span></div>
+        <div class="lh-page">
+          <h3>Interview invitation: Frontend Engineer</h3>
+          <p class="lh-meta">Priya Nair · Brightwave · Mon 9:12 AM</p>
+          <div class="lh-pills"><span class="lh-pill n4-status"><span class="n4-was"><span class="lh-ring b"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 7V1.5A5.5 5.5 0 0 1 12.50 7.00Z" fill="currentColor"/></svg></span>Recruiter contact</span><span class="n4-now"><span class="lh-ring o"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 7V1.5A5.5 5.5 0 1 1 1.50 7.00Z" fill="currentColor"/></svg></span>Interview</span></span><span class="lh-pill">Brightwave</span><span class="lh-pill">Due Mon, Nov 3</span></div>
+          <div class="lh-step n4-s n4-stepcard" style="--d:2"><span class="lbl">Next step</span><b>Choose an interview time</b><span class="tag tag-yellow n4-open">Needs action</span><span class="n4-closed"><i data-app-icon="checkCircle" data-size="14"></i> Done</span></div>
+          <h4>Activity</h4>
+          <ul class="lh-act n4-act">
+            <li class="n4-s" style="--d:0"><span class="d"></span>Mail from Priya Nair arrived <span class="w">9:12</span></li>
+            <li class="n4-s" style="--d:1"><span class="d"></span>NorthList read it: a job mail from Brightwave <span class="w">9:14</span></li>
+            <li class="n4-s" style="--d:2"><span class="d"></span>Found one ask: <b>choose an interview time</b> <span class="w">9:14</span></li>
+            <li class="n4-s" style="--d:4"><span class="d"></span>You replied from Gmail <span class="w">10:03</span></li>
+            <li class="n4-s" style="--d:5"><span class="d ok"></span>Ask closed: your reply answered it <span class="w">10:05</span></li>
+            <li class="n4-s" style="--d:6"><span class="d"></span>Status moved to <b>Interview</b> <span class="w">10:05</span></li>
+          </ul>
         </div>
-        <ol class="track">
-          <li class="done"><span class="sq"><i data-app-icon="check" data-size="12"></i></span><div><div class="t">Applied</div><div class="d">Oct 14</div></div></li>
-          <li class="done" data-step="rc"><span class="sq"><i data-app-icon="check" data-size="12"></i></span><div><div class="t">Recruiter contact</div><div class="d">Oct 22</div></div></li>
-          <li class="now" data-step="iv"><span class="sq"></span><div><div class="t">Interview</div><div class="d">Today</div></div></li>
-          <li class="later"><span class="sq"></span><div><div class="t">Offer</div></div></li>
-        </ol>
       </div>
-      <div>
-        <div class="h4">History</div>
-        <ul class="history">
-          <li data-newrow><span class="when">Today</span><span class="what"><b>Interview invitation.</b> Priya offered three times for a video interview.<br><span class="from"><i data-app-icon="mail" data-size="13"></i> From Priya Nair's mail</span></span></li>
-          <li><span class="when">Oct 22</span><span class="what"><b>The recruiter wrote.</b> Priya asked about your notice period. You replied the same day.</span></li>
-          <li><span class="when">Oct 14</span><span class="what"><b>Applied.</b> Brightwave confirmed your application by mail.</span></li>
-        </ul>
-      </div>
-    </div>
-    <div class="replay-row"><button type="button" class="replay" data-replay="app" aria-label="Play the update again" title="Play the update again"><i data-icon="renew"></i></button></div>
-  </section>
-
-  <!-- 3b. Your own AI agent: right after Applications, because the automation's jobs land in Applications. Words only; the picture is on /automation. -->
-  <section class="band" id="automation" aria-labelledby="auto-title">
-    <div class="sec-head">
-      <h2 id="auto-title" class="h2 rv">Apply with your<br>own AI agent.</h2>
-      <div class="side rv">
-        <p>A free job automation runs in your own AI app, on your computer, and applies to jobs one at a time. Each job it applies to shows up in NorthList, with the link and the answers it sent.</p>
-        <a class="arrow-link" href="/automation">How the automation works <i data-icon="arrowRight" data-size="14"></i></a>
-      </div>
+      <div class="lh-stage-cap"><b>Read, tracked and closed for you</b><span>NorthList checks Gmail about once an hour with read-only access. The mail itself stays in Gmail.</span></div>
+      <button type="button" class="replay n4-replay" data-story-replay aria-label="Play the story again" title="Play the story again"><i data-icon="renew"></i></button>
     </div>
   </section>
 
-  <!-- 4. Reply without leaving -->
-  <section class="band" aria-labelledby="reply-title">
-    <div class="split">
-      <div class="copy rv">
-        <h2 id="reply-title" class="h2">Reply without<br>leaving NorthList.</h2>
-        <p>Write your reply, or let the AI draft one from the whole conversation. It is sent from your own Gmail, only when you press Send. The draft is never kept.</p>
-      </div>
-      <div class="shot rv">
-        <div class="rbox app-look" data-replydemo>
-          <div class="psheet"><span class="grab"></span><div class="sh"><span class="sx"><i data-app-icon="close" data-size="20"></i></span><b>Reply</b><button type="button" class="sa-btn pri" disabled data-send tabindex="-1" aria-hidden="true">Send</button></div><div class="pto">To <span>Priya Nair</span></div></div>
-          <div class="rhead"><span class="to">To: Priya Nair &lt;priya.nair@brightwave.example&gt;</span><span class="x"><i data-app-icon="close" data-size="16"></i></span></div>
-          <div class="aihelp"><span class="lbl"><i data-app-icon="ai" data-size="16"></i>Reply with AI</span>
-            <div class="chips"><span class="chip">Take Tue, Nov 4, 11:00 AM</span><span class="chip">Ask for another time</span></div>
-            <div class="hintrow"><span class="field"><span class="lg">Optional: what to say, like "I'm free Tue after 3"</span><span class="sm">Optional: what to say</span></span><span class="chip wai">Write with AI</span></div>
-          </div>
-          <div class="editor">
-            <div class="tb"><span><i data-app-icon="bold"></i></span><span><i data-app-icon="italic"></i></span><span><i data-app-icon="underline"></i></span><i class="sep"></i><span><i data-app-icon="list"></i></span><span><i data-app-icon="listOrdered"></i></span><i class="sep"></i><span><i data-app-icon="link"></i></span></div>
-            <div class="ed" data-text="Hi Priya,&#10;&#10;Thank you for the invitation. Tuesday, November 4 at 11:00 AM works well for me.&#10;&#10;I look forward to meeting the team.&#10;&#10;Best regards,&#10;Alex"><span class="ph">Write your reply</span></div>
-            <div class="efoot"><button type="button" class="sa-btn pri" disabled data-send tabindex="-1" aria-hidden="true">Send reply</button></div>
-          </div>
-        </div>
-        <div class="replay-row"><button type="button" class="replay" data-replay="reply" aria-label="Write the draft again" title="Write the draft again"><i data-icon="renew"></i></button></div>
-      </div>
+  <!-- 3. Your data: the four promises only, in one row -->
+  <section class="wrap n4-band" aria-labelledby="data-title">
+    <div class="n4-split rv">
+      <h2 id="data-title" class="n4-h2">Your mail stays yours.</h2>
+      <a class="arrow-link n4-more" href="/privacy/">How your mail is handled <i data-icon="arrowRight" data-size="14"></i></a>
     </div>
+    <ul class="n4-promises">
+      <li class="rv"><i data-icon="mail" data-size="20"></i><div><b>Read and send, never change</b><p>Two Gmail permissions: read, to find your job mails, and send, for your replies only. Nothing in your Gmail can be changed or deleted.</p></div></li>
+      <li class="rv"><i data-icon="mailOff" data-size="20"></i><div><b>Never the text of your mails</b><p>For each job mail NorthList keeps the subject, sender, date and what the AI found. Not the text, not the attachments.</p></div></li>
+      <li class="rv"><i data-icon="shield" data-size="20"></i><div><b>The AI keeps nothing</b><p>The AI service is asked to keep nothing, so it can’t store your mail or train on it.</p></div></li>
+      <li class="rv"><i data-icon="eyeOff" data-size="20"></i><div><b>No ads, no tracking</b><p>No ads, no selling your data, no analytics or tracking tools.</p></div></li>
+    </ul>
   </section>
 
-  <!-- 5. On your phone -->
-  <section class="band" aria-labelledby="phone-title">
-    <div class="split mirror">
-      <div class="shot phone-shot rv">
-        <div class="phone-col">
-        <div class="device" data-frame>
-          <div class="alert" data-alert role="button" tabindex="0" aria-label="Alert: Brightwave, choose an interview time. Opens the mail.">
-            <span class="ai"><i data-mark="16"></i></span>
-            <span><b>NorthList</b><br>Brightwave: Choose an interview time</span>
-            <span class="when">now</span>
-          </div>
-          <div data-sample="dashboard" data-phone role="region" aria-label="NorthList on a phone, with made-up mails"></div>
-        </div>
-        <div class="replay-row"><button type="button" class="replay" data-replay="phone" aria-label="Play the alert again" title="Play the alert again"><i data-icon="renew"></i></button></div>
-        </div>
-      </div>
-      <div class="copy rv">
-        <h2 id="phone-title" class="h2">On your phone,<br>like an app.</h2>
-        <ul class="plain-list">
-          <li><i data-icon="install"></i><span>Install it from your browser. No app store.</span></li>
-          <li><i data-icon="bell"></i><span>Alerts on each device when a new step arrives.</span></li>
-          <li><i data-icon="offline"></i><span>Pages you opened still open without a connection.</span></li>
-        </ul>
-      </div>
+  <!-- 4. Try it yourself (owner, 20 Nov 2026: the old hero's working app, moved down) -->
+  <section class="n4-band" id="try" aria-labelledby="try-title">
+    <div class="wrap"><div class="lh-split rv">
+      <h2 id="try-title" class="n4-h2">Try it yourself.</h2>
+      <p class="lh-side">A working copy of NorthList with made-up mails. Open a mail, write a reply, press Sync now. Nothing you do here leaves this page.</p>
+    </div></div>
+  <div class="n4-shot-wrap hf-try">
+    <div class="n4-shot">
+      <div class="sa-fit" data-fit-phone><div data-sample="mails" data-autoplay="sync" role="region" aria-label="A working example of NorthList with made-up mails"></div></div>
     </div>
+    <div class="shot-cap n4-cap">
+      <span>A working example with made-up mails. Nothing you do here leaves this page.</span>
+      <button type="button" class="replay" data-replay="hero" aria-label="Play the example again" title="Play the example again"><i data-icon="renew"></i></button>
+    </div>
+  </div>
   </section>
 
-  <!-- 6. Your data, short and true -->
-  <section class="band" id="your-data" aria-labelledby="data-title">
-    <div class="sec-head">
-      <h2 id="data-title" class="h2 rv">Your mail<br>stays yours.</h2>
-      <div class="side rv">
-        <p data-lead></p>
-        <a class="arrow-link" href="/privacy/">Everything about your data <i data-icon="arrowRight" data-size="14"></i></a>
-      </div>
-    </div>
-    <div class="rv promises" data-promises></div>
+  <!-- 5. Two plain links instead of cards -->
+  <section class="wrap n4-links">
+    <a class="n4-link rv" href="/mobile"><span>On your phone, like an app.</span><span class="go">Mobile <i data-icon="arrowRight" data-size="14"></i></span></a>
+    <a class="n4-link rv" href="/automation"><span>Apply with your own AI agent.</span><span class="go">NorthList Apply <i data-icon="arrowRight" data-size="14"></i></span></a>
   </section>
 
-  <!-- 7. Set up, and start -->
-  <section class="band last start" aria-labelledby="start-title">
-    <h2 id="start-title" class="h2 rv">Set up in a minute.</h2>
-    <p class="lead rv">Free while in beta, for the first 99 accounts.</p>
-    <ol class="setup rv">
-      <li><span class="n">1</span><h3 class="h3">Sign in with Google</h3><p>That creates your account.</p></li>
-      <li><span class="n">2</span><h3 class="h3">Connect Gmail</h3><p>Choose how far back to look, from 1 to 30 days.</p></li>
-      <li><span class="n">3</span><h3 class="h3">Choose how mails are read</h3><p>The free AI or your own OpenRouter key. Then your list fills in.</p></li>
-    </ol>
-    <div class="go rv"><a class="btn btn-primary btn-lg btn-carbon" href="https://app.northlist.site/login">Start free <i data-icon="arrowRight"></i></a></div>
+  <!-- 6. Close -->
+  <section class="wrap n3-close n4-close">
+    <div class="n3-close-in rv">
+      <h2 class="n3-close-title">Start with your<br>next job mail.</h2>
+      <div><div class="n3-ctas"><a class="btn btn-primary btn-lg" href="https://app.northlist.site/login">Start free</a><a class="btn btn-secondary btn-lg" href="https://app.northlist.site/login">Sign in</a></div><p class="n3-note">Free while in beta. No card, no AI key.</p></div>
+    </div>
   </section>
 
 </main>
-
 <div data-site-footer></div>
 <script type="module" src="/main.ts"></script>
+<script type="module" src="/home/home.ts"></script>
 </body>
 </html>

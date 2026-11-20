@@ -1,0 +1,77 @@
+/*
+ * Product site: shared pieces for the Linear-style look (owner, 19 Nov 2026). Dark only. Calm: one bright
+ * action per view, grey words, hairline lines, rounded panels, no glow, no gradients on words. Every page
+ * builds from these. Loaded after base.css and chrome.css.
+ */
+
+/* ---------- Type and space: bigger titles, more air, as on linear.app (owner, 19 Nov 2026) ---------- */
+.display, .h2, .statement { font-weight: 520; }
+.display { font-size: clamp(64px, 6.2vw, 88px); line-height: 1.02; letter-spacing: -0.046em; }
+.h2 { font-size: clamp(44px, 4vw, 56px); line-height: 1.06; letter-spacing: -0.036em; }
+.lead { color: var(--text-3); font-size: 22px; line-height: 1.5; max-width: 640px; }
+.band { padding-block: 160px; }
+.band.head { padding-top: 136px; }
+.band.head + .band { padding-top: 96px; }
+.band.last { padding-bottom: 192px; }
+@media (max-width: 1023px) {
+  .display { font-size: 60px; }
+  .h2 { font-size: 44px; }
+  .lead { font-size: 20px; }
+  .band { padding-block: 112px; }
+  .band.head { padding-top: 96px; }
+  .band.head + .band { padding-top: 72px; }
+  .band.last { padding-bottom: 136px; }
+}
+@media (max-width: 599px) {
+  .display { font-size: 44px; line-height: 1.06; letter-spacing: -0.035em; }
+  .h2 { font-size: 32px; line-height: 1.12; letter-spacing: -0.028em; }
+  .lead { font-size: 18px; }
+  .band { padding-block: 80px; }
+  .band.head { padding-top: 56px; }
+  .band.head + .band { padding-top: 56px; }
+  .band.last { padding-bottom: 104px; }
+}
+
+/* ---------- Header: as linear.app - logo left, grey links on the right, a divider, Sign in, one light pill ---------- */
+.hdr { height: 64px; border-bottom-color: var(--line); }
+.hdr-in { gap: 0; }
+.hdr-in .nav { margin-left: auto; gap: 4px; }
+.nav a { font-size: 14px; color: var(--text-3); height: 32px; padding: 0 12px; }
+.nav a:hover { background: transparent; color: var(--text); }
+.nav a[aria-current='page'] { color: var(--text); font-weight: 500; }
+.hdr-right { margin-left: 0; gap: 4px; }
+.hdr-in .nav + .hdr-right::before { content: ''; width: 1px; height: 16px; background: var(--line-2); margin: 0 12px 0 8px; }
+.hdr .btn-sm { height: 32px; font-size: 14px; padding: 0 14px; }
+.hdr .btn-ghost { color: var(--text-3); }
+.hdr .btn-ghost:hover { background: transparent; color: var(--text); }
+@media (max-width: 899px) { .hdr-right { margin-left: auto; } .hdr-in .nav + .hdr-right::before { display: none; } }
+.sheet { inset: 64px 0 0; }
+
+/* ---------- Footer ---------- */
+.ftr { border-top-color: var(--line); }
+.ftr h4 { font-size: 12px; color: var(--text); }
+.ftr a, .ftr .tagline { font-size: 12px; color: var(--text-3); }
+.ftr a:hover { color: var(--text); }
+
+/* ---------- Section label: a short grey name with a line, above a section title ---------- */
+
+/* ---------- Hairline grid: cells split by 1px lines, no outer box ---------- */
+
+/* ---------- Panel: one step above the page, rounded, hairline ---------- */
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; }
+@media (max-width: 599px) { .panel { border-radius: 12px; } }
+
+/* ---------- Isometric line drawings (only for what the app can't show) ---------- */
+
+/* ---------- QR block (Mobile page): scan to open on a phone ---------- */
+
+/* ---------- No blue anywhere (owner, 19 Nov 2026: the app no longer uses blue). The logo's mark keeps its colour. ---------- */
+:root[data-theme='dark'] { --link: var(--text); --link-hover: #ffffff; --focus: #e6e6e6; --tint: #1c1d1f; --tint-text: var(--text-2); }
+/* The app pictures' own colours are set in no-blue.css, loaded last, so they win over app-look.css. */
+
+/* ---------- Finishing pass (owner, 19 Nov 2026; rules from stockypro.com): quick, calm motion, pressables give a little ---------- */
+:root { --ease-out: cubic-bezier(0.23, 1, 0.32, 1); }
+.rv { transition: opacity 600ms var(--ease-out), transform 600ms var(--ease-out); }
+.btn { transition: background-color 150ms var(--ease-out), border-color 150ms var(--ease-out), color 150ms var(--ease-out), transform 150ms var(--ease-out); }
+.btn:active { transform: scale(0.97); }
+@media (prefers-reduced-motion: reduce) { .btn:active { transform: none; } }

@@ -1,0 +1,5 @@
+/* The pictures of the app (Home and Mobile): the app's look, the working example and the phone frames. No blue last. */
+@import './app-look.css';
+@import './sample-app.css';
+@import './frames.css';
+@import './no-blue.css';

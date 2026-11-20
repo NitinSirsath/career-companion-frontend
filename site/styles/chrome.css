@@ -40,12 +40,8 @@
 .sheet a.row { display: flex; align-items: center; justify-content: space-between; height: 56px; border-bottom: 1px solid var(--line); text-decoration: none; font-size: 20px; letter-spacing: -0.02em; }
 .sheet .sheet-actions { display: grid; gap: 8px; margin-top: 24px; }
 .sheet .sheet-actions .btn { height: 48px; }
-.sheet .sheet-theme { margin-top: 24px; }
 
 /* Light / Dark switch (footer and phone menu): a round frame with a round choice inside, as in the app */
-.seg { display: inline-flex; gap: 2px; padding: 2px; border: 1px solid var(--line-2); border-radius: 999px; }
-.seg button { height: 28px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; background: transparent; border: 0; border-radius: 999px; color: var(--text-2); font-size: 13px; cursor: pointer; }
-.seg button[aria-pressed='true'] { background: var(--tint); color: var(--tint-text); }
 
 /* ---------- Footer: one line on top, nothing else ---------- */
 .ftr { border-top: 1px solid var(--line); }

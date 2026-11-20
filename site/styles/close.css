@@ -1,0 +1,58 @@
+/*
+ * The page close ("Start with your next job mail") and the plain link rows several pages share. Classes start
+ * with n3- and n4-.
+ */
+:root[data-theme='dark'] { --ring-b: #8a8f98; }
+
+/* ---------- Hero, centred ---------- */
+.n3-ctas { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* ---------- Bands ---------- */
+
+/* ---------- One mail, start to finish ---------- */
+.lh-ring.b { color: var(--ring-b); }
+
+/* ---------- Your data ---------- */
+
+/* ---------- Two uneven cards ---------- */
+
+/* ---------- Close: left-aligned, actions on the right ---------- */
+.n3-close { padding-block: 176px 160px; }
+.n3-close-in { display: flex; justify-content: space-between; align-items: end; gap: 40px; padding-top: 48px; border-top: 1px solid var(--line); }
+.n3-close-title { font-size: 60px; line-height: 1.06; letter-spacing: -0.03em; font-weight: 520; text-wrap: balance; }
+.n3-note { margin-top: 12px; font-size: 12px; line-height: 18px; color: var(--text-3); }
+
+/* ---------- Tablet ---------- */
+@media (max-width: 1023px) {
+  .n3-close-title { font-size: 48px; }
+  .n3-close-in { flex-direction: column; align-items: start; }
+}
+/* ---------- Phone ---------- */
+@media (max-width: 599px) {
+  .n3-close { padding-block: 112px 96px; }
+  .n3-close-title { font-size: 36px; line-height: 1.1; }
+  .n3-close-in .n3-ctas { flex-direction: column; align-items: stretch; }
+  .n3-close-in > div { align-self: stretch; }
+}
+
+/* The plain link rows and the page close (Home, Your data, NorthList Apply) */
+
+.n4-links { padding-top: 128px; display: grid; }
+.n4-link { display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 32px 0; border-top: 1px solid var(--line); text-decoration: none; color: var(--text); font-size: 30px; line-height: 1.2; letter-spacing: -0.018em; font-weight: 500; transition: color 150ms var(--ease-out); }
+.n4-link:last-child { border-bottom: 1px solid var(--line); }
+.n4-link .go { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; letter-spacing: 0; font-weight: 400; color: var(--text-3); white-space: nowrap; }
+.n4-link .go svg { transition: transform 150ms var(--ease); }
+.n4-link:hover .go { color: var(--text); }
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) { .n4-link:hover .go svg { transform: translateX(4px); } }
+.n4-link:hover .go svg { transform: translateX(3px); }
+.n4-close { padding-top: 128px; padding-bottom: 160px; }
+.n4-close .n3-close-in { border-top: 0; padding-top: 0; }
+@media (max-width: 1023px) {
+  .n4-link { font-size: 24px; }
+  .n4-links, .n4-close { padding-top: 96px; }
+}
+@media (max-width: 599px) {
+  .n4-links { padding-top: 80px; }
+  .n4-link { padding: 24px 0; flex-direction: column; align-items: start; gap: 8px; font-size: 20px; }
+  .n4-close { padding-top: 80px; padding-bottom: 112px; }
+}

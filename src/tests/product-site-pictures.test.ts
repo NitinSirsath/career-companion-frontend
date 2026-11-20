@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fillParts } from '../../site/parts/index';
 
-/** The self-playing pictures (Home and Automation) and phone pictures on the product site. */
+/** The moving pictures on the product site: Home's film and story, the phone pictures, and NorthList Apply's run. */
 const page = (file: string) =>
   fillParts(readFileSync(resolve(__dirname, '../../site', file), 'utf8'));
 const home = () => page('index.html');
@@ -12,9 +12,11 @@ const css = (name: string) => readFileSync(resolve(__dirname, '../../site/styles
 
 /** Every picture "comes into view" at once. */
 class SeenAtOnce {
-  constructor(private readonly cb: (entries: { isIntersecting: boolean }[]) => void) {}
+  constructor(
+    private readonly cb: (entries: { isIntersecting: boolean }[], observer: SeenAtOnce) => void,
+  ) {}
   observe() {
-    this.cb([{ isIntersecting: true }]);
+    this.cb([{ isIntersecting: true }], this);
   }
   disconnect() {}
   unobserve() {}
@@ -36,16 +38,6 @@ function stubBrowser(reduceMotion = false) {
   vi.stubGlobal('IntersectionObserver', SeenAtOnce);
 }
 
-async function load(reduceMotion = false) {
-  vi.resetModules();
-  stubBrowser(reduceMotion);
-  document.body.innerHTML = new DOMParser().parseFromString(home(), 'text/html').body.innerHTML;
-  const examples = await import('../../site/example/index');
-  const pictures = await import('../../site/runtime/pictures');
-  examples.startExamples();
-  pictures.startPictures();
-  return examples;
-}
 const $ = <T extends HTMLElement = HTMLElement>(selector: string) =>
   document.querySelector<T>(selector)!;
 
@@ -74,8 +66,15 @@ describe('the phone pictures', () => {
     expect(deviceFor('Mozilla/5.0 (Linux; Android 16)', '?device=nokia')).toBe('pixel');
   });
 
-  it('wrap the hero example and the phone section in a phone with status bar, camera and home bar', async () => {
-    await load();
+  it("wrap the Mobile page's working examples in a phone with status bar, camera and home bar", async () => {
+    vi.resetModules();
+    stubBrowser();
+    document.body.innerHTML = new DOMParser().parseFromString(
+      page('mobile/index.html'),
+      'text/html',
+    ).body.innerHTML;
+    const { startExamples } = await import('../../site/example/index');
+    startExamples();
     const phones = document.querySelectorAll('.device');
     expect(phones).toHaveLength(2);
     for (const dev of phones) {
@@ -84,10 +83,7 @@ describe('the phone pictures', () => {
       expect(dev.querySelector('.dv-home')).not.toBeNull();
       expect(dev.querySelector('.dv-app [data-sample]')).not.toBeNull();
     }
-    expect($('.hero-shot .device').classList.contains('phone-only')).toBe(true);
-    expect($('.phone-shot .dv-app > .alert')).not.toBeNull();
     expect(document.documentElement.dataset.device).toBe('iphone');
-    expect($('.phone-shot .device').querySelectorAll('.dv-btn')).toHaveLength(5);
   });
 
   it('give the Pixel its own buttons', async () => {
@@ -99,104 +95,6 @@ describe('the phone pictures', () => {
     expect(document.querySelectorAll('.dv-btn.r')).toHaveLength(2);
     expect(document.querySelectorAll('.dv-btn.l')).toHaveLength(0);
     expect($('.dv-app p').textContent).toBe('app');
-  });
-});
-
-describe('the alert in "On your phone, like an app"', () => {
-  it('slides in, then opens the mail by itself', async () => {
-    const { examples } = await load();
-    const phone = examples.get($('.phone-shot [data-sample]'))!;
-    expect(phone.s.view).toBe('dashboard');
-    await vi.advanceTimersByTimeAsync(900);
-    expect($('[data-alert]').classList.contains('show')).toBe(true);
-    await vi.advanceTimersByTimeAsync(2200 + 280);
-    expect(phone.s.view).toBe('mail');
-    expect(phone.s.mailId).toBe('brightwave');
-    expect($('[data-alert]').classList.contains('show')).toBe(false);
-  });
-
-  it('opens the mail at once on a tap, and moves focus to its title', async () => {
-    const { examples } = await load();
-    await vi.advanceTimersByTimeAsync(900);
-    $('[data-alert]').click();
-    const phoneEl = $('.phone-shot [data-sample]');
-    expect(examples.get(phoneEl)!.s.mailId).toBe('brightwave');
-    expect(phoneEl.classList.contains('used')).toBe(true);
-    expect(document.activeElement?.textContent).toBe('Interview invitation: Frontend Engineer');
-  });
-
-  it('gets out of the way when the visitor uses the phone, and plays again on replay', async () => {
-    const { examples } = await load();
-    const phoneEl = $('.phone-shot [data-sample]');
-    await vi.advanceTimersByTimeAsync(900);
-    phoneEl.querySelector<HTMLElement>('[data-go="mails"]')!.click();
-    expect($('[data-alert]').classList.contains('show')).toBe(false);
-    await vi.advanceTimersByTimeAsync(3000);
-    expect(examples.get(phoneEl)!.s.view).toBe('mails');
-
-    $('[data-replay="phone"]').click();
-    expect(examples.get(phoneEl)!.s.view).toBe('dashboard');
-    expect(phoneEl.classList.contains('used')).toBe(false);
-    await vi.advanceTimersByTimeAsync(900 + 2200 + 280);
-    expect(examples.get(phoneEl)!.s.view).toBe('mail');
-  });
-});
-
-describe('the self-playing pictures', () => {
-  it('light the four steps of an ask one after another, then rest with all done', async () => {
-    await load();
-    const steps = [...document.querySelectorAll('.life-step')];
-    expect(steps[0].classList.contains('on')).toBe(true);
-    await vi.advanceTimersByTimeAsync(1400);
-    expect(steps[1].classList.contains('on')).toBe(true);
-    expect(steps[0].classList.contains('done')).toBe(true);
-    await vi.advanceTimersByTimeAsync(1400 * 2 + 700);
-    expect(steps.every((st) => st.classList.contains('done') && !st.classList.contains('on'))).toBe(
-      true,
-    );
-    expect($('.life-bar span').style.width).toBe('100%');
-    $('[data-replay="life"]').click();
-    expect(steps[0].classList.contains('on')).toBe(true);
-  });
-
-  it('move the application from Recruiter contact to Interview as the new mail arrives', async () => {
-    await load();
-    expect($('[data-apptag]').textContent).toBe('Recruiter contact');
-    expect($('[data-newrow]').classList.contains('pending')).toBe(true);
-    await vi.advanceTimersByTimeAsync(1000);
-    expect($('[data-newrow]').classList.contains('arrive')).toBe(true);
-    await vi.advanceTimersByTimeAsync(900);
-    expect($('[data-apptag]').textContent).toBe('Interview');
-    expect($('[data-step="rc"]').className).toBe('done');
-    expect($('[data-step="iv"]').className).toBe('now');
-  });
-
-  it('let the AI write the reply draft, then turn Send reply on', async () => {
-    await load();
-    const send = $<HTMLButtonElement>('[data-send]');
-    expect(send.disabled).toBe(true);
-    expect(send.getAttribute('aria-hidden')).toBe('true');
-    await vi.advanceTimersByTimeAsync(500);
-    expect($('.rbox .ed').textContent).toBe('Writing your reply from the whole conversation');
-    await vi.advanceTimersByTimeAsync(1600 + 22 * 120);
-    expect($('.rbox .ed').textContent).toContain('I look forward to meeting the team.');
-    expect(send.disabled).toBe(false);
-  });
-
-  it('show their end state at once, with no replay buttons, when the visitor asks for less motion', async () => {
-    await load(true);
-    expect(
-      [...document.querySelectorAll('.life-step')].every((st) => st.classList.contains('done')),
-    ).toBe(true);
-    expect($('[data-apptag]').textContent).toBe('Interview');
-    expect($('.rbox .ed').textContent).toContain('Best regards');
-    expect(css('sections.css')).toContain('html.no-motion .replay { display: none; }');
-  });
-
-  it('keep their size while they play (rewound parts are hidden, not removed)', () => {
-    const cards = css('home.css');
-    expect(cards).toContain('.history li.pending { visibility: hidden; }');
-    expect(cards).toContain('.track .later .d { visibility: hidden; }');
   });
 });
 
@@ -215,7 +113,8 @@ describe('the run on the Automation page', () => {
   const shown = () => steps().filter((st) => !st.classList.contains('pending')).length;
   const onPage = () => $('.run [data-pg].on')?.dataset.pg;
   const typed = () => [...document.querySelectorAll('.run .fld .v')].map((v) => v.textContent);
-  const tab = (name: string) => $<HTMLButtonElement>(`.run [role="tab"][data-app="${name}"]`);
+  const tab = (name: string) =>
+    $<HTMLButtonElement>(`[role="tablist"] [role="tab"][data-app="${name}"]`);
 
   it("shows the AI app's steps one by one, each working step as grey shimmer first", async () => {
     await loadRun();
@@ -257,8 +156,8 @@ describe('the run on the Automation page', () => {
     expect($('[data-newrow]').classList.contains('pending')).toBe(true);
     await vi.advanceTimersByTimeAsync(100);
     expect($('[data-newrow]').classList.contains('arrive')).toBe(true);
-    expect($('[data-newrow] .tag').textContent).toBe('No reply yet');
-    expect($('.run [data-run="note"]').classList.contains('on')).toBe(true);
+    expect($('[data-newrow] .st span').textContent).toBe('No reply yet');
+    expect($('[data-run="note"]').classList.contains('on')).toBe(true);
     await vi.advanceTimersByTimeAsync(500);
     expect(shown()).toBe(steps().length);
     expect($('.run .jobchip').textContent).toBe('Next job in 2 min');
@@ -277,17 +176,17 @@ describe('the run on the Automation page', () => {
     expect($('.run [data-run="title"]').textContent).toBe('Codex');
     expect($('.run [data-run="ph"]').textContent).toBe('Ask Codex anything');
     expect($('.run [data-run="drive"]').textContent).toBe('Codex is using this page');
-    expect($('.run [data-note="cx"]').hidden).toBe(false);
-    expect($('.run [data-note="ag"]').hidden).toBe(true);
-    expect($('.run [data-note="cx"]').textContent).toContain(
+    expect($('[data-note="cx"]').hidden).toBe(false);
+    expect($('[data-note="ag"]').hidden).toBe(true);
+    expect($('[data-note="cx"]').textContent).toContain(
       'Connecting NorthList from Codex is not tested yet.',
     );
     expect(shown()).toBe(0);
     tab('cx').dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
     expect($('.run .aw').dataset.app).toBe('cc');
     expect($('.run [data-run="title"]').textContent).toBe('Claude');
-    expect($('.run [data-note="cc"]').hidden).toBe(false);
-    expect($('.run [data-note="cc"]').textContent).toContain(
+    expect($('[data-note="cc"]').hidden).toBe(false);
+    expect($('[data-note="cc"]').textContent).toContain(
       'It uses its own browser. Chrome is only the backup.',
     );
     expect(document.activeElement).toBe(tab('cc'));
@@ -308,84 +207,125 @@ describe('the run on the Automation page', () => {
   });
 
   it('keeps its size while it plays, and its styles stay inside the picture', () => {
-    const run = css('automation.css');
-    expect(run).toContain('.run-tr.pending { visibility: hidden; }');
+    expect(css('apply-page.css')).toContain('.ap-row.pending { visibility: hidden; }');
+    const run = css('apply-run.css');
     expect(run).toContain('.run .aw {');
     const rules = run.replace(/\/\*[\s\S]*?\*\//g, '').match(/^[^@\s}][^{]*\{/gm) ?? [];
     for (const rule of rules) expect(rule).toMatch(/^(\.run[ -]|\.run\.|@keyframes)/);
-    expect(css('site.css')).toContain("@import './automation.css';");
+    expect(css('apply.css')).toContain("@import './apply-run.css';");
   });
 });
 
-describe("Home's intro and the hero build-in", () => {
-  async function loadIntro() {
+describe("Home's hero film", () => {
+  async function loadFilm({ reduceMotion = false, search = '', cores = 8 } = {}) {
     vi.resetModules();
-    stubBrowser();
-    // A real browser tells the observer after the current script, so the hold comes first.
-    vi.stubGlobal(
-      'IntersectionObserver',
-      class extends SeenAtOnce {
-        observe() {
-          queueMicrotask(() => super.observe());
-        }
-      },
-    );
-    document.documentElement.className = 'intro';
+    stubBrowser(reduceMotion);
+    vi.stubGlobal('navigator', { ...navigator, hardwareConcurrency: cores });
+    Object.defineProperty(document, 'fonts', {
+      configurable: true,
+      value: { ready: Promise.resolve() },
+    });
+    window.history.replaceState(null, '', `/${search}`);
     document.body.innerHTML = new DOMParser().parseFromString(home(), 'text/html').body.innerHTML;
-    const examples = await import('../../site/example/index');
-    const motion = await import('../../site/runtime/motion');
-    examples.startExamples();
-    return { examples, motion };
+    const { startFilm } = await import('../../site/home/film');
+    startFilm();
   }
-  afterEach(() => (document.documentElement.className = ''));
-  const heroEl = () => $('.hero-shot [data-sample]');
+  const hero = () => $('[data-film-hero]');
+  const scenes = () => [...document.querySelectorAll<HTMLElement>('.hf-scene')];
+  const onScene = () => $('.hf-scene[data-on]')?.dataset.shot;
+  afterEach(() => window.history.replaceState(null, '', '/'));
 
-  it('holds the hero app empty during the intro, builds it 1.3 s in, then syncs', async () => {
-    const { examples, motion } = await loadIntro();
-    const app = examples.examples.get(heroEl())!;
-    expect(heroEl().classList.contains('sa-build')).toBe(true);
-    motion.startIntro();
-    await vi.advanceTimersByTimeAsync(300 + 20);
-    expect(document.documentElement.classList.contains('intro-go')).toBe(true);
-    expect(heroEl().classList.contains('sa-build-go')).toBe(false);
-    await vi.advanceTimersByTimeAsync(1300);
-    expect(heroEl().classList.contains('sa-build-go')).toBe(true);
-    await vi.advanceTimersByTimeAsync(2000);
-    expect(heroEl().classList.contains('sa-build')).toBe(false);
-    expect(document.documentElement.classList.contains('intro')).toBe(false); // cleaned up after 2.3 s
-    expect(app.s.syncing).toBe(false);
-    await vi.advanceTimersByTimeAsync(900);
-    expect(app.s.syncing).toBe(true);
+  it('draws four scenes: the first at once, the others later, each one copy under a blur veil', async () => {
+    await loadFilm();
+    expect(scenes().map((s) => s.dataset.shot)).toEqual(['mails', 'mail', 'apps', 'dash']);
+    expect(scenes()[0].querySelector('.hf-copy .hf-plane .hf-board')).not.toBeNull();
+    expect(scenes()[0].querySelector(':scope > .hf-veil')).not.toBeNull();
+    expect(
+      scenes()
+        .slice(1)
+        .every((s) => s.childElementCount === 0),
+    ).toBe(true);
+    await vi.advanceTimersByTimeAsync(1200);
+    expect(scenes().every((s) => s.childElementCount === 2)).toBe(true);
+    expect($('.hf-stage').inert).toBe(true);
   });
 
-  it('shows everything at once when the visitor scrolls during the intro', async () => {
-    const { motion } = await loadIntro();
-    motion.startIntro();
-    await vi.advanceTimersByTimeAsync(320);
-    dispatchEvent(new Event('scroll'));
-    await vi.advanceTimersByTimeAsync(0);
-    expect(document.documentElement.classList.contains('intro')).toBe(false);
-    expect(heroEl().classList.contains('sa-build-go')).toBe(true);
+  it('starts once the page has settled, then cuts every 4 s and loops after 16 s', async () => {
+    await loadFilm();
+    expect(hero().hasAttribute('data-ready')).toBe(false);
+    await vi.advanceTimersByTimeAsync(1700);
+    expect(hero().hasAttribute('data-ready')).toBe(true);
+    expect(onScene()).toBe('mails');
+    await vi.advanceTimersByTimeAsync(4000);
+    expect(onScene()).toBe('mail');
+    await vi.advanceTimersByTimeAsync(8000);
+    expect(onScene()).toBe('dash');
+    await vi.advanceTimersByTimeAsync(4000);
+    expect(onScene()).toBe('mails');
   });
 
-  it('builds again on replay, then syncs again', async () => {
-    const { examples } = await loadIntro();
-    const app = examples.examples.get(heroEl())!;
-    $('[data-replay="hero"]').click();
-    expect(heroEl().classList.contains('sa-build-go')).toBe(true);
-    await vi.advanceTimersByTimeAsync(2000);
-    expect(heroEl().classList.contains('sa-build')).toBe(false);
-    await vi.advanceTimersByTimeAsync(900);
-    expect(app.s.syncing).toBe(true);
+  it('pauses with its button, and holds the scene it was on', async () => {
+    await loadFilm();
+    await vi.advanceTimersByTimeAsync(1700);
+    const btn = $<HTMLButtonElement>('[data-film-toggle]');
+    btn.click();
+    expect(btn.getAttribute('aria-pressed')).toBe('true');
+    expect(btn.getAttribute('aria-label')).toBe('Play the hero animation');
+    expect(hero().hasAttribute('data-paused')).toBe(true);
+    await vi.advanceTimersByTimeAsync(9000);
+    expect(onScene()).toBe('mails');
+    btn.click();
+    expect(hero().hasAttribute('data-paused')).toBe(false);
   });
 
-  it('keeps the build-in parts in place: only opacity and transform move', () => {
-    const motion = css('states.css');
-    expect(motion).toContain(
-      '@keyframes sa-part-in { from { opacity: 0; transform: translateY(8px); } }',
+  it('holds one moment still with ?t=, and its end with less motion', async () => {
+    await loadFilm({ search: '?t=9' });
+    expect(onScene()).toBe('apps');
+    expect(hero().hasAttribute('data-still')).toBe(true);
+    await loadFilm({ reduceMotion: true });
+    expect(onScene()).toBe('dash');
+    expect(hero().hasAttribute('data-still')).toBe(true);
+  });
+
+  it('drops the blur on weak devices', async () => {
+    await loadFilm({ cores: 4 });
+    expect(hero().hasAttribute('data-lite')).toBe(true);
+    await loadFilm({ cores: 8 });
+    expect(hero().hasAttribute('data-lite')).toBe(false);
+    expect(css('home-film.css')).toContain('.hf-hero[data-lite] .hf-veil { display: none; }');
+  });
+
+  it('never draws the scenes that are off screen, and moves only transform and opacity in its camera', () => {
+    const film = css('home-film.css');
+    expect(film).toContain(
+      '.hf-scene:not([data-on]) { visibility: hidden; content-visibility: hidden; }',
     );
-    expect(motion).toContain(
-      'html.intro.intro-go .hero :is(.hl, .lead, .ctas, .hero-shot) { animation-play-state: running; }',
-    );
+    expect(film).not.toMatch(/@property/);
+    expect(film).toMatch(/@keyframes hf-crane \{ from \{ transform: rotateX/);
+  });
+});
+
+describe('"One mail, start to finish" on Home', () => {
+  async function loadStory(reduceMotion = false) {
+    vi.resetModules();
+    stubBrowser(reduceMotion);
+    document.body.innerHTML = new DOMParser().parseFromString(home(), 'text/html').body.innerHTML;
+    const { startStory } = await import('../../site/home/story');
+    startStory();
+  }
+
+  it('plays once when it comes into view, and again on replay', async () => {
+    await loadStory();
+    const stage = $('[data-story]');
+    expect(stage.classList.contains('play')).toBe(true);
+    stage.classList.remove('play');
+    $('[data-story-replay]').click();
+    expect(stage.classList.contains('play')).toBe(true);
+  });
+
+  it('shows its end at once when the visitor asks for less motion', async () => {
+    await loadStory(true);
+    expect($('[data-story]').classList.contains('end')).toBe(true);
+    expect($('[data-story]').classList.contains('play')).toBe(false);
   });
 });

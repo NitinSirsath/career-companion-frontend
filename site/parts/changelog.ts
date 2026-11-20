@@ -80,33 +80,8 @@ export const RELEASES: Release[] = [
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-/** `2026-10-31` → `oct-31` (the anchor) and `October 31, 2026` (shown). */
+/** `2026-10-31` → `oct-31`: a release's anchor. */
 export function anchor(date: string): string {
   const [, m, d] = date.split('-').map(Number);
   return `${MONTHS[m - 1].slice(0, 3).toLowerCase()}-${d}`;
-}
-function shown(date: string): string {
-  const [y, m, d] = date.split('-').map(Number);
-  return `${MONTHS[m - 1]} ${d}, ${y}`;
-}
-
-/** The Dashboard's five numbers, drawn as in the app. */
-const NUMBERS = `<div class="stats-strip"><div class="sa-stats">
-  <div class="sa-stat"><span class="k">Applications sent</span><span class="v">12</span><span class="d">↑ 3 vs the 30 days before</span></div>
-  <div class="sa-stat"><span class="k">Replies received</span><span class="v">7</span><span class="d">↑ 2 vs the 30 days before</span></div>
-  <div class="sa-stat"><span class="k">Interviews reached</span><span class="v">2</span><span class="d">↑ 1 vs the 30 days before</span></div>
-  <div class="sa-stat"><span class="k">Offers</span><span class="v">0</span><span class="d">Same as the 30 days before</span></div>
-  <div class="sa-stat"><span class="k">Rejections</span><span class="v">3</span><span class="d">↓ 1 vs the 30 days before</span></div>
-</div></div>`;
-
-export function releases(): string {
-  return RELEASES.map((r) => {
-    const also = r.also
-      ? `<ul class="also"><li class="al">Also in this release</li>${r.also.map((a) => `<li>${a}</li>`).join('')}</ul>`
-      : '';
-    return `<article class="entry" id="${anchor(r.date)}">
-      <time class="date" datetime="${r.date}">${shown(r.date)}</time>
-      <div class="ec"><h2>${r.title}</h2>${r.numbers ? NUMBERS : ''}<p>${r.text}</p>${also}</div>
-    </article>`;
-  }).join('\n');
 }

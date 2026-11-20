@@ -1,20 +1,14 @@
-import { startExamples } from './example/index.ts';
 import { startChrome } from './runtime/chrome.ts';
-import { noMotion, startIntro, startReveal } from './runtime/motion.ts';
-import { startPictures } from './runtime/pictures.ts';
-import { startToc } from './runtime/toc.ts';
+import { noMotion, startReveal } from './runtime/motion.ts';
 
 /*
- * The product site in the browser (owner, 31 Oct and 1 Nov 2026). The pages arrive whole from the build;
- * this adds the theme switch, the phone menu, the header line, Home's intro, the reveal motion, the
- * Privacy contents and Home's live example of the app, phone pictures and the self-playing pictures
- * (Home and Automation).
- * No server calls, nothing kept but the theme choice.
+ * The product site in the browser (dark only since 19-20 Nov 2026). The pages arrive whole from the build;
+ * this adds the phone menu, the header line and the reveal motion. The working example of the app (Home,
+ * Mobile) and NorthList Apply's run picture load only on the pages that show them.
+ * No server calls, nothing kept in the browser.
  */
 if (noMotion) document.documentElement.classList.add('no-motion');
 startChrome();
 startReveal();
-startToc(!noMotion);
-startExamples();
-startIntro();
-startPictures();
+if (document.querySelector('[data-sample]')) void import('./example/index.ts').then((m) => m.startExamples());
+if (document.querySelector('[data-rundemo]')) void import('./runtime/pictures.ts').then((m) => m.startPictures());

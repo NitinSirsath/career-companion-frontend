@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,83 +11,119 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=Geist+Mono:wght@400..500&display=swap" rel="stylesheet">
-<script>try{if(localStorage.getItem('northlist-site-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
 <link rel="stylesheet" href="/styles/site.css">
+<link rel="stylesheet" href="/styles/info.css">
 </head>
 <body data-page="pricing">
 <div data-site-header></div>
+<main class="pr-main">
 
-<main class="wrap">
-
-  <section class="band head page-head" aria-labelledby="price-title">
-    <h1 id="price-title" class="display rv">Free while in beta.</h1>
-    <p class="lead rv">Everything in NorthList is free during the beta, AI included. No card, no ads, and your data is never sold.</p>
+  <!-- 1. Title left, one action -->
+  <section class="wrap pr-hero" aria-labelledby="price-title">
+    <h1 id="price-title" class="pr-display rv pr-blur">Free while in beta.</h1>
+    <div class="pr-hero-row rv">
+      <p class="pr-lead">Everything in NorthList is free during the beta, AI included. No card, no ads, and your data is never sold.</p>
+      <a class="btn btn-primary btn-lg" href="https://app.northlist.site/login">Start free</a>
+    </div>
   </section>
 
-  <section class="band" id="plans" aria-label="Plans">
-    <div class="plans rv">
-      <div class="plan-main">
-        <div class="top"><h2 class="h3" style="font-size:24px;line-height:30px">Beta</h2><span class="tag tag-blue">Open now</span></div>
-        <div class="price"><b>Free</b><span>for the first 99 accounts</span></div>
-        <a class="btn btn-primary btn-lg btn-carbon" href="https://app.northlist.site/login">Start free <i data-icon="arrowRight"></i></a>
-        <ul class="checks">
-          <li><i data-icon="check"></i>Every job mail, with its next step and due date</li>
-          <li><i data-icon="check"></i>Applications kept up to date from your mails</li>
-          <li><i data-icon="check"></i>Reply from the app, with AI drafts</li>
-          <li><i data-icon="check"></i>Fake offer warning</li>
-          <li><i data-icon="check"></i>Dashboard with your numbers and a short tip</li>
-          <li><i data-icon="check"></i>Phone app with alerts and offline pages</li>
+  <!-- 2. Two plans in hairline columns (Linear's pricing): the open one wide and the only highlighted one -->
+  <section class="wrap pr-plans-band" id="plans" aria-label="Plans">
+    <div class="pr-plans pr-stagger">
+      <div class="pr-plan rv">
+        <div class="pr-plan-head"><h2>Beta</h2><p>Open now</p></div>
+        <p class="pr-price"><b>Free</b><span>for the first 99 accounts</span></p>
+        <p class="pr-for">For anyone looking for a job with a Gmail inbox.</p>
+        <a class="btn btn-primary btn-lg pr-plan-btn" href="https://app.northlist.site/login">Start free</a>
+        <p class="pr-inc">Everything in NorthList</p>
+        <ul class="pr-checks">
+          <li><i data-icon="check" data-size="16"></i>Every job mail, its next step and due date</li>
+          <li><i data-icon="check" data-size="16"></i>Applications updated from your mails</li>
+          <li><i data-icon="check" data-size="16"></i>Reply from the app, with AI drafts</li>
+          <li><i data-icon="check" data-size="16"></i>Fake offer warning</li>
+          <li><i data-icon="check" data-size="16"></i>Dashboard with your numbers and a short tip</li>
+          <li><i data-icon="check" data-size="16"></i>Phone app with alerts and offline pages</li>
+          <li><i data-icon="check" data-size="16"></i>NorthList Apply, for your own AI agent</li>
+          <li><i data-icon="check" data-size="16"></i>Free AI for about 200 mails a day</li>
         </ul>
       </div>
-      <div class="plan-later">
-        <div class="top"><h2 class="h3" style="font-size:24px;line-height:30px">Paid plan</h2><span class="tag tag-outline">Coming later</span></div>
-        <p>No price yet. NorthList is still learning what people need most. Before a paid plan starts, you'll hear about it in the app.</p>
+      <div class="pr-plan pr-plan-later rv">
+        <div class="pr-plan-head"><h2>Paid plan</h2><p>Coming later</p></div>
+        <p class="pr-price"><b>No price yet</b></p>
+        <p class="pr-for">NorthList is still learning what people need most. Before a paid plan starts, you’ll hear about it in the app.</p>
       </div>
     </div>
   </section>
 
-  <section class="band" aria-labelledby="ai-title">
-    <h2 id="ai-title" class="h2 rv">AI included.<br>Or bring your own.</h2>
-    <div class="ai-cols rv">
-      <div class="ai-col">
-        <div class="top"><h3 class="h3">NorthList free AI</h3><span class="tag tag-tint">Free</span></div>
-        <p>Ready in one click, no key needed. GPT-6 Luna, through OpenRouter on NorthList's account.</p>
-      </div>
-      <div class="ai-col">
-        <div class="top"><h3 class="h3">Your own key</h3></div>
-        <p>Add your own OpenRouter key on the AI providers page. Your mail then goes to your own OpenRouter account, under its terms. Keep the free AI as a backup.</p>
-      </div>
+  <!-- 3. AI: heading left, words right; one big picture (a glimpse of the AI providers page) with its caption inside -->
+  <section class="wrap pr-band" aria-labelledby="ai-title">
+    <div class="pr-split rv">
+      <h2 id="ai-title" class="pr-h2">AI included.<br>Or bring your own.</h2>
+      <p class="pr-side">The free AI starts when you connect Gmail, with no key. For faster reading, add your own OpenRouter key and keep the free AI as a backup.</p>
     </div>
-    <p class="ai-note rv"><span>On both, NorthList asks the AI service to keep nothing, so it can't store your mail or train on it.</span> <a class="arrow-link" href="/privacy/#ai">Where your mail goes <i data-icon="arrowRight" data-size="14"></i></a></p>
+    <figure class="pr-stage rv">
+      <div class="pr-pic" aria-hidden="true">
+        <div class="pr-win pr-win-back">
+          <div class="pr-bar"><i data-app-icon="mail" data-size="16"></i><b>Gmail sync</b></div>
+          <div class="pr-gm">
+            <p>Connect Gmail and NorthList finds your job mails, with what each one needs from you.</p>
+            <span class="pr-ctl">Connect Gmail</span>
+            <p class="pr-gm-line">Your job mails are read by NorthList’s free AI, through OpenRouter.</p>
+          </div>
+        </div>
+        <div class="pr-win pr-win-front">
+          <div class="pr-bar"><i data-app-icon="ai" data-size="16"></i><b>AI providers</b></div>
+          <div class="pr-ai">
+            <p class="pr-ai-h">Reads your mail now</p>
+            <div class="pr-ai-card">
+              <div class="pr-ai-top"><span class="pr-ai-name">NorthList free AI</span><span class="pr-on"><span class="dot"></span>Active</span></div>
+              <p class="pr-ai-sub">GPT-6 Luna for both steps · about 200 mails a day</p>
+              <div class="pr-ai-row"><span>Fast screening</span><span class="pr-ctl">GPT-6 Luna</span></div>
+              <div class="pr-ai-row"><span>Detailed analysis</span><span class="pr-ctl">GPT-6 Luna</span></div>
+            </div>
+            <p class="pr-ai-h">Your own key</p>
+            <div class="pr-ai-card">
+              <div class="pr-ai-top"><span class="pr-ai-name">OpenRouter</span><span class="pr-ctl">Connect</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <figcaption class="pr-cap"><b>One place for your AI</b><span>Change it on the AI providers page at any time.<br>Removing a key deletes it at once.</span></figcaption>
+    </figure>
+    <ul class="pr-two pr-stagger">
+      <li class="rv"><b>NorthList free AI</b><p>GPT-6 Luna, through OpenRouter on NorthList’s account. Shared by everyone. When it is busy, your mails wait a few minutes and are read later.</p></li>
+      <li class="rv"><b>Your own key</b><p>Add your own OpenRouter key. Your mail then goes to your own OpenRouter account, under its terms. Keep the free AI as a backup.</p></li>
+    </ul>
+    <p class="pr-note rv"><span>On both, NorthList asks the AI service to keep nothing, so it can’t store your mail or train on it.</span><a class="pr-link" href="/privacy/#ai">Where your mail goes <i data-icon="arrowRight" data-size="16"></i></a></p>
   </section>
 
-  <section class="band" aria-labelledby="faq-title">
-    <div class="faq">
-      <div>
-        <h2 id="faq-title" class="h2 rv">Questions</h2>
-        <p class="contact-line rv">Something else? Write to <a class="link" href="mailto:nitinsirsath8855@gmail.com">nitinsirsath8855@gmail.com</a>.</p>
+  <!-- 4. Questions: heading left, a plain list that opens on the right -->
+  <section class="wrap pr-band" aria-labelledby="faq-title">
+    <div class="pr-faq">
+      <div class="pr-faq-head rv">
+        <h2 id="faq-title" class="pr-h2">Questions</h2>
+        <p>Something else? Write to <a href="mailto:nitinsirsath8855@gmail.com">nitinsirsath8855@gmail.com</a>.</p>
       </div>
-      <div class="faq-list rv">
-        <div class="qa"><h3>Which mail accounts work?</h3><p>Gmail, for now. You sign in with Google and connect Gmail.</p></div>
-        <div class="qa"><h3>What happens when the 99 places are taken?</h3><p>New accounts stop at 99. The sign-in page then says so, with an address to write to. Accounts that already exist keep working.</p></div>
-        <div class="qa"><h3>Can I use it on my phone?</h3><p>Yes. Open the app in your phone's browser and install it. Alerts and offline pages are included.</p></div>
-        <div class="qa"><h3>How do I delete my account?</h3><p>Write to nitinsirsath8855@gmail.com from the email you sign in with. NorthList deletes your account and all its data within 7 days.</p></div>
+      <div class="pr-qs rv">
+        <details><summary>Which mail accounts work?<i data-icon="plus" data-size="16"></i></summary><p>Gmail, for now. You sign in with Google and connect Gmail.</p></details>
+        <details><summary>What happens when the 99 places are taken?<i data-icon="plus" data-size="16"></i></summary><p>New accounts stop at 99. The sign-in page then says so, with an address to write to. Accounts that already exist keep working.</p></details>
+        <details><summary>Do I need an AI key?<i data-icon="plus" data-size="16"></i></summary><p>No. The free AI starts when you connect Gmail. You can add your own OpenRouter key later, on the AI providers page.</p></details>
+        <details><summary>Will it stay free?<i data-icon="plus" data-size="16"></i></summary><p>It is free while in beta. A paid plan will come later, with no price yet. Before it starts, you’ll hear about it in the app.</p></details>
+        <details><summary>Can I use it on my phone?<i data-icon="plus" data-size="16"></i></summary><p>Yes. Open the app in your phone’s browser and install it. Alerts and offline pages are included.</p></details>
+        <details><summary>How do I delete my account?<i data-icon="plus" data-size="16"></i></summary><p>Write to nitinsirsath8855@gmail.com from the email you sign in with. NorthList deletes your account and all its data within 7 days.</p></details>
       </div>
     </div>
   </section>
 
-  <section class="band last" aria-labelledby="end-title">
-    <div class="closing">
-      <div><h2 id="end-title" class="h2 rv">Start free today.</h2><p class="lead rv">Sign in with Google. That creates your account.</p></div>
-      <div class="act rv">
-        <a class="btn btn-primary btn-lg btn-carbon" href="https://app.northlist.site/login">Start free <i data-icon="arrowRight"></i></a>
-        <a class="arrow-link" href="/privacy/">How your mail is handled <i data-icon="arrowRight" data-size="14"></i></a>
-      </div>
+  <!-- 5. Close -->
+  <section class="wrap pr-close">
+    <div class="pr-close-in rv">
+      <h2 class="pr-close-title">Start free today.</h2>
+      <div class="pr-close-act"><div class="pr-ctas"><a class="btn btn-primary btn-lg" href="https://app.northlist.site/login">Start free</a><a class="btn btn-secondary btn-lg" href="https://app.northlist.site/login">Sign in</a></div><p>Sign in with Google. That creates your account.</p></div>
     </div>
   </section>
 
 </main>
-
 <div data-site-footer></div>
 <script type="module" src="/main.ts"></script>
 </body>

@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mobile · NorthList</title>
+<meta name="description" content="NorthList on your phone: every job mail and its next step, wherever you are. Installs from your browser on iPhone and Android.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="NorthList on your phone">
+<meta property="og:url" content="https://northlist.site/mobile">
+<meta property="og:image" content="https://northlist.site/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=Geist+Mono:wght@400..500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles/site.css">
+<link rel="stylesheet" href="/styles/app.css">
+<link rel="stylesheet" href="/styles/mobile.css">
+</head>
+<body data-page="mobile">
+<div data-site-header></div>
+<main>
+
+  <!--
+    Mobile page (owner, 19 Nov 2026): linear.app/mobile, our content, finished by the brief's rules.
+    Two big phone pictures (the hero film, the two phones), one notification panel, and small cards that
+    each show one piece. The hero is a "film": the working phone app on a tilted plane, sharp where the
+    camera looks and soft around it (mobile.ts makes the soft copy). Its camera is in its style.
+  -->
+
+  <!-- 1. Hero: the words alone at the bottom left; behind them the film of the phone app (film.ts) -->
+  <section class="mb-hero" data-film-hero aria-labelledby="hero-title">
+    <div class="mb-stage" aria-hidden="true"></div>
+    <div class="wrap mb-words">
+      <p class="mb-label">NorthList Mobile</p>
+      <h1 id="hero-title" class="mb-display">The phone companion to your job search</h1>
+      <div class="mb-hero-row">
+        <p class="mb-lead">Every job mail and its next step, sized for your phone. Installs from your browser on iPhone and Android.</p>
+        <div class="mb-cta"><a class="btn btn-primary btn-lg" href="https://app.northlist.site/login">Start free</a><a class="mb-textlink" href="#install">How to install <i data-icon="arrowDown" data-size="16"></i></a></div>
+      </div>
+      <button type="button" class="mb-ctl" data-film-toggle aria-pressed="false" aria-label="Pause the hero animation"><svg class="pz" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="4" y="3" width="2.5" height="10" rx="1"/><rect x="9.5" y="3" width="2.5" height="10" rx="1"/></svg><svg class="pl" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M5 3.2v9.6a.6.6 0 0 0 .9.5l7.6-4.8a.6.6 0 0 0 0-1L5.9 2.7a.6.6 0 0 0-.9.5z"/></svg></button>
+    </div>
+  </section>
+
+  <!-- 2. The mails: heading left, words right; one framed picture (two phones, the back one dimmer); four small cards -->
+  <section class="wrap mb-band" aria-labelledby="mails-title">
+    <div class="mb-head rv">
+      <h2 id="mails-title" class="mb-h2">Every job mail,<br>with its next step.</h2>
+      <p class="mb-side">Mails shows what each job mail asks of you. Open one to see its next step, reply from your phone, or mark it done.</p>
+    </div>
+    <figure class="mb-frame mb-frame-pair rv">
+      <div class="mb-pair-back" aria-hidden="true"><div class="device" data-frame><div data-sample="mails" data-phone></div></div></div>
+      <div class="mb-pair-front"><div class="device" data-frame><div data-sample="mails" data-phone data-open-mail="brightwave" role="region" aria-label="A mail and its next step, with made-up mails"></div></div></div>
+      <figcaption class="mb-cap"><b>Act on what needs you.</b><span>The next step sits on top of each mail, <br>with when it is due.</span></figcaption>
+    </figure>
+    <div class="mb-cards">
+      <figure class="mb-card rv">
+        <div class="mb-card-pic" aria-hidden="true">
+          <div class="mb-piece mb-p-step">
+            <span class="o">Next step</span>
+            <b>Finish the coding test</b>
+            <span class="due"><i data-app-icon="calendar" data-size="16"></i>Due Thu, Nov 6</span>
+            <span class="row"><i data-app-icon="checkCircle" data-size="16"></i>I did this</span>
+          </div>
+        </div>
+        <figcaption><b>Mark it done.</b> Did it outside your mail? One tap closes the step.</figcaption>
+      </figure>
+      <figure class="mb-card rv">
+        <div class="mb-card-pic" aria-hidden="true">
+          <div class="mb-piece mb-p-list">
+            <div class="r on"><span>Action</span><em>Needs action</em></div>
+            <div class="r"><span>Type</span><em>Any</em></div>
+            <div class="r"><span>New only</span><span class="mb-switch"></span></div>
+          </div>
+        </div>
+        <figcaption><b>Filter out the rest.</b> Show only what needs action, or only new mails.</figcaption>
+      </figure>
+      <figure class="mb-card rv">
+        <div class="mb-card-pic" aria-hidden="true">
+          <div class="mb-piece mb-p-ai">
+            <span class="o"><i data-app-icon="ai" data-size="16"></i>Reply with AI</span>
+            <span class="chip">Take Tue, Nov 4, 11:00 AM</span>
+            <span class="chip dim">Ask for another time</span>
+          </div>
+        </div>
+        <figcaption><b>Answers that fit the mail.</b> Pick one, change it, and send it from your own Gmail.</figcaption>
+      </figure>
+      <figure class="mb-card rv">
+        <div class="mb-card-pic" aria-hidden="true">
+          <div class="mb-piece mb-p-tabs">
+            <span class="bar"><span><i data-app-icon="dashboard" data-size="20"></i></span><span class="on"><i data-app-icon="mail" data-size="20"></i></span><span><i data-app-icon="doc" data-size="20"></i></span><span><i data-app-icon="settings" data-size="20"></i></span></span>
+            <span class="sr"><i data-app-icon="search" data-size="20"></i></span>
+          </div>
+        </div>
+        <figcaption><b>Made for one hand.</b> Four tabs at your thumb: Today, Mails, Applications and Settings.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 3. No app store: heading left, words right; two small cards -->
+  <section class="wrap mb-band" id="install" aria-labelledby="install-title">
+    <div class="mb-head rv">
+      <h2 id="install-title" class="mb-h2">No app store.<br>Just your browser.</h2>
+      <div class="mb-side-col"><p class="mb-side">NorthList installs from Safari or Chrome and opens from your home screen in its own window, like any app.</p>
+        <div class="mb-get"><div class="mb-scan"><span>Scan to open<br>on your phone</span><svg class="mb-qr-code" viewBox="0 0 29 29" shape-rendering="crispEdges" role="img" aria-label="QR code for app.northlist.site"><rect width="29" height="29" rx="1.5" fill="#e8e8ea"/><path fill="#08090a" d="M2 2h1v1h-1zM3 2h1v1h-1zM4 2h1v1h-1zM5 2h1v1h-1zM6 2h1v1h-1zM7 2h1v1h-1zM8 2h1v1h-1zM15 2h1v1h-1zM18 2h1v1h-1zM20 2h1v1h-1zM21 2h1v1h-1zM22 2h1v1h-1zM23 2h1v1h-1zM24 2h1v1h-1zM25 2h1v1h-1zM26 2h1v1h-1zM2 3h1v1h-1zM8 3h1v1h-1zM12 3h1v1h-1zM14 3h1v1h-1zM16 3h1v1h-1zM17 3h1v1h-1zM20 3h1v1h-1zM26 3h1v1h-1zM2 4h1v1h-1zM4 4h1v1h-1zM5 4h1v1h-1zM6 4h1v1h-1zM8 4h1v1h-1zM10 4h1v1h-1zM12 4h1v1h-1zM17 4h1v1h-1zM20 4h1v1h-1zM22 4h1v1h-1zM23 4h1v1h-1zM24 4h1v1h-1zM26 4h1v1h-1zM2 5h1v1h-1zM4 5h1v1h-1zM5 5h1v1h-1zM6 5h1v1h-1zM8 5h1v1h-1zM10 5h1v1h-1zM11 5h1v1h-1zM12 5h1v1h-1zM14 5h1v1h-1zM15 5h1v1h-1zM16 5h1v1h-1zM20 5h1v1h-1zM22 5h1v1h-1zM23 5h1v1h-1zM24 5h1v1h-1zM26 5h1v1h-1zM2 6h1v1h-1zM4 6h1v1h-1zM5 6h1v1h-1zM6 6h1v1h-1zM8 6h1v1h-1zM10 6h1v1h-1zM11 6h1v1h-1zM12 6h1v1h-1zM13 6h1v1h-1zM15 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM22 6h1v1h-1zM23 6h1v1h-1zM24 6h1v1h-1zM26 6h1v1h-1zM2 7h1v1h-1zM8 7h1v1h-1zM10 7h1v1h-1zM12 7h1v1h-1zM17 7h1v1h-1zM20 7h1v1h-1zM26 7h1v1h-1zM2 8h1v1h-1zM3 8h1v1h-1zM4 8h1v1h-1zM5 8h1v1h-1zM6 8h1v1h-1zM7 8h1v1h-1zM8 8h1v1h-1zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h1v1h-1zM21 8h1v1h-1zM22 8h1v1h-1zM23 8h1v1h-1zM24 8h1v1h-1zM25 8h1v1h-1zM26 8h1v1h-1zM10 9h1v1h-1zM11 9h1v1h-1zM16 9h1v1h-1zM17 9h1v1h-1zM18 9h1v1h-1zM2 10h1v1h-1zM4 10h1v1h-1zM5 10h1v1h-1zM6 10h1v1h-1zM7 10h1v1h-1zM8 10h1v1h-1zM11 10h1v1h-1zM12 10h1v1h-1zM13 10h1v1h-1zM15 10h1v1h-1zM16 10h1v1h-1zM17 10h1v1h-1zM18 10h1v1h-1zM20 10h1v1h-1zM21 10h1v1h-1zM22 10h1v1h-1zM23 10h1v1h-1zM24 10h1v1h-1zM3 11h1v1h-1zM5 11h1v1h-1zM7 11h1v1h-1zM9 11h1v1h-1zM12 11h1v1h-1zM14 11h1v1h-1zM16 11h1v1h-1zM18 11h1v1h-1zM19 11h1v1h-1zM21 11h1v1h-1zM25 11h1v1h-1zM2 12h1v1h-1zM5 12h1v1h-1zM6 12h1v1h-1zM8 12h1v1h-1zM10 12h1v1h-1zM11 12h1v1h-1zM13 12h1v1h-1zM14 12h1v1h-1zM15 12h1v1h-1zM17 12h1v1h-1zM20 12h1v1h-1zM21 12h1v1h-1zM23 12h1v1h-1zM25 12h1v1h-1zM26 12h1v1h-1zM2 13h1v1h-1zM7 13h1v1h-1zM9 13h1v1h-1zM10 13h1v1h-1zM13 13h1v1h-1zM16 13h1v1h-1zM20 13h1v1h-1zM26 13h1v1h-1zM2 14h1v1h-1zM3 14h1v1h-1zM4 14h1v1h-1zM8 14h1v1h-1zM9 14h1v1h-1zM14 14h1v1h-1zM15 14h1v1h-1zM16 14h1v1h-1zM17 14h1v1h-1zM18 14h1v1h-1zM19 14h1v1h-1zM20 14h1v1h-1zM22 14h1v1h-1zM24 14h1v1h-1zM25 14h1v1h-1zM26 14h1v1h-1zM2 15h1v1h-1zM3 15h1v1h-1zM5 15h1v1h-1zM9 15h1v1h-1zM10 15h1v1h-1zM14 15h1v1h-1zM16 15h1v1h-1zM18 15h1v1h-1zM19 15h1v1h-1zM21 15h1v1h-1zM23 15h1v1h-1zM25 15h1v1h-1zM2 16h1v1h-1zM4 16h1v1h-1zM5 16h1v1h-1zM6 16h1v1h-1zM7 16h1v1h-1zM8 16h1v1h-1zM10 16h1v1h-1zM16 16h1v1h-1zM17 16h1v1h-1zM18 16h1v1h-1zM20 16h1v1h-1zM21 16h1v1h-1zM22 16h1v1h-1zM23 16h1v1h-1zM25 16h1v1h-1zM26 16h1v1h-1zM2 17h1v1h-1zM4 17h1v1h-1zM7 17h1v1h-1zM9 17h1v1h-1zM10 17h1v1h-1zM11 17h1v1h-1zM12 17h1v1h-1zM18 17h1v1h-1zM20 17h1v1h-1zM21 17h1v1h-1zM22 17h1v1h-1zM26 17h1v1h-1zM2 18h1v1h-1zM4 18h1v1h-1zM7 18h1v1h-1zM8 18h1v1h-1zM9 18h1v1h-1zM10 18h1v1h-1zM11 18h1v1h-1zM12 18h1v1h-1zM14 18h1v1h-1zM15 18h1v1h-1zM18 18h1v1h-1zM19 18h1v1h-1zM20 18h1v1h-1zM21 18h1v1h-1zM22 18h1v1h-1zM24 18h1v1h-1zM10 19h1v1h-1zM12 19h1v1h-1zM13 19h1v1h-1zM15 19h1v1h-1zM17 19h1v1h-1zM18 19h1v1h-1zM22 19h1v1h-1zM23 19h1v1h-1zM2 20h1v1h-1zM3 20h1v1h-1zM4 20h1v1h-1zM5 20h1v1h-1zM6 20h1v1h-1zM7 20h1v1h-1zM8 20h1v1h-1zM11 20h1v1h-1zM14 20h1v1h-1zM15 20h1v1h-1zM16 20h1v1h-1zM18 20h1v1h-1zM20 20h1v1h-1zM22 20h1v1h-1zM24 20h1v1h-1zM25 20h1v1h-1zM26 20h1v1h-1zM2 21h1v1h-1zM8 21h1v1h-1zM10 21h1v1h-1zM12 21h1v1h-1zM18 21h1v1h-1zM22 21h1v1h-1zM23 21h1v1h-1zM2 22h1v1h-1zM4 22h1v1h-1zM5 22h1v1h-1zM6 22h1v1h-1zM8 22h1v1h-1zM10 22h1v1h-1zM15 22h1v1h-1zM16 22h1v1h-1zM17 22h1v1h-1zM18 22h1v1h-1zM19 22h1v1h-1zM20 22h1v1h-1zM21 22h1v1h-1zM22 22h1v1h-1zM24 22h1v1h-1zM2 23h1v1h-1zM4 23h1v1h-1zM5 23h1v1h-1zM6 23h1v1h-1zM8 23h1v1h-1zM10 23h1v1h-1zM13 23h1v1h-1zM16 23h1v1h-1zM17 23h1v1h-1zM18 23h1v1h-1zM20 23h1v1h-1zM22 23h1v1h-1zM23 23h1v1h-1zM24 23h1v1h-1zM25 23h1v1h-1zM26 23h1v1h-1zM2 24h1v1h-1zM4 24h1v1h-1zM5 24h1v1h-1zM6 24h1v1h-1zM8 24h1v1h-1zM10 24h1v1h-1zM15 24h1v1h-1zM18 24h1v1h-1zM23 24h1v1h-1zM24 24h1v1h-1zM26 24h1v1h-1zM2 25h1v1h-1zM8 25h1v1h-1zM14 25h1v1h-1zM16 25h1v1h-1zM17 25h1v1h-1zM18 25h1v1h-1zM19 25h1v1h-1zM21 25h1v1h-1zM22 25h1v1h-1zM23 25h1v1h-1zM26 25h1v1h-1zM2 26h1v1h-1zM3 26h1v1h-1zM4 26h1v1h-1zM5 26h1v1h-1zM6 26h1v1h-1zM7 26h1v1h-1zM8 26h1v1h-1zM10 26h1v1h-1zM12 26h1v1h-1zM13 26h1v1h-1zM14 26h1v1h-1zM15 26h1v1h-1zM16 26h1v1h-1zM21 26h1v1h-1zM22 26h1v1h-1zM23 26h1v1h-1zM24 26h1v1h-1zM25 26h1v1h-1zM26 26h1v1h-1z"/></svg></div></div></div>
+    </div>
+    <div class="mb-cards">
+      <figure class="mb-card rv">
+        <div class="mb-card-pic" aria-hidden="true">
+          <div class="mb-piece mb-p-share">
+            <div class="r"><span>Copy</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg></div>
+            <div class="r on"><span>Add to Home Screen</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/></svg></div>
+            <div class="r"><span>Find on Page</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg></div>
+          </div>
+        </div>
+        <figcaption><b>iPhone.</b> In Safari, tap Share, then Add to Home Screen. <b>Android.</b> In Chrome, tap Install.</figcaption>
+      </figure>
+      <figure class="mb-card rv">
+        <div class="mb-card-pic" aria-hidden="true">
+          <div class="mb-piece mb-p-off">
+            <div class="line"><i data-icon="offline" data-size="16"></i><span>You're offline. <em>Showing what was here at 10:42 AM.</em></span></div>
+            <div class="r"><b>Priya Nair</b><span>Interview invitation: Frontend Engineer</span></div>
+            <div class="r"><b>Kestrel Hiring</b><span>Your take-home test</span></div>
+          </div>
+        </div>
+        <figcaption><b>Works offline.</b> Pages you opened in the last week still open without a connection, to read.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 4. Alerts: heading left, words right; one framed lock-screen stack, caption inside; two facts as text -->
+  <section class="wrap mb-band" aria-labelledby="alert-title">
+    <div class="mb-head rv">
+      <h2 id="alert-title" class="mb-h2">An alert when<br>a new step arrives.</h2>
+      <p class="mb-side">When a mail asks something of you, NorthList tells your phone. Tap the alert to open that mail.</p>
+    </div>
+    <figure class="mb-frame mb-frame-lock rv">
+      <div class="mb-lock" aria-hidden="true">
+        <p class="date">Monday, November 3</p>
+        <p class="time">9:41</p>
+        <div class="stack">
+          <div class="n back"><span class="ic"><i data-mark="20"></i></span><div><b>NorthList</b><span>Kestrel Labs: Finish the coding test</span></div><span class="when">2h ago</span></div>
+          <div class="n"><span class="ic"><i data-mark="20"></i></span><div><b>NorthList</b><span>Brightwave: Choose an interview time</span></div><span class="when">now</span></div>
+        </div>
+      </div>
+      <figcaption class="mb-cap"><b>Only when a step needs you.</b><span>A new step from one of your mails. <br>Tap it, and that mail opens.</span></figcaption>
+    </figure>
+    <ul class="mb-facts">
+      <li><b>On each device.</b> Turn alerts on for each phone or computer you use. They stay off until you do.</li>
+      <li><b>iPhone and iPad.</b> Alerts work once NorthList is on your Home Screen.</li>
+    </ul>
+  </section>
+
+  <!-- 5. Close: centred title and the same quiet card (on phones: open + the steps) -->
+  <section class="wrap mb-close" aria-labelledby="close-title">
+    <h2 id="close-title" class="mb-close-title rv">Ready wherever you are.</h2>
+    <div class="mb-get rv">
+      <div class="mb-scan"><span>Scan to open<br>on your phone</span><svg class="mb-qr-code" viewBox="0 0 29 29" shape-rendering="crispEdges" role="img" aria-label="QR code for app.northlist.site"><rect width="29" height="29" rx="1.5" fill="#e8e8ea"/><path fill="#08090a" d="M2 2h1v1h-1zM3 2h1v1h-1zM4 2h1v1h-1zM5 2h1v1h-1zM6 2h1v1h-1zM7 2h1v1h-1zM8 2h1v1h-1zM15 2h1v1h-1zM18 2h1v1h-1zM20 2h1v1h-1zM21 2h1v1h-1zM22 2h1v1h-1zM23 2h1v1h-1zM24 2h1v1h-1zM25 2h1v1h-1zM26 2h1v1h-1zM2 3h1v1h-1zM8 3h1v1h-1zM12 3h1v1h-1zM14 3h1v1h-1zM16 3h1v1h-1zM17 3h1v1h-1zM20 3h1v1h-1zM26 3h1v1h-1zM2 4h1v1h-1zM4 4h1v1h-1zM5 4h1v1h-1zM6 4h1v1h-1zM8 4h1v1h-1zM10 4h1v1h-1zM12 4h1v1h-1zM17 4h1v1h-1zM20 4h1v1h-1zM22 4h1v1h-1zM23 4h1v1h-1zM24 4h1v1h-1zM26 4h1v1h-1zM2 5h1v1h-1zM4 5h1v1h-1zM5 5h1v1h-1zM6 5h1v1h-1zM8 5h1v1h-1zM10 5h1v1h-1zM11 5h1v1h-1zM12 5h1v1h-1zM14 5h1v1h-1zM15 5h1v1h-1zM16 5h1v1h-1zM20 5h1v1h-1zM22 5h1v1h-1zM23 5h1v1h-1zM24 5h1v1h-1zM26 5h1v1h-1zM2 6h1v1h-1zM4 6h1v1h-1zM5 6h1v1h-1zM6 6h1v1h-1zM8 6h1v1h-1zM10 6h1v1h-1zM11 6h1v1h-1zM12 6h1v1h-1zM13 6h1v1h-1zM15 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM22 6h1v1h-1zM23 6h1v1h-1zM24 6h1v1h-1zM26 6h1v1h-1zM2 7h1v1h-1zM8 7h1v1h-1zM10 7h1v1h-1zM12 7h1v1h-1zM17 7h1v1h-1zM20 7h1v1h-1zM26 7h1v1h-1zM2 8h1v1h-1zM3 8h1v1h-1zM4 8h1v1h-1zM5 8h1v1h-1zM6 8h1v1h-1zM7 8h1v1h-1zM8 8h1v1h-1zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h1v1h-1zM21 8h1v1h-1zM22 8h1v1h-1zM23 8h1v1h-1zM24 8h1v1h-1zM25 8h1v1h-1zM26 8h1v1h-1zM10 9h1v1h-1zM11 9h1v1h-1zM16 9h1v1h-1zM17 9h1v1h-1zM18 9h1v1h-1zM2 10h1v1h-1zM4 10h1v1h-1zM5 10h1v1h-1zM6 10h1v1h-1zM7 10h1v1h-1zM8 10h1v1h-1zM11 10h1v1h-1zM12 10h1v1h-1zM13 10h1v1h-1zM15 10h1v1h-1zM16 10h1v1h-1zM17 10h1v1h-1zM18 10h1v1h-1zM20 10h1v1h-1zM21 10h1v1h-1zM22 10h1v1h-1zM23 10h1v1h-1zM24 10h1v1h-1zM3 11h1v1h-1zM5 11h1v1h-1zM7 11h1v1h-1zM9 11h1v1h-1zM12 11h1v1h-1zM14 11h1v1h-1zM16 11h1v1h-1zM18 11h1v1h-1zM19 11h1v1h-1zM21 11h1v1h-1zM25 11h1v1h-1zM2 12h1v1h-1zM5 12h1v1h-1zM6 12h1v1h-1zM8 12h1v1h-1zM10 12h1v1h-1zM11 12h1v1h-1zM13 12h1v1h-1zM14 12h1v1h-1zM15 12h1v1h-1zM17 12h1v1h-1zM20 12h1v1h-1zM21 12h1v1h-1zM23 12h1v1h-1zM25 12h1v1h-1zM26 12h1v1h-1zM2 13h1v1h-1zM7 13h1v1h-1zM9 13h1v1h-1zM10 13h1v1h-1zM13 13h1v1h-1zM16 13h1v1h-1zM20 13h1v1h-1zM26 13h1v1h-1zM2 14h1v1h-1zM3 14h1v1h-1zM4 14h1v1h-1zM8 14h1v1h-1zM9 14h1v1h-1zM14 14h1v1h-1zM15 14h1v1h-1zM16 14h1v1h-1zM17 14h1v1h-1zM18 14h1v1h-1zM19 14h1v1h-1zM20 14h1v1h-1zM22 14h1v1h-1zM24 14h1v1h-1zM25 14h1v1h-1zM26 14h1v1h-1zM2 15h1v1h-1zM3 15h1v1h-1zM5 15h1v1h-1zM9 15h1v1h-1zM10 15h1v1h-1zM14 15h1v1h-1zM16 15h1v1h-1zM18 15h1v1h-1zM19 15h1v1h-1zM21 15h1v1h-1zM23 15h1v1h-1zM25 15h1v1h-1zM2 16h1v1h-1zM4 16h1v1h-1zM5 16h1v1h-1zM6 16h1v1h-1zM7 16h1v1h-1zM8 16h1v1h-1zM10 16h1v1h-1zM16 16h1v1h-1zM17 16h1v1h-1zM18 16h1v1h-1zM20 16h1v1h-1zM21 16h1v1h-1zM22 16h1v1h-1zM23 16h1v1h-1zM25 16h1v1h-1zM26 16h1v1h-1zM2 17h1v1h-1zM4 17h1v1h-1zM7 17h1v1h-1zM9 17h1v1h-1zM10 17h1v1h-1zM11 17h1v1h-1zM12 17h1v1h-1zM18 17h1v1h-1zM20 17h1v1h-1zM21 17h1v1h-1zM22 17h1v1h-1zM26 17h1v1h-1zM2 18h1v1h-1zM4 18h1v1h-1zM7 18h1v1h-1zM8 18h1v1h-1zM9 18h1v1h-1zM10 18h1v1h-1zM11 18h1v1h-1zM12 18h1v1h-1zM14 18h1v1h-1zM15 18h1v1h-1zM18 18h1v1h-1zM19 18h1v1h-1zM20 18h1v1h-1zM21 18h1v1h-1zM22 18h1v1h-1zM24 18h1v1h-1zM10 19h1v1h-1zM12 19h1v1h-1zM13 19h1v1h-1zM15 19h1v1h-1zM17 19h1v1h-1zM18 19h1v1h-1zM22 19h1v1h-1zM23 19h1v1h-1zM2 20h1v1h-1zM3 20h1v1h-1zM4 20h1v1h-1zM5 20h1v1h-1zM6 20h1v1h-1zM7 20h1v1h-1zM8 20h1v1h-1zM11 20h1v1h-1zM14 20h1v1h-1zM15 20h1v1h-1zM16 20h1v1h-1zM18 20h1v1h-1zM20 20h1v1h-1zM22 20h1v1h-1zM24 20h1v1h-1zM25 20h1v1h-1zM26 20h1v1h-1zM2 21h1v1h-1zM8 21h1v1h-1zM10 21h1v1h-1zM12 21h1v1h-1zM18 21h1v1h-1zM22 21h1v1h-1zM23 21h1v1h-1zM2 22h1v1h-1zM4 22h1v1h-1zM5 22h1v1h-1zM6 22h1v1h-1zM8 22h1v1h-1zM10 22h1v1h-1zM15 22h1v1h-1zM16 22h1v1h-1zM17 22h1v1h-1zM18 22h1v1h-1zM19 22h1v1h-1zM20 22h1v1h-1zM21 22h1v1h-1zM22 22h1v1h-1zM24 22h1v1h-1zM2 23h1v1h-1zM4 23h1v1h-1zM5 23h1v1h-1zM6 23h1v1h-1zM8 23h1v1h-1zM10 23h1v1h-1zM13 23h1v1h-1zM16 23h1v1h-1zM17 23h1v1h-1zM18 23h1v1h-1zM20 23h1v1h-1zM22 23h1v1h-1zM23 23h1v1h-1zM24 23h1v1h-1zM25 23h1v1h-1zM26 23h1v1h-1zM2 24h1v1h-1zM4 24h1v1h-1zM5 24h1v1h-1zM6 24h1v1h-1zM8 24h1v1h-1zM10 24h1v1h-1zM15 24h1v1h-1zM18 24h1v1h-1zM23 24h1v1h-1zM24 24h1v1h-1zM26 24h1v1h-1zM2 25h1v1h-1zM8 25h1v1h-1zM14 25h1v1h-1zM16 25h1v1h-1zM17 25h1v1h-1zM18 25h1v1h-1zM19 25h1v1h-1zM21 25h1v1h-1zM22 25h1v1h-1zM23 25h1v1h-1zM26 25h1v1h-1zM2 26h1v1h-1zM3 26h1v1h-1zM4 26h1v1h-1zM5 26h1v1h-1zM6 26h1v1h-1zM7 26h1v1h-1zM8 26h1v1h-1zM10 26h1v1h-1zM12 26h1v1h-1zM13 26h1v1h-1zM14 26h1v1h-1zM15 26h1v1h-1zM16 26h1v1h-1zM21 26h1v1h-1zM22 26h1v1h-1zM23 26h1v1h-1zM24 26h1v1h-1zM25 26h1v1h-1zM26 26h1v1h-1z"/></svg></div>
+    </div>
+    <div class="mb-get-phone">
+      <a class="btn btn-primary btn-lg" href="https://app.northlist.site">Open NorthList</a>
+    </div>
+  </section>
+
+</main>
+<div data-site-footer></div>
+<script type="module" src="/main.ts"></script>
+<script type="module" src="./mobile.ts"></script>
+
+</body>
+</html>
