@@ -4,6 +4,7 @@ import { noMotion, onReplay, whenSeen } from './motion.ts';
  * The NorthList Apply page's self-playing run picture (owner, 7 Nov 2026; new look 19-20 Nov). It plays when it
  * comes into view and has a replay button under it; nothing beside it moves while it plays.
  */
+
 /*
  * Automation page (owner, 7 Nov 2026): the visitor's AI app applies to one job while NorthList sits beside
  * it. Chat lines appear by `data-at` (ms); a step shows grey shimmer (`data-work`, for `data-for` ms), then
