@@ -19,8 +19,11 @@ function fit(box: HTMLElement): void {
   if (!app) return;
   app.style.transformOrigin = '0 0';
   const phoneQ = matchMedia('(max-width: 599px)');
+  // `data-fit-phone` (owner, 19 Nov 2026: follow linear.app on phones): the laptop picture stays on phones too,
+  // scaled to half and cut off at the right edge.
+  const always = box.hasAttribute('data-fit-phone');
   const apply = () => {
-    if (phoneQ.matches) {
+    if (phoneQ.matches && !always) {
       app.style.width = '';
       app.style.transform = '';
       box.style.height = '';
@@ -29,7 +32,8 @@ function fit(box: HTMLElement): void {
     const w = box.clientWidth;
     if (!w) return;
     let floor = 0;
-    if (w < 1000) floor = w < 600 ? 0.56 : 0.74;
+    if (w < 600) floor = always ? 0.5 : 0.56;
+    else if (w < 1000) floor = 0.74;
     const scale = w < BASE_W ? Math.max(floor, w / BASE_W) : 1;
     app.style.width = `${w < BASE_W ? BASE_W : w}px`;
     app.style.transform = scale === 1 ? '' : `scale(${scale})`;
@@ -40,7 +44,12 @@ function fit(box: HTMLElement): void {
   apply();
 }
 
+let started = false;
+
+/** Draws every example on the page once (Mobile starts it itself, before it opens a mail in one of them). */
 export function startExamples(): void {
+  if (started) return;
+  started = true;
   // Draw the phones and size the hero picture first, so each example starts in the right layout.
   buildFrames();
   document.querySelectorAll<HTMLElement>('.sa-fit').forEach(fit);
@@ -59,24 +68,6 @@ export function startExamples(): void {
   });
   const hero = document.querySelector('.sa-fit [data-sample]');
   const heroApp = hero ? examples.get(hero) : undefined;
-  /*
-   * Hero build-in on load (the phone frame on phones, the laptop picture on tablets and laptops): while the
-   * page intro plays (`html.intro`, set in the page head), the hero app waits empty, then builds itself
-   * 1.3 s after the intro starts, as its picture fades in. If a scroll ends the intro early, it builds at once.
-   */
-  const html = document.documentElement;
-  if (heroApp && html.classList.contains('intro') && !noMotion) {
-    heroApp.holdBuild();
-    let timer = 0;
-    const watch = new MutationObserver(() => {
-      if (html.classList.contains('intro-go') && !timer) timer = window.setTimeout(() => heroApp.playBuild(), 1300);
-      if (html.classList.contains('intro')) return;
-      watch.disconnect();
-      clearTimeout(timer);
-      heroApp.playBuild();
-    });
-    watch.observe(html, { attributes: true, attributeFilter: ['class'] });
-  }
   // The hero's replay button: back to the start, the build-in again, then the new mail arrives.
   onReplay('hero', () => {
     if (!heroApp) return;
