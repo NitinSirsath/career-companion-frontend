@@ -1,4 +1,4 @@
-import { releases } from './changelog.ts';
+import { releases } from './changelogPage.ts';
 import { footer, header } from './chrome.ts';
 import { DATA_LEAD, flow, promises } from './data.ts';
 import { appIcon } from './appIcons.ts';
