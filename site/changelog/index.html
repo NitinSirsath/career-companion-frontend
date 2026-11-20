@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,32 +11,35 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=Geist+Mono:wght@400..500&display=swap" rel="stylesheet">
-<script>try{if(localStorage.getItem('northlist-site-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
 <link rel="stylesheet" href="/styles/site.css">
+<link rel="stylesheet" href="/styles/info.css">
 </head>
 <body data-page="changelog">
 <div data-site-header></div>
+<main class="pr-main">
 
-<main class="wrap">
-
-  <section class="band head page-head" aria-labelledby="cl-title">
-    <h1 id="cl-title" class="display rv">What's new.</h1>
-    <p class="lead rv">Everything that changed in NorthList, newest first.</p>
+  <!-- 1. Title left, as on Pricing -->
+  <section class="wrap pr-hero" aria-labelledby="cl-title">
+    <h1 id="cl-title" class="pr-display rv pr-blur">What’s new.</h1>
+    <div class="pr-hero-row rv">
+      <p class="pr-lead">Everything that changed in NorthList, newest first.</p>
+    </div>
   </section>
 
-  <section class="band" aria-label="Releases">
-    <div class="log" data-changelog></div>
+  <!-- 2. Releases (Linear's changelog): a date column, then the entry; some entries show the one piece they changed -->
+  <section class="wrap pr-log-band" aria-label="Releases">
+    <div class="pr-log" data-changelog></div>
   </section>
 
-  <section class="band last" aria-labelledby="end-title">
-    <div class="closing">
-      <div><h2 id="end-title" class="h2 rv">Try what's new.</h2><p class="lead rv">Free while in beta, for the first 99 accounts.</p></div>
-      <div class="act rv"><a class="btn btn-primary btn-lg btn-carbon" href="https://app.northlist.site/login">Start free <i data-icon="arrowRight"></i></a></div>
+  <!-- 3. Close -->
+  <section class="wrap pr-close">
+    <div class="pr-close-in rv">
+      <h2 class="pr-close-title">Try what’s new.</h2>
+      <div class="pr-close-act"><div class="pr-ctas"><a class="btn btn-primary btn-lg" href="https://app.northlist.site/login">Start free</a><a class="btn btn-secondary btn-lg" href="https://app.northlist.site/login">Sign in</a></div><p>Free while in beta, for the first 99 accounts.</p></div>
     </div>
   </section>
 
 </main>
-
 <div data-site-footer></div>
 <script type="module" src="/main.ts"></script>
 </body>
