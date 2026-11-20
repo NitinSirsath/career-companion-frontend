@@ -95,44 +95,5 @@
 
 /* The drawn app parts on Home, in the new look: 16 px cards, round step markers, round text tools, and
    the "Next step" card over the hero phone on frosted glass (it floats over the picture). */
-.life-step .card, .life-step .card::before { border-radius: 16px; }
-@media (min-width: 600px) {
-  .appcard, .appcard::before, .rbox, .rbox::before { border-radius: 20px; }
-}
-.appcard .track .sq, .appcard .track .now .sq::after { border-radius: 50%; }
-.rbox .rhead { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.rbox .x { width: 28px; height: 28px; display: grid; place-items: center; margin-right: -6px; color: var(--text-2); }
-.rbox .editor .tb span { border-radius: 8px; }
-.rbox .chip { font-weight: 500; }
-@media (max-width: 599px) {
-  .hero-float.app-look { border: 0; border-radius: 16px; background: var(--glass); backdrop-filter: blur(18px) saturate(1.7); box-shadow: inset 0 0 0 0.5px var(--glass-edge), var(--glass-shadow); }
-}
 /* The reply picture: the laptop's reply box; on phones the phone's reply sheet (× Reply Send at the top,
    To, the AI's help on a grey card, the text tools at the bottom). */
-.rbox .psheet, .rbox .field .sm, .rbox .aihelp .lbl svg { display: none; }
-@media (max-width: 599px) {
-  .rbox { padding-top: 0; gap: 12px; }
-  .rbox::before { background: var(--bg); border-radius: 22px 22px 0 0; -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent); mask-image: linear-gradient(to bottom, #000 70%, transparent); }
-  .rbox .psheet { display: block; }
-  .rbox .grab { display: block; width: 36px; height: 5px; border-radius: 3px; background: var(--line-2); margin: 7px auto 0; }
-  .rbox .sh { display: grid; grid-template-columns: 36px 1fr auto; align-items: center; gap: 10px; min-height: 52px; }
-  .rbox .sh b { text-align: center; font-size: 18px; font-weight: 650; }
-  .rbox .sx { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; background: var(--bg-2); }
-  .rbox .sh .sa-btn { height: 34px; padding: 0 16px; font-size: 15px; font-weight: 600; }
-  .rbox .pto { display: flex; align-items: center; gap: 8px; padding: 6px 0 10px; border-bottom: 0.5px solid var(--line-2); font-size: 15px; color: var(--text-2); }
-  .rbox .pto span { padding: 2px 10px; border-radius: 12px; background: var(--bg-2); color: var(--text); }
-  .rbox .rhead, .rbox .editor .efoot { display: none; }
-  .rbox .aihelp { padding: 12px; border-radius: 16px; background: var(--bg-2); gap: 10px; }
-  .rbox .aihelp .lbl { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; }
-  .rbox .aihelp .lbl svg { display: block; }
-  .rbox .chip { height: auto; min-height: 36px; padding: 7px 14px; border: 0; background: var(--bg); font-size: 15px; box-shadow: none; }
-  .rbox .hintrow { flex-wrap: nowrap; }
-  .rbox .hintrow .field { display: flex; height: 40px; min-width: 0; border: 0; padding: 0 14px; font-size: 15px; }
-  .rbox .field .lg { display: none; }
-  .rbox .field .sm { display: inline; }
-  .rbox .chip.wai { height: 40px; background: var(--blue); color: #fff; font-weight: 600; white-space: nowrap; }
-  .rbox .editor { display: flex; flex-direction: column; border-top: 0; }
-  .rbox .editor .ed { order: 1; padding-top: 4px; font-size: 17px; line-height: 25px; }
-  .rbox .editor .tb { order: 2; border-bottom: 0; border-top: 0.5px solid var(--line-2); padding-top: 6px; padding-bottom: 10px; }
-  .rbox .editor .tb span { width: 40px; height: 38px; border-radius: 19px; }
-}
