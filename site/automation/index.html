@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,52 +11,43 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=Geist+Mono:wght@400..500&display=swap" rel="stylesheet">
-<script>try{if(localStorage.getItem('northlist-site-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
 <link rel="stylesheet" href="/styles/site.css">
+<link rel="stylesheet" href="/styles/apply.css">
 </head>
 <body data-page="automation">
 <div data-site-header></div>
+<main class="ap">
 
-<main class="wrap">
-
-  <!-- Head: what it is, one action, and how far it is tested. -->
-  <section class="band head page-head" aria-labelledby="au-title">
-    <h1 id="au-title" class="display rv">Apply with your<br>own AI agent.</h1>
-    <p class="lead rv">NorthList Apply is a free job automation for AI apps that can use your browser, like Antigravity, Claude Code or Codex. It applies to jobs one at a time with your own job-site accounts, and NorthList keeps each one with your applications.</p>
-    <div class="ctas rv">
-      <a class="btn btn-primary btn-lg btn-carbon" href="https://github.com/NitinSirsath/northlist-apply">Start on GitHub <i data-icon="arrowRight"></i></a>
-      <div class="tested">
-        <p class="note">In beta. Tested on</p>
-        <ul class="site-chips" aria-label="Job sites it has been tested on">
-          <li class="s-linkedin">LinkedIn</li>
-          <li class="s-naukri">Naukri</li>
-          <li class="s-indeed">Indeed</li>
-          <li class="s-wellfound">Wellfound</li>
-          <li class="s-instahyre">Instahyre</li>
-          <li class="s-workday">Workday</li>
-          <li class="s-greenhouse">Greenhouse</li>
-          <li class="s-lever">Lever</li>
-          <li class="s-ashby">Ashby</li>
-        </ul>
+  <!-- 1. Head: words left, one light action, the tested sites as plain text -->
+  <section class="wrap ap-hero" aria-labelledby="ap-title">
+    <h1 id="ap-title" class="ap-display">Apply with your<br>own AI agent.</h1>
+    <div class="ap-hero-row">
+      <div>
+        <p class="ap-lead">NorthList Apply is a free job automation for AI apps that can use your browser, like Antigravity, Claude Code or Codex. It applies to jobs one at a time with your own job-site accounts, and NorthList keeps each one with your applications.</p>
+        <p class="ap-tested">Tested on LinkedIn, Naukri, Indeed, Wellfound, Instahyre, Workday, Greenhouse, Lever and Ashby.</p>
       </div>
+      <div class="ap-hero-act"><a class="btn btn-primary" href="https://github.com/NitinSirsath/northlist-apply">Start on GitHub</a><span class="ap-free">Free, in beta</span></div>
     </div>
   </section>
 
-  <!-- The one self-playing picture (owner, 7 Nov 2026): the AI app on your computer (left) applies in the browser it drives, and the job appears in NorthList (right). The switcher picks the app's look; names in words only, no logos. The HTML holds the end state, as Antigravity. -->
-  <section class="band run-band" aria-label="An example run">
-    <div class="run rv" data-rundemo>
-      <div class="pick-row">
-        <div class="pick" role="tablist" aria-label="Your AI app">
+  <!-- 2. The run, as a glimpse (owner, 7 Nov story; 19 Nov look): one framed stage, two windows. Your AI app in its own look
+       (Antigravity, Claude Code or Codex) applies in the browser it drives; the job lands in NorthList in front, and the app
+       window steps back. Played by runtime/pictures.ts through its data hooks; automation.css styles the app window (.run). -->
+  <section class="wrap ap-runband" aria-label="An example run">
+    <div class="ap-run" data-rundemo>
+      <div class="ap-pickrow">
+        <div class="pick ap-pick" role="tablist" aria-label="Your AI app">
           <button type="button" role="tab" id="run-tab-ag" aria-controls="run-app" aria-selected="true" tabindex="0" data-app="ag" data-title="Antigravity" data-ph="Ask anything, @ to mention, / for actions" data-model="Gemini 3.5 Flash" data-drive="Antigravity is using this page">Antigravity</button>
           <button type="button" role="tab" id="run-tab-cc" aria-controls="run-app" aria-selected="false" tabindex="-1" data-app="cc" data-title="Claude" data-ph="Reply to Claude…" data-model="Opus 5.5" data-drive="Claude is using this tab">Claude Code</button>
           <button type="button" role="tab" id="run-tab-cx" aria-controls="run-app" aria-selected="false" tabindex="-1" data-app="cx" data-title="Codex" data-ph="Ask Codex anything" data-model="High" data-drive="Codex is using this page">Codex</button>
         </div>
-        <p class="pick-note" data-note="ag">Open the NorthList Apply folder in Antigravity and type <b>start</b>.</p>
-        <p class="pick-note" data-note="cc" hidden>Open the folder in Claude Code and type <b>start</b>. It uses its own browser. Chrome is only the backup.</p>
-        <p class="pick-note" data-note="cx" hidden>Open the folder in Codex and type <b>start</b>. <span class="warn">Connecting NorthList from Codex is not tested yet.</span></p>
+        <p class="ap-note" data-note="ag">Open the NorthList Apply folder in Antigravity and type <b>start</b>.</p>
+        <p class="ap-note" data-note="cc" hidden>Open the folder in Claude Code and type <b>start</b>. It uses its own browser. Chrome is only the backup.</p>
+        <p class="ap-note" data-note="cx" hidden>Open the folder in Codex and type <b>start</b>. Connecting NorthList from Codex is not tested yet.</p>
       </div>
 
-      <div class="wins">
+      <div class="ap-stage">
+        <div class="run ap-app">
         <div class="aw" id="run-app" data-app="ag" role="img" aria-label="Your AI app on your computer, partway through a run. In the browser it controls, it opens a Frontend Engineer job at Brightwave on LinkedIn, fills in the form from your profile and submits it. LinkedIn confirms it, and the AI app sends the job to NorthList.">
           <div class="tb"><span class="lights"><i></i><i></i><i></i></span><span class="tb-title" data-run="title">Antigravity</span></div>
           <div class="aw-body" aria-hidden="true">
@@ -130,107 +121,140 @@
             </div>
           </div>
         </div>
-
-        <div class="nlw app-look" role="img" aria-label="NorthList, NorthList Apply page: Brightwave, Frontend Engineer, appears at the top of Submitted, sent by NorthList Apply from LinkedIn today. A notice says it came from your automation.">
-          <div class="tb"><span class="lights"><i></i><i></i><i></i></span><span class="tb-title">app.northlist.site</span></div>
-          <div class="nl-hd" aria-hidden="true"><b>NorthList Apply</b><span>Today: 2 sent</span></div>
-          <div class="run-tabs" aria-hidden="true"><span class="on">Submitted</span><span>Not submitted</span><span>Setup</span></div>
-          <div class="run-table" aria-hidden="true">
-            <div class="run-tr run-th"><span>Company</span><span>Status</span></div>
-            <div class="run-tr" data-newrow><span class="co"><b>Brightwave</b><span>Frontend Engineer</span></span><span class="st"><span class="tag tag-outline">No reply yet</span><span>Today, 10:42 · LinkedIn</span></span></div>
-            <div class="run-tr"><span class="co"><b>Northwind Labs</b><span>React Developer</span></span><span class="st"><span class="tag tag-outline">No reply yet</span><span>Today, 10:38 · LinkedIn</span></span></div>
-            <div class="run-tr"><span class="co"><b>Kestrel Health</b><span>UI Engineer</span></span><span class="st"><span class="tag tag-cyan">Recruiter contact</span><span>Oct 30 · Indeed</span></span></div>
-          </div>
-          <div class="nl-note" data-run="note" aria-hidden="true"><i data-app-icon="check" data-size="16"></i>Brightwave added from your automation</div>
         </div>
+
+        <div class="ap-nl" role="img" aria-label="NorthList, NorthList Apply page: Brightwave, Frontend Engineer, appears at the top of Submitted, sent by NorthList Apply from LinkedIn today. A notice says it came from your automation.">
+          <div class="ap-nl-bar" aria-hidden="true"><b>NorthList Apply</b><span>Today: 2 sent</span></div>
+          <div class="ap-nl-body" aria-hidden="true">
+            <div class="ap-tabs"><span class="on">Submitted</span><span>Not submitted</span><span>Setup</span></div>
+            <div class="ap-row" data-newrow><span class="co"><b>Brightwave</b><span>Frontend Engineer</span></span><span class="st"><span>No reply yet</span><span>Today, 10:42 · LinkedIn</span></span></div>
+            <div class="ap-row"><span class="co"><b>Northwind Labs</b><span>React Developer</span></span><span class="st"><span>No reply yet</span><span>Today, 10:38 · LinkedIn</span></span></div>
+            <div class="ap-row"><span class="co"><b>Kestrel Health</b><span>UI Engineer</span></span><span class="st"><span>Recruiter contact</span><span>Oct 30 · Indeed</span></span></div>
+            <div class="ap-toast" data-run="note"><i data-app-icon="check" data-size="16"></i>Brightwave added from your automation</div>
+          </div>
+        </div>
+
+        <div class="ap-cap"><b>One job, start to finish</b><span>An example run with a made-up job. It asked for your OK on the first job; after that it applies on its own.</span><span>Your AI app's own screen looks a bit different.</span></div>
+        <button type="button" class="replay ap-replay" data-replay="run" aria-label="Play the run again" title="Play the run again"><i data-icon="renew" data-size="16"></i></button>
       </div>
     </div>
-    <div class="shot-cap run-cap">
-      <span>An example run with a made-up job. It asked for your OK on the first job; after that it applies on its own. Your AI app's own screen looks a bit different.</span>
-      <button type="button" class="replay" data-replay="run" aria-label="Play the run again" title="Play the run again"><i data-icon="renew"></i></button>
+  </section>
+
+  <!-- 3. The four rules: heading left, words right, then four small cards with one piece each (made-up examples) -->
+  <section class="wrap ap-band" id="what" aria-labelledby="what-title">
+    <div class="ap-split">
+      <h2 id="what-title" class="ap-h2 rv">One job at a time,<br>with you in charge.</h2>
+      <p class="ap-side rv">The automation is a set of written instructions for your AI app, not a program. Like any AI, it can make mistakes, so watch its first runs.</p>
+    </div>
+    <div class="ap-cards">
+      <article class="ap-card rv">
+        <div class="ap-piece" aria-hidden="true">
+          <ul class="ap-p-list">
+            <li class="hi"><span><b>Frontend Engineer</b><span>Brightwave · Hybrid</span></span><em>Fits</em></li>
+            <li><span><b>Java Developer</b><span>Orbit Tech · On-site</span></span><em>Skipped</em></li>
+            <li><span><b>React Developer</b><span>Northwind Labs · Remote</span></span><em>Fits</em></li>
+          </ul>
+        </div>
+        <h3>Finds jobs that fit</h3>
+        <p>On the sites you choose, it goes through the jobs and skips the ones that don't match your titles, places or work mode.</p>
+      </article>
+      <article class="ap-card rv">
+        <div class="ap-piece" aria-hidden="true">
+          <div class="ap-p-ask"><span class="who">Your AI app</span><p>This form asks for your notice period, and you have no saved answer. What should I put?</p></div>
+        </div>
+        <h3>Fills in your details</h3>
+        <p>From your profile, saved answers and resume. When a question has no saved answer, it asks you instead of guessing.</p>
+      </article>
+      <article class="ap-card rv">
+        <div class="ap-piece" aria-hidden="true">
+          <div class="ap-p-ok"><span class="who">First application of this run</span><b>Frontend Engineer at Brightwave</b><span class="row"><span class="yes">Apply</span><span class="no">Skip</span></span></div>
+        </div>
+        <h3>Asks before it applies</h3>
+        <p>It shows you the first application of each run and waits for your OK. At a CAPTCHA or security check, it stops.</p>
+      </article>
+      <article class="ap-card rv">
+        <div class="ap-piece" aria-hidden="true">
+          <ul class="ap-p-list">
+            <li class="hi"><span><b>Brightwave</b><span>The site confirmed it</span></span><em>Applied</em></li>
+            <li><span><b>Kestrel Health</b><span>No confirmation</span></span><em>Not counted</em></li>
+          </ul>
+        </div>
+        <h3>Counts only what went through</h3>
+        <p>A job is marked applied only after the site confirms it.</p>
+      </article>
     </div>
   </section>
 
-  <!-- What it does: four rules of the workflow, in plain words -->
-  <section class="band" id="what" aria-labelledby="what-title">
-    <h2 id="what-title" class="h2 rv">One job at a time,<br>with you in charge.</h2>
-    <div class="rules rv">
-      <div class="rule"><i data-icon="search" data-size="20"></i><b>Finds jobs that fit</b><p>On the sites you choose, it goes through the jobs and skips the ones that don't match your titles, places or work mode.</p></div>
-      <div class="rule"><i data-icon="doc" data-size="20"></i><b>Fills in your details</b><p>From your profile, saved answers and resume. When a question has no saved answer, it asks you instead of guessing.</p></div>
-      <div class="rule"><i data-icon="pen" data-size="20"></i><b>Asks before it applies</b><p>It shows you the first application of each run and waits for your OK. At a CAPTCHA or security check, it stops.</p></div>
-      <div class="rule"><i data-icon="check" data-size="20"></i><b>Counts only what went through</b><p>A job is marked applied only after the site confirms it.</p></div>
+  <!-- 4. How the parts connect (the app can't show this): one still drawing, labels as text under it -->
+  <section class="wrap ap-band" id="fit" aria-labelledby="fit-title">
+    <div class="ap-split">
+      <h2 id="fit-title" class="ap-h2 rv">Every application<br>in one place.</h2>
+      <p class="ap-side rv">Connect the automation, and each job it applies to sits in NorthList next to the ones from your Gmail. The NorthList app never applies to jobs itself.</p>
     </div>
-    <p class="rules-note rv">The automation is a set of written instructions for your AI app, not a program. Like any AI, it can make mistakes, so watch its first runs.</p>
+    <figure class="ap-fig rv">
+      <svg class="fig ap-fig-svg" viewBox="-143 -48 883 165" aria-hidden="true" focusable="false"><path class="wire" d="M298.8 42.5 L4.3 42.5"/><path class="wire" d="M298.8 42.5 L593.2 42.5"/><g><polygon class="l" points="-69.3,28.0 8.7,73.0 8.7,85.0 -69.3,40.0"/><polygon class="r" points="77.9,33.0 8.7,73.0 8.7,85.0 77.9,45.0"/><polygon class="t" points="0.0,-12.0 77.9,33.0 8.7,73.0 -69.3,28.0"/><path class="m" d="M1.7 1.0 L45.0 26.0 L37.2 30.5 L-6.1 5.5 L1.7 1.0"/><path class="m" d="M-12.1 9.0 L31.2 34.0 L23.4 38.5 L-19.9 13.5 L-12.1 9.0"/><path class="m" d="M-26.0 17.0 L17.3 42.0 L9.5 46.5 L-33.8 21.5 L-26.0 17.0"/><path class="m" d="M-41.6 26.0 L-19.1 39.0 L-26.0 43.0 L-48.5 30.0 L-41.6 26.0"/></g><path class="m dash" d="M304.8 -24.0 L414.0 39.0 L292.7 109.0 L183.6 46.0 L304.8 -24.0"/><g><polygon class="l" points="225.2,-0.0 303.1,45.0 303.1,85.0 225.2,40.0"/><polygon class="r" points="372.4,5.0 303.1,45.0 303.1,85.0 372.4,45.0"/><polygon class="t" points="294.4,-40.0 372.4,5.0 303.1,45.0 225.2,-0.0"/><path class="m" d="M294.4 -26.0 L334.3 -3.0"/><path class="m" d="M280.6 -18.0 L329.1 10.0"/><path class="m" d="M266.7 -10.0 L299.6 9.0"/><path class="m" d="M252.9 -4.0 L310.0 29.0 L301.4 34.0 L244.2 1.0 L252.9 -4.0"/></g><g><polygon class="l" points="317.0,4.0 355.1,26.0 355.1,29.0 317.0,7.0"/><polygon class="r" points="372.4,16.0 355.1,26.0 355.1,29.0 372.4,19.0"/><polygon class="t" points="334.3,-6.0 372.4,16.0 355.1,26.0 317.0,4.0"/></g><g><polygon class="l" points="317.0,-2.0 355.1,20.0 355.1,23.0 317.0,1.0"/><polygon class="r" points="372.4,10.0 355.1,20.0 355.1,23.0 372.4,13.0"/><polygon class="t" points="334.3,-12.0 372.4,10.0 355.1,20.0 317.0,-2.0"/></g><g><polygon class="l" points="519.6,34.0 597.6,79.0 597.6,85.0 519.6,40.0"/><polygon class="r" points="666.8,39.0 597.6,79.0 597.6,85.0 666.8,45.0"/><polygon class="t" points="588.9,-6.0 666.8,39.0 597.6,79.0 519.6,34.0"/></g><g><polygon class="l" points="519.6,18.0 597.6,63.0 597.6,69.0 519.6,24.0"/><polygon class="r" points="666.8,23.0 597.6,63.0 597.6,69.0 666.8,29.0"/><polygon class="t" points="588.9,-22.0 666.8,23.0 597.6,63.0 519.6,18.0"/></g><g><polygon class="l" points="519.6,2.0 597.6,47.0 597.6,53.0 519.6,8.0"/><polygon class="r" points="666.8,7.0 597.6,47.0 597.6,53.0 666.8,13.0"/><polygon class="t" points="588.9,-38.0 666.8,7.0 597.6,47.0 519.6,2.0"/><path class="m a" d="M583.7 -19.0 L630.5 8.0"/><path class="m" d="M568.1 -10.0 L602.8 10.0"/><path class="m" d="M552.5 -1.0 L594.1 23.0"/></g></svg>
+      <figcaption class="ap-fig-labels">
+        <span><b>Job site</b>It applies here with your own account.</span>
+        <span><b>Your AI app</b>On your computer, with your details.</span>
+        <span><b>NorthList</b>Gets each job it applied to or left.</span>
+      </figcaption>
+    </figure>
+    <ul class="ap-trio">
+      <li class="rv"><b>NorthList Apply › Submitted</b><p>Each job it applied to, with the links and the answers it sent. If you already track that job, it is added there; when NorthList can't tell, it asks you.</p></li>
+      <li class="rv"><b>NorthList Apply › Not submitted</b><p>Jobs it skipped or left for you, with the reason. They never become applications.</p></li>
+      <li class="rv"><b>Applications</b><p>Each job it applied to is also an application. Mail from the company is linked to it and moves it on, the same way as for any other job.</p></li>
+    </ul>
+    <p class="ap-aside rv">Connecting is optional. Without NorthList, the automation keeps its own daily record in its folder on your computer.</p>
   </section>
 
-  <!-- How it fits with NorthList -->
-  <section class="band" id="fit" aria-labelledby="fit-title">
-    <div class="sec-head">
-      <h2 id="fit-title" class="h2 rv">Every application<br>in one place.</h2>
-      <div class="side rv"><p>Connect the automation, and each job it applies to sits in NorthList next to the ones from your Gmail. The NorthList app never applies to jobs itself.</p></div>
-    </div>
-    <div class="trio rv">
-      <div><h3 class="h4">NorthList Apply › Submitted</h3><p>Each job it applied to, with the links and the answers it sent. If you already track that job, it is added there; when NorthList can't tell, it asks you.</p></div>
-      <div><h3 class="h4">NorthList Apply › Not submitted</h3><p>Jobs it skipped or left for you, with the reason. They never become applications.</p></div>
-      <div><h3 class="h4">Applications</h3><p>Each job it applied to is also an application. Mail from the company is linked to it and moves it on, the same way as for any other job.</p></div>
-    </div>
-    <p class="rules-note rv">Connecting is optional. Without NorthList, the automation keeps its own daily record in its folder on your computer.</p>
-  </section>
-
-  <!-- Setup: short, so it survives the coming workflow change -->
-  <section class="band" id="setup" aria-labelledby="setup-title">
-    <h2 id="setup-title" class="h2 rv">Set up once.</h2>
-    <ol class="setup four rv">
-      <li><span class="n">1</span><h3 class="h3">Get the automation</h3><p>Download its folder from GitHub. It's free.</p></li>
-      <li><span class="n">2</span><h3 class="h3">Open it in your AI app</h3><p>It asks for your resume and details once, and keeps them in that folder.</p></li>
-      <li><span class="n">3</span><h3 class="h3">Connect NorthList</h3><p>In NorthList, open NorthList Apply › Setup, copy your setup prompt, and paste it into your AI app. It connects itself.</p></li>
-      <li><span class="n">4</span><h3 class="h3">Start a run</h3><p>Pick today's sites and how many jobs, and sign in to them once in your AI app's own browser: it opens them for you. Approve the first application, and it goes on one by one.</p></li>
+  <!-- 5. Setup: four steps on one line -->
+  <section class="wrap ap-band" id="setup" aria-labelledby="setup-title">
+    <h2 id="setup-title" class="ap-h2 rv">Set up once.</h2>
+    <ol class="ap-steps">
+      <li class="rv"><span class="no">1</span><h3>Get the automation</h3><p>Download its folder from GitHub. It's free.</p></li>
+      <li class="rv"><span class="no">2</span><h3>Open it in your AI app</h3><p>It asks for your resume and details once, and keeps them in that folder.</p></li>
+      <li class="rv"><span class="no">3</span><h3>Connect NorthList</h3><p>In NorthList, open NorthList Apply › Setup, copy your setup prompt, and paste it into your AI app. It connects itself.</p></li>
+      <li class="rv"><span class="no">4</span><h3>Start a run</h3><p>Pick today's sites and how many jobs, and sign in to them once in your AI app's own browser: it opens them for you. Approve the first application, and it goes on one by one.</p></li>
     </ol>
   </section>
 
-  <!-- The data facts: what NorthList gets, what it never asks for, what stays on the computer -->
-  <section class="band" id="data" aria-labelledby="data-title">
-    <div class="sec-head">
-      <h2 id="data-title" class="h2 rv">What NorthList<br>gets.</h2>
-      <div class="side rv">
-        <p>Only what your automation reports about each job. Your details and resume stay on your computer.</p>
-        <a class="arrow-link" href="/privacy/#keeps">Everything about your data <i data-icon="arrowRight" data-size="14"></i></a>
-      </div>
+  <!-- 6. Data facts as plain rows -->
+  <section class="wrap ap-band" id="data" aria-labelledby="data-title">
+    <div class="ap-split">
+      <h2 id="data-title" class="ap-h2 rv">What NorthList gets.</h2>
+      <div class="rv"><p class="ap-side">Only what your automation reports about each job. Your details and resume stay on your computer.</p><a class="ap-link" href="/privacy/#keeps">Everything about your data <i data-icon="arrowRight" data-size="16"></i></a></div>
     </div>
-    <div class="promises rv">
-      <div class="promise"><i data-icon="send" data-size="20"></i><b>For each job it applied to</b><p>The company, job title, site, job and apply links, the apply site's address, job ID, where the job was found, location, work mode, time, the site's confirmation, your resume's file name and the answers it sent.</p></div>
-      <div class="promise"><i data-icon="clock" data-size="20"></i><b>For each job it didn't apply to</b><p>The company, job title, site, job link, whether it skipped the job or left it for you, the reason and the time.</p></div>
-      <div class="promise"><i data-icon="lock" data-size="20"></i><b>Never asked for</b><p>Your passwords, or your resume file and its text. NorthList gets only the file's name.</p></div>
-      <div class="promise"><i data-icon="server" data-size="20"></i><b>On your computer</b><p>Your profile, saved answers, resume and daily record stay in the automation's folder. Your AI app reads them to fill in forms, under its own terms.</p></div>
-    </div>
-    <p class="rules-note rv">If you delete an application, what your automation sent for it goes too. The rest stays until you ask for all your data to be deleted. NorthList's AI sees only counts and site names from it, for your Dashboard tip.</p>
-    <p class="rules-note tight rv">Your token is shown once. NorthList keeps only its fingerprint and first 12 characters. Revoke it on the NorthList Apply page and it stops working at once; it stays listed with its name and dates.</p>
+    <dl class="ap-rows">
+      <div class="rv"><dt>For each job it applied to</dt><dd>The company, job title, site, job and apply links, the apply site's address, job ID, where the job was found, location, work mode, time, the site's confirmation, your resume's file name and the answers it sent.</dd></div>
+      <div class="rv"><dt>For each job it didn't apply to</dt><dd>The company, job title, site, job link, whether it skipped the job or left it for you, the reason and the time.</dd></div>
+      <div class="rv"><dt>Never asked for</dt><dd>Your passwords, or your resume file and its text. NorthList gets only the file's name.</dd></div>
+      <div class="rv"><dt>On your computer</dt><dd>Your profile, saved answers, resume and daily record stay in the automation's folder. Your AI app reads them to fill in forms, under its own terms.</dd></div>
+      <div class="rv"><dt>When you delete</dt><dd>If you delete an application, what your automation sent for it goes too. The rest stays until you ask for all your data to be deleted. NorthList's AI sees only counts and site names from it, for your Dashboard tip.</dd></div>
+      <div class="rv"><dt>Your token</dt><dd>Shown once. NorthList keeps only its fingerprint and first 12 characters. Revoke it on the NorthList Apply page and it stops working at once; it stays listed with its name and dates.</dd></div>
+    </dl>
   </section>
 
-  <!-- Short FAQ: only what the sections above don't answer -->
-  <section class="band" aria-labelledby="faq-title">
-    <div class="faq">
-      <div><h2 id="faq-title" class="h2 rv">Questions</h2></div>
-      <div class="faq-list rv">
-        <div class="qa"><h3>Which job sites does it work on?</h3><p>It has been tried on LinkedIn Easy Apply, Naukri, Indeed, Wellfound, Instahyre and Workday, and on company job forms that use Greenhouse, Lever or Ashby. Its instructions name a few more sites, but those are not tested yet.</p></div>
-        <div class="qa"><h3>What does it cost?</h3><p>The automation is free, and NorthList is free while in beta. It runs in your own AI app, under that app's plan.</p></div>
-        <div class="qa"><h3>Do I need NorthList to use it?</h3><p>No. Without it, the automation keeps its record in a file on your computer. With it, each job sits next to the mails that follow.</p></div>
+  <!-- 7. Questions: plain rows -->
+  <section class="wrap ap-band" aria-labelledby="faq-title">
+    <div class="ap-faq">
+      <h2 id="faq-title" class="ap-h2 rv">Questions</h2>
+      <div class="ap-qs">
+        <div class="rv"><h3>Which job sites does it work on?</h3><p>It has been tried on LinkedIn Easy Apply, Naukri, Indeed, Wellfound, Instahyre and Workday, and on company job forms that use Greenhouse, Lever or Ashby. Its instructions name a few more sites, but those are not tested yet.</p></div>
+        <div class="rv"><h3>What does it cost?</h3><p>The automation is free, and NorthList is free while in beta. It runs in your own AI app, under that app's plan.</p></div>
+        <div class="rv"><h3>Do I need NorthList to use it?</h3><p>No. Without it, the automation keeps its record in a file on your computer. With it, each job sits next to the mails that follow.</p></div>
       </div>
     </div>
   </section>
 
-  <section class="band last" aria-labelledby="end-title">
-    <div class="closing">
-      <div><h2 id="end-title" class="h2 rv">Try the automation.</h2><p class="lead rv">Free on GitHub, in beta. Connect it to NorthList whenever you like.</p></div>
-      <div class="act rv">
-        <a class="btn btn-primary btn-lg btn-carbon" href="https://github.com/NitinSirsath/northlist-apply">Start on GitHub <i data-icon="arrowRight"></i></a>
-        <a class="arrow-link" href="https://app.northlist.site/login">New to NorthList? Start free <i data-icon="arrowRight" data-size="14"></i></a>
-      </div>
+  <!-- 8. Close -->
+  <section class="wrap ap-close">
+    <div class="ap-close-in rv">
+      <div><h2 class="ap-h2">Try the automation.</h2><p class="ap-side">Free on GitHub, in beta. Connect it to NorthList whenever you like.</p></div>
+      <div class="ap-close-act"><a class="btn btn-primary btn-lg" href="https://github.com/NitinSirsath/northlist-apply">Start on GitHub</a><a class="ap-link" href="https://app.northlist.site/login">New to NorthList? Start free <i data-icon="arrowRight" data-size="16"></i></a></div>
     </div>
   </section>
 
 </main>
-
 <div data-site-footer></div>
 <script type="module" src="/main.ts"></script>
 </body>
