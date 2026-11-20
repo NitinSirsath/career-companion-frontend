@@ -5,7 +5,6 @@
 .replay:hover { color: var(--text); border-color: var(--line-3); background: var(--bg-2); }
 .replay svg { transition: transform 300ms var(--ease); }
 .replay:active svg { transform: rotate(-120deg); }
-.replay-row { display: flex; justify-content: flex-end; margin-top: 12px; }
 html.no-motion .replay { display: none; }
 
 /* ---------- Your data: four promises, no boxes ---------- */
@@ -31,16 +30,5 @@ html.no-motion .replay { display: none; }
 }
 
 /* ---------- Ending of the inner pages ---------- */
-.closing { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 32px 64px; align-items: end; }
-.closing .lead { margin-top: 16px; }
-.closing .act { display: flex; flex-direction: column; align-items: flex-end; gap: 14px; }
-@media (max-width: 767px) {
-  .closing { grid-template-columns: minmax(0, 1fr); gap: 28px; }
-  .closing .act { align-items: stretch; }
-  .closing .act .btn { width: 100%; }
-}
 
 /* ---------- Inner page heads ---------- */
-.page-head .lead { margin-top: 24px; max-width: 640px; }
-.page-head .note { margin-top: 16px; font-size: 14px; line-height: 20px; color: var(--text-3); max-width: 640px; }
-@media (max-width: 599px) { .page-head .lead { margin-top: 18px; } }
