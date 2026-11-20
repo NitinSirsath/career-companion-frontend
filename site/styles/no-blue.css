@@ -1,0 +1,13 @@
+/*
+ * No blue in the pictures of the app (owner, 19 Nov 2026: the app no longer uses blue). Loaded last so it
+ * wins over app-look.css. Blue links, unread dots, tabs and blue/cyan tags turn white and grey.
+ */
+:root[data-theme='dark'] :is(.sa, .app-look, .device) {
+  --link: var(--text); --link-hover: #ffffff; --blue: #e6e6e6; --blue-hover: #ffffff;
+  --tint: #222226; --tint-text: var(--text);
+  --tag-blue-bg: #1c1c1f; --tag-blue: #d4d4d8; --tag-blue-ring: #2c2c30;
+  --tag-cyan-bg: #1c1c1f; --tag-cyan: #d4d4d8; --tag-cyan-ring: #2c2c30;
+  --avatar-1: #222226; --avatar-1-text: #d4d4d8; --avatar-6: #222226; --avatar-6-text: #d4d4d8;
+  --chart-1: #d0d3d8;
+}
+:root[data-theme='dark'] :is(.sa, .app-look, .device) .sa-btn.pri { color: #08090a; }
