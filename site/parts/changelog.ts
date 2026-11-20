@@ -80,14 +80,10 @@ export const RELEASES: Release[] = [
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-/** `2026-10-31` → `oct-31` (the anchor) and `October 31, 2026` (shown). */
+/** `2026-10-31` → `oct-31`: a release's anchor. */
 export function anchor(date: string): string {
   const [, m, d] = date.split('-').map(Number);
   return `${MONTHS[m - 1].slice(0, 3).toLowerCase()}-${d}`;
-}
-function shown(date: string): string {
-  const [y, m, d] = date.split('-').map(Number);
-  return `${MONTHS[m - 1]} ${d}, ${y}`;
 }
 
 /** The Dashboard's five numbers, drawn as in the app. */
