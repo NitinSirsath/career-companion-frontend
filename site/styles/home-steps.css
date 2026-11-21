@@ -1,0 +1,98 @@
+/*
+ * Home: "Start in three steps" (owner, 21 Nov 2026). Linear's hairline grid with a small app piece in each
+ * cell and the words at the bottom left; each piece lands once, when its cell comes into view. Classes start with st-.
+ */
+
+/* ---------- The grid: one frame, cells split by hairlines ---------- */
+.st-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 64px; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; counter-reset: none; }
+.st-cell { position: relative; height: 480px; border-left: 1px solid var(--line); overflow: hidden;
+  background: radial-gradient(70% 48% at 50% 36%, #131416 0%, transparent 100%); }
+.st-cell:first-child { border-left: 0; }
+.st-grid > .st-cell:nth-child(2) { transition-delay: 80ms; }
+.st-grid > .st-cell:nth-child(3) { transition-delay: 160ms; }
+.st-pic { position: absolute; inset: 0 0 136px; display: grid; place-items: center; }
+.st-cap { position: absolute; left: 32px; right: 32px; bottom: 32px; display: grid; gap: 4px; }
+.st-cap b { display: flex; align-items: baseline; gap: 10px; font-size: 16px; line-height: 24px; font-weight: 500; color: var(--text); }
+.st-cap .n { font: 400 12px/24px var(--mono); color: var(--dim); }
+.st-cap > span { font-size: 14px; line-height: 22px; color: var(--text-3); max-width: 340px; text-wrap: pretty; }
+
+/* ---------- 1. Sign in: the sign-in card, fading at the bottom ---------- */
+.st-sign { width: 256px; display: grid; justify-items: center; gap: 16px; padding: 28px 24px 32px; border: 1px solid var(--line-2); border-radius: 12px;
+  background: linear-gradient(180deg, #121315, #0c0d0e); box-shadow: 0 24px 64px rgb(0 0 0 / 0.5);
+  -webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent); mask-image: linear-gradient(to bottom, #000 72%, transparent); }
+.st-sign > b { font-size: 16px; font-weight: 500; letter-spacing: -0.01em; }
+.st-google { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 40px; border: 1px solid var(--line-3); border-radius: 999px;
+  background: #1a1b1d; font-size: 14px; color: var(--text); }
+.st-google .g { font-weight: 700; font-size: 14px; color: var(--text-2); }
+.st-email { font-size: 12px; color: var(--dim); }
+
+/* ---------- 2. Connect Gmail: one button, three lines out to what it allows ---------- */
+.st-flow { position: relative; width: 340px; height: 220px; }
+.st-lines { position: absolute; inset: 0; fill: none; stroke: var(--line-3); stroke-width: 1; }
+.st-connect { position: absolute; left: 0; top: 92px; display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border: 1px solid var(--line-3); border-radius: 8px;
+  background: #1a1b1d; font-size: 12px; font-weight: 500; color: var(--text); white-space: nowrap; box-shadow: 0 12px 32px rgb(0 0 0 / 0.5); }
+.st-connect svg { color: var(--text-3); }
+.st-row { position: absolute; left: 176px; top: calc(20px + var(--i) * 62px); width: 196px; height: 56px; display: grid; align-content: center; gap: 4px; padding: 0 12px;
+  border: 1px solid var(--line-2); border-radius: 8px; background: #111214;
+  -webkit-mask-image: linear-gradient(to right, #000 64%, transparent); mask-image: linear-gradient(to right, #000 64%, transparent); }
+.st-row small { font: 400 12px/1 var(--mono); color: var(--dim); }
+.st-row b { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 400; color: var(--text-2); white-space: nowrap; }
+.st-row .ok { display: inline-grid; place-items: center; width: 14px; height: 14px; border: 1px solid var(--line-3); border-radius: 50%; color: var(--ok); }
+.st-row .ok svg { width: 10px; height: 10px; }
+
+/* ---------- 3. Sorted: a small Mails window, the first mail with its next step ---------- */
+.st-mails { width: 300px; border: 1px solid var(--line-2); border-radius: 12px; background: #101113; box-shadow: 0 24px 64px rgb(0 0 0 / 0.5); overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, #000 76%, transparent); mask-image: linear-gradient(to bottom, #000 76%, transparent); }
+.st-bar { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-bottom: 1px solid var(--line); font-size: 12px; color: var(--text-3); }
+.st-bar b { font-weight: 500; color: var(--text); }
+.st-mail { display: grid; grid-template-columns: 14px auto minmax(0, 1fr); align-items: center; gap: 10px; height: 44px; padding: 0 16px; border-bottom: 1px solid var(--line); font-size: 12px; }
+.st-mail b { font-weight: 500; color: var(--text); }
+.st-mail > span:last-child { color: var(--text-3); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.st-mail .lh-ring:not(.o, .g) { color: var(--text-3); }
+.st-next { display: grid; gap: 2px; margin: 8px 12px; padding: 10px 12px; border: 1px solid var(--line-2); border-radius: 8px; background: #141517; }
+.st-next .lbl { font-size: 12px; color: var(--dim); }
+.st-next b { font-size: 14px; font-weight: 500; }
+.st-mails .st-next + .st-mail { border-top: 1px solid var(--line); }
+
+/* ---------- Motion, once, when the cell comes into view ---------- */
+@keyframes st-rise { from { opacity: 0; transform: translateY(16px); filter: blur(6px); } }
+@keyframes st-land { from { opacity: 0; transform: translateY(6px); } }
+@keyframes st-draw { from { stroke-dashoffset: 80; } to { stroke-dashoffset: 0; } }
+@keyframes st-press { 40% { transform: scale(0.96); border-color: var(--text-3); } }
+@keyframes st-pop { from { opacity: 0; transform: scale(0.6); } }
+.st-cell.in .st-sign { animation: st-rise 1000ms var(--ease-out) 200ms backwards; }
+.st-cell.in .st-google { animation: st-press 360ms var(--ease-out) 1300ms; }
+.st-cell.in .st-connect { animation: st-press 360ms var(--ease-out) 600ms; }
+.st-cell .st-lines path { stroke-dasharray: 80; }
+.st-cell.in .st-lines path { animation: st-draw 700ms var(--ease-out) 900ms backwards; }
+.st-cell.in .st-row { animation: st-land 600ms var(--ease-out) calc(1300ms + var(--i) * 220ms) backwards; }
+.st-cell.in .st-row .ok svg { animation: st-pop 400ms var(--ease-out) calc(1700ms + var(--i) * 220ms) backwards; }
+.st-cell.in .st-mails { animation: st-rise 1000ms var(--ease-out) 300ms backwards; }
+.st-cell.in .st-mail, .st-cell.in .st-next { animation: st-land 600ms var(--ease-out) calc(900ms + var(--i) * 260ms) backwards; }
+html.no-motion .st-cell *, html.no-motion .st-cell .st-lines path { animation: none !important; }
+@media (prefers-reduced-motion: reduce) { .st-cell *, .st-cell .st-lines path { animation: none !important; } }
+
+/* ---------- Small laptops: the three pieces a little smaller ---------- */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .st-flow { transform: scale(0.86); }
+  .st-sign { width: 232px; }
+  .st-mails { width: 264px; }
+  .st-cap { left: 28px; right: 28px; }
+}
+
+/* ---------- Tablet and phone: the cells stack ---------- */
+@media (max-width: 1023px) {
+  .st-grid { grid-template-columns: minmax(0, 1fr); margin-top: 48px; }
+  .st-cell { height: 420px; border-left: 0; border-top: 1px solid var(--line); }
+  .st-cell:first-child { border-top: 0; }
+  .st-grid > .st-cell:nth-child(n) { transition-delay: 0ms; }
+  .st-pic { bottom: 120px; }
+}
+@media (max-width: 599px) {
+  .st-grid { margin-top: 40px; border-radius: 14px; }
+  .st-cell { height: 440px; }
+  .st-pic { bottom: 136px; }
+  .st-mails { width: 280px; }
+  .st-cap { left: 20px; right: 20px; bottom: 24px; }
+  .st-flow { transform: scale(0.92); }
+}
