@@ -5,7 +5,8 @@
 
 /* ---------- Hero: words alone at the bottom left, the film behind ---------- */
 .hf-hero { position: relative; display: flex; align-items: flex-end; min-height: min(calc(100vh - 64px), 820px); overflow: hidden; border-bottom: 1px solid var(--line); }
-.hf-stage { position: absolute; inset: 0; pointer-events: none; opacity: 0.75;
+/* Darker and quieter, like linear.app/intake (owner, 21 Nov 2026); the shade and grain on top are in film-shade.css */
+.hf-stage { position: absolute; inset: 0; pointer-events: none; opacity: 0.5;
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 16%, #000 62%, transparent 100%); mask-image: linear-gradient(to bottom, transparent 0%, #000 16%, #000 62%, transparent 100%); }
 .hf-scene { position: absolute; top: 0; left: calc(50% - 720px); width: 1440px; height: 100%; opacity: 0; }
 .hf-scene[data-on] { opacity: 1; }
@@ -13,7 +14,8 @@
 .hf-scene:not([data-on]) { visibility: hidden; content-visibility: hidden; }
 .hf-copy { position: absolute; inset: 0; }
 /* The blur: one veil over the sharp picture, clear inside the focus ellipse */
-.hf-veil { position: absolute; inset: 0; -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); -webkit-mask-image: var(--mask); mask-image: var(--mask); -webkit-mask-size: 1440px 820px; mask-size: 1440px 820px; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; pointer-events: none; }
+/* The veil spans the whole screen width (its mask is wider than the 1440 px scene, see VEIL_PAD_X in site/runtime/film.ts) */
+.hf-veil { position: absolute; top: -100px; bottom: -100px; left: min(0px, calc(720px - 50vw)); right: min(0px, calc(720px - 50vw)); -webkit-mask-position: max(-1240px, calc(50vw - 1960px)) 0; mask-position: max(-1240px, calc(50vw - 1960px)) 0; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); -webkit-mask-image: var(--mask); mask-image: var(--mask); -webkit-mask-size: 3920px 1020px; mask-size: 3920px 1020px; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; pointer-events: none; }
 .hf-hero[data-lite] .hf-veil { display: none; }
 .hf-move { position: absolute; inset: 0; transform-origin: var(--sx) var(--sy); }
 .hf-lens { position: absolute; inset: 0; perspective: var(--persp); perspective-origin: var(--pox) var(--poy); }
@@ -121,8 +123,12 @@
 @keyframes hf-film-in { from { opacity: 0; } }
 @keyframes hf-blur-in { from { opacity: 0; filter: blur(8px); transform: translateY(8px); } }
 
-/* The words, bottom left */
+/* The words, bottom left; the news link above the title, where Linear puts its small line */
 .hf-words { position: relative; padding-bottom: 80px; }
+.hf-eyebrow { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 20px; font-size: 16px; line-height: 24px; color: var(--text-3); text-decoration: none; transition: color 150ms; }
+.hf-eyebrow b { color: var(--text-2); font-weight: 500; }
+.hf-eyebrow:hover, .hf-eyebrow:hover b { color: var(--text); }
+.hf-eyebrow:focus-visible { outline: 2px solid var(--text-2); outline-offset: 4px; border-radius: 4px; }
 .hf-display { font-size: 72px; line-height: 1.04; letter-spacing: -0.032em; font-weight: 520; text-wrap: balance; }
 .hf-row { display: flex; justify-content: space-between; align-items: flex-end; gap: 48px; margin-top: 32px; }
 .hf-lead { max-width: 560px; font-size: 18px; line-height: 28px; letter-spacing: -0.01em; color: var(--text-3); text-wrap: pretty; }
@@ -140,19 +146,22 @@
   .hf-row { flex-direction: column; align-items: flex-start; gap: 32px; }
   .hf-words { padding-bottom: 72px; }
 }
+/* Phones (owner, 21 Nov 2026, after linear.app/mobile): the film on top, fading out to the page; the words under it on the plain page */
 @media (max-width: 599px) {
-  .hf-hero { min-height: calc(100svh - 64px); }
-  .hf-stage { opacity: 0.85; -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 7%, #000 46%, rgb(0 0 0 / 0.35) 60%, rgb(0 0 0 / 0.2) 76%, transparent 92%);
-    mask-image: linear-gradient(to bottom, transparent 0%, #000 7%, #000 46%, rgb(0 0 0 / 0.35) 60%, rgb(0 0 0 / 0.2) 76%, transparent 92%); }
+  .hf-hero { --film-h: clamp(280px, 46svh, 420px); display: block; min-height: 0; padding-top: var(--film-h); }
+  .hf-stage { bottom: auto; height: var(--film-h); opacity: 0.6; -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 52%, transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 52%, transparent 100%); }
+  /* The shot's aim (225 px down the frame, see PHONE_SY in site/runtime/film.ts) moves to just above the film's middle */
+  .hf-scene { top: calc(var(--film-h) * 0.45 - 225px); }
   .hf-move { transform-origin: var(--p-sx) var(--p-sy); scale: var(--p-drift); }
   .hf-lens { transform-origin: 0 0; transform: var(--p-lens); }
   .hf-veil { -webkit-mask-image: var(--p-mask); mask-image: var(--p-mask); }
   .hf-display { font-size: 36px; line-height: 1.1; letter-spacing: -0.025em; }
   .hf-lead { font-size: 16px; line-height: 26px; }
+  .hf-words { padding-bottom: 64px; }
+  /* No small line above the title on phones (owner, 21 Nov 2026); NorthList Apply stays in the menu */
+  .hf-eyebrow { display: none; }
   .hf-row { gap: 24px; margin-top: 16px; }
-  .hf-cta { width: 100%; flex-direction: column; align-items: stretch; gap: 16px; }
-  .hf-cta .btn { justify-content: center; }
-  .hf-cta .lh-new { justify-content: center; }
-  .hf-ctl { bottom: 20px; }
+  .hf-ctl { bottom: 72px; }
   .hf-try { margin-top: 32px; }
 }
