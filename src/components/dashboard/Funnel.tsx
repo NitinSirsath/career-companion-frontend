@@ -1,6 +1,13 @@
 import type { CSSProperties } from 'react';
 import type { DashboardResponse } from '../../contracts/dashboard';
-import { RATE_BASE, barPercent, countOf, rateText, replyDaysText } from '../../lib/dashboard';
+import {
+  RATE_BASE,
+  barPercent,
+  countOf,
+  funnelFacts,
+  rateText,
+  replyDaysText,
+} from '../../lib/dashboard';
 import { DashCard } from './DashCard';
 
 /** Under 5 applications there are no rate tiles: the reply time is one line in the card. */
@@ -23,25 +30,19 @@ export function Funnel({ numbers }: { numbers: DashboardResponse }) {
   const steps = [
     { label: 'Applied', count: f.applied },
     { label: 'Got a reply', count: f.answered },
-    { label: 'Recruiter contact', count: f.recruiterContact },
-    { label: 'Assessment', count: f.assessment },
+    { label: 'Heard from a recruiter', count: f.recruiterContact },
+    { label: 'Test or task', count: f.assessment },
     { label: 'Interview', count: f.interview },
     { label: 'Offer', count: f.offer },
   ];
-  const facts = few
-    ? []
-    : [
-        { label: 'Response rate', value: rateText(numbers.rates.response) },
-        { label: 'Interview rate', value: rateText(numbers.rates.interview) },
-        { label: 'Offer rate', value: rateText(numbers.rates.offer) },
-      ];
-  if (numbers.usualReplyDays !== null)
-    facts.push({ label: 'Usual reply time', value: replyDaysText(numbers.usualReplyDays) });
+  const facts = few ? [] : funnelFacts(numbers);
   return (
     <DashCard
       className="@container/funnel"
       title="From applied to offer"
-      aside={few ? `Rates show from ${RATE_BASE} applications` : 'Furthest step each job reached'}
+      aside={
+        few ? `Rates show once you have sent ${RATE_BASE} applications` : 'How far each job got'
+      }
     >
       <ol className="mt-4 flex flex-col gap-2.5 @min-[460px]/funnel:mt-5 @min-[460px]/funnel:flex-row @min-[460px]/funnel:gap-0">
         {steps.map((step, i) => {
@@ -79,12 +80,13 @@ export function Funnel({ numbers }: { numbers: DashboardResponse }) {
         })}
       </ol>
       {few && numbers.usualReplyDays !== null && <ReplyTimeLine days={numbers.usualReplyDays} />}
-      {!few && facts.length > 0 && (
-        <dl className="-mx-4 mt-5 -mb-4 grid grid-cols-2 gap-0.5 bg-background pt-0.5 md:-mx-6 md:-mb-6 @min-[560px]/funnel:grid-cols-4">
+      {facts.length > 0 && (
+        <dl className="-mx-4 mt-5 -mb-4 grid grid-cols-2 gap-0.5 bg-background pt-0.5 md:-mx-6 md:-mb-6 @min-[720px]/funnel:grid-cols-4">
           {facts.map((fact) => (
-            <div key={fact.label} className="bg-surface-subtle px-4 py-3 md:py-4">
-              <dt className="text-xs text-text-secondary">{fact.label}</dt>
-              <dd className="text-2xl leading-8 font-light">{fact.value}</dd>
+            <div key={fact.label} className="flex flex-col bg-surface-subtle px-4 py-3 md:py-4">
+              {/* The value reads first: "About 1 in 3" / "got a reply". */}
+              <dt className="order-2 text-xs text-text-secondary">{fact.label}</dt>
+              <dd className="order-1 text-2xl leading-8 font-light">{fact.value}</dd>
             </div>
           ))}
         </dl>
