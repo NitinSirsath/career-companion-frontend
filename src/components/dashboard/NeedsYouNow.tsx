@@ -8,8 +8,8 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import type { DashboardResponse } from '../../contracts/dashboard';
-import { interviewWhen } from '../../lib/dashboard';
 import { cn } from '../../lib/utils';
+import { interviewLine, needsActionLine, newMailsLine } from './needsLines';
 
 type Now = DashboardResponse['now'];
 
@@ -67,40 +67,6 @@ function Tile({
     to(body, cn(TILE, 'transition-colors duration-70 ease-standard hover:bg-layer-accent'))
   ) : (
     <div className={TILE}>{body}</div>
-  );
-}
-
-const Strong = ({ children }: { children: ReactNode }) => (
-  <strong className="font-medium text-text-primary">{children}</strong>
-);
-
-function newMailsLine({ count, today }: Now['newJobMails']) {
-  if (!count) return 'You have opened every job mail';
-  if (!today) return 'Not opened yet';
-  return (
-    <>
-      <Strong>{today} today</Strong> · not opened yet
-    </>
-  );
-}
-
-function needsActionLine({ count, waitingOverADay }: Now['needsAction']) {
-  if (!count) return 'Nothing is waiting on you';
-  if (!waitingOverADay) return 'Answer them, or mark them done';
-  return (
-    <>
-      <Strong>{waitingOverADay}</Strong> waiting over a day
-    </>
-  );
-}
-
-function interviewLine({ next }: Now['interviews']) {
-  if (!next) return 'No interviews booked yet';
-  return (
-    <>
-      Next: <Strong>{interviewWhen(next)}</Strong>
-      {next.companyName && ` · ${next.companyName}`}
-    </>
   );
 }
 
