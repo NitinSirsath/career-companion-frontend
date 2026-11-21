@@ -3,7 +3,6 @@ import { useAIReading } from '../api/aiReading';
 import { useDashboard } from '../api/dashboard';
 import { useGmailStatus } from '../api/gmail';
 import { AIAccessNotice } from '../components/ai/AIAccessNotice';
-import { useChosenPeriod } from '../lib/dashboardPeriod';
 import { RouteErrorPage } from '../components/errors/RouteErrorPage';
 import { PageHeader } from '../components/layout/PageHeader';
 import { useIsPhone } from '../components/layout/useIsPhone';
@@ -41,14 +40,12 @@ export const Route = createFileRoute('/dashboard')({
 
 /**
  * The home page (owner, 3 Nov 2026): a greeting, what needs the user now, their progress in the
- * period, and their mailbox. The menu still calls it Dashboard. Phones call it Today and keep the
- * charts one tap deeper, on /dashboard/charts (owner, 18 Nov 2026).
+ * period, and their mailbox. The menu still calls it Dashboard. Phones call it Today and show the
+ * charts on the page too, with fewer parts (owner, 21 Nov 2026).
  */
 function DashboardPage() {
-  const chosen = useChosenPeriod();
   const phone = useIsPhone();
-  // Phones pick the period on Charts and rates; Today follows it (owner, 18 Nov 2026).
-  const period = Route.useSearch().period ?? (phone ? chosen : null) ?? DEFAULT_PERIOD;
+  const period = Route.useSearch().period ?? DEFAULT_PERIOD;
   const navigate = useNavigate({ from: Route.fullPath });
   const { user } = Route.useRouteContext();
   const dashboard = useDashboard(period);
@@ -96,7 +93,7 @@ function DashboardPage() {
         />
       )}
       {!noGmail && !starting && numbers && phone && (
-        <PhoneToday numbers={numbers} period={period} />
+        <PhoneToday numbers={numbers} period={period} onPeriodChange={setPeriod} />
       )}
       {!noGmail && !starting && numbers && !phone && (
         <DashboardBody numbers={numbers} period={period} onPeriodChange={setPeriod} />
