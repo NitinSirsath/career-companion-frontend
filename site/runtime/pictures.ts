@@ -15,7 +15,7 @@ import { noMotion, onReplay, whenSeen } from './motion.ts';
  * rewinds it.
  */
 const RUN_TIMES = {
-  roll: 40;
+  roll: 40,
   drive: 500,
   job: 800,
   apply: 2100,
