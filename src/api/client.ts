@@ -35,6 +35,7 @@ import {
   ListApplicationSubmissionsResponseSchema,
   ListNotSubmittedJobsResponseSchema,
   ListPendingSubmissionsResponseSchema,
+  PortalPasswordResponseSchema,
   ResolveSubmissionResponseSchema,
   ListApplicationEventsResponseSchema,
   ReadWaitingMailResponseSchema,
@@ -72,6 +73,7 @@ import type {
   ListApplicationSubmissionsResponse,
   ListNotSubmittedJobsResponse,
   ListPendingSubmissionsResponse,
+  PortalPasswordResponse,
   ResolveSubmissionRequest,
   ResolveSubmissionResponse,
 } from '../contracts';
@@ -579,6 +581,15 @@ export class ApiClient {
   }
 
   /** Everything the automation reported for this application, newest first. */
+  /** Opens the owner's saved portal password. Kept in the caller's state only, never cached. */
+  async revealPortalPassword(accountId: string): Promise<PortalPasswordResponse> {
+    return this.request(
+      `/api/submissions/portal-accounts/${encodeURIComponent(accountId)}/password`,
+      { method: 'POST', cache: 'no-store' },
+      PortalPasswordResponseSchema,
+    );
+  }
+
   async getApplicationSubmissions(
     id: string,
     options?: RequestOptions,
