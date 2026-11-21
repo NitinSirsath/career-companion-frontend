@@ -474,7 +474,7 @@
     --page-shade: rgb(0 0 0 / 0.1);
   }
 
-  /* Dark: Render's near-black and greys with IBM blue; tags and notices are dark tints with light text. */
+  /* Dark: near-black and greys; tags and notices are dark tints with light text. */
   .theme-dark {
     --background: #111113;
     --surface: #111113;
@@ -586,13 +586,14 @@
     --avatar-5-text: #6fdc8c;
     --avatar-6: #1c1c1f;
     --avatar-6-text: #a1a1aa;
-    /* Dark: menu and top bar on near-black, the page on a lighter raised sheet. */
-    --canvas: #08080a;
+    /* Dark keeps light's layout (owner, 21 Nov 2026): menu and top bar on the page colour with thin
+       lines, no raised sheet. */
+    --canvas: var(--background);
     --canvas-hover: rgb(255 255 255 / 0.05);
-    --shell-line: transparent;
+    --shell-line: var(--border-subtle);
     --nav-active: #1f1f23;
-    --nav-active-shadow: 0 0 0 1px rgb(255 255 255 / 0.1), 0 1px 2px rgb(0 0 0 / 0.5);
-    --sheet-shadow: 0 0 0 1px rgb(255 255 255 / 0.06), 0 8px 24px rgb(0 0 0 / 0.5);
+    --nav-active-shadow: none;
+    --sheet-shadow: none;
     --button-shadow: none;
     --glass: rgb(44 44 48 / 0.52);
     --glass-edge: rgb(255 255 255 / 0.13);
