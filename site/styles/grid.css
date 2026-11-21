@@ -1,0 +1,97 @@
+/*
+ * The section look under the heroes (owner, 21 Nov 2026, after linear.app/intake and /mobile): one frame with a
+ * hairline border and hairlines between its cells (no gaps, no separate cards, no glow), a tall picture in each
+ * cell with its caption at the bottom left, and a lit stage for the big pictures (grey light from the top).
+ * The small pictures share one art style: 12-14 px UI on near-black, 1 px faint borders, soft shadows, edges
+ * fading out, thin connector lines, icon tiles, one accent at most. Classes start with lg-.
+ */
+:root[data-theme='dark'] {
+  --lg-line: rgb(255 255 255 / 0.07);
+  --lg-line-2: rgb(255 255 255 / 0.11);
+  --lg-surface: linear-gradient(180deg, #141518, #0e0f11);
+  --lg-light: radial-gradient(110% 80% at 50% -16%, #5c5d62 0%, #2e2f33 26%, #151618 54%, var(--bg) 80%);
+  --lg-shadow: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 16px 40px rgb(0 0 0 / 0.5), 0 2px 6px rgb(0 0 0 / 0.4);
+}
+
+/* ---------- The frame: hairline border, hairlines between rows and cells ---------- */
+.lg { display: grid; gap: 1px; margin-top: 48px; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--line); }
+.lg > *, .lg-row > * { background: var(--bg); }
+.lg > .lg-row { background: var(--line); }
+.lg-row { display: grid; gap: 1px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.lg-row.lg-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+/* A second frame right under another (owner, 21 Nov 2026: the pictures plain, apart from the stage) */
+.lg-next { margin-top: 32px; }
+
+/* A cell: the picture on top, the caption at the bottom left */
+.lg-cell { position: relative; margin: 0; display: grid; grid-template-rows: auto 1fr; align-content: start; padding-bottom: 40px; color: var(--text); text-decoration: none; }
+.lg-pic { position: relative; height: 400px; display: grid; place-items: center; overflow: hidden; }
+.lg-cap { display: grid; gap: 4px; padding-inline: 40px; max-width: 520px; align-content: start; font-size: 16px; line-height: 24px; color: var(--text-3); text-wrap: pretty; }
+.lg-cap b { font-weight: 500; color: var(--text); }
+.lg-4 .lg-pic { height: 240px; }
+.lg-4 .lg-cell { padding-bottom: 32px; }
+.lg-4 .lg-cap { padding-inline: 32px; font-size: 14px; line-height: 22px; }
+.lg-4 .lg-cap b { font-size: 16px; line-height: 24px; }
+
+/* A text-only row under a stage (facts) */
+.lg-note { display: grid; align-content: start; gap: 4px; padding: 32px 40px; font-size: 16px; line-height: 24px; color: var(--text-3); text-wrap: pretty; }
+.lg-note b { font-weight: 500; color: var(--text); }
+
+/* A cell that is a link: the arrow top right, a quiet lift on hover */
+a.lg-cell { transition: background-color 200ms cubic-bezier(0.23, 1, 0.32, 1); }
+a.lg-cell .lg-go { position: absolute; z-index: 2; top: 24px; right: 24px; width: 32px; height: 32px; display: grid; place-items: center; border: 1px solid var(--lg-line-2); border-radius: 50%; color: var(--text-3);
+  transition: color 150ms cubic-bezier(0.23, 1, 0.32, 1), border-color 150ms cubic-bezier(0.23, 1, 0.32, 1), transform 200ms cubic-bezier(0.23, 1, 0.32, 1); }
+@media (hover: hover) and (pointer: fine) {
+  a.lg-cell:hover { background: #0c0d0e; }
+  a.lg-cell:hover .lg-go { color: var(--text); border-color: var(--line-3); transform: translate(2px, -2px); }
+}
+a.lg-cell:focus-visible { outline: 2px solid var(--text-2); outline-offset: -2px; }
+
+/* ---------- The lit stage: grey light falling from the top, the caption inside at the bottom left ---------- */
+.lg-stage { position: relative; overflow: hidden; margin: 0;
+  background: var(--lg-light); }
+.lg-stage::after { content: ''; position: absolute; inset: auto 0 0; height: 240px; background: linear-gradient(to top, var(--bg) 24%, transparent); pointer-events: none; z-index: 1; }
+.lg-stage > .lg-cap { position: absolute; z-index: 2; left: 0; bottom: 40px; }
+
+/* ---------- Art pieces ---------- */
+/* A surface: near-black, 1 px faint border, soft shadow */
+.lg-ui { position: relative; border: 1px solid var(--lg-line); border-radius: 12px; background: var(--lg-surface); box-shadow: var(--lg-shadow);
+  font-size: 14px; line-height: 20px; color: var(--text-2); }
+.lg-ui b { font-weight: 500; color: var(--text); }
+.lg-ui .lg-o { font-size: 12px; line-height: 16px; color: var(--dim); }
+/* An icon tile */
+.lg-tile { width: 56px; height: 56px; flex: none; display: grid; place-items: center; border: 1px solid var(--lg-line); border-radius: 14px; background: var(--lg-surface); box-shadow: var(--lg-shadow); color: var(--text-3); }
+.lg-tile.on { color: var(--text); border-color: var(--lg-line-2); }
+/* Small UI buttons and chips inside the pictures (not real controls) */
+.lg-btn { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; border: 1px solid var(--lg-line-2); border-radius: 8px; background: #17181b; font-size: 12px; color: var(--text-2); white-space: nowrap; }
+.lg-btn.pri { border-color: transparent; background: var(--btn, #e6e6e6); color: var(--btn-text, #08090a); }
+.lg-chip { display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 12px; border: 1px solid var(--lg-line-2); border-radius: 14px; background: #121316; font-size: 12px; color: var(--text-2); white-space: nowrap; }
+/* Thin connector lines */
+.lg-wire { stroke: rgb(255 255 255 / 0.16); stroke-width: 1; fill: none; vector-effect: non-scaling-stroke; }
+/* Edges fading out */
+.lg-fade-r { -webkit-mask-image: linear-gradient(to right, #000 55%, transparent 96%); mask-image: linear-gradient(to right, #000 55%, transparent 96%); }
+.lg-fade-l { -webkit-mask-image: linear-gradient(to left, #000 55%, transparent 96%); mask-image: linear-gradient(to left, #000 55%, transparent 96%); }
+.lg-fade-b { -webkit-mask-image: linear-gradient(to bottom, #000 50%, transparent 92%); mask-image: linear-gradient(to bottom, #000 50%, transparent 92%); }
+.lg-fade-t { -webkit-mask-image: linear-gradient(to top, #000 50%, transparent 96%); mask-image: linear-gradient(to top, #000 50%, transparent 96%); }
+.lg-fade-o { -webkit-mask-image: radial-gradient(closest-side, #000 40%, transparent); mask-image: radial-gradient(closest-side, #000 40%, transparent); }
+
+/* ---------- Tablet ---------- */
+@media (max-width: 1023px) {
+  .lg-row.lg-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lg-pic { height: 340px; }
+  .lg-cap, .lg-4 .lg-cap { padding-inline: 32px; }
+  .lg-note { padding: 28px 32px; }
+}
+/* ---------- Phone: one column ---------- */
+@media (max-width: 599px) {
+  .lg { margin-top: 32px; border-radius: 16px; }
+  .lg-next { margin-top: 16px; }
+  .lg-row, .lg-row.lg-4 { grid-template-columns: minmax(0, 1fr); }
+  .lg-pic { height: 280px; }
+  .lg-4 .lg-pic { height: 200px; }
+  .lg-cell, .lg-4 .lg-cell { padding-bottom: 28px; }
+  .lg-cap, .lg-4 .lg-cap { padding-inline: 24px; }
+  .lg-stage > .lg-cap { bottom: 28px; }
+  .lg-note { padding: 24px; }
+  a.lg-cell .lg-go { top: auto; bottom: 32px; right: 24px; }
+}
