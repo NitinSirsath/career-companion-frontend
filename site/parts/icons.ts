@@ -101,6 +101,8 @@ const PATHS: Record<string, string> = {
     '<path d="M8.5 7H20M8.5 12H20M8.5 17H20"/><path d="M4 7h1.5M4 12h1.5M4 17h1.5"/>',
   install:
     '<path d="M12 4v11M7 10.5l5 5 5-5"/><path d="M4.5 19.5h15"/>',
+  share:
+    '<path d="M12 3.5v11M8 7.5l4-4 4 4"/><path d="M8.5 10.5H6v10h12v-10h-2.5"/>',
   eye:
     '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.5"/>',
   eyeOff:

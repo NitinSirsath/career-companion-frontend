@@ -215,7 +215,7 @@ function LinkField({
       </div>
       {wrong && (
         <p role="alert" className="text-xs text-danger-text">
-          Use a web or mail address, like nitin.dev or name@example.com.
+          Use a web or mail address, like example.com or name@example.com.
         </p>
       )}
     </div>

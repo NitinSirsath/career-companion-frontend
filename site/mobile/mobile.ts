@@ -1,5 +1,6 @@
 import { examples, startExamples } from '../example/index.ts';
 import { startFilm } from './film.ts';
+import { playWhileSeen } from '../runtime/motion.ts';
 
 /*
  * The Mobile page (owner, 19-20 Nov 2026). The hero's film (film.ts); the framed picture's front phone
@@ -14,3 +15,4 @@ document.querySelectorAll<HTMLElement>('[data-open-mail]').forEach((el) => {
 (document.activeElement as HTMLElement | null)?.blur();
 scrollTo(0, y);
 startFilm();
+playWhileSeen(document.querySelectorAll<HTMLElement>('[data-live]'));

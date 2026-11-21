@@ -37,7 +37,15 @@ export type Angle = {
 };
 export type Cam = Angle & Aim & { phone: Aim };
 /** Where a shot looks: its screen's slot on the board, the point in that screen, the zoom; then the same on phones. */
-export type ShotAim = { slot: number; x: number; y: number; cs: number; px: number; py: number; pcs: number };
+export type ShotAim = {
+  slot: number;
+  x: number;
+  y: number;
+  cs: number;
+  px: number;
+  py: number;
+  pcs: number;
+};
 
 /** One film: its class prefix (`hf`, `mb`), its shots in order, their cameras, how a shot is drawn, its rest pose. */
 export interface Film {
@@ -52,6 +60,9 @@ export interface Film {
 
 const FRAME_W = 1440;
 const FRAME_H = 820;
+/** How far the blur veil's mask reaches past the 1440 x 820 frame (screens up to 3840 px wide); the CSS matches it. */
+const VEIL_PAD_X = 1240;
+const VEIL_PAD_Y = 100;
 const SHOT_MS = 4000;
 /** Phones see the frame's middle; each shot's aim sits in a band above the words, sharp in a round spot. */
 const PHONE_SX = 720;
@@ -80,9 +91,18 @@ function onScreen(c: Cam, px: number, py: number): [number, number] {
   let x = (px - c.ox) * c.cs;
   let y = (py - c.oy) * c.cs;
   let z = 0;
-  [x, y] = [x * Math.cos(c.rz * DEG) - y * Math.sin(c.rz * DEG), x * Math.sin(c.rz * DEG) + y * Math.cos(c.rz * DEG)];
-  [x, z] = [x * Math.cos(c.ry * DEG) + z * Math.sin(c.ry * DEG), -x * Math.sin(c.ry * DEG) + z * Math.cos(c.ry * DEG)];
-  [y, z] = [y * Math.cos(c.rx * DEG) - z * Math.sin(c.rx * DEG), y * Math.sin(c.rx * DEG) + z * Math.cos(c.rx * DEG)];
+  [x, y] = [
+    x * Math.cos(c.rz * DEG) - y * Math.sin(c.rz * DEG),
+    x * Math.sin(c.rz * DEG) + y * Math.cos(c.rz * DEG),
+  ];
+  [x, z] = [
+    x * Math.cos(c.ry * DEG) + z * Math.sin(c.ry * DEG),
+    -x * Math.sin(c.ry * DEG) + z * Math.cos(c.ry * DEG),
+  ];
+  [y, z] = [
+    y * Math.cos(c.rx * DEG) - z * Math.sin(c.rx * DEG),
+    y * Math.sin(c.rx * DEG) + z * Math.cos(c.rx * DEG),
+  ];
   const f = c.persp / (c.persp - z);
   return [c.pox + (c.sx + x - c.pox) * f, c.poy + (c.sy + y - c.poy) * f];
 }
@@ -97,7 +117,10 @@ function phoneLens(c: Cam): string {
 type Ellipse = { cx: number; cy: number; rx: number; ry: number; turn: number };
 /** The veil's mask: clear inside the turned ellipse, solid outside it, soft between. */
 function veilMask({ cx, cy, rx, ry, turn }: Ellipse): string {
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${FRAME_W}' height='${FRAME_H}'><defs><radialGradient id='f' gradientUnits='userSpaceOnUse' cx='0' cy='0' r='1' gradientTransform='translate(${cx} ${cy}) rotate(${turn}) scale(${rx} ${ry})'><stop offset='0' stop-color='#fff' stop-opacity='0'/><stop offset='0.6' stop-color='#fff' stop-opacity='0'/><stop offset='0.8' stop-color='#fff' stop-opacity='0.25'/><stop offset='1' stop-color='#fff'/></radialGradient></defs><rect width='${FRAME_W}' height='${FRAME_H}' fill='url(#f)'/></svg>`;
+  // The mask reaches past the frame, so screens wider than 1440 px stay soft to their edges.
+  const w = FRAME_W + 2 * VEIL_PAD_X;
+  const h = FRAME_H + 2 * VEIL_PAD_Y;
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}'><defs><radialGradient id='f' gradientUnits='userSpaceOnUse' cx='0' cy='0' r='1' gradientTransform='translate(${cx + VEIL_PAD_X} ${cy + VEIL_PAD_Y}) rotate(${turn}) scale(${rx} ${ry})'><stop offset='0' stop-color='#fff' stop-opacity='0'/><stop offset='0.6' stop-color='#fff' stop-opacity='0'/><stop offset='0.8' stop-color='#fff' stop-opacity='0.25'/><stop offset='1' stop-color='#fff'/></radialGradient></defs><rect width='${w}' height='${h}' fill='url(#f)'/></svg>`;
   return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
 }
 const PHONE_MASK = veilMask({ cx: PHONE_SX, cy: PHONE_SY, rx: 230, ry: 160, turn: 0 });
@@ -128,15 +151,25 @@ function camStyle(c: Cam): string {
 
 /** Weak devices get the film without its blur veil. */
 function weakDevice(): boolean {
-  const nav = navigator as Navigator & { deviceMemory?: number; connection?: { saveData?: boolean } };
-  return (nav.hardwareConcurrency || 8) <= 4 || (nav.deviceMemory || 8) <= 4 || !!nav.connection?.saveData;
+  const nav = navigator as Navigator & {
+    deviceMemory?: number;
+    connection?: { saveData?: boolean };
+  };
+  return (
+    (nav.hardwareConcurrency || 8) <= 4 ||
+    (nav.deviceMemory || 8) <= 4 ||
+    !!nav.connection?.saveData
+  );
 }
 
 /** Empty scenes, one per shot, with their cameras and masks; `show(ms)` draws and shows the shot of that moment. */
 function buildStage(film: Film, stage: HTMLElement) {
   const { prefix, shots, cams } = film;
   stage.innerHTML = shots
-    .map((id) => `<div class="${prefix}-scene ${prefix}-shot-${id}" data-shot="${id}" style="${camStyle(cams[id])}"></div>`)
+    .map(
+      (id) =>
+        `<div class="${prefix}-scene ${prefix}-shot-${id}" data-shot="${id}" style="${camStyle(cams[id])}"></div>`,
+    )
     .join('');
   stage.inert = true;
   // The masks hold quotes, so they are set here, not in the markup.
@@ -144,7 +177,10 @@ function buildStage(film: Film, stage: HTMLElement) {
   const scenes = [...stage.querySelectorAll<HTMLElement>(`.${prefix}-scene`)];
   scenes.forEach((el) => {
     const c = cams[el.dataset.shot ?? ''];
-    el.style.setProperty('--mask', veilMask({ cx: c.mcx, cy: c.mcy, rx: c.mrx, ry: c.mry, turn: c.mturn }));
+    el.style.setProperty(
+      '--mask',
+      veilMask({ cx: c.mcx, cy: c.mcy, rx: c.mrx, ry: c.mry, turn: c.mturn }),
+    );
   });
   const fill = (el: HTMLElement) => {
     if (!el.childElementCount) el.innerHTML = film.draw(el.dataset.shot ?? '');
@@ -200,7 +236,12 @@ function hold(stage: HTMLElement, show: (ms: number) => void, ms: number, end: n
 }
 
 /** The clock: shows each shot at its moment and loops; it holds its place while paused, unseen or not yet settled. */
-function runClock(hero: HTMLElement, stage: HTMLElement, show: (ms: number) => void, film: Film): void {
+function runClock(
+  hero: HTMLElement,
+  stage: HTMLElement,
+  show: (ms: number) => void,
+  film: Film,
+): void {
   const end = film.shots.length * SHOT_MS;
   const scenes = [...stage.children];
   let held = 0;
@@ -238,7 +279,10 @@ function runClock(hero: HTMLElement, stage: HTMLElement, show: (ms: number) => v
   btn?.addEventListener('click', () => {
     playing = !playing;
     btn.setAttribute('aria-pressed', String(!playing));
-    btn.setAttribute('aria-label', playing ? 'Pause the hero animation' : 'Play the hero animation');
+    btn.setAttribute(
+      'aria-label',
+      playing ? 'Pause the hero animation' : 'Play the hero animation',
+    );
     run();
   });
   new IntersectionObserver(([e]) => {

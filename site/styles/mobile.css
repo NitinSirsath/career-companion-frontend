@@ -3,6 +3,8 @@
  * rules (stockypro.com's Linear study): two big phone pictures, one notification panel, small cards
  * that show one piece each. Fixed type sizes, a 4px grid, radius 8 / 12 / 16. Classes start with mb-.
  */
+@import './film-shade.css';
+@import './mobile-sections.css';
 
 /* No blue (owner, 19 Nov 2026: the app no longer uses blue): inside these phones the app's blue turns white and grey */
 body[data-page='mobile'] .device, body[data-page='mobile'] .device .sa { --link: var(--text); --blue: #e6e6e6; --blue-hover: #ffffff; --mark: var(--text); --tint: #1c1d1f; --tint-text: var(--text-2);
@@ -16,8 +18,8 @@ body[data-page='mobile'] .rv { transition: opacity 560ms var(--mb-ease), transfo
 
 /* ---------- 1. Hero: the words alone at the bottom left, the film behind (film.ts; stockypro.com's FilmHero) ---------- */
 .mb-hero { position: relative; display: flex; align-items: flex-end; min-height: min(calc(100vh - 64px), 820px); overflow: hidden; border-bottom: 1px solid var(--line); }
-/* The film, dimmed once as a whole, faded at the top and bottom so the words read */
-.mb-stage { position: absolute; inset: 0; pointer-events: none; opacity: 0.8;
+/* The film, dimmed once as a whole (darker, like linear.app/mobile, owner 21 Nov 2026), faded at the top and bottom; the shade and grain on top are in film-shade.css */
+.mb-stage { position: absolute; inset: 0; pointer-events: none; opacity: 0.55;
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 18%, #000 66%, transparent 100%); mask-image: linear-gradient(to bottom, transparent 0%, #000 18%, #000 66%, transparent 100%); }
 /* A shot: the 1440 × 820 frame, centred; hard cuts */
 .mb-scene { position: absolute; top: 0; left: calc(50% - 720px); width: 1440px; height: 100%; opacity: 0; }
@@ -26,7 +28,8 @@ body[data-page='mobile'] .rv { transition: opacity 560ms var(--mb-ease), transfo
 /* Scenes not on screen are not drawn at all (performance, owner 20 Nov 2026) */
 .mb-scene:not([data-on]) { visibility: hidden; content-visibility: hidden; }
 /* The blur: one veil over the sharp picture, clear inside the focus ellipse; weak devices skip it */
-.mb-veil { position: absolute; inset: 0; -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); -webkit-mask-image: var(--mask); mask-image: var(--mask); -webkit-mask-size: 1440px 820px; mask-size: 1440px 820px; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; pointer-events: none; }
+/* The veil spans the whole screen width (its mask is wider than the 1440 px scene, see VEIL_PAD_X in site/runtime/film.ts) */
+.mb-veil { position: absolute; top: -100px; bottom: -100px; left: min(0px, calc(720px - 50vw)); right: min(0px, calc(720px - 50vw)); -webkit-mask-position: max(-1240px, calc(50vw - 1960px)) 0; mask-position: max(-1240px, calc(50vw - 1960px)) 0; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); -webkit-mask-image: var(--mask); mask-image: var(--mask); -webkit-mask-size: 3920px 1020px; mask-size: 3920px 1020px; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; pointer-events: none; }
 .mb-hero[data-lite] .mb-veil { display: none; }
 .mb-move { position: absolute; inset: 0; transform-origin: var(--sx) var(--sy); }
 .mb-lens { position: absolute; inset: 0; perspective: var(--persp); perspective-origin: var(--pox) var(--poy); }
@@ -35,7 +38,7 @@ body[data-page='mobile'] .rv { transition: opacity 560ms var(--mb-ease), transfo
   transform-origin: calc(var(--ox) * var(--cs)) calc(var(--oy) * var(--cs)); transform: rotateX(var(--rx)) rotateY(var(--ry)) rotateZ(var(--rz)); }
 .mb-orb > .mb-board { zoom: var(--cs); }
 /* Camera moves on the angle itself, each a plain transform on its own layer (performance, 20 Nov 2026):
-   .mb-tilt leans the whole plane over the aim (shot 3 cranes down), .mb-orb turns the picture around the aim in its own plane (shot 4) */
+   .mb-tilt leans the whole plane over the aim (shot 3 cranes down), .mb-orb can turn the picture around the aim in its own plane */
 .mb-tilt { position: absolute; inset: 0; transform-style: preserve-3d; transform-origin: var(--sx) var(--sy); }
 .mb-orb { transform-origin: calc(var(--ox) * var(--cs)) calc(var(--oy) * var(--cs)); }
 /* The board: the story's phone among the app's other screens, quieter */
@@ -180,16 +183,14 @@ html.no-motion .mb-scr .swap .was, html.no-motion .mb-scr .state .was { display:
 
 /* What lands, per shot (only while its shot is on; base styles are each shot's end) */
 @media (prefers-reduced-motion: no-preference) {
-  /* A different move per shot: push in, pan, crane down with a push along the reply, a swing around the done step that settles */
+  /* A different move per shot: push in, pan, crane down with a push along the reply, a slow pull back from the done step */
   .mb-shot-alert[data-on] .mb-move { animation: mb-move-a 4000ms cubic-bezier(0.33, 0, 0.2, 1) both; }
   .mb-shot-inbox[data-on] .mb-move { animation: mb-move-b 4000ms linear both; }
   .mb-shot-mail[data-on] .mb-move { animation: mb-move-c 4000ms cubic-bezier(0.45, 0, 0.25, 1) both; }
   .mb-shot-mail[data-on] .mb-tilt { animation: mb-crane 4000ms cubic-bezier(0.45, 0, 0.25, 1) both; }
-  /* The finish: the camera rises and pulls back slowly over the done step and the screens around it, then the story fades out; the next loop fades back in */
-  .mb-shot-done[data-on] .mb-move { animation: mb-move-d 4000ms linear both; }
+  /* The finish (owner, 21 Nov 2026: "simple zoom in or zoom out"): one slow pull back from the done step, no turn or tilt; then the story fades out and the next loop fades back in */
+  .mb-shot-done[data-on] .mb-move { animation: mb-move-d 4000ms cubic-bezier(0.37, 0, 0.63, 1) both; }
   .mb-shot-done[data-on] { animation: mb-fade-end 4000ms linear both; }
-  .mb-shot-done[data-on] .mb-tilt { animation: mb-swing-tilt 4000ms linear both; }
-  .mb-shot-done[data-on] .mb-orb { animation: mb-swing-orb 4000ms linear both; }
   .mb-shot-alert[data-on] { animation: mb-fade-start 700ms cubic-bezier(0.23, 1, 0.32, 1) both; }
   /* NorthList's alert lands on top; Gmail's mail and the stack under it move down to make room */
   .mb-shot-alert[data-on] .l-n.new { animation: mb-drop 700ms cubic-bezier(0.23, 1, 0.32, 1) 900ms both; }
@@ -214,12 +215,8 @@ html.no-motion .mb-scr .swap .was, html.no-motion .mb-scr .state .was { display:
 /* Shot 3: the camera cranes down over the reply and pushes in, following the draft as it types */
 @keyframes mb-move-c { from { transform: translate(-20px, 70px) scale(0.94); } to { transform: translate(16px, -60px) scale(1.1); } }
 @keyframes mb-crane { from { transform: rotateX(14deg); } to { transform: rotateX(-6deg); } }
-/* Shot 4: starts close on the step and swings out around it, then settles still for the last second */
-/* Shot 4: swings out around the step (fast, then easing), then keeps drifting in slowly to the cut */
-/* Shot 4: swings out around the step as it turns Done, then one long, eased rise and pull back to the end */
-@keyframes mb-move-d { 0% { transform: translate(-40px, 30px) scale(1.2); animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); } 45% { transform: translate(6px, -2px) scale(1); animation-timing-function: cubic-bezier(0.45, 0, 0.25, 1); } 100% { transform: translate(-10px, -36px) scale(0.86); } }
-@keyframes mb-swing-orb { 0% { transform: rotateZ(14deg); animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); } 45% { transform: rotateZ(0deg); animation-timing-function: cubic-bezier(0.45, 0, 0.25, 1); } 100% { transform: rotateZ(-3deg); } }
-@keyframes mb-swing-tilt { 0% { transform: rotateX(0deg); animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); } 45% { transform: rotateX(0deg); animation-timing-function: cubic-bezier(0.45, 0, 0.25, 1); } 100% { transform: rotateX(-10deg); } }
+/* Shot 4: one slow pull back from the step as it turns Done */
+@keyframes mb-move-d { from { transform: scale(1.1); } to { transform: scale(0.94); } }
 @keyframes mb-fade-end { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
 @keyframes mb-fade-start { from { opacity: 0; } }
 @keyframes mb-make-room { from { transform: translateY(-104px); } }
@@ -264,156 +261,37 @@ html.no-motion .mb-scr .swap .was, html.no-motion .mb-scr .state .was { display:
 .mb-ctl[aria-pressed='true'] .pl { display: block; }
 .mb-hero[data-still] .mb-ctl { display: none; }
 
-/* One quiet "scan to open" card; the install steps sit behind a text link (laptops) or show (phones) */
-.mb-get { display: grid; justify-items: start; gap: 16px; }
-.mb-scan { display: flex; align-items: center; gap: 24px; padding: 12px 12px 12px 20px; border: 1px solid var(--line-2); border-radius: 12px; background: var(--surface); font-size: 14px; line-height: 20px; color: var(--text-2); }
-.mb-qr-code { width: 80px; height: 80px; flex: none; border-radius: 8px; }
 .mb-textlink { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 14px; color: var(--text-3); text-decoration: none; transition: color 150ms var(--mb-ease); }
 .mb-textlink:hover { color: var(--text); }
 .mb-textlink:focus-visible { outline: 2px solid var(--text-2); outline-offset: 4px; border-radius: 4px; }
-.mb-get-phone { display: none; }
 
-/* ---------- Sections: heading left, words right, then one picture ---------- */
-.mb-side-col { display: grid; gap: 24px; justify-items: start; }
-.mb-band { padding-top: 128px; }
-.mb-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; align-items: end; }
-.mb-h2 { font-size: 48px; line-height: 1.1; letter-spacing: -0.02em; font-weight: 520; text-wrap: balance; }
-.mb-side { max-width: 480px; font-size: 18px; line-height: 1.6; letter-spacing: -0.01em; color: var(--text-3); text-wrap: pretty; }
-
-/* A big framed picture: soft light from the top, the caption inside, bottom left */
-.mb-frame { position: relative; margin: 48px 0 0; height: 600px; overflow: hidden; border: 1px solid var(--line); border-radius: 16px;
-  background: radial-gradient(70% 60% at 50% 0%, #1c1d20, #0e0f11 60%, #0b0c0d); }
-.mb-frame::after { content: ''; position: absolute; inset: auto 0 0; height: 260px; background: linear-gradient(to top, #0b0c0d 30%, transparent); pointer-events: none; }
-.mb-cap { position: absolute; z-index: 2; left: 32px; bottom: 32px; display: grid; gap: 4px; font-size: 16px; line-height: 1.5; color: var(--text-3); }
-.mb-cap b { font-weight: 500; color: var(--text); }
-
-/* Two phones, the back one dimmer and further away; the front one carries the point. Text a little larger than the app's. */
-.mb-pair-back, .mb-pair-front { position: absolute; top: 64px; }
-.mb-pair-back { left: calc(50% - 400px); top: 112px; opacity: 0.38; filter: blur(1px); }
-.mb-pair-front { left: calc(50% - 40px); }
-.mb-frame-pair .device { zoom: 1.04 !important; box-shadow: 0 40px 80px rgb(0 0 0 / 0.5); }
-
-/* Small cards: one piece, centred, about half the card, fading at the edges; the words under it */
-.mb-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; margin-top: 32px; }
-.mb-card { margin: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: radial-gradient(80% 70% at 50% 0%, #17181b, #0d0e10 70%); }
-.mb-card-pic { height: 280px; display: grid; place-items: center;
-  -webkit-mask-image: radial-gradient(70% 80% at 50% 50%, #000 55%, transparent); mask-image: radial-gradient(70% 80% at 50% 50%, #000 55%, transparent); }
-.mb-card figcaption { padding: 0 32px 32px; max-width: 480px; font-size: 16px; line-height: 1.6; color: var(--text-3); text-wrap: pretty; }
-.mb-card figcaption b { font-weight: 500; color: var(--text); }
-
-/* The pieces: grey app parts at the app's size, one accent each */
-.mb-piece { width: min(300px, 62%); color: #ededef; font-size: 14px; line-height: 20px; }
-.mb-piece .o { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: #8b8b94; }
-.mb-p-step { display: grid; gap: 4px; padding: 16px 20px; border-radius: 12px; background: #18181b; border: 1px solid #26262a; }
-.mb-p-step b { font-size: 16px; font-weight: 500; }
-.mb-p-step .due { display: inline-flex; align-items: center; gap: 8px; color: #a1a1aa; }
-.mb-p-step .row { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #26262a; color: #4cb782; }
-.mb-p-list, .mb-p-share { border-radius: 12px; background: #18181b; border: 1px solid #26262a; overflow: hidden; }
-.mb-p-list .r, .mb-p-share .r { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 48px; padding: 0 16px; border-bottom: 1px solid #26262a; color: #8b8b94; }
-.mb-p-list .r:last-child, .mb-p-share .r:last-child { border-bottom: 0; }
-.mb-p-list .r span:first-child, .mb-p-share .r span { color: #a1a1aa; }
-.mb-p-list .r em { font-style: normal; }
-.mb-p-list .r.on span:first-child, .mb-p-list .r.on em, .mb-p-share .r.on, .mb-p-share .r.on span { color: #ededef; }
-.mb-p-share .r.on { background: #232327; }
-.mb-switch { position: relative; flex: none; width: 40px; height: 24px; border-radius: 12px; background: #3a3b3f; }
-.mb-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: #d4d4d8; }
-.mb-p-ai { width: auto; display: grid; justify-items: center; gap: 8px; }
-.mb-p-ai .chip { display: inline-flex; align-items: center; min-height: 36px; padding: 0 16px; border-radius: 18px; border: 1px solid #3a3a40; background: #1d1d20; color: #ededef; }
-.mb-p-ai .chip.dim { color: #8b8b94; border-color: #26262a; background: #141416; }
-.mb-p-tabs { width: auto; display: flex; align-items: center; gap: 12px; }
-.mb-p-tabs .bar { display: flex; gap: 4px; padding: 4px; border-radius: 32px; background: rgb(42 42 47 / 0.8); border: 1px solid rgb(255 255 255 / 0.08); color: #8b8b94; }
-.mb-p-tabs .bar > span { width: 56px; height: 48px; display: grid; place-items: center; border-radius: 24px; }
-.mb-p-tabs .bar > span.on { width: 72px; background: rgb(255 255 255 / 0.1); color: #ededef; }
-.mb-p-tabs .sr { width: 56px; height: 56px; display: grid; place-items: center; border-radius: 50%; background: rgb(42 42 47 / 0.8); border: 1px solid rgb(255 255 255 / 0.08); color: #8b8b94; }
-.mb-p-off { width: min(420px, 80%); border-radius: 12px; background: #111113; border: 1px solid #26262a; overflow: hidden; }
-.mb-p-off .line { display: flex; gap: 8px; align-items: flex-start; padding: 12px 16px; background: #1d1d20; border-bottom: 1px solid #26262a; }
-.mb-p-off .line svg { flex: none; margin-top: 2px; }
-.mb-p-off .line em { font-style: normal; color: #8b8b94; }
-.mb-p-off .r { display: grid; padding: 12px 16px; border-bottom: 1px solid #1d1d20; color: #8b8b94; }
-.mb-p-off .r:last-child { border-bottom: 0; }
-.mb-p-off .r b { font-weight: 500; color: #a1a1aa; }
-
-/* The lock screen: big quiet time, two alerts stacked, the front one carries the point */
-.mb-frame-lock { height: 520px; }
-.mb-lock { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; padding-top: 72px; color: #ededef; }
-.mb-lock .date { font-size: 18px; font-weight: 500; color: #8b8b94; }
-.mb-lock .time { font-size: 72px; line-height: 1.04; font-weight: 600; letter-spacing: -0.02em; color: #a1a1aa; }
-.mb-lock .stack { position: relative; width: min(420px, calc(100% - 48px)); margin-top: 48px; }
-.mb-lock .n { position: relative; display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 16px; border-radius: 20px;
-  background: rgb(44 44 49 / 0.92); border: 1px solid rgb(255 255 255 / 0.08); box-shadow: 0 24px 60px rgb(0 0 0 / 0.5); font-size: 16px; line-height: 1.4; }
-.mb-lock .n.back { position: absolute; z-index: 0; left: 0; right: 0; top: 14px; transform: scale(0.92); transform-origin: 50% 100%; background: #202024; box-shadow: none; }
-.mb-lock .n.back > * { visibility: hidden; }
-.mb-lock .n:not(.back) { z-index: 1; }
-.mb-lock .n .ic { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 10px; background: #0b0c0e; }
-.mb-lock .n b { display: block; font-weight: 600; }
-.mb-lock .n .when { align-self: start; font-size: 12px; color: #a1a1aa; }
-.mb-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin-top: 32px; font-size: 16px; line-height: 1.6; color: var(--text-3); }
-.mb-facts b { font-weight: 500; color: var(--text); }
-
-/* ---------- 5. Close ---------- */
-.mb-close { padding-block: 160px 128px; display: grid; justify-items: center; gap: 40px; text-align: center; }
-.mb-close-title { font-size: 48px; line-height: 1.1; letter-spacing: -0.02em; font-weight: 520; text-wrap: balance; }
-.mb-close .mb-get { justify-items: center; }
+/* Sections 2-5 (owner, 21 Nov 2026): linear.app's frames, see mobile-sections.css */
 
 /* ---------- Narrower laptops ---------- */
 @media (max-width: 1279px) { .mb-display { font-size: 60px; } }
 /* ---------- Tablet ---------- */
 @media (max-width: 1023px) {
-  .mb-band { padding-top: 96px; }
   .mb-display { font-size: 48px; }
-  .mb-h2, .mb-close-title { font-size: 36px; }
-  .mb-head { grid-template-columns: 1fr; gap: 16px; }
   .mb-hero-row { flex-direction: column; align-items: flex-start; gap: 32px; }
   .mb-words { padding-bottom: 72px; }
-  .mb-frame { height: 520px; }
-  .mb-pair-back { left: calc(50% - 320px); }
-  .mb-pair-front { left: calc(50% - 60px); }
-  .mb-frame-pair .device { zoom: 0.9 !important; }
-  .mb-close { padding-block: 128px 96px; }
 }
 /* ---------- Phone: words first, the steps instead of the code ---------- */
 @media (max-width: 599px) {
   /* The film keeps the laptop's angle: zoomed and panned flat so each shot's aim sits in a band above the words; the drift scaled down */
-  .mb-hero { min-height: calc(100svh - 64px); }
-  .mb-stage { opacity: 0.85; -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 7%, #000 32%, rgb(0 0 0 / 0.25) 42%, rgb(0 0 0 / 0.18) 76%, transparent 92%);
-    mask-image: linear-gradient(to bottom, transparent 0%, #000 7%, #000 32%, rgb(0 0 0 / 0.25) 42%, rgb(0 0 0 / 0.18) 76%, transparent 92%); }
+  /* The film on top, fading out to the page; the words under it on the plain page (owner, 21 Nov 2026, after linear.app/mobile) */
+  .mb-hero { --film-h: clamp(280px, 46svh, 420px); display: block; min-height: 0; padding-top: var(--film-h); }
+  .mb-stage { bottom: auto; height: var(--film-h); opacity: 0.65; -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 52%, transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 52%, transparent 100%); }
+  /* The shot's aim (225 px down the frame, see PHONE_SY in site/runtime/film.ts) moves to just above the film's middle */
+  .mb-scene { top: calc(var(--film-h) * 0.45 - 225px); }
   .mb-move { transform-origin: var(--p-sx) var(--p-sy); scale: var(--p-drift); }
   .mb-lens { transform-origin: 0 0; transform: var(--p-lens); }
   .mb-veil { -webkit-mask-image: var(--p-mask); mask-image: var(--p-mask); }
-  .mb-words { padding-bottom: 72px; }
+  .mb-words { padding-bottom: 64px; }
   .mb-hero-row { gap: 24px; margin-top: 16px; }
-  .mb-label { margin-bottom: 12px; }
   .mb-display { font-size: 36px; line-height: 1.1; }
   .mb-lead { font-size: 18px; }
-  .mb-cta { width: 100%; flex-direction: column; align-items: stretch; gap: 8px; }
-  .mb-cta .btn { justify-content: center; }
-  .mb-cta .mb-textlink { justify-content: center; }
-  .mb-ctl { bottom: 20px; }
-  .mb-get { display: none; }
-  .mb-get-phone { display: block; width: 100%; margin-top: 32px; }
-  .mb-get-phone .btn { width: 100%; justify-content: center; }
-  .mb-band { padding-top: 80px; }
-  .mb-h2, .mb-close-title { font-size: 36px; }
-  .mb-side { font-size: 16px; }
-  .mb-frame { margin-top: 32px; height: 460px; border-radius: 16px; }
-  .mb-cap { left: 24px; right: 24px; bottom: 24px; }
-  .mb-cap br { display: none; }
-  .mb-pair-back { display: none; }
-  .mb-pair-front { left: calc(50% - 150px); top: 40px; }
-  .mb-frame-pair .device { zoom: 0.72 !important; }
-  .mb-cards { grid-template-columns: 1fr; gap: 16px; margin-top: 16px; }
-  .mb-card-pic { height: 220px; }
-  .mb-card figcaption { padding: 0 24px 24px; }
-  .mb-piece { width: min(280px, 78%); }
-  .mb-p-tabs .bar > span { width: 44px; }
-  .mb-p-tabs .bar > span.on { width: 56px; }
-  .mb-p-tabs .sr { width: 48px; height: 48px; }
-  .mb-frame-lock { height: 420px; }
-  .mb-lock { padding-top: 40px; }
-  .mb-lock .time { font-size: 60px; }
-  .mb-lock .stack { margin-top: 32px; }
-  .mb-lock .n { font-size: 14px; }
-  .mb-facts { grid-template-columns: 1fr; gap: 16px; }
-  .mb-close { padding-block: 96px 80px; gap: 32px; justify-items: stretch; text-align: left; }
-  .mb-close .mb-get-phone { margin-top: 0; }
+  /* Phones (owner, 21 Nov 2026): no small lines around the hero's words; the title, the words and Start free only */
+  .mb-words > .mb-label, .mb-cta .mb-textlink { display: none; }
+  .mb-ctl { bottom: 72px; }
 }

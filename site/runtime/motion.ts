@@ -44,3 +44,15 @@ export function startReveal(): void {
   );
   items.forEach((el) => io.observe(el));
 }
+
+/**
+ * Small looping pictures (`.live` runs their CSS loops) play only while on screen, so they cost nothing
+ * elsewhere; under less motion they never start and show their main state.
+ */
+export function playWhileSeen(els: NodeListOf<HTMLElement>): void {
+  if (noMotion || !('IntersectionObserver' in window)) return;
+  const io = new IntersectionObserver((entries) => {
+    for (const en of entries) en.target.classList.toggle('live', en.isIntersecting);
+  });
+  els.forEach((el) => io.observe(el));
+}

@@ -68,9 +68,13 @@ describe('the product site pages', () => {
       );
       expect(start.length).toBeGreaterThanOrEqual(4);
       for (const a of start) expect(a.getAttribute('href')).toBe(SIGN_IN);
-      expect(d.querySelector('.ftr a[href="mailto:nitinsirsath8855@gmail.com"]')?.textContent).toBe(
+      expect(d.querySelector('.ftr a[href="mailto:northlist.site@gmail.com"]')?.textContent).toBe(
         'Contact',
       );
+      expect(d.querySelector('.ftr a[href="https://x.com/northlistsite"]')?.textContent).toBe('X');
+      expect(
+        d.querySelector('.ftr a[href="https://www.linkedin.com/company/145492514/"]')?.textContent,
+      ).toBe('LinkedIn');
     },
   );
 

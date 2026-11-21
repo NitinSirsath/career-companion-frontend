@@ -7,7 +7,7 @@
 export const PRIVACY_POLICY_FROM_APP = 'https://northlist.site/privacy.html';
 
 /** The contact address, as on the privacy policy. */
-export const CONTACT_EMAIL = 'nitinsirsath8855@gmail.com';
+export const CONTACT_EMAIL = 'northlist.site@gmail.com';
 
 /**
  * Sign-in, on the app's own site (owner, 31 Oct 2026). The product page does not know whether

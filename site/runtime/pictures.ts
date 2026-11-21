@@ -9,11 +9,13 @@ import { noMotion, onReplay, whenSeen } from './motion.ts';
  * Automation page (owner, 7 Nov 2026): the visitor's AI app applies to one job while NorthList sits beside
  * it. Chat lines appear by `data-at` (ms); a step shows grey shimmer (`data-work`, for `data-for` ms), then
  * its result. The browser follows: the job page, the apply dialog filled in field by field, the sent page.
- * Last, the job arrives at the top of NorthList's Submitted list with a short notice. The switcher (a tab
- * list) gives the window another app's look and plays the run again. The HTML holds the end state, as
- * Antigravity; this rewinds it.
+ * Last, the job arrives at the top of NorthList's Submitted list with a short notice. While it plays, the
+ * stage makes one slow move (`rolling`: both windows rise a little). The switcher (a tab list) gives the
+ * window another app's look and plays the run again. The HTML holds the end state, as Antigravity; this
+ * rewinds it.
  */
 const RUN_TIMES = {
+  roll: 40,
   drive: 500,
   job: 800,
   apply: 2100,
@@ -39,6 +41,7 @@ function runParts(demo: HTMLElement, app: HTMLElement, row: HTMLElement, page: H
   const prog = one('[data-run="prog"]');
   const note = one('[data-run="note"]');
   const chip = one('[data-run="chip"]');
+  const stage = one('[data-run="stage"]');
   for (const st of steps) {
     if (!st.dataset.work) continue;
     const wk = document.createElement('span');
@@ -47,7 +50,7 @@ function runParts(demo: HTMLElement, app: HTMLElement, row: HTMLElement, page: H
     st.querySelector('.t')?.after(wk);
   }
   return {
-    one, app, row, page, steps, fields, words, prog, note,
+    one, app, row, page, stage, steps, fields, words, prog, note,
     show: (name: string | null) => pages.forEach((p) => p.classList.toggle('on', p.dataset.pg === name)),
     fill: (i: number, text: string) => {
       const v = fields[i].querySelector('.v');
@@ -85,6 +88,8 @@ function runAt(r: RunParts, done: boolean): void {
   r.note?.classList.remove('on');
   r.show(done ? 'sent' : null);
   r.page.classList.remove('driving');
+  r.stage?.classList.remove('rolling');
+  r.stage?.classList.toggle('still', done);
   r.setChip(!done, done ? 'Next job in 2 min' : 'Job 2 of 10');
 }
 
@@ -101,6 +106,7 @@ function runPlan(r: RunParts, later: (ms: number, fn: () => void) => void): void
     if (work) later(at + work, () => st.classList.remove('working'));
   }
   const t = RUN_TIMES;
+  later(t.roll, () => r.stage?.classList.add('rolling'));
   later(t.drive, () => r.page.classList.add('driving'));
   later(t.job, () => r.show('job'));
   later(t.apply, () => r.press('[data-run="apply"]'));
@@ -114,9 +120,13 @@ function runPlan(r: RunParts, later: (ms: number, fn: () => void) => void): void
       if (r.prog) r.prog.style.width = `${((i + 1) / r.fields.length) * 100}%`;
     });
     if (f.hasAttribute('data-file')) later(at + 200, () => r.fill(i, text));
-    else for (let c = 1; c <= text.length; c++) later(at + 40 + c * Math.min(45, 320 / text.length), () => r.fill(i, text.slice(0, c)));
+    else
+      for (let c = 1; c <= text.length; c++)
+        later(at + 40 + c * Math.min(45, 320 / text.length), () => r.fill(i, text.slice(0, c)));
   });
-  later(t.field + r.fields.length * t.fieldGap + 60, () => r.fields.forEach((x) => x.classList.remove('focus')));
+  later(t.field + r.fields.length * t.fieldGap + 60, () =>
+    r.fields.forEach((x) => x.classList.remove('focus')),
+  );
   later(t.submit, () => r.press('[data-run="submit"]'));
   later(t.sent, () => r.show('sent'));
   later(t.undrive, () => r.page.classList.remove('driving'));

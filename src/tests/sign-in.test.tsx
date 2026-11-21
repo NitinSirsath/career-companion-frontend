@@ -150,11 +150,12 @@ describe('login page', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     const notice = screen.getByRole('status');
     expect(notice).toHaveTextContent(
-      'The NorthList beta is full. The beta is limited to 100 users and every place is taken. To ask for a place, write to nitinsirsath8855@gmail.com.',
+      'The NorthList beta is full. The beta is limited to 100 users and every place is taken. To ask for a place, write to northlist.site@gmail.com.',
     );
-    expect(
-      within(notice).getByRole('link', { name: 'nitinsirsath8855@gmail.com' }),
-    ).toHaveAttribute('href', 'mailto:nitinsirsath8855@gmail.com');
+    expect(within(notice).getByRole('link', { name: 'northlist.site@gmail.com' })).toHaveAttribute(
+      'href',
+      'mailto:northlist.site@gmail.com',
+    );
     expect(googleSignInProblem('beta_full')).toBe(notice.textContent);
   });
 

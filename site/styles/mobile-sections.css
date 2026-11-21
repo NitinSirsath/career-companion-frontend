@@ -1,0 +1,195 @@
+/*
+ * The Mobile page under the hero (owner, 21 Nov 2026: "most sections look generic"): each section is one frame
+ * in linear.app's style (grid.css): the lit stage on top, the pictures under it with hairlines between.
+ * The pictures copy Linear's art style, never its content: each shows one real NorthList piece.
+ */
+
+/* ---------- Sections: heading left, words right, then the frame ---------- */
+.mb-band { padding-top: 128px; }
+.mb-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; align-items: end; }
+.mb-h2 { font-size: 48px; line-height: 1.1; letter-spacing: -0.02em; font-weight: 520; text-wrap: balance; }
+.mb-side { max-width: 480px; font-size: 18px; line-height: 1.6; letter-spacing: -0.01em; color: var(--text-3); text-wrap: pretty; }
+.mb-side-col { display: grid; gap: 24px; justify-items: start; }
+
+/* ---------- 2. Two phones on the lit stage ---------- */
+.mb-pair { height: 640px; }
+.mb-pair-back, .mb-pair-front { position: absolute; top: 72px; }
+.mb-pair-back { left: calc(50% - 400px); top: 120px; opacity: 0.36; filter: blur(1px); }
+.mb-pair-front { left: calc(50% - 40px); }
+.mb-pair .device { zoom: 1.04 !important; box-shadow: 0 40px 80px rgb(0 0 0 / 0.55); }
+
+/*
+ * The four pictures move (owner, 21 Nov 2026: "dynamic, minimal, coded, Linear's style"): each plays one small
+ * loop of what the caption says, calm and in one direction. They run only while on screen (mobile.ts sets
+ * `.live`) and stand still, in their main state, for less motion.
+ */
+.lg-cell[data-live] * { animation-play-state: paused; }
+.lg-cell[data-live].live * { animation-play-state: running; }
+body[data-page='mobile'] { --mb-out: cubic-bezier(0.23, 1, 0.32, 1); }
+
+/* Mark it done: tap "I did this", the step closes, the next one comes forward (7 s) */
+.mb-art-done { position: relative; width: min(320px, calc(100% - 64px)); margin-top: 40px; }
+.mb-done { display: grid; gap: 4px; padding: 16px 18px; }
+.mb-done .due { display: inline-flex; align-items: center; gap: 8px; margin-top: 4px; font-size: 12px; color: var(--text-3); }
+.mb-done .act { position: relative; display: flex; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--lg-line); }
+.mb-done .btns { display: flex; gap: 8px; }
+.mb-done .act .lg-btn:first-child svg, .mb-done .doneline svg { color: var(--ok); }
+.mb-done .act .lg-btn:first-child { color: var(--text); }
+.mb-done .doneline { position: absolute; left: 0; top: 13px; height: 32px; display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text); opacity: 0; }
+.mb-done-front { z-index: 1; }
+.mb-done-back { position: absolute; inset: 0; z-index: 0; opacity: 0.4; transform: translateY(-44px) scale(0.94); transform-origin: 50% 0; box-shadow: none; }
+.mb-done-front { animation: mb-front 7s var(--mb-out) infinite; }
+.mb-done-back { animation: mb-back 7s var(--mb-out) infinite; }
+.mb-done .did { animation: mb-press 7s ease infinite; }
+.mb-done-front .btns { animation: mb-btns 7s ease infinite; }
+.mb-done .doneline { animation: mb-doneline 7s ease infinite; }
+@keyframes mb-press { 0%, 20% { transform: none; background: #17181b; } 23% { transform: scale(0.95); background: #26272b; } 27%, 100% { transform: none; background: #17181b; } }
+@keyframes mb-btns { 0%, 27% { opacity: 1; } 30%, 92% { opacity: 0; } 97%, 100% { opacity: 1; } }
+@keyframes mb-doneline { 0%, 28% { opacity: 0; transform: translateY(4px); } 32%, 88% { opacity: 1; transform: none; } 92%, 100% { opacity: 0; } }
+@keyframes mb-front { 0%, 50% { opacity: 1; transform: none; } 54%, 90% { opacity: 0; transform: translateY(-16px) scale(0.98); } 91% { opacity: 0; transform: translateY(12px); } 100% { opacity: 1; transform: none; } }
+@keyframes mb-back { 0%, 54% { opacity: 0.4; transform: translateY(-44px) scale(0.94); } 64%, 88% { opacity: 1; transform: none; box-shadow: var(--lg-shadow); } 98%, 100% { opacity: 0.4; transform: translateY(-44px) scale(0.94); } }
+
+/* Filter out the rest: tap Filters, a light runs down each line, the filters switch on in turn (6 s) */
+.mb-art-filter { display: flex; align-items: center; width: min(520px, calc(100% - 32px)); height: 200px; }
+.mb-f-from { flex: 0 0 auto; width: 152px; height: 56px; display: flex; align-items: center; justify-content: flex-end; padding-right: 12px;
+  border: 1px solid var(--lg-line); border-left: 0; border-radius: 0 12px 12px 0; background: var(--lg-surface); }
+.mb-f-from .lg-btn { animation: mb-press 6s ease infinite; animation-delay: -1.2s; }
+.mb-f-wires { flex: none; width: 56px; height: 200px; overflow: visible; }
+.lg-pulse { fill: none; stroke: rgb(255 255 255 / 0.75); stroke-width: 1.5; vector-effect: non-scaling-stroke; stroke-linecap: round; stroke-dasharray: 14 120; stroke-dashoffset: 14;
+  animation: mb-pulse 6s linear infinite; animation-delay: calc(var(--i) * 0.18s + 0.5s); }
+@keyframes mb-pulse { 0% { stroke-dashoffset: 14; opacity: 1; } 14% { stroke-dashoffset: -100; opacity: 1; } 15%, 100% { stroke-dashoffset: -100; opacity: 0; } }
+.mb-f-to { flex: 1; min-width: 0; height: 200px; display: flex; flex-direction: column; justify-content: space-between; }
+.mb-f-row { display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 14px; border-radius: 10px; white-space: nowrap; font-size: 12px; color: var(--text); border-color: var(--lg-line-2); box-shadow: none;
+  animation: mb-row 6s ease infinite; animation-delay: calc(var(--i) * 0.18s + 0.5s); }
+.mb-f-row svg { color: var(--text-2); }
+@keyframes mb-row { 0%, 10% { color: var(--text-3); border-color: var(--lg-line); background: #0e0f11; } 15%, 82% { color: var(--text); border-color: var(--lg-line-2); background: #18191c; } 92%, 100% { color: var(--text-3); border-color: var(--lg-line); background: #0e0f11; } }
+
+/* Answers that fit the mail: pick a choice, the reply writes itself word by word, Send (8 s) */
+.mb-art-reply { width: min(400px, calc(100% - 48px)); display: grid; gap: 12px; padding: 16px; }
+.mb-art-reply .lg-o { display: inline-flex; align-items: center; gap: 6px; }
+.mb-art-reply .chips { display: flex; gap: 8px; overflow: hidden; }
+.mb-art-reply .lg-chip.pick { color: var(--text); border-color: rgb(255 255 255 / 0.2); background: #1a1b1e; animation: mb-pick 8s ease infinite; }
+@keyframes mb-pick { 0%, 6% { color: var(--text-2); border-color: var(--lg-line-2); background: #121316; } 10%, 90% { color: var(--text); border-color: rgb(255 255 255 / 0.22); background: #1c1d20; } 96%, 100% { color: var(--text-2); border-color: var(--lg-line-2); background: #121316; } }
+.mb-art-reply p { min-height: 44px; font-size: 14px; line-height: 22px; color: var(--text); }
+.mb-art-reply .w { animation: mb-word 8s var(--mb-out) infinite; animation-delay: calc(var(--i) * 70ms); }
+@keyframes mb-word { 0%, 13% { opacity: 0; } 16%, 86% { opacity: 1; } 90%, 100% { opacity: 0; } }
+.mb-art-reply .caret { display: inline-block; width: 1px; height: 16px; vertical-align: -3px; background: var(--text-2); animation: mb-caret 1s steps(1) infinite; }
+@keyframes mb-caret { 50% { opacity: 0; } }
+.mb-art-reply .bar { display: flex; align-items: center; gap: 14px; padding-top: 12px; border-top: 1px solid var(--lg-line); color: var(--dim); }
+.mb-art-reply .bar .lg-btn { margin-left: auto; }
+.mb-art-reply .send { animation: mb-send 8s ease infinite; }
+@keyframes mb-send { 0%, 72% { transform: none; filter: none; } 75% { transform: scale(0.95); filter: brightness(0.85); } 79%, 100% { transform: none; filter: none; } }
+
+/* Made for one hand: the pill moves Today, Mails, Applications, Settings; each tab's page shows (8 s) */
+.mb-art-tabs { position: relative; width: min(320px, calc(100% - 64px)); height: 300px; margin-top: 40px; }
+.mb-t-phone { position: absolute; inset: 0; overflow: hidden; border: 1px solid var(--lg-line-2); border-top: 0; border-radius: 0 0 48px 48px; background: #0c0d0f;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 18%); mask-image: linear-gradient(to bottom, transparent, #000 18%); }
+.mb-t-phone .pane { position: absolute; inset: 24px 0 auto; display: grid; opacity: 0; animation: mb-pane 8s ease infinite; animation-delay: calc(var(--i) * 2s - 8s); }
+.mb-t-phone .pane.on { opacity: 1; }
+@keyframes mb-pane { 0%, 21% { opacity: 1; transform: none; } 25%, 96% { opacity: 0; transform: translateY(-4px); } 97% { opacity: 0; transform: translateY(6px); } 100% { opacity: 1; transform: none; } }
+.mb-t-phone .h { padding: 0 20px 8px; font-size: 18px; line-height: 28px; font-weight: 600; color: var(--text); }
+.mb-t-phone .r { display: grid; gap: 2px; padding: 12px 20px; border-top: 1px solid var(--lg-line); font-size: 12px; line-height: 16px; color: var(--text-3); }
+.mb-t-phone .r b { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--text-2); }
+.mb-t-bar { position: absolute; left: 0; right: 0; bottom: 24px; display: flex; justify-content: center; align-items: center; gap: 8px; }
+.mb-t-bar .bar { position: relative; display: flex; gap: 2px; padding: 4px; border: 1px solid var(--lg-line-2); border-radius: 28px; background: rgb(38 39 43 / 0.92); box-shadow: var(--lg-shadow); color: var(--text-2); }
+.mb-t-bar .bar > span:not(.pill) { position: relative; width: 52px; height: 44px; display: grid; place-items: center; }
+.mb-t-bar .pill { position: absolute; left: 4px; top: 4px; width: 52px; height: 44px; border-radius: 22px; background: rgb(255 255 255 / 0.12); transform: translateX(54px); animation: mb-pill 8s var(--mb-out) infinite; }
+@keyframes mb-pill { 0%, 21% { transform: translateX(0); } 25%, 46% { transform: translateX(54px); } 50%, 71% { transform: translateX(108px); } 75%, 96% { transform: translateX(162px); } 100% { transform: translateX(0); } }
+.mb-t-bar .sr { width: 54px; height: 54px; display: grid; place-items: center; border: 1px solid var(--lg-line-2); border-radius: 50%; background: rgb(38 39 43 / 0.92); box-shadow: var(--lg-shadow); color: var(--text-3); }
+
+/* Less motion: each picture stands in its main state */
+@media (prefers-reduced-motion: reduce) { .lg-cell[data-live] * { animation: none !important; } }
+html.no-motion .lg-cell[data-live] * { animation: none !important; }
+
+/* ---------- 3. Install: the scan card and the two steps, on the right of the heading ---------- */
+.mb-head-install { align-items: end; }
+.mb-get { justify-self: end; display: grid; grid-template-columns: repeat(2, 176px); gap: 12px; }
+.mb-scan { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 14px 14px 14px 20px;
+  border: 1px solid var(--lg-line-2); border-radius: 12px; background: var(--lg-surface); text-align: left; font-size: 14px; line-height: 20px; color: var(--text-2); }
+.mb-qr-code { width: 80px; height: 80px; flex: none; border-radius: 8px; }
+.mb-how { min-height: 120px; display: grid; align-content: space-between; gap: 16px; padding: 16px; border: 1px solid var(--lg-line-2); border-radius: 12px; background: var(--lg-surface); color: var(--text-3); }
+.mb-how span { display: grid; gap: 2px; font-size: 12px; line-height: 16px; color: var(--text-3); }
+.mb-how b { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--text); }
+.mb-get-phone { display: none; }
+
+/* On your home screen: a field of icon tiles, NorthList lit in the middle */
+.mb-art-home { display: grid; grid-template-columns: repeat(5, 56px); gap: 28px 24px; padding: 24px 40px; }
+.mb-h-app { position: relative; background: linear-gradient(180deg, #1d1e22, #121316); }
+.mb-h-app em { position: absolute; top: calc(100% + 8px); left: 50%; translate: -50% 0; font-style: normal; font-size: 12px; line-height: 16px; color: var(--text-2); white-space: nowrap; }
+
+/* Works offline: the offline line over the mails it kept */
+.mb-art-off { width: min(420px, calc(100% - 64px)); margin-top: 48px; overflow: hidden; }
+.mb-art-off .line { display: flex; gap: 8px; align-items: flex-start; padding: 12px 16px; border-bottom: 1px solid var(--lg-line); background: rgb(255 255 255 / 0.03); font-size: 12px; line-height: 18px; color: var(--text); }
+.mb-art-off .line svg { flex: none; margin-top: 2px; }
+.mb-art-off .line em { font-style: normal; color: var(--text-3); }
+.mb-art-off .r { display: grid; gap: 2px; padding: 12px 16px; border-bottom: 1px solid var(--lg-line); font-size: 12px; line-height: 16px; color: var(--text-3); }
+.mb-art-off .r b { font-size: 14px; line-height: 20px; color: var(--text-2); }
+
+/* ---------- 4. The lock screen on the lit stage, two facts under it ---------- */
+.mb-lockstage { height: 560px; }
+.mb-lock { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; padding-top: 72px; color: var(--text); }
+.mb-lock .date { font-size: 18px; font-weight: 500; color: rgb(255 255 255 / 0.6); }
+.mb-lock .time { font-size: 72px; line-height: 1.04; font-weight: 600; letter-spacing: -0.02em; color: rgb(255 255 255 / 0.72); }
+.mb-lock .stack { position: relative; width: min(420px, calc(100% - 48px)); margin-top: 48px; }
+.mb-lock .n { position: relative; display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 14px 16px; border-radius: 20px;
+  background: rgb(42 43 48 / 0.9); border: 1px solid var(--lg-line-2); box-shadow: 0 24px 60px rgb(0 0 0 / 0.5); font-size: 14px; line-height: 20px; }
+.mb-lock .n.back { position: absolute; z-index: 0; left: 0; right: 0; top: 14px; transform: scale(0.92); transform-origin: 50% 100%; background: #1e1f23; box-shadow: none; }
+.mb-lock .n.back > * { visibility: hidden; }
+.mb-lock .n:not(.back) { z-index: 1; }
+.mb-lock .n .ic { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 10px; background: #0b0c0e; }
+.mb-lock .n b { display: block; font-weight: 600; }
+.mb-lock .n .when { align-self: start; font-size: 12px; color: var(--text-3); }
+
+/* ---------- 5. Close: one lit frame ---------- */
+.mb-close { padding-block: 128px; }
+.mb-close .lg { margin-top: 0; }
+.mb-close-in { display: grid; justify-items: center; gap: 40px; padding: 112px 40px; text-align: center; }
+.mb-close-in > * { position: relative; z-index: 2; }
+.mb-close-title { font-size: 48px; line-height: 1.1; letter-spacing: -0.02em; font-weight: 520; text-wrap: balance; }
+.mb-get-close { justify-self: center; grid-template-columns: 296px; }
+
+/* ---------- Tablet ---------- */
+@media (max-width: 1023px) {
+  .mb-band { padding-top: 96px; }
+  .mb-h2, .mb-close-title { font-size: 36px; }
+  .mb-head { grid-template-columns: 1fr; gap: 16px; }
+  .mb-head-install { gap: 32px; }
+  .mb-get { justify-self: start; }
+  .mb-pair { height: 560px; }
+  .mb-pair-back { left: calc(50% - 320px); }
+  .mb-pair-front { left: calc(50% - 60px); }
+  .mb-pair .device { zoom: 0.9 !important; }
+  .mb-pair-front, .mb-pair-back { -webkit-mask-image: linear-gradient(to bottom, #000 45%, transparent 72%); mask-image: linear-gradient(to bottom, #000 45%, transparent 72%); }
+  .mb-art-home { grid-template-columns: repeat(5, 48px); gap: 24px 16px; }
+  .mb-art-home .lg-tile { width: 48px; height: 48px; border-radius: 12px; }
+  .mb-close { padding-block: 96px; }
+}
+/* ---------- Phone: one column; the steps instead of the code ---------- */
+@media (max-width: 599px) {
+  .mb-band { padding-top: 80px; }
+  .mb-side { font-size: 16px; }
+  .mb-get { width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mb-scan, .mb-get-close { display: none; }
+  .mb-get-phone { display: block; width: 100%; margin-top: 16px; }
+  .mb-get-phone .btn { width: 100%; justify-content: center; }
+  .mb-pair { height: 520px; }
+  .mb-pair-back { display: none; }
+  .mb-pair-front { left: calc(50% - 150px); top: 40px; }
+  .mb-pair .device { zoom: 0.72 !important; }
+  .mb-art-filter { transform: scale(0.84); }
+  .mb-art-tabs { height: 240px; margin-top: 24px; }
+  .mb-t-bar .bar > span:not(.pill), .mb-t-bar .pill { width: 44px; }
+  .mb-t-bar .pill { transform: translateX(46px); }
+  @keyframes mb-pill { 0%, 21% { transform: translateX(0); } 25%, 46% { transform: translateX(46px); } 50%, 71% { transform: translateX(92px); } 75%, 96% { transform: translateX(138px); } 100% { transform: translateX(0); } }
+  .mb-t-bar .sr { width: 48px; height: 48px; }
+  .mb-art-home { grid-template-columns: repeat(5, 44px); gap: 24px 14px; padding: 16px; }
+  .mb-art-home .lg-tile { width: 44px; height: 44px; border-radius: 12px; }
+  .mb-art-off { margin-top: 32px; width: calc(100% - 48px); }
+  .mb-lockstage { height: 460px; }
+  .mb-lock { padding-top: 40px; }
+  .mb-lock .time { font-size: 60px; }
+  .mb-lock .stack { margin-top: 32px; }
+  .mb-close { padding-block: 80px; }
+  .mb-close-in { padding: 72px 24px; gap: 32px; justify-items: stretch; text-align: left; }
+  .mb-close-in .mb-get-phone { margin-top: 0; }
+}
