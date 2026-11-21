@@ -26,14 +26,16 @@
 <div data-site-header></div>
 <main>
 
-  <!-- 1. Hero (owner, 20 Nov 2026): the words alone at the bottom left; behind them a film of the laptop app (site/home/film.ts), as on /mobile and stockypro.com's paid-app heroes -->
+  <!-- 1. Hero (owner, 20-21 Nov 2026): the words alone at the bottom left (on phones under the film); behind them a film of the laptop app (site/home/film.ts), as on /mobile and stockypro.com's paid-app heroes -->
   <section class="hf-hero" data-film-hero aria-labelledby="hero-title">
     <div class="hf-stage" aria-hidden="true"></div>
+    <div class="film-shade" aria-hidden="true"></div>
     <div class="wrap hf-words">
+      <a class="hf-eyebrow" href="/automation"><b>New</b> NorthList Apply <i data-icon="arrowRight" data-size="14"></i></a>
       <h1 id="hero-title" class="hf-display">Your job search,<br>sorted from your Gmail.</h1>
       <div class="hf-row">
         <p class="hf-lead">NorthList reads your job mails, finds what each one asks of you, and keeps every application up to date.</p>
-        <div class="hf-cta"><a class="btn btn-primary btn-lg" href="https://app.northlist.site/login">Start free</a><a class="lh-new" href="/automation"><b>New</b> NorthList Apply <i data-icon="arrowRight" data-size="14"></i></a></div>
+        <div class="hf-cta"><a class="btn btn-primary btn-lg" href="https://app.northlist.site/login">Start free</a></div>
       </div>
       <button type="button" class="hf-ctl" data-film-toggle aria-pressed="false" aria-label="Pause the hero animation"><svg class="pz" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><rect x="4" y="3" width="2.5" height="10" rx="1"/><rect x="9.5" y="3" width="2.5" height="10" rx="1"/></svg><svg class="pl" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M5 3.2v9.6a.6.6 0 0 0 .9.5l7.6-4.8a.6.6 0 0 0 0-1L5.9 2.7a.6.6 0 0 0-.9.5z"/></svg></button>
     </div>
@@ -76,18 +78,97 @@
     </div>
   </section>
 
+  <!-- 2b. Start in three steps (owner, 21 Nov 2026: one more section, easy for a normal user). Linear's hairline grid, a small app piece in each cell, the words bottom left. Only what the app does: Continue with Google, one Connect Gmail button that also turns on the free AI, a first sync of the last 7 days. -->
+  <section class="wrap n4-band" aria-labelledby="steps-title">
+    <div class="lh-split rv">
+      <h2 id="steps-title" class="n4-h2">Start in three steps.</h2>
+      <p class="lh-side">Nothing to fill in. Sign in, connect Gmail, and NorthList reads and sorts your job mails from there.</p>
+    </div>
+    <ol class="st-grid">
+      <li class="st-cell rv">
+        <div class="st-pic" aria-hidden="true">
+          <div class="st-sign">
+            <i data-mark="28"></i>
+            <b>Sign in to NorthList</b>
+            <span class="st-google"><span class="g">G</span>Continue with Google</span>
+            <span class="st-email">Continue with email</span>
+          </div>
+        </div>
+        <div class="st-cap"><b><span class="n">1</span>Sign in with Google</b><span>One tap with your Google account. Free while in beta, no card needed.</span></div>
+      </li>
+      <li class="st-cell rv">
+        <div class="st-pic" aria-hidden="true">
+          <div class="st-flow">
+            <svg class="st-lines" viewBox="0 0 340 220" width="340" height="220"><path d="M132 110 C156 110 152 48 176 48"/><path d="M132 110 H176"/><path d="M132 110 C156 110 152 172 176 172"/></svg>
+            <span class="st-connect"><i data-app-icon="mail" data-size="14"></i>Connect Gmail</span>
+            <span class="st-row" style="--i:0"><small>Read</small><b><span class="ok"><i data-app-icon="check" data-size="12"></i></span>Finds your job mails</b></span>
+            <span class="st-row" style="--i:1"><small>Send</small><b><span class="ok"><i data-app-icon="check" data-size="12"></i></span>Only replies you write</b></span>
+            <span class="st-row" style="--i:2"><small>First sync</small><b><span class="ok"><i data-app-icon="check" data-size="12"></i></span>Your last 7 days</b></span>
+          </div>
+        </div>
+        <div class="st-cap"><b><span class="n">2</span>Connect Gmail</b><span>One button. The free AI comes on with it, so there is no AI key to set up.</span></div>
+      </li>
+      <li class="st-cell rv">
+        <div class="st-pic" aria-hidden="true">
+          <div class="st-mails">
+            <div class="st-bar"><i data-app-icon="mail" data-size="14"></i><b>Mails</b></div>
+            <div class="st-mail" style="--i:0"><span class="lh-ring o"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 7V1.5A5.5 5.5 0 1 1 1.50 7.00Z" fill="currentColor"/></svg></span><b>Brightwave</b><span>Interview invitation</span></div>
+            <div class="st-next" style="--i:1"><span class="lbl">Next step</span><b>Choose an interview time</b></div>
+            <div class="st-mail" style="--i:2"><span class="lh-ring g"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="7" cy="7" r="5.5" fill="currentColor"/></svg></span><b>Northwind</b><span>Your offer from Northwind</span></div>
+            <div class="st-mail" style="--i:3"><span class="lh-ring"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span><b>Lumen Labs</b><span>We received your application</span></div>
+          </div>
+        </div>
+        <div class="st-cap"><b><span class="n">3</span>Your job mails, sorted</b><span>Each job mail shows its next step on Mails. Your progress shows on the Dashboard.</span></div>
+      </li>
+    </ol>
+  </section>
+
   <!-- 3. Your data: the four promises only, in one row -->
   <section class="wrap n4-band" aria-labelledby="data-title">
     <div class="n4-split rv">
       <h2 id="data-title" class="n4-h2">Your mail stays yours.</h2>
       <a class="arrow-link n4-more" href="/privacy/">How your mail is handled <i data-icon="arrowRight" data-size="14"></i></a>
     </div>
-    <ul class="n4-promises">
-      <li class="rv"><i data-icon="mail" data-size="20"></i><div><b>Read and send, never change</b><p>Two Gmail permissions: read, to find your job mails, and send, for your replies only. Nothing in your Gmail can be changed or deleted.</p></div></li>
-      <li class="rv"><i data-icon="mailOff" data-size="20"></i><div><b>Never the text of your mails</b><p>For each job mail NorthList keeps the subject, sender, date and what the AI found. Not the text, not the attachments.</p></div></li>
-      <li class="rv"><i data-icon="shield" data-size="20"></i><div><b>The AI keeps nothing</b><p>The AI service is asked to keep nothing, so it can’t store your mail or train on it.</p></div></li>
-      <li class="rv"><i data-icon="eyeOff" data-size="20"></i><div><b>No ads, no tracking</b><p>No ads, no selling your data, no analytics or tracking tools.</p></div></li>
-    </ul>
+    <div class="lg rv">
+      <ul class="lg-row lg-4 n4-promises">
+        <li class="lg-cell">
+          <div class="lg-pic" aria-hidden="true">
+            <div class="lg-ui hm-perm">
+              <span class="r"><i data-icon="mail" data-size="14"></i>Read<i data-icon="check" data-size="14"></i></span>
+              <span class="r"><i data-icon="send" data-size="14"></i>Send<i data-icon="check" data-size="14"></i></span>
+              <span class="r off"><i data-icon="pen" data-size="14"></i>Change or delete<i data-icon="x" data-size="14"></i></span>
+            </div>
+          </div>
+          <div class="lg-cap"><b>Read and send, never change</b><span>Two Gmail permissions: read, to find your job mails, and send, for your replies only. Nothing in your Gmail can be changed or deleted.</span></div>
+        </li>
+        <li class="lg-cell">
+          <div class="lg-pic" aria-hidden="true">
+            <div class="lg-ui hm-kept lg-fade-b">
+              <b>Interview invitation</b>
+              <span class="m">Priya Nair · Mon 9:12 AM</span>
+              <span class="bars"><i></i><i></i><i></i></span>
+            </div>
+          </div>
+          <div class="lg-cap"><b>Never the text of your mails</b><span>For each job mail NorthList keeps the subject, sender, date and what the AI found. Not the text, not the attachments.</span></div>
+        </li>
+        <li class="lg-cell">
+          <div class="lg-pic" aria-hidden="true">
+            <div class="hm-ai">
+              <span class="lg-tile on"><i data-app-icon="ai" data-size="20"></i></span>
+              <svg class="hm-ai-wire" viewBox="0 0 64 2" preserveAspectRatio="none"><path class="lg-wire" d="M0 1H64"/></svg>
+              <span class="lg-tile hm-empty"></span>
+            </div>
+          </div>
+          <div class="lg-cap"><b>The AI keeps nothing</b><span>The AI service is asked to keep nothing, so it can’t store your mail or train on it.</span></div>
+        </li>
+        <li class="lg-cell">
+          <div class="lg-pic" aria-hidden="true">
+            <div class="hm-eye"><span class="ring"></span><span class="ring r2"></span><span class="lg-tile on"><i data-icon="eyeOff" data-size="20"></i></span></div>
+          </div>
+          <div class="lg-cap"><b>No ads, no tracking</b><span>No ads, no selling your data, no analytics or tracking tools.</span></div>
+        </li>
+      </ul>
+    </div>
   </section>
 
   <!-- 4. Try it yourself (owner, 20 Nov 2026: the old hero's working app, moved down) -->
@@ -107,17 +188,48 @@
   </div>
   </section>
 
-  <!-- 5. Two plain links instead of cards -->
-  <section class="wrap n4-links">
-    <a class="n4-link rv" href="/mobile"><span>On your phone, like an app.</span><span class="go">Mobile <i data-icon="arrowRight" data-size="14"></i></span></a>
-    <a class="n4-link rv" href="/automation"><span>Apply with your own AI agent.</span><span class="go">NorthList Apply <i data-icon="arrowRight" data-size="14"></i></span></a>
+  <!-- 5. The two other pages: one frame, two cells that link (owner, 21 Nov 2026: linear.app's grid) -->
+  <section class="wrap hm-links" aria-label="More of NorthList">
+    <div class="lg rv">
+      <div class="lg-row">
+        <a class="lg-cell n4-link" href="/mobile">
+          <span class="lg-go"><i data-icon="arrowRight" data-size="16"></i></span>
+          <span class="lg-pic" aria-hidden="true">
+            <span class="hm-phone">
+              <span class="sb"><b>9:41</b><span class="island"></span><span class="ic"><i></i><i></i><i></i><em></em></span></span>
+              <span class="top"><span class="h">Job mails<i data-app-icon="chevronDown" data-size="14"></i></span><span class="tools"><i data-app-icon="renew" data-size="14"></i><i data-app-icon="search" data-size="14"></i></span></span>
+              <span class="sync">Synced 9:40 AM</span>
+              <span class="r new"><span class="l1"><b>Priya Nair</b><span class="t">9:12 AM</span></span><span class="s">Interview invitation: Frontend Engineer</span><span class="n"><i data-app-icon="arrowRight" data-size="12"></i>Choose an interview time</span><span class="m"><span class="pill">Interview</span>Brightwave · Due Mon, Nov 3</span></span>
+              <span class="r new"><span class="l1"><b>Kestrel Hiring</b><span class="t">Yesterday</span></span><span class="s">Your take-home test</span><span class="n"><i data-app-icon="arrowRight" data-size="12"></i>Finish the coding test</span><span class="m"><span class="pill">Assessment</span>Kestrel Labs · Due Thu, Nov 6</span></span>
+              <span class="r"><span class="l1"><b>Daniel Ortiz</b><span class="t">Oct 28</span></span><span class="s">Quick chat about a React role?</span></span>
+            </span>
+          </span>
+          <span class="lg-cap"><b>On your phone, like an app.</b><span>Mobile</span></span>
+        </a>
+        <a class="lg-cell n4-link" href="/automation">
+          <span class="lg-go"><i data-icon="arrowRight" data-size="16"></i></span>
+          <span class="lg-pic" aria-hidden="true">
+            <span class="lg-ui hm-apply">
+              <span class="bar"><b>NorthList Apply</b><span>Today: 2 sent</span></span>
+              <span class="tabs"><span class="on">Submitted</span><span>Not submitted</span><span>Setup</span></span>
+              <span class="r"><span class="co"><b>Brightwave</b>Frontend Engineer</span><span class="st"><span>No reply yet</span>Today, 10:42 · LinkedIn</span></span>
+              <span class="r"><span class="co"><b>Northwind Labs</b>React Developer</span><span class="st"><span>No reply yet</span>Today, 10:38 · LinkedIn</span></span>
+              <span class="r"><span class="co"><b>Kestrel Health</b>UI Engineer</span><span class="st"><span>Recruiter contact</span>Oct 30 · Indeed</span></span>
+            </span>
+          </span>
+          <span class="lg-cap"><b>Apply with your own AI agent.</b><span>NorthList Apply</span></span>
+        </a>
+      </div>
+    </div>
   </section>
 
-  <!-- 6. Close -->
-  <section class="wrap n3-close n4-close">
-    <div class="n3-close-in rv">
-      <h2 class="n3-close-title">Start with your<br>next job mail.</h2>
-      <div><div class="n3-ctas"><a class="btn btn-primary btn-lg" href="https://app.northlist.site/login">Start free</a><a class="btn btn-secondary btn-lg" href="https://app.northlist.site/login">Sign in</a></div><p class="n3-note">Free while in beta. No card, no AI key.</p></div>
+  <!-- 6. Close: one lit frame, the title left and the actions right -->
+  <section class="wrap hm-close">
+    <div class="lg rv">
+      <div class="lg-stage hm-close-in">
+        <h2 class="n3-close-title">Start with your<br>next job mail.</h2>
+        <div><div class="n3-ctas"><a class="btn btn-primary btn-lg" href="https://app.northlist.site/login">Start free</a><a class="btn btn-secondary btn-lg" href="https://app.northlist.site/login">Sign in</a></div><p class="n3-note">Free while in beta. No card, no AI key.</p></div>
+      </div>
     </div>
   </section>
 
