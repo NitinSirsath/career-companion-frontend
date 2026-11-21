@@ -32,7 +32,7 @@ export function interviewLine({ next }: Now['interviews'], withCompany = true) {
   return (
     <>
       Next: <strong className={STRONG}>{interviewWhen(next)}</strong>
-      {withCompany && next.companyName && \` · ${next.companyName}\`}
+      {withCompany && next.companyName && ` · ${next.companyName}`}
     </>
   );
 }
