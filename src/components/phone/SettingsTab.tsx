@@ -28,7 +28,7 @@ function YouRow() {
     <Link to="/account" aria-label={`Account, ${user.email}`} className={PLAIN_ROW}>
       <span
         aria-hidden="true"
-        className="flex size-[42px] shrink-0 items-center justify-center rounded-full bg-link text-base font-semibold text-white"
+        className="flex size-[42px] shrink-0 items-center justify-center rounded-full bg-accent text-base font-semibold text-on-accent"
       >
         {name.slice(0, 1).toUpperCase()}
       </span>

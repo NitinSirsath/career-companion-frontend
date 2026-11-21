@@ -1,16 +1,25 @@
 import { Link } from '@tanstack/react-router';
 import type { DashboardResponse } from '../../contracts/dashboard';
-import { RATE_BASE, barPercent, rateText, siteName, workModeName } from '../../lib/dashboard';
+import {
+  NOT_ENOUGH,
+  barPercent,
+  coverageParts,
+  enoughToCompare,
+  lookedAtText,
+  oneInText,
+  siteName,
+  workModeName,
+} from '../../lib/dashboard';
 import { DashCard, DashSection, ShareBar, TD_CLASS, TH_CLASS } from './DashCard';
 
 type Automation = DashboardResponse['automation'];
 
-/** "42%" with a small bar, or "Too few to compare" under 5 applications. */
+/** "About 1 in 3" with a small bar, or "Too few to tell" under 5 applications. */
 function RateCell({ count, of }: { count: number; of: number }) {
-  const text = rateText({ count, of });
-  if (!text) return <span className="text-text-tertiary">Too few</span>;
+  const text = oneInText({ count, of });
+  if (!text) return <span className="text-text-tertiary">Too few to tell</span>;
   return (
-    <span className="inline-flex items-center justify-end gap-2.5">
+    <span className="inline-flex items-center justify-end gap-2.5 whitespace-nowrap">
       {text}
       <ShareBar
         percent={barPercent(count, of)}
@@ -33,8 +42,8 @@ function SiteTable({ sites }: { sites: Automation['sites'] }) {
           <tr>
             <th className={TH_CLASS}>Site</th>
             <th className={`${TH_CLASS} text-right`}>Sent</th>
-            <th className={`${TH_CLASS} text-right`}>Reply rate</th>
-            <th className={`${TH_CLASS} text-right`}>Interviews</th>
+            <th className={`${TH_CLASS} text-right`}>Replied</th>
+            <th className={`${TH_CLASS} text-right`}>Got an interview</th>
           </tr>
         </thead>
         <tbody>
@@ -45,8 +54,8 @@ function SiteTable({ sites }: { sites: Automation['sites'] }) {
               <td className={`${TD_CLASS} text-right tabular-nums`}>
                 <RateCell count={site.answered} of={site.sent} />
               </td>
-              <td className={`${TD_CLASS} text-right tabular-nums`}>
-                {site.sent < RATE_BASE ? '' : rateText({ count: site.interviews, of: site.sent })}
+              <td className={`${TD_CLASS} text-right whitespace-nowrap tabular-nums`}>
+                {oneInText({ count: site.interviews, of: site.sent }) ?? ''}
               </td>
             </tr>
           ))}
@@ -58,17 +67,13 @@ function SiteTable({ sites }: { sites: Automation['sites'] }) {
 
 function WorkModeTable({ modes }: { modes: Automation['workModes'] }) {
   return (
-    <DashCard
-      flush
-      title="By work mode"
-      note="Remote, hybrid or on-site, as your automation reported it."
-    >
+    <DashCard flush title="Remote, hybrid or on-site" note="As NorthList Apply reported it.">
       <table className="w-full border-collapse text-sm">
         <thead>
           <tr>
-            <th className={TH_CLASS}>Work mode</th>
+            <th className={TH_CLASS}>Way of working</th>
             <th className={`${TH_CLASS} text-right`}>Sent</th>
-            <th className={`${TH_CLASS} text-right`}>Reply rate</th>
+            <th className={`${TH_CLASS} text-right`}>Replied</th>
           </tr>
         </thead>
         <tbody>
@@ -88,14 +93,10 @@ function WorkModeTable({ modes }: { modes: Automation['workModes'] }) {
 }
 
 function Coverage({ automation }: { automation: Automation }) {
-  const parts = [
-    { label: 'Sent', count: automation.sent, color: 'bg-chart-1' },
-    { label: 'Skipped', count: automation.skipped, color: 'bg-chart-4' },
-    { label: 'Needs you', count: automation.needsYou, color: 'bg-chart-3' },
-  ];
+  const parts = coverageParts(automation);
   return (
     <DashCard
-      title="What your automation did"
+      title="What NorthList Apply did"
       aside={
         <Link to="/automation" className="text-link hover:underline">
           Open NorthList Apply
@@ -103,7 +104,7 @@ function Coverage({ automation }: { automation: Automation }) {
       }
     >
       <p className="mt-2 text-[28px] leading-9 font-light md:text-[32px] md:leading-10">
-        {automation.lookedAt} {automation.lookedAt === 1 ? 'job' : 'jobs'} looked at
+        {lookedAtText(automation.lookedAt)}
       </p>
       {automation.lookedAt > 0 && (
         <div className="mt-3 flex h-2 gap-0.5" aria-hidden>
@@ -126,9 +127,7 @@ function Coverage({ automation }: { automation: Automation }) {
         <table className="-mx-4 mt-4 -mb-4 w-[calc(100%+2rem)] border-collapse text-sm md:-mx-6 md:-mb-6 md:w-[calc(100%+3rem)]">
           <thead>
             <tr>
-              <th className={`${TH_CLASS} border-t border-t-border-subtle`}>
-                Top reasons it skipped
-              </th>
+              <th className={`${TH_CLASS} border-t border-t-border-subtle`}>Why it skipped jobs</th>
               <th className={`${TH_CLASS} border-t border-t-border-subtle text-right`}>Jobs</th>
             </tr>
           </thead>
@@ -148,10 +147,7 @@ function Coverage({ automation }: { automation: Automation }) {
 
 /** What works best: only for users who sent applications through the automation (owner, 3 Nov 2026). */
 export function WorksBest({ automation }: { automation: Automation }) {
-  // Tables full of "Too few" say nothing; one line says it better (3 Nov 2026 review).
-  const enough = [...automation.sites, ...automation.workModes].some(
-    (row) => row.sent >= RATE_BASE,
-  );
+  const enough = enoughToCompare(automation);
   return (
     <DashSection title="What works best">
       {enough ? (
@@ -160,11 +156,8 @@ export function WorksBest({ automation }: { automation: Automation }) {
           <WorkModeTable modes={automation.workModes} />
         </div>
       ) : (
-        <DashCard title="By site and work mode">
-          <p className="mt-2 text-sm text-text-secondary">
-            Not enough yet. Reply rates show here once your automation has sent {RATE_BASE}{' '}
-            applications from one site or in one work mode.
-          </p>
+        <DashCard title="By site and way of working">
+          <p className="mt-2 text-sm text-text-secondary">{NOT_ENOUGH}</p>
         </DashCard>
       )}
       <Coverage automation={automation} />

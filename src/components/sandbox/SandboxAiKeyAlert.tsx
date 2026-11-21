@@ -22,7 +22,7 @@ export function SandboxAiKeyAlert() {
       </div>
       <Link
         to="/ai"
-        className="bg-action-primary px-4 py-2 text-sm font-medium text-text-inverse hover:bg-action-primary-hover"
+        className="bg-action-primary px-4 py-2 text-sm font-medium text-on-accent hover:bg-action-primary-hover"
       >
         Set up AI provider
       </Link>

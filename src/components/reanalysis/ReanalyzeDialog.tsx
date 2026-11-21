@@ -137,7 +137,7 @@ export function ReanalyzeDialog({
           type="button"
           disabled={!ready || start.isPending}
           onClick={go}
-          className="mt-1 h-12 cursor-pointer rounded-full bg-accent text-base font-semibold text-white transition-[opacity,scale] duration-200 active:scale-[1.02] disabled:cursor-default disabled:opacity-40"
+          className="mt-1 h-12 cursor-pointer rounded-full bg-accent text-base font-semibold text-on-accent transition-[opacity,scale] duration-200 active:scale-[1.02] disabled:cursor-default disabled:opacity-40"
         >
           {start.isPending ? 'Starting…' : 'Reanalyze'}
         </button>

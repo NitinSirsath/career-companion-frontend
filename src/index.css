@@ -145,9 +145,12 @@
   --radius-page: 12px;
   --color-canvas: var(--canvas);
 
-  /* The calm look (owner, 18 Nov 2026, approved mocks `PHONE-LINEAR-mock/`): one accent blue, and
-     colour only in status rings, the new-dot, red for past due and green switches. */
+  /* The calm look (owner, 18 Nov 2026, approved mocks `PHONE-LINEAR-mock/`; no blue since 21 Nov):
+     one accent in the text colour, and colour only in status rings, red for past due and green switches. */
   --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-mark: var(--mark);
+  --color-brand-panel: var(--brand-panel);
   --color-ring-grey: var(--ring-grey);
   --color-ring-recruiter: var(--ring-recruiter);
   --color-ring-assessment: var(--ring-assessment);
@@ -331,13 +334,13 @@
     --layer-hover: #f5f5f6;
     --layer-accent: #ececee;
     --field: #ffffff;
-    --tint: #eff5ff;
-    --tint-text: var(--accent);
+    --tint: #f4f4f5;
+    --tint-text: var(--text-primary);
     --menu: #ffffff;
     --menu-hover: #f5f5f6;
     --overlay: rgb(22 22 22 / 0.5);
     --popup-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.08);
-    --flash: rgb(15 98 254 / 0.16);
+    --flash: rgb(0 0 0 / 0.07);
     --skeleton: #ececee;
     --skeleton-highlight: #f5f5f6;
 
@@ -346,19 +349,20 @@
     --text-tertiary: #71717a;
     --text-disabled: #a1a1aa;
     --text-inverse: #ffffff;
-    --link: var(--accent);
-    --link-hover: #1d4ed8;
+    --link: var(--text-primary);
+    --link-hover: #3f3f46;
     --danger-text: #d92d20;
     --ok: #079455;
 
     --border-subtle: #ededef;
     --border-default: #e1e1e5;
     --border-strong: #a1a1aa;
-    --border-focus: var(--accent);
+    --border-focus: #18181b;
     --border-interactive: var(--accent);
 
     --action-primary: var(--accent);
-    --action-primary-hover: #1d4ed8;
+    --action-primary-hover: #3f3f46;
+    --on-accent: #ffffff;
     --action-secondary: #e0e0e0;
     --action-secondary-hover: #c6c6c6;
     --action-danger: #da1e28;
@@ -370,7 +374,7 @@
 
     --inverse: #393939;
     --inverse-text: #f4f4f4;
-    --inverse-link: #78a9ff;
+    --inverse-link: #ffffff;
 
     --status-success: #198038;
     --status-success-subtle: #defbe6;
@@ -378,17 +382,17 @@
     --status-warning-subtle: #fcf4d6;
     --status-error: #da1e28;
     --status-error-subtle: #fff1f1;
-    --status-info: #0043ce;
-    --status-info-subtle: #edf5ff;
+    --status-info: #3f3f46;
+    --status-info-subtle: #f4f4f5;
     --status-neutral: #525252;
     --status-neutral-subtle: #e0e0e0;
 
     --tag-gray-bg: #f4f4f5;
     --tag-gray: #3f3f46;
-    --tag-blue-bg: #eff5ff;
-    --tag-blue: #0043ce;
-    --tag-cyan-bg: #ecf8ff;
-    --tag-cyan: #00539a;
+    --tag-blue-bg: #f4f4f5;
+    --tag-blue: #3f3f46;
+    --tag-cyan-bg: #f4f4f5;
+    --tag-cyan: #3f3f46;
     --tag-teal-bg: #ebfbfb;
     --tag-teal: #005d5d;
     --tag-green-bg: #ecfdf3;
@@ -398,7 +402,7 @@
     --tag-yellow-bg: #fffaeb;
     --tag-yellow: #b54708;
 
-    --chart-1: #0f62fe;
+    --chart-1: #3f3f46;
     --chart-2: #009d9a;
     --chart-3: #8a3ffc;
     --chart-4: #8d8d8d;
@@ -406,21 +410,21 @@
     --chart-grid: #ededef;
     --chart-track: #f4f4f5;
 
-    --notice-info: #f5f9ff;
+    --notice-info: #f5f5f6;
     --notice-success: #f3fdf7;
     --notice-warning: #fffbeb;
     --notice-error: #fef6f5;
     --warning-icon: #d97706;
     /* 3 Nov 2026 (owner): rings around tags, coloured initials, the menu and the page sheet. */
     --tag-gray-ring: #e4e4e7;
-    --tag-blue-ring: #d0e2ff;
-    --tag-cyan-ring: #bae6ff;
+    --tag-blue-ring: #e4e4e7;
+    --tag-cyan-ring: #e4e4e7;
     --tag-teal-ring: #9ef0f0;
     --tag-green-ring: #abefc6;
     --tag-red-ring: #fecdca;
     --tag-yellow-ring: #fedf89;
-    --avatar-1: #edf5ff;
-    --avatar-1-text: #0043ce;
+    --avatar-1: #f4f4f5;
+    --avatar-1-text: #3f3f46;
     --avatar-2: #d9fbfb;
     --avatar-2-text: #005d5d;
     --avatar-3: #f6f2ff;
@@ -429,8 +433,8 @@
     --avatar-4-text: #9f1853;
     --avatar-5: #defbe6;
     --avatar-5-text: #0e6027;
-    --avatar-6: #e5f6ff;
-    --avatar-6-text: #00539a;
+    --avatar-6: #ececee;
+    --avatar-6-text: #52525b;
     /* Light keeps a plain white menu and top bar with thin lines. */
     --canvas: #ffffff;
     --canvas-hover: #f5f5f6;
@@ -452,8 +456,13 @@
     --sheet-glass: rgb(250 250 251 / 0.9);
     --menu-glass: rgb(255 255 255 / 0.72);
     --sheet-dim: rgb(0 0 0 / 0.42);
-    /* One accent: our blue. */
-    --accent: #2563eb;
+    /* No blue (owner, 19 and 21 Nov 2026): the one accent is the text colour, so the main action is a
+       dark pill with white words in light and a light pill with dark words in dark. Names that still
+       say "blue" (tone="blue", Tag color="blue") mean this accent. Only the logo mark keeps the blue. */
+    --accent: #18181b;
+    --mark: #2563eb;
+    /* The sign-in pages' big panel (was blue). */
+    --brand-panel: #18181b;
     /* Status rings: grey for applied and closed, then blue, yellow, orange, green. */
     --ring-grey: #a2a5ab;
     --ring-recruiter: #4ea7fc;
@@ -465,7 +474,7 @@
     --page-shade: rgb(0 0 0 / 0.1);
   }
 
-  /* Dark: Render's near-black and greys with IBM blue; tags and notices are dark tints with light text. */
+  /* Dark: near-black and greys; tags and notices are dark tints with light text. */
   .theme-dark {
     --background: #111113;
     --surface: #111113;
@@ -476,13 +485,13 @@
     --layer-hover: #18181b;
     --layer-accent: #222226;
     --field: #111113;
-    --tint: #0e1a30;
-    --tint-text: #a6c8ff;
+    --tint: #222226;
+    --tint-text: var(--text-primary);
     --menu: #18181b;
     --menu-hover: #222226;
     --overlay: rgb(0 0 0 / 0.7);
     --popup-shadow: 0 0 0 1px rgb(255 255 255 / 0.04), 0 12px 32px rgb(0 0 0 / 0.6);
-    --flash: rgb(69 137 255 / 0.25);
+    --flash: rgb(255 255 255 / 0.1);
     --skeleton: #18181b;
     --skeleton-highlight: #222226;
 
@@ -491,8 +500,8 @@
     --text-tertiary: #8b8b94;
     --text-disabled: #52525b;
     --text-inverse: #ffffff;
-    --link: var(--accent);
-    --link-hover: #60a5fa;
+    --link: var(--text-primary);
+    --link-hover: #ffffff;
     --danger-text: #f97066;
     --ok: #47cd89;
 
@@ -503,7 +512,8 @@
     --border-interactive: var(--accent);
 
     --action-primary: var(--accent);
-    --action-primary-hover: #2563eb;
+    --action-primary-hover: #ffffff;
+    --on-accent: #08090a;
     --action-secondary: #272727;
     --action-secondary-hover: #3d3d3d;
     --action-danger: #da1e28;
@@ -515,7 +525,7 @@
 
     --inverse: #f0f0f0;
     --inverse-text: #0d0d0d;
-    --inverse-link: #0f62fe;
+    --inverse-link: #0d0d0d;
 
     --status-success: #42be65;
     --status-success-subtle: #0a1f12;
@@ -523,17 +533,17 @@
     --status-warning-subtle: #1f1a05;
     --status-error: #fa4d56;
     --status-error-subtle: #2a0d10;
-    --status-info: #4589ff;
-    --status-info-subtle: #0e1a30;
+    --status-info: #d4d4d8;
+    --status-info-subtle: #1c1c1f;
     --status-neutral: #b3b3b3;
     --status-neutral-subtle: #272727;
 
     --tag-gray-bg: #1c1c1f;
     --tag-gray: #d4d4d8;
-    --tag-blue-bg: #0c1830;
-    --tag-blue: #a6c8ff;
-    --tag-cyan-bg: #071f33;
-    --tag-cyan: #82cfff;
+    --tag-blue-bg: #1c1c1f;
+    --tag-blue: #d4d4d8;
+    --tag-cyan-bg: #1c1c1f;
+    --tag-cyan: #d4d4d8;
     --tag-teal-bg: #062626;
     --tag-teal: #3ddbd9;
     --tag-green-bg: #081f13;
@@ -543,7 +553,7 @@
     --tag-yellow-bg: #221905;
     --tag-yellow: #fec84b;
 
-    --chart-1: #4589ff;
+    --chart-1: #d0d3d8;
     /* Teal one step darker than Carbon's dark chart teal: #08bdba fails the colour-blind lightness check on this page. */
     --chart-2: #009d9a;
     --chart-3: #a56eff;
@@ -552,20 +562,20 @@
     --chart-grid: #232327;
     --chart-track: #18181b;
 
-    --notice-info: #0c1424;
+    --notice-info: #18181b;
     --notice-success: #08170f;
     --notice-warning: #1a1405;
     --notice-error: #1f0b0a;
     --warning-icon: #f5b83d;
     --tag-gray-ring: #2c2c30;
-    --tag-blue-ring: #16305c;
-    --tag-cyan-ring: #0c3a5c;
+    --tag-blue-ring: #2c2c30;
+    --tag-cyan-ring: #2c2c30;
     --tag-teal-ring: #0b4444;
     --tag-green-ring: #0f3d25;
     --tag-red-ring: #4e1611;
     --tag-yellow-ring: #4a3508;
-    --avatar-1: #0c1830;
-    --avatar-1-text: #a6c8ff;
+    --avatar-1: #222226;
+    --avatar-1-text: #d4d4d8;
     --avatar-2: #062626;
     --avatar-2-text: #3ddbd9;
     --avatar-3: #1a1030;
@@ -574,15 +584,16 @@
     --avatar-4-text: #ffafd2;
     --avatar-5: #08200f;
     --avatar-5-text: #6fdc8c;
-    --avatar-6: #071f33;
-    --avatar-6-text: #82cfff;
-    /* Dark: menu and top bar on near-black, the page on a lighter raised sheet. */
-    --canvas: #08080a;
+    --avatar-6: #1c1c1f;
+    --avatar-6-text: #a1a1aa;
+    /* Dark keeps light's layout (owner, 21 Nov 2026): menu and top bar on the page colour with thin
+       lines, no raised sheet. */
+    --canvas: var(--background);
     --canvas-hover: rgb(255 255 255 / 0.05);
-    --shell-line: transparent;
+    --shell-line: var(--border-subtle);
     --nav-active: #1f1f23;
-    --nav-active-shadow: 0 0 0 1px rgb(255 255 255 / 0.1), 0 1px 2px rgb(0 0 0 / 0.5);
-    --sheet-shadow: 0 0 0 1px rgb(255 255 255 / 0.06), 0 8px 24px rgb(0 0 0 / 0.5);
+    --nav-active-shadow: none;
+    --sheet-shadow: none;
     --button-shadow: none;
     --glass: rgb(44 44 48 / 0.52);
     --glass-edge: rgb(255 255 255 / 0.13);
@@ -593,7 +604,9 @@
     --sheet-glass: rgb(32 32 36 / 0.86);
     --menu-glass: rgb(40 40 44 / 0.7);
     --sheet-dim: rgb(0 0 0 / 0.42);
-    --accent: #3b82f6;
+    --accent: #e6e6e6;
+    --mark: #3b82f6;
+    --brand-panel: #1c1c1f;
     --ring-grey: #64666d;
     --ring-recruiter: #4ea7fc;
     --ring-assessment: #f2c94c;

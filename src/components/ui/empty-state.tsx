@@ -15,9 +15,9 @@ interface EmptyStateProps {
 
 /** The next step's look: a round filled button, pressed in a little when tapped. */
 export const EMPTY_ACTION =
-  'inline-flex h-10 cursor-pointer items-center gap-1.5 rounded-full bg-action-primary px-5 text-[15px] font-medium text-text-inverse no-underline transition-[scale,background-color] duration-200 ease-spring hover:bg-action-primary-hover active:scale-95 active:duration-70 md:h-9 md:text-[13px]';
+  'inline-flex h-10 cursor-pointer items-center gap-1.5 rounded-full bg-action-primary px-5 text-[15px] font-medium text-on-accent no-underline transition-[scale,background-color] duration-200 ease-spring hover:bg-action-primary-hover active:scale-95 active:duration-70 md:h-9 md:text-[13px]';
 
-/** A quieter next step, such as "Clear filters": blue words on a soft grey pill. */
+/** A quieter next step, such as "Clear filters": dark words on a soft grey pill. */
 export const EMPTY_ACTION_QUIET =
   'inline-flex h-10 cursor-pointer items-center gap-1.5 rounded-full bg-surface-subtle px-5 text-[15px] font-medium text-link no-underline transition-[scale,background-color] duration-200 ease-spring hover:bg-layer-hover active:scale-95 active:duration-70 md:h-9 md:text-[13px]';
 

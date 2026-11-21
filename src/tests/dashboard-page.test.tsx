@@ -131,11 +131,12 @@ describe('the Dashboard', () => {
     renderPage();
     const progress = await screen.findByRole('region', { name: 'Your progress' });
     expect(within(progress).getByText('↑ 8 vs the 30 days before')).toBeInTheDocument();
-    expect(
-      within(progress).getByRole('heading', { name: 'Running total this period' }),
-    ).toBeInTheDocument();
-    expect(within(progress).getByText('Response rate').nextSibling).toHaveTextContent('35%');
-    expect(within(progress).getByText('Usual reply time').nextSibling).toHaveTextContent('6 days');
+    expect(within(progress).getByRole('heading', { name: 'Over time' })).toBeInTheDocument();
+    // Rates in plain words (owner, 21 Nov 2026): 12 of 34 is "About 1 in 3".
+    expect(within(progress).getByText('got a reply').nextSibling).toHaveTextContent('About 1 in 3');
+    expect(within(progress).getByText('usual wait for a reply').nextSibling).toHaveTextContent(
+      '6 days',
+    );
     expect(within(progress).getByRole('link', { name: /Acme Analytics/ })).toHaveAttribute(
       'href',
       '/applications/app-1',
@@ -209,11 +210,13 @@ describe('the Dashboard', () => {
     };
     vi.mocked(api.getDashboard).mockResolvedValue(few);
     renderPage();
-    expect(await screen.findByText('Rates show from 5 applications')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Rates show once you have sent 5 applications'),
+    ).toBeInTheDocument();
     expect(screen.getAllByText('1 of 3').length).toBeGreaterThan(0);
-    expect(screen.queryByText('Response rate')).not.toBeInTheDocument();
+    expect(screen.queryByText('got a reply')).not.toBeInTheDocument();
     // The usual reply time is one line inside the card, not a lone tile.
-    expect(screen.queryByText('Usual reply time')).not.toBeInTheDocument();
+    expect(screen.queryByText('usual wait for a reply')).not.toBeInTheDocument();
     expect(screen.getByText(/Companies usually reply in/)).toHaveTextContent(
       'Companies usually reply in 6 days.',
     );
@@ -230,7 +233,7 @@ describe('the Dashboard', () => {
         .getAllByText(name)
         .find((label) => label.tagName === 'DT')!
         .closest('div')!;
-    const bars = tile('Applications sent').querySelectorAll('svg rect');
+    const bars = tile('Applied').querySelectorAll('svg rect');
     expect(bars).toHaveLength(12);
     expect(bars[0]).toHaveClass('fill-chart-4/45');
     expect(bars[11]).toHaveClass('fill-chart-1');
@@ -375,7 +378,7 @@ describe('the first run (owner, 15 Nov 2026)', () => {
   });
 });
 
-describe('Today on a phone (owner, 18 Nov 2026, mock `PHONE-LINEAR-mock/` screen 7)', () => {
+describe('Today on a phone (owner, 21 Nov 2026, mock `DASHBOARD-PHONE-mock/`)', () => {
   let desktopWidth = 0;
   const setWidth = (width: number) =>
     Object.defineProperty(window, 'innerWidth', {
@@ -389,59 +392,78 @@ describe('Today on a phone (owner, 18 Nov 2026, mock `PHONE-LINEAR-mock/` screen
   });
   afterEach(() => setWidth(desktopWidth));
 
-  it('is called Today, with the date, rows with counts and the four numbers', async () => {
+  it('is called Today, with the "Needs you" tiles, the five numbers and the charts', async () => {
     renderPage();
     expect(await screen.findByRole('heading', { level: 1, name: 'Today' })).toBeInTheDocument();
     const needs = await screen.findByRole('region', { name: 'Needs you' });
-    const row = (name: string, count: string, href: string) => {
+    const tile = (name: string, count: string, line: string, href: string) => {
       const link = within(needs).getByRole('link', { name: new RegExp(`^${name}`) });
       expect(link).toHaveAttribute('href', href);
-      expect(link).toHaveTextContent(new RegExp(`${count}$`));
+      expect(link).toHaveTextContent(count);
+      expect(within(link).getByText(new RegExp(line))).toBeInTheDocument();
     };
-    row('Needs action', '3', '/mails?request=open');
-    row('New job mails', '5', '/mails?unseen=true');
-    row('Interviews coming up', '2', '/mails/thread-9');
-    row('Gone quiet', '1', '/dashboard/charts?period=30d#gone-quiet');
-    const numbers = screen.getByRole('region', { name: 'Your numbers' });
-    for (const term of ['Applied', 'Replies', 'Interviews', 'Offers'])
-      expect(within(numbers).getByText(term)).toBeInTheDocument();
-    // The charts are one tap deeper, never on Today itself.
-    expect(screen.queryByRole('region', { name: 'Your mailbox' })).not.toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Charts and rates' })).toHaveAttribute(
+    tile('Needs action', '3', 'waiting over a day', '/mails?request=open');
+    tile('New job mails', '5', 'not opened yet', '/mails?unseen=true');
+    tile('Interviews coming up', '2', 'Next:', '/mails/thread-9');
+    // Gone quiet left the phone (owner, 21 Nov 2026).
+    expect(within(needs).queryByText('Gone quiet')).not.toBeInTheDocument();
+    const progress = screen.getByRole('region', { name: 'Your progress' });
+    for (const term of ['Applied', 'Replies', 'Interviews', 'Offers', 'Rejected'])
+      expect(within(progress).getByText(term)).toBeInTheDocument();
+    expect(within(progress).getByText('↑ 8')).toBeInTheDocument();
+    expect(
+      within(progress).getByText('Arrows compare with the 30 days before.'),
+    ).toBeInTheDocument();
+    // The charts are on Today itself; no "Charts and rates" page any more.
+    expect(screen.getByRole('region', { name: 'Over time' })).toBeInTheDocument();
+    const mailbox = screen.getByRole('region', { name: 'Your mailbox' });
+    expect(within(mailbox).getByText('Mails checked')).toBeInTheDocument();
+    expect(within(mailbox).getByRole('link', { name: /Not linked to a job/ })).toHaveAttribute(
       'href',
-      '/dashboard/charts?period=30d',
+      '/mails?application=none',
     );
+    expect(screen.getByRole('region', { name: 'Job mails per day' })).toBeInTheDocument();
+    expect(screen.queryByText('From applied to offer')).not.toBeInTheDocument();
+    expect(screen.queryByText('Acme Analytics')).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'What works best' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Charts and rates' })).not.toBeInTheDocument();
   });
 
-  it('picks the period on Charts and rates; Today follows it', async () => {
-    const router = renderPage('/dashboard/charts');
+  it('picks the period on Today, and everything under it follows', async () => {
+    const router = renderPage();
     await chooseOption(await screen.findByRole('combobox', { name: 'Period' }), 'Last 7 days');
     await waitFor(() => expect(router.state.location.search).toEqual({ period: '7d' }));
-    await router.navigate({ to: '/dashboard' });
-    expect(
-      await screen.findByRole('heading', { level: 2, name: 'Last 7 days' }),
-    ).toBeInTheDocument();
     await waitFor(() =>
       expect(api.getDashboard).toHaveBeenLastCalledWith(
         expect.objectContaining({ period: '7d' }),
         expect.anything(),
       ),
     );
+    expect(await screen.findByText('Arrows compare with the 7 days before.')).toBeInTheDocument();
   });
 
-  it('keeps every chart on the Charts and rates page', async () => {
-    renderPage('/dashboard/charts?period=30d');
-    expect(
-      await screen.findByRole('heading', { level: 1, name: 'Charts and rates' }),
-    ).toBeInTheDocument();
-    expect(await screen.findByRole('region', { name: 'Your progress' })).toBeInTheDocument();
-    expect(screen.getByRole('region', { name: 'Your mailbox' })).toBeInTheDocument();
-    expect(screen.getByText('Acme Analytics')).toBeInTheDocument();
+  it('shows what works best as rows to NorthList Apply users', async () => {
+    const used = dashboardFixture();
+    used.automation = {
+      ...used.automation,
+      used: true,
+      sent: 6,
+      lookedAt: 9,
+      sites: [{ platform: 'linkedin', sent: 6, answered: 2, interviews: 0 }],
+      workModes: [{ workMode: 'remote', sent: 3, answered: 1 }],
+    };
+    vi.mocked(api.getDashboard).mockResolvedValue(used);
+    renderPage();
+    const best = await screen.findByRole('region', { name: 'What works best' });
+    expect(within(best).getByText('1 in 3 replied')).toBeInTheDocument();
+    expect(within(best).getByText('6 sent · No interview yet')).toBeInTheDocument();
+    expect(within(best).getByText('Too few to tell')).toBeInTheDocument();
+    expect(within(best).getByText('9 jobs looked at')).toBeInTheDocument();
   });
 
-  it('sends a laptop from the charts page back to the Dashboard, which has the charts', async () => {
-    setWidth(desktopWidth);
-    const router = renderPage('/dashboard/charts');
+  it('sends the old charts address to Today, keeping the period', async () => {
+    const router = renderPage('/dashboard/charts?period=90d');
     await waitFor(() => expect(router.state.location.pathname).toBe('/dashboard'));
+    expect(router.state.location.search).toEqual({ period: '90d' });
   });
 });
