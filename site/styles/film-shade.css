@@ -29,8 +29,8 @@
   87.5% { transform: translate(-61px, -181px); }
 }
 /* Home and Mobile (owner, 21 Nov 2026): a stronger grain, but softer than NorthList Apply's. A second copy of the
-   grain lies flat on top at a third of its strength, so faint specks also show over the dark corner, not only over the picture. */
-.hf-hero .film-shade::before, .mb-hero .film-shade::before { content: ''; position: absolute; inset: -240px; background: var(--grain); opacity: 0.3; }
+   grain lies flat on top at a sixth of its strength, so faint specks also show over the dark corner, not only over the picture. */
+.hf-hero .film-shade::before, .mb-hero .film-shade::before { content: ''; position: absolute; inset: -240px; background: var(--grain); opacity: 0.15; }
 /* The grain ends softly into the page at the bottom of the hero, under the words */
 .hf-words, .mb-words { z-index: 1; }
 .hf-hero::after, .mb-hero::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 160px; background: linear-gradient(to bottom, transparent, var(--bg)); pointer-events: none; }
