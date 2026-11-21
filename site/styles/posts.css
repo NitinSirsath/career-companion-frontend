@@ -1,0 +1,195 @@
+/*
+ * The NorthList Posts page (owner, 21 Nov 2026): the NorthList Apply page's parts (type, bands, rows, questions,
+ * head and close from apply-page.css and apply-sections.css) with few pictures, because the Posts app's own look
+ * is not final yet: a dim spread of its words behind the head, and one draft. Classes start with ps-.
+ */
+@import './apply-page.css';
+@import './apply-sections.css';
+
+body[data-page='posts'] { --apx-out: cubic-bezier(0.23, 1, 0.32, 1); }
+
+/* ---------- 1. Head: the Posts words, placed on the tilted plane ---------- */
+.ps-hero .apx-l.l1 { left: 80px; top: 250px; }
+.ps-hero .apx-l.l2 { left: 40px; top: 120px; }
+.ps-hero .apx-l.l3 { left: 560px; top: 380px; }
+.ps-hero .apx-l.l3 em { margin-left: 8px; font-style: normal; color: rgb(255 255 255 / 0.72); text-decoration: underline; text-underline-offset: 6px; }
+.ps-hero .apx-l.l4 { left: 0; top: 480px; font: 400 26px/1 var(--sans); }
+.ps-hero .apx-l.l6 { left: 380px; top: 610px; }
+.ps-hero .apx-l.l7 { left: 760px; top: 190px; }
+.ps-kit { margin-top: 0; }
+
+/* ---------- 2. One draft on the lit stage ---------- */
+.ps-stage { height: 540px; }
+.ps-draft { position: absolute; z-index: 2; left: 50%; top: 64px; width: 640px; margin-left: -320px; display: grid; gap: 14px; padding: 24px; }
+.ps-draft .lg-o { display: inline-flex; align-items: center; gap: 6px; }
+.ps-draft .why { font-size: 14px; color: var(--text-3); }
+.ps-draft .chan { display: grid; grid-template-columns: 1fr 1fr; padding: 2px; border-radius: 10px; background: rgb(255 255 255 / 0.06); }
+.ps-draft .chan > span { display: flex; align-items: center; justify-content: center; gap: 6px; height: 30px; border-radius: 8px; font-size: 13px; color: var(--text-3); }
+.ps-draft .chan > .on { background: #232428; color: var(--text); font-weight: 500; }
+.ps-draft .take { position: relative; display: block; min-height: 44px; padding: 11px 14px; border: 1px solid var(--lg-line-2); border-radius: 8px; background: #0c0d0f; color: var(--text); }
+.ps-draft .take .ph { position: absolute; left: 14px; top: 11px; color: var(--dim); opacity: 0; }
+.ps-draft .take .typed { display: block; white-space: nowrap; overflow: hidden; }
+.ps-draft .text { color: var(--text-2); text-wrap: pretty; }
+.ps-draft .foot { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 32px; }
+.ps-draft .count { font: 400 12px/1 var(--mono); color: var(--dim); }
+.ps-draft .acts, .ps-draft .undo, .ps-draft .done { display: flex; align-items: center; gap: 8px; }
+.ps-draft .undo, .ps-draft .done { position: absolute; right: 0; top: 0; bottom: 0; opacity: 0; }
+.ps-draft .undo { gap: 12px; font-size: 13px; color: var(--text-2); }
+.ps-draft .undo .n { position: relative; display: inline-grid; font-weight: 500; color: var(--text); font-variant-numeric: tabular-nums; }
+.ps-draft .undo .n > span { grid-area: 1 / 1; opacity: 0; }
+.ps-draft .done { font-size: 13px; color: var(--text); }
+
+/* While on screen: placeholder, your take typed in, Post, the Undo count, Posted; then again. One 10 s loop. */
+.ps-stage.live .take .ph { animation: ps-ph 10s linear infinite; }
+.ps-stage.live .take .typed { animation: ps-type 10s steps(46, end) infinite; }
+.ps-stage.live .acts { animation: ps-acts 10s linear infinite; }
+.ps-stage.live .acts .pri { animation: ps-press 10s var(--apx-out) infinite; }
+.ps-stage.live .undo { animation: ps-undo 10s linear infinite; }
+.ps-stage.live .undo .n > span:nth-child(1) { animation: ps-n1 10s linear infinite; }
+.ps-stage.live .undo .n > span:nth-child(2) { animation: ps-n2 10s linear infinite; }
+.ps-stage.live .undo .n > span:nth-child(3) { animation: ps-n3 10s linear infinite; }
+.ps-stage.live .done { animation: ps-done 10s linear infinite; }
+@keyframes ps-ph { 0%, 14% { opacity: 1; } 15%, 100% { opacity: 0; } }
+@keyframes ps-type { 0%, 15% { clip-path: inset(0 100% 0 0); } 40%, 100% { clip-path: inset(0 0 0 0); } }
+@keyframes ps-press { 0%, 45% { transform: none; } 46% { transform: scale(0.94); } 48%, 100% { transform: none; } }
+@keyframes ps-acts { 0%, 47% { opacity: 1; } 48%, 97% { opacity: 0; } 98%, 100% { opacity: 1; } }
+@keyframes ps-undo { 0%, 47% { opacity: 0; } 48%, 80% { opacity: 1; } 81%, 100% { opacity: 0; } }
+@keyframes ps-n1 { 0%, 47% { opacity: 0; } 48%, 58% { opacity: 1; } 59%, 100% { opacity: 0; } }
+@keyframes ps-n2 { 0%, 58% { opacity: 0; } 59%, 69% { opacity: 1; } 70%, 100% { opacity: 0; } }
+@keyframes ps-n3 { 0%, 69% { opacity: 0; } 70%, 80% { opacity: 1; } 81%, 100% { opacity: 0; } }
+@keyframes ps-done { 0%, 81% { opacity: 0; } 83%, 96% { opacity: 1; } 98%, 100% { opacity: 0; } }
+
+/* ---------- 2. The flow: four tiles, a light runs from your work to X and LinkedIn (5 s) ---------- */
+.ps-flowstage { height: 420px; }
+.ps-flow { width: min(960px, calc(100% - 64px)); grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.ps-flow .wires { left: 12.5%; right: 12.5%; width: 75%; }
+.ps-two { display: flex; gap: 6px; place-content: center; }
+.ps-two svg { color: var(--text-2); }
+.ps-nl { position: relative; }
+.ps-badge { position: absolute; top: -8px; right: -8px; min-width: 22px; height: 22px; padding: 0 6px; display: grid; place-items: center; border-radius: 11px; background: var(--btn, #e6e6e6); color: var(--btn-text, #08090a);
+  font: 600 12px/1 var(--sans); font-style: normal; }
+.ps-flowstage .lg-cap code, .ps-steps code { font: 400 15px/1 var(--mono); color: var(--text); }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.no-motion) .ps-flow .apx-pulse { animation-duration: 5s; }
+  html:not(.no-motion) .ps-flow .apx-pulse.p1 { animation-delay: 1s; }
+  html:not(.no-motion) .ps-flow .apx-pulse.p2 { animation: apx-pulse 5s linear 2s infinite; }
+  html:not(.no-motion) .ps-flow .lg-tile.nl { animation: apx-land 5s ease 2s infinite; }
+  html:not(.no-motion) .ps-badge { animation: ps-badge 5s var(--apx-out) infinite; }
+}
+@keyframes ps-badge { 0%, 38% { opacity: 0; transform: scale(0.6); } 44%, 88% { opacity: 1; transform: none; } 96%, 100% { opacity: 0; transform: scale(0.9); } }
+
+/* Under the flow: three cells with a small piece each */
+.lg-row.ps-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ps-3 .lg-pic { height: 320px; }
+.ps-3 .lg-cap { padding-inline: 32px; }
+
+/* What you shipped: a light runs down the git history; merged work becomes a draft (8 s) */
+.ps-git { position: relative; width: min(340px, calc(100% - 48px)); overflow: hidden; }
+.ps-git .r { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; height: 52px; padding: 0 14px; border-top: 1px solid var(--lg-line); }
+.ps-git .r0 { border-top: 0; }
+.ps-git code { font: 400 12px/1 var(--mono); color: var(--dim); }
+.ps-git b { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ps-git .r1 b { color: var(--text-3); }
+.ps-git em { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-style: normal; color: var(--text); white-space: nowrap; }
+.ps-git .r1 em { color: var(--dim); }
+.ps-git .scan { position: absolute; left: 0; right: 0; top: 0; height: 52px; background: rgb(255 255 255 / 0.04); box-shadow: inset 2px 0 0 rgb(255 255 255 / 0.5); opacity: 0; pointer-events: none; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.no-motion) .ps-git .scan { animation: ps-scan 8s var(--apx-out) infinite; }
+  html:not(.no-motion) .ps-git .r0 em { animation: apx-m0 8s ease infinite; }
+  html:not(.no-motion) .ps-git .r1 em { animation: apx-m1 8s ease infinite; }
+  html:not(.no-motion) .ps-git .r2 em { animation: apx-m2 8s ease infinite; }
+}
+@keyframes ps-scan { 0%, 6% { opacity: 0; transform: translateY(0); } 10%, 22% { opacity: 1; transform: translateY(0); } 28%, 40% { opacity: 1; transform: translateY(53px); } 46%, 58% { opacity: 1; transform: translateY(106px); } 64%, 100% { opacity: 0; transform: translateY(106px); } }
+
+/* News in your field: the middle article is read to the end, then marked (8 s) */
+.ps-news { width: min(340px, calc(100% - 48px)); overflow: hidden; }
+.ps-news .r { position: relative; display: grid; gap: 2px; padding: 12px 14px; border-top: 1px solid var(--lg-line); }
+.ps-news .r:first-child { border-top: 0; }
+.ps-news .src { font-size: 12px; line-height: 16px; color: var(--dim); }
+.ps-news .r b { font-size: 13px; line-height: 18px; color: var(--text-3); font-weight: 500; }
+.ps-news .r.on { background: rgb(255 255 255 / 0.03); }
+.ps-news .r.on b { color: var(--text); }
+.ps-news .bar { height: 2px; margin-top: 8px; border-radius: 1px; background: rgb(255 255 255 / 0.08); overflow: hidden; }
+.ps-news .bar i { display: block; height: 100%; background: rgb(255 255 255 / 0.6); transform-origin: left; }
+.ps-news .read { position: absolute; right: 14px; top: 12px; display: inline-flex; align-items: center; gap: 4px; font-size: 12px; line-height: 16px; color: var(--text); }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.no-motion) .ps-news .bar i { animation: ps-read 8s cubic-bezier(0.37, 0, 0.63, 1) infinite; }
+  html:not(.no-motion) .ps-news .read { animation: ps-mark 8s ease infinite; }
+}
+@keyframes ps-read { 0%, 8% { transform: scaleX(0); } 60%, 92% { transform: scaleX(1); } 98%, 100% { transform: scaleX(0); opacity: 0; } }
+@keyframes ps-mark { 0%, 60% { opacity: 0; transform: translateX(-4px); } 65%, 92% { opacity: 1; transform: none; } 97%, 100% { opacity: 0; } }
+
+/* Your own ideas: a request types in, goes, and a draft is sent (8 s) */
+.ps-own { width: min(300px, calc(100% - 48px)); display: grid; gap: 16px; }
+.ps-own .apx-start { width: auto; }
+.ps-ask .t { display: inline-flex; align-items: center; min-width: 0; }
+.ps-ask .typed { display: inline-block; white-space: nowrap; overflow: hidden; }
+.ps-sent { display: flex; align-items: center; gap: 8px; justify-self: start; padding: 10px 14px; font-size: 13px; color: var(--text); }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.no-motion) .ps-ask .typed { animation: ps-ask 8s steps(28, end) infinite; }
+  html:not(.no-motion) .ps-ask .send { animation: ps-go 8s var(--apx-out) infinite; }
+  html:not(.no-motion) .ps-sent { animation: ps-sent 8s var(--apx-out) infinite; }
+}
+@keyframes ps-ask { 0%, 6% { clip-path: inset(0 100% 0 0); } 40%, 92% { clip-path: inset(0 0 0 0); } 97%, 100% { clip-path: inset(0 100% 0 0); } }
+@keyframes ps-go { 0%, 44% { transform: none; } 47% { transform: scale(0.88); } 50%, 100% { transform: none; } }
+@keyframes ps-sent { 0%, 52% { opacity: 0; transform: translateY(8px); } 58%, 90% { opacity: 1; transform: none; } 96%, 100% { opacity: 0; } }
+
+/* ---------- 4. Setup: three cells ---------- */
+.ps-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ps-steps .apx-prompt { width: min(260px, calc(100% - 48px)); }
+
+/* ---------- 5. Posted: posts this week (today's bar grows), clicks (11 becomes 12) (7 s) ---------- */
+.ps-week { width: min(300px, calc(100% - 48px)); display: grid; gap: 16px; padding: 16px 18px; }
+.ps-week .top, .ps-total { display: flex; align-items: baseline; justify-content: space-between; }
+.ps-week .top b, .ps-total b { font-size: 24px; line-height: 32px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.ps-week .days { display: grid; grid-template-columns: repeat(7, 1fr); align-items: end; gap: 8px; height: 64px; border-bottom: 1px solid var(--lg-line); }
+.ps-week .days i { height: var(--h); min-height: 2px; border-radius: 3px 3px 0 0; background: rgb(255 255 255 / 0.22); transform-origin: bottom; }
+.ps-week .days i.new { background: rgb(255 255 255 / 0.7); }
+.ps-week .split { display: flex; gap: 16px; font-size: 13px; color: var(--text-2); }
+.ps-week .split > span { display: inline-flex; align-items: center; gap: 6px; }
+.ps-clicks { width: min(300px, calc(100% - 48px)); display: grid; gap: 12px; }
+.ps-total { padding: 16px 18px; }
+.ps-total .num { display: inline-grid; }
+.ps-total .num > span { grid-area: 1 / 1; }
+.ps-total .n0 { opacity: 0; }
+.ps-link { display: flex; align-items: center; gap: 8px; padding: 10px 14px; margin-left: 24px; font-size: 12px; color: var(--text-3); }
+.ps-link code { font: 400 12px/1 var(--mono); color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ps-link em { margin-left: auto; font-style: normal; font-weight: 500; color: var(--text); }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.no-motion) .ps-week .days i.new { animation: ps-grow 7s var(--apx-out) infinite; }
+  html:not(.no-motion) .ps-week .top b { animation: none; }
+  html:not(.no-motion) .ps-total .n0 { animation: apx-before 7s ease infinite; }
+  html:not(.no-motion) .ps-total .n1 { animation: apx-after 7s ease infinite; }
+  html:not(.no-motion) .ps-link { animation: ps-ping 7s var(--apx-out) infinite; }
+  html:not(.no-motion) .ps-link em { animation: apx-after 7s ease infinite; }
+}
+@keyframes ps-grow { 0%, 20% { transform: scaleY(0); } 40%, 92% { transform: scaleY(1); } 97%, 100% { transform: scaleY(0); } }
+@keyframes ps-ping { 0%, 30% { border-color: var(--lg-line); } 36% { border-color: rgb(255 255 255 / 0.4); } 60%, 100% { border-color: var(--lg-line); } }
+
+/* ---------- Tablet ---------- */
+@media (max-width: 1023px) {
+  .lg-row.ps-3, .ps-steps { grid-template-columns: minmax(0, 1fr); }
+  .ps-hero .apx-plane { left: 20%; }
+  .ps-flowstage { height: 460px; }
+  .ps-flow .part > span:not(.lg-tile) { display: none; }
+}
+/* ---------- Phone: the draft in the stage's flow, its caption under it; the flow stands up ---------- */
+@media (max-width: 599px) {
+  .ps-stage { height: auto; padding: 24px 16px 0; }
+  .ps-stage::after { display: none; }
+  .ps-draft { position: relative; left: auto; top: auto; width: auto; margin: 0; padding: 20px; }
+  .ps-draft .take .typed { white-space: normal; }
+  .ps-draft .count { display: none; }
+  .ps-stage > .lg-cap { position: static; padding: 24px 8px 28px; }
+  .ps-hero .apx-l.l3 em { display: none; }
+  .ps-flowstage { height: auto; padding: 32px 24px 0; }
+  .ps-flowstage::after { display: none; }
+  .ps-flow { position: relative; left: auto; top: auto; translate: none; width: auto; grid-template-columns: minmax(0, 1fr); row-gap: 20px; }
+  .ps-flow .wires { display: none; }
+  .ps-flow .part { grid-template-columns: 56px minmax(0, 1fr); justify-items: start; align-items: center; column-gap: 16px; row-gap: 0; padding: 0; text-align: left; }
+  .ps-flow .lg-tile { grid-row: span 2; margin: 0; width: 56px; height: 56px; }
+  .ps-flow .part > span:not(.lg-tile) { display: block; }
+  .ps-flowstage > .lg-cap { position: static; padding: 28px 0 28px; }
+  .ps-3 .lg-pic { height: 260px; }
+  .ps-3 .lg-cap { padding-inline: 24px; }
+}
