@@ -130,7 +130,7 @@ function PhoneRequestForm({
       <button
         type="submit"
         disabled={!ready || send.isPending}
-        className="mt-2.5 h-12 cursor-pointer rounded-full bg-link text-base font-semibold text-white transition-[opacity,scale] duration-200 active:scale-[1.02] disabled:cursor-default disabled:opacity-40"
+        className="mt-2.5 h-12 cursor-pointer rounded-full bg-accent text-base font-semibold text-on-accent transition-[opacity,scale] duration-200 active:scale-[1.02] disabled:cursor-default disabled:opacity-40"
       >
         {send.isPending ? 'Sending…' : 'Ask to resume'}
       </button>

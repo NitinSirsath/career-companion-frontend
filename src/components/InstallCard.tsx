@@ -32,7 +32,7 @@ function slideUp(element: HTMLElement | null) {
   );
 }
 
-/** A round pill button on the phone card: grey, or blue for Install. */
+/** A round pill button on the phone card: grey, or the accent pill for Install. */
 function Pill({
   blue = false,
   onClick,
@@ -48,7 +48,7 @@ function Pill({
       onClick={onClick}
       className={cn(
         'h-9 cursor-pointer rounded-full px-4 text-[14.5px] font-semibold transition-transform duration-450 ease-[cubic-bezier(0.25,1.6,0.4,1)] active:scale-105 active:duration-120',
-        blue ? 'bg-link text-white' : 'bg-[var(--glass-pill)] text-text-primary',
+        blue ? 'bg-accent text-on-accent' : 'bg-[var(--glass-pill)] text-text-primary',
       )}
     >
       {children}

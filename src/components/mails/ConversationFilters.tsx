@@ -158,7 +158,7 @@ const FILTERS_BUTTON =
 function CountBadge({ count }: { count: number }) {
   if (count === 0) return null;
   return (
-    <span className="min-w-[18px] rounded-full bg-action-primary px-1.5 text-center text-[12px] leading-[18px] font-semibold text-text-inverse">
+    <span className="min-w-[18px] rounded-full bg-action-primary px-1.5 text-center text-[12px] leading-[18px] font-semibold text-on-accent">
       {count}
     </span>
   );

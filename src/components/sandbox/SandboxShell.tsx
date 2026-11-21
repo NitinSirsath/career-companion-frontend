@@ -75,7 +75,7 @@ function SandboxFrame({ active, children }: { active: SandboxSection; children: 
         <nav aria-label="Mailbox" className="flex shrink-0 flex-col gap-1 md:w-40">
           <Link
             to="/sandbox/compose"
-            className="mb-3 bg-action-primary px-3 py-2 text-center text-sm font-medium text-text-inverse hover:bg-action-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
+            className="mb-3 bg-action-primary px-3 py-2 text-center text-sm font-medium text-on-accent hover:bg-action-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
           >
             Compose
           </Link>

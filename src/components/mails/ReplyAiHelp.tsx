@@ -111,7 +111,7 @@ function HintRow({
           onClick={onWrite}
           className="absolute top-0 right-0 size-11 hover:bg-transparent disabled:bg-transparent"
         >
-          <span className="flex size-8 items-center justify-center rounded-full bg-action-primary text-text-inverse">
+          <span className="flex size-8 items-center justify-center rounded-full bg-action-primary text-on-accent">
             <ArrowUpIcon size={18} strokeWidth={2.4} aria-hidden="true" />
           </span>
         </Button>
