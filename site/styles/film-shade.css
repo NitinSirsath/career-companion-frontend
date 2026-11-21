@@ -1,0 +1,34 @@
+/*
+ * Both film heroes, Home and Mobile (owner, 21 Nov 2026, after linear.app/intake and linear.app/mobile): the
+ * film sits darker, a shade keeps the words' corner dark, and a fine film grain lies over the picture. The grain
+ * changes about twelve times a second, as on linear.app/mobile: one tile drawn once, jumped to a new place each
+ * time (a move only, nothing redrawn), and it holds still with the film.
+ */
+.film-shade {
+  position: absolute; inset: 0; overflow: hidden; pointer-events: none;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='discrete' tableValues='0 0 0 1 1'/%3E%3CfeFuncG type='discrete' tableValues='0 0 0 1 1'/%3E%3CfeFuncB type='discrete' tableValues='0 0 0 1 1'/%3E%3CfeFuncA type='linear' slope='0' intercept='0.28'/%3E%3C/feComponentTransfer%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E") 0 0 / 240px 240px;
+  background:
+    radial-gradient(ellipse 72% 64% at 0% 100%, rgb(8 9 10 / 0.86), rgb(8 9 10 / 0.5) 45%, rgb(8 9 10 / 0) 78%),
+    linear-gradient(to top, rgb(8 9 10 / 0.7), rgb(8 9 10 / 0) 40%);
+}
+/* The grain: light and dark specks in soft light, so the black page stays black and only the picture gets grain.
+   Nothing on .film-shade may start its own layer group (mask, filter, opacity < 1), or the soft light has nothing under it to blend with. */
+.film-shade::after { content: ''; position: absolute; inset: -240px; background: var(--grain); mix-blend-mode: soft-light; }
+@media (prefers-reduced-motion: no-preference) {
+  .film-shade::after { animation: film-grain 660ms steps(1) infinite; }
+  [data-film-hero][data-paused] .film-shade::after, [data-film-hero][data-still] .film-shade::after { animation-play-state: paused; }
+}
+@keyframes film-grain {
+  0% { transform: translate(0, 0); }
+  12.5% { transform: translate(-97px, 61px); }
+  25% { transform: translate(53px, -133px); }
+  37.5% { transform: translate(-151px, -37px); }
+  50% { transform: translate(119px, 89px); }
+  62.5% { transform: translate(-29px, 163px); }
+  75% { transform: translate(173px, -71px); }
+  87.5% { transform: translate(-61px, -181px); }
+}
+/* Phones: the words sit under the film on the plain page, so the shade is only the grain */
+@media (max-width: 599px) {
+  .film-shade { bottom: auto; height: var(--film-h); background: none; }
+}
