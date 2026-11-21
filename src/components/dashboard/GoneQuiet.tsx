@@ -52,7 +52,7 @@ export function GoneQuiet({ quiet }: { quiet: DashboardResponse['goneQuiet'] }) 
     );
   const more = quiet.jobs.length - QUIET_SHOWN;
   return (
-    <DashCard title="Gone quiet" aside="No news in 2 to 3 weeks">
+    <DashCard title="Gone quiet" aside="No news for 2 to 3 weeks">
       <div className="mt-3">
         <QuietRows jobs={quiet.jobs.slice(0, QUIET_SHOWN)} />
         {more > 0 && (

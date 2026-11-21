@@ -64,6 +64,48 @@ export function rateText({ count, of }: { count: number; of: number }): string |
 
 export const countOf = (count: number, of: number) => `${count} of ${of}`;
 
+/**
+ * A rate in plain words (owner, 21 Nov 2026): "1 in 8", "About 1 in 3", "About 6 in 10", "All",
+ * "None yet", or null under 5 applications (then the page shows "Too few to tell").
+ */
+export function oneInText({ count, of }: { count: number; of: number }): string | null {
+  if (of < RATE_BASE) return null;
+  if (count <= 0) return 'None yet';
+  if (count >= of) return 'All';
+  const share = count / of;
+  if (share >= 0.5) {
+    if (count * 2 === of) return '1 in 2';
+    const tenths = Math.round(share * 10);
+    if (tenths >= 10) return 'Almost all';
+    return Number.isInteger(share * 10) ? `${tenths} in 10` : `About ${tenths} in 10`;
+  }
+  const ratio = of / count;
+  const n = Math.round(ratio);
+  return Number.isInteger(ratio) ? `1 in ${n}` : `About 1 in ${n}`;
+}
+
+/** A rate as a short line on phones: "About 1 in 3 replied", "No replies yet", or null when too few. */
+export function rateLine(rate: { count: number; of: number }, what: 'replied' | 'interview') {
+  const text = oneInText(rate);
+  if (!text) return null;
+  if (text === 'None yet') return what === 'replied' ? 'No replies yet' : 'No interview yet';
+  return `${text} ${what === 'replied' ? 'replied' : 'got an interview'}`;
+}
+
+/** The change under a number on phones: "↑ 8", "↓ 2", "Same", or nothing without a period before. */
+export function changeShort(current: number, previous: number | null): string {
+  if (previous === null) return '';
+  const diff = current - previous;
+  if (diff === 0) return 'Same';
+  return `${diff > 0 ? '↑' : '↓'} ${Math.abs(diff)}`;
+}
+
+/** The line under the phone's numbers: what the arrows compare with. */
+export function compareText(period: DashboardPeriod): string | null {
+  if (period === 'all') return null;
+  return `Arrows compare with the ${PERIOD_SPAN[period]} before.`;
+}
+
 /** The share as a bar width, 0 to 100. */
 export const barPercent = (count: number, of: number) => (of ? (count / of) * 100 : 0);
 
@@ -143,14 +185,23 @@ export function pointTitle(start: string, bucket: DashboardResponse['series']['b
   return calendarDay(start, { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
-/** The dates under a chart: one a week from the first day (one in four weeks for a long period). */
+/**
+ * The dates under a chart: one a week from the first day (one in four weeks for a long period).
+ * `most`: a phone has room for a few dates only, so every second or third one is kept.
+ */
 export function axisTicks(
   points: Point[],
   bucket: DashboardResponse['series']['bucket'],
+  most = Infinity,
 ): string[] {
   const every = bucket === 'week' ? 4 : 7;
-  return points.filter((_, i) => i % every === 0).map((point) => pointLabel(point.start));
+  const ticks = points.filter((_, i) => i % every === 0).map((point) => pointLabel(point.start));
+  const step = Math.max(1, Math.ceil(ticks.length / most));
+  return ticks.filter((_, i) => i % step === 0);
 }
+
+/** A phone chart shows at most this many dates under it. */
+export const PHONE_TICKS = 4;
 
 /** "Oct 5 to Nov 3": the span the charts cover. */
 export function seriesSpan(points: Point[]): string {
@@ -177,4 +228,87 @@ export function periodWeeks(period: DashboardPeriod): number {
   if (period === '7d') return 2;
   if (period === '30d') return 5;
   return 12;
+}
+
+/** The period's five numbers, the same words on phones and laptops (owner, 21 Nov 2026). */
+export const PROGRESS_NUMBERS = [
+  { key: 'applicationsSent', week: 'applicationsSent', label: 'Applied' },
+  { key: 'repliesReceived', week: 'replies', label: 'Replies' },
+  { key: 'interviewsReached', week: 'interviews', label: 'Interviews' },
+  { key: 'offers', week: 'offers', label: 'Offers' },
+  { key: 'rejections', week: 'rejections', label: 'Rejected' },
+] as const;
+
+export const jobMailsTitle = (series: DashboardResponse['series']) =>
+  series.bucket === 'week' ? 'Job mails per week' : 'Job mails per day';
+
+/** The four mailbox numbers, each with one line under it. */
+export function mailboxStats(mailbox: DashboardResponse['mailbox'], period: DashboardPeriod) {
+  return [
+    {
+      label: 'Mails checked',
+      value: mailbox.scanned.total,
+      line: inPeriodText(mailbox.scanned.inPeriod, period),
+    },
+    {
+      label: 'Job mails',
+      value: mailbox.jobMails.total,
+      line: inPeriodText(mailbox.jobMails.inPeriod, period),
+    },
+    {
+      label: 'Not linked to a job',
+      value: mailbox.notLinked,
+      line: mailbox.notLinked ? 'Link them on Mails' : 'Every job mail is linked',
+      link: mailbox.notLinked > 0,
+    },
+    {
+      label: 'Fake offers caught',
+      value: mailbox.fakeOffers,
+      line: mailbox.fakeOffers ? 'Marked with a warning' : 'None so far',
+    },
+  ];
+}
+
+/** What the automation did with the jobs it looked at, in the bar's colours. */
+export const coverageParts = (automation: DashboardResponse['automation']) => [
+  { label: 'Sent', count: automation.sent, color: 'bg-chart-1' },
+  { label: 'Skipped', count: automation.skipped, color: 'bg-chart-4' },
+  { label: 'Needs you', count: automation.needsYou, color: 'bg-chart-3' },
+];
+
+export const lookedAtText = (count: number) => `${count} ${count === 1 ? 'job' : 'jobs'} looked at`;
+
+/** Tables full of "Too few" say nothing; one line says it better (3 Nov 2026 review). */
+export const enoughToCompare = (automation: DashboardResponse['automation']) =>
+  [...automation.sites, ...automation.workModes].some((row) => row.sent >= RATE_BASE);
+
+export const NOT_ENOUGH = `Not enough yet. Replies show here once NorthList Apply has sent ${RATE_BASE} applications from one site or in one way of working.`;
+
+/**
+ * Where the names at a chart's line ends go: their own heights, top to bottom, pushed down so no
+ * two are closer than `gap`. Takes and gives the heights in the order given.
+ */
+export function spreadLabels(heights: number[], gap: number): number[] {
+  const order = heights.map((_, i) => i).sort((a, b) => heights[a] - heights[b]);
+  const placed: number[] = [...heights];
+  order.reduce((above, i) => {
+    placed[i] = Math.max(heights[i], above + gap);
+    return placed[i];
+  }, -Infinity);
+  return placed;
+}
+
+/**
+ * The rates under "From applied to offer" in plain words (owner, 21 Nov 2026): "About 1 in 3" /
+ * "got a reply", and the usual wait. Only from 5 applications.
+ */
+export function funnelFacts(numbers: Pick<DashboardResponse, 'rates' | 'usualReplyDays'>) {
+  const facts = [
+    { label: 'got a reply', value: oneInText(numbers.rates.response) },
+    { label: 'got an interview', value: oneInText(numbers.rates.interview) },
+    { label: 'got an offer', value: oneInText(numbers.rates.offer) },
+  ];
+  if (numbers.usualReplyDays !== null)
+    facts.push({ label: 'usual wait for a reply', value: replyDaysText(numbers.usualReplyDays) });
+  return facts;
 }
