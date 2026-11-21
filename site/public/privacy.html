@@ -71,7 +71,7 @@
 </header>
 <main>
 <h1>Privacy policy</h1>
-<p>Last updated: 18 November 2026</p>
+<p>Last updated: 21 November 2026</p>
 <p>NorthList helps you keep track of your job applications. It reads the job mails in your Gmail, finds what each one asks of you, and keeps your applications in one place. This page explains, in plain words, what NorthList reads, what it keeps, who else sees it, and how to remove it.</p>
 <p>NorthList is a small app run by one person. The app is at <a href="https://app.northlist.site/">app.northlist.site</a>. Questions: <a href="mailto:northlist.site@gmail.com">northlist.site@gmail.com</a>.</p>
 <h2>What NorthList reads from your Google account</h2>
@@ -101,6 +101,7 @@
 <p>If you use the optional <strong>automation link</strong> (NorthList Apply page), NorthList keeps what your own automation reports:</p>
 <ul>
   <li>For each job it applied to: the company, job title, job site, the job's link and its ID on that site, where the job was found, the link and address of the page where it applied, location, work mode, when it applied, the confirmation text (up to 300 characters), the name of your CV file (never the file) and your answers to the application questions.</li>
+  <li>For Workday and other company portals: the account it used (sign-in page, login email, password, whether the email was checked and when the account was made), so you can sign in from NorthList. Never your passwords for LinkedIn and other job sites you sign in to yourself.</li>
   <li>For each job it did not apply to: the company, job title, job site, the job's link, whether it skipped the job or left it for you, why (up to 1,000 characters) and when.</li>
 </ul>
 <h2>AI and your mail</h2>
@@ -124,6 +125,7 @@
 <ul>
   <li>Your Gmail access is stored encrypted (AES-256-GCM).</li>
   <li>AI keys you add are stored encrypted with a separate key, and are never shown again, not even to you.</li>
+  <li>Job portal passwords your automation sends are encrypted with their own key (AES-256-GCM), never written to logs, and shown only to you when you tap Show. Deleting the last application that used one, or all your data, removes it.</li>
   <li>Automation tokens are stored as a fingerprint (a hash) and their first 12 characters, so you can tell them apart. The full token is never stored.</li>
   <li>Passwords (test accounts only) are stored as a salted hash, never in readable form.</li>
   <li>NorthList's logs leave out mail subjects, senders, mail text, keys and passwords.</li>
