@@ -351,6 +351,5 @@ html.no-motion .pr-main .rv { filter: none; transition: none; }
   .pr-photo .pr-cap { position: absolute; left: 20px; bottom: 20px; padding: 0; }
 }
 .pr-photo img { object-position: 50% 85%; }
-.pr-main a.pr-credit { position: absolute; right: 24px; bottom: 24px; z-index: 2; display: inline-flex; align-items: center; min-height: 44px; font-size: 12px; color: var(--text-2); text-decoration: none; transition: color 150ms var(--pr-ease); }
-.pr-main a.pr-credit:hover { color: var(--text); }
-@media (max-width: 599px) { .pr-photo img { object-position: 42% 50%; } .pr-main a.pr-credit { right: 16px; bottom: auto; top: 8px; } }
+/* Phones: the café's name sits right of the tree */
+@media (max-width: 599px) { .pr-photo img { object-position: 75% 50%; } }
