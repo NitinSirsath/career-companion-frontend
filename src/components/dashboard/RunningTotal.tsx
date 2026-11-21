@@ -47,7 +47,7 @@ function endMark(last: number, key: keyof typeof CONFIG) {
           cx={cx}
           cy={cy}
           r={4}
-          fill={`var(--color-\${key})`}
+          fill={`var(--color-${key})`}
           strokeWidth={2}
           className="stroke-background"
         />
@@ -105,7 +105,7 @@ export function RunningTotalChart({
   const line = (key: keyof typeof CONFIG) => ({
     dataKey: key,
     type: 'linear' as const,
-    stroke: `var(--color-\${key})`,
+    stroke: `var(--color-${key})`,
     strokeWidth: 2,
     isAnimationActive: false,
     dot: endMark(last, key),
@@ -134,7 +134,7 @@ export function RunningTotalChart({
               <ChartTooltipContent
                 indicator="line"
                 labelFormatter={(_, payload) =>
-                  `By \${pointTitle(String(payload?.[0]?.payload?.start ?? ''), series.bucket)}`
+                  `By ${pointTitle(String(payload?.[0]?.payload?.start ?? ''), series.bucket)}`
                 }
               />
             }
