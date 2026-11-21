@@ -55,7 +55,7 @@ function PhoneProgress({
 }
 
 /**
- * The phone's Today below its title (owner, 21 Nov 2026, mock \`DASHBOARD-PHONE-mock/\`): "Needs
+ * The phone's Today below its title (owner, 21 Nov 2026, mock `DASHBOARD-PHONE-mock/`): "Needs
  * you" as tiles, then the period's numbers with the period picker, and the charts right on the
  * page: over time, the mailbox, and what works best for NorthList Apply users.
  */
