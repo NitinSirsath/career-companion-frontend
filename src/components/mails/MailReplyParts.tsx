@@ -59,7 +59,7 @@ export function ReplyButtons({
   /** No text yet: the phone's Send is grey until there is some, as in iPhone Mail. */
   empty?: boolean;
 }) {
-  // Phones: a blue round ↑ in the sheet's top bar (owner, 18 Nov 2026, mock `PHONE-LINEAR-mock/` #4).
+  // Phones: a round ↑ in the accent in the sheet's top bar (owner, 18 Nov 2026, mock `PHONE-LINEAR-mock/` #4).
   if (!unconfirmed && short)
     return (
       <button
@@ -69,7 +69,7 @@ export function ReplyButtons({
         aria-busy={pending || undefined}
         aria-label={pending ? 'Sending…' : 'Send'}
         title="Send reply (⌘ Enter)"
-        className="flex size-[38px] cursor-pointer items-center justify-center rounded-full bg-accent text-white transition-[opacity,scale] duration-450 ease-[cubic-bezier(0.25,1.6,0.4,1)] active:scale-110 active:duration-120 disabled:cursor-default disabled:opacity-40"
+        className="flex size-[38px] cursor-pointer items-center justify-center rounded-full bg-accent text-on-accent transition-[opacity,scale] duration-450 ease-[cubic-bezier(0.25,1.6,0.4,1)] active:scale-110 active:duration-120 disabled:cursor-default disabled:opacity-40"
       >
         {pending ? <Spinner /> : <ArrowUpIcon size={18} strokeWidth={2.4} aria-hidden="true" />}
       </button>
