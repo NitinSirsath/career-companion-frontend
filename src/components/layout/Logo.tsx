@@ -19,7 +19,7 @@ export function Logo({ size = 22, className }: { size?: number; className?: stri
       height={size}
       viewBox="2 2 28 28"
       aria-hidden="true"
-      className={cn('shrink-0 fill-border-interactive', className)}
+      className={cn('shrink-0 fill-mark', className)}
     >
       <path d={size < 24 ? SMALL : LARGE} />
     </svg>
@@ -45,7 +45,7 @@ export function Wordmark({ size = 22, className }: { size?: number; className?: 
       <svg
         viewBox="2 2 28 28"
         aria-hidden="true"
-        className="-mr-[0.031em] ml-[0.011em] inline-block size-[0.57em] fill-border-interactive align-[-0.017em]"
+        className="-mr-[0.031em] ml-[0.011em] inline-block size-[0.57em] fill-mark align-[-0.017em]"
       >
         <path d={size < 28 ? SMALL : LARGE} />
       </svg>
