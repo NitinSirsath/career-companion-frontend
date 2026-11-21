@@ -15,7 +15,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 
 const VARIANTS: Record<ButtonVariant, string> = {
   primary:
-    'bg-action-primary text-text-inverse shadow-[var(--button-shadow)] hover:bg-action-primary-hover',
+    'bg-action-primary text-on-accent shadow-[var(--button-shadow)] hover:bg-action-primary-hover',
   secondary:
     'border-border-default bg-background text-text-primary shadow-[var(--button-shadow)] hover:bg-layer-hover disabled:border-border-subtle',
   tertiary:
@@ -36,7 +36,7 @@ const SIZES = {
 } as const;
 
 /**
- * IBM Carbon button. One primary (blue) button per page or panel; secondary is a bordered button on
+ * IBM Carbon button. One primary button per page or panel (a dark pill in light, a light pill in dark); secondary is a bordered button on
  * the page colour; the rest are quieter.
  */
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
