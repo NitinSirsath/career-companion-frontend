@@ -422,6 +422,11 @@ describe('Today on a phone (owner, 21 Nov 2026, mock `DASHBOARD-PHONE-mock/`)', 
       'href',
       '/mails?application=none',
     );
+    expect(screen.getByRole('region', { name: 'Job mails per day' })).toBeInTheDocument();
+    expect(screen.queryByText('From applied to offer')).not.toBeInTheDocument();
+    expect(screen.queryByText('Acme Analytics')).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'What works best' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Charts and rates' })).not.toBeInTheDocument();
   });
 
   it('picks the period on Today, and everything under it follows', async () => {
