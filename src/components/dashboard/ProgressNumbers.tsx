@@ -1,15 +1,7 @@
 import type { DashboardResponse } from '../../contracts/dashboard';
-import { changeText, periodWeeks } from '../../lib/dashboard';
+import { PROGRESS_NUMBERS, changeText, periodWeeks } from '../../lib/dashboard';
 import { cn } from '../../lib/utils';
 import { Sparkline } from './Sparkline';
-
-const NUMBERS = [
-  { key: 'applicationsSent', week: 'applicationsSent', label: 'Applications sent' },
-  { key: 'repliesReceived', week: 'replies', label: 'Replies received' },
-  { key: 'interviewsReached', week: 'interviews', label: 'Interviews reached' },
-  { key: 'offers', week: 'offers', label: 'Offers' },
-  { key: 'rejections', week: 'rejections', label: 'Rejections' },
-] as const;
 
 /** Phones: two across, the last full width. Tablets: three, then two. Laptops: five. */
 const SPAN = [
@@ -26,7 +18,7 @@ export function ProgressNumbers({ numbers }: { numbers: DashboardResponse }) {
   const highlight = periodWeeks(numbers.period);
   return (
     <dl className="grid grid-cols-2 gap-2 @min-[600px]:grid-cols-6 @min-[900px]:grid-cols-5">
-      {NUMBERS.map(({ key, week, label }, i) => (
+      {PROGRESS_NUMBERS.map(({ key, week, label }, i) => (
         <div
           key={key}
           className={cn(
