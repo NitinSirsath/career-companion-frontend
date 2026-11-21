@@ -6,11 +6,12 @@ import { RELEASES, anchor } from '../../site/parts/changelog';
 import { PROMISES } from '../../site/parts/data';
 import { fillParts } from '../../site/parts/index';
 
-/** The product site's seven pages, as the build writes them (shared parts filled in). */
+/** The product site's eight pages, as the build writes them (shared parts filled in). */
 const PAGES = {
   home: 'index.html',
   mobile: 'mobile/index.html',
   automation: 'automation/index.html',
+  posts: 'posts/index.html',
   pricing: 'pricing/index.html',
   privacy: 'privacy/index.html',
   changelog: 'changelog/index.html',
@@ -53,6 +54,7 @@ describe('the product site pages', () => {
         '/#features',
         '/mobile',
         '/automation',
+        '/posts',
         '/privacy/',
         '/pricing',
         '/changelog',
@@ -61,7 +63,7 @@ describe('the product site pages', () => {
       ])
         expect(hrefs).toContain(href);
       expect(hrefs.filter((h) => h.endsWith('.html') && h !== '/privacy.html')).toEqual([]);
-      // Render serves privacy.html at /privacy, so the Privacy page is always linked with the slash.
+      // The Privacy page is linked as it is served, with the slash (`/privacy` only redirects there).
       expect(hrefs.filter((h) => /^\/privacy(#|$)/.test(h))).toEqual([]);
       const start = [...d.querySelectorAll('a')].filter((a) =>
         /^(Sign in|Start free)/.test(a.textContent ?? ''),
@@ -87,16 +89,50 @@ describe('the product site pages', () => {
     expect(doc('home').querySelector('.nav [aria-current="page"]')).toBeNull();
   });
 
-  it('shows four links in the header; Privacy, Changelog and About sit in the footer and the phone menu', () => {
+  it('shows five links in the header; Privacy, Changelog and About sit in the footer and the phone menu', () => {
     const d = doc('pricing');
     expect([...d.querySelectorAll('.nav a')].map((a) => a.textContent)).toEqual([
       'Features',
       'Mobile',
       'NorthList Apply',
+      'NorthList Posts',
       'Pricing',
     ]);
     const menu = [...d.querySelectorAll('#site-sheet a.row')].map((a) => a.textContent?.trim());
     for (const label of ['Privacy', 'Changelog', 'About']) expect(menu).toContain(label);
+  });
+});
+
+describe('the NorthList Posts page', () => {
+  const KIT = 'https://github.com/NitinSirsath/northlist-posts-kit';
+
+  it('is in the header and footer, and marks itself as the current page', () => {
+    const d = doc('posts');
+    expect(d.querySelector('.nav [aria-current="page"]')?.textContent).toBe('NorthList Posts');
+    expect(d.querySelector('.ftr a[href="/posts"]')?.textContent).toBe('NorthList Posts');
+  });
+
+  it('says the app is private for now, so both main buttons ask for access by mail', () => {
+    const d = doc('posts');
+    expect(d.body.textContent).toContain('Private for now');
+    const ask = [...d.querySelectorAll('a')].filter((a) => a.textContent === 'Ask for access');
+    expect(ask).toHaveLength(2);
+    for (const a of ask)
+      expect(a.getAttribute('href')).toBe(
+        'mailto:northlist.site@gmail.com?subject=NorthList%20Posts',
+      );
+    const kit = [...d.querySelectorAll('a')].filter((a) =>
+      a.textContent?.startsWith('Read the kit'),
+    );
+    expect(kit).toHaveLength(2);
+    for (const a of kit) expect(a.getAttribute('href')).toBe(KIT);
+  });
+
+  it('says the app has no AI of its own and never posts by itself', () => {
+    const text = doc('posts').body.textContent ?? '';
+    expect(text).toContain('NorthList Posts has no AI of its own.');
+    expect(text).toContain('Nothing goes out');
+    expect(text).toContain('you can still undo it for ten seconds');
   });
 });
 

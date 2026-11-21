@@ -28,6 +28,17 @@ body[data-page='automation'] { --apx-out: cubic-bezier(0.23, 1, 0.32, 1); }
   html:not(.no-motion) .apx-words > * { animation: apx-blur-in 1000ms var(--apx-out) both; }
   html:not(.no-motion) .apx-words > .ap-hero-row { animation-delay: 120ms; }
 }
+/* The head moves a little (owner, 21 Nov 2026: "subtle animated", on NorthList Apply and NorthList Posts): the plane
+   drifts slowly one way and back, and one line at a time comes into focus. Only while on screen ([data-live]);
+   still for less motion. Opacity and translate only, so it stays on the GPU. */
+.apx-plane { will-change: translate; }
+.apx-l.l1 { --i: 0; } .apx-l.l2 { --i: 1; } .apx-l.l3 { --i: 2; } .apx-l.l4 { --i: 3; } .apx-l.l5 { --i: 4; } .apx-l.l6 { --i: 5; } .apx-l.l7 { --i: 6; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.no-motion) .apx-plane { animation: apx-drift 30s ease-in-out infinite alternate; }
+  html:not(.no-motion) .apx-l { animation: apx-focus 14s ease-in-out calc(var(--i) * 2s - 14s) infinite; }
+}
+@keyframes apx-drift { from { translate: 0 0; } to { translate: -80px 32px; } }
+@keyframes apx-focus { 0%, 34%, 100% { opacity: 0.72; } 14% { opacity: 1; } }
 @keyframes apx-in { from { opacity: 0; } }
 @keyframes apx-blur-in { from { opacity: 0; filter: blur(8px); transform: translateY(8px); } }
 

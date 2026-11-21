@@ -16,11 +16,12 @@ const NAV: [string, string, string][] = [
   ['Features', '/#features', 'features'],
   ['Mobile', '/mobile', 'mobile'],
   ['NorthList Apply', '/automation', 'automation'],
+  ['NorthList Posts', '/posts', 'posts'],
   ['Pricing', '/pricing', 'pricing'],
 ];
 /** Footer-only pages, also listed in the phone menu. */
 const MORE: [string, string, string][] = [
-  ['Privacy', '/privacy/', 'privacy'], // with the slash: Render serves privacy.html (the policy) at /privacy
+  ['Privacy', '/privacy/', 'privacy'],
   ['Changelog', '/changelog', 'changelog'],
   ['About', '/about', 'about'],
 ];
@@ -28,7 +29,8 @@ const MORE: [string, string, string][] = [
 /** The header, and the full-screen menu that phones open from it. Dark only, so no theme switch (owner, 19 Nov 2026). */
 export function header(page: string): string {
   const links = NAV.map(
-    ([label, href, key]) => `<a href="${href}"${key === page ? ' aria-current="page"' : ''}>${label}</a>`,
+    ([label, href, key]) =>
+      `<a href="${href}"${key === page ? ' aria-current="page"' : ''}>${label}</a>`,
   ).join('');
   const rows = [...NAV, ...MORE]
     .map(([label, href]) => `<a class="row" href="${href}">${label}${icon('chevronRight', 18)}</a>`)
@@ -51,7 +53,7 @@ export function header(page: string): string {
 export function footer(): string {
   return `<footer class="ftr"><div class="ftr-in">
     <div class="brandcol">${wordmark(18)}<p class="tagline">Your job search, sorted from your Gmail.</p></div>
-    <div><h4>Product</h4><ul><li><a href="/#features">Features</a></li><li><a href="/mobile">Mobile</a></li><li><a href="/automation">NorthList Apply</a></li><li><a href="/pricing">Pricing</a></li><li><a href="/changelog">Changelog</a></li></ul></div>
+    <div><h4>Product</h4><ul><li><a href="/#features">Features</a></li><li><a href="/mobile">Mobile</a></li><li><a href="/automation">NorthList Apply</a></li><li><a href="/posts">NorthList Posts</a></li><li><a href="/pricing">Pricing</a></li><li><a href="/changelog">Changelog</a></li></ul></div>
     <div><h4>Trust</h4><ul><li><a href="/privacy/">Privacy</a></li><li><a href="${POLICY}">Privacy policy</a></li></ul></div>
     <div><h4>Company</h4><ul><li><a href="/about">About</a></li><li><a href="mailto:${CONTACT}">Contact</a></li>${SOCIAL.map(([label, href]) => `<li><a href="${href}" target="_blank" rel="noopener">${label}</a></li>`).join('')}</ul></div>
     <div class="base"><span>© 2026 NorthList</span></div>

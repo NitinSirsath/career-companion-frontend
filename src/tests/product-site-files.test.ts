@@ -54,3 +54,15 @@ describe("the product site's sw.js", () => {
     expect(self.registration.unregister).toHaveBeenCalled();
   });
 });
+
+describe("the product site's privacy addresses on Cloudflare Pages", () => {
+  // Cloudflare serves privacy.html at /privacy, over the Privacy page; so the build ships the policy as
+  // privacy-policy.html and `_redirects` serves it at its Google-approved address without a redirect.
+  it('builds the policy as privacy-policy.html and serves it at /privacy.html', () => {
+    const config = readFileSync(resolve(__dirname, '../../vite.site.config.ts'), 'utf8');
+    expect(config).toContain(
+      "renameSync(path.join(outDir, 'privacy.html'), path.join(outDir, 'privacy-policy.html'))",
+    );
+    expect(read('_redirects').split('\n')).toContain('/privacy.html /privacy-policy 200');
+  });
+});
