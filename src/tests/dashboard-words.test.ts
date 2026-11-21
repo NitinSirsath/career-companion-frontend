@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
   axisTicks,
+  changeShort,
   changeText,
+  compareText,
+  funnelFacts,
+  oneInText,
+  rateLine,
+  spreadLabels,
   clockText,
   greeting,
   inPeriodText,
@@ -107,5 +113,68 @@ describe('Dashboard words', () => {
     expect(siteName(null)).toBe('Not from automation');
     expect(workModeName('onsite')).toBe('On-site');
     expect(workModeName(null)).toBe('Not given');
+  });
+
+  it('rates in plain words, never on fewer than 5 applications', () => {
+    expect(oneInText({ count: 12, of: 34 })).toBe('About 1 in 3');
+    expect(oneInText({ count: 3, of: 24 })).toBe('1 in 8');
+    expect(oneInText({ count: 1, of: 24 })).toBe('1 in 24');
+    expect(oneInText({ count: 5, of: 10 })).toBe('1 in 2');
+    expect(oneInText({ count: 6, of: 10 })).toBe('6 in 10');
+    expect(oneInText({ count: 13, of: 20 })).toBe('About 7 in 10');
+    expect(oneInText({ count: 39, of: 40 })).toBe('Almost all');
+    expect(oneInText({ count: 7, of: 7 })).toBe('All');
+    expect(oneInText({ count: 0, of: 9 })).toBe('None yet');
+    expect(oneInText({ count: 1, of: 4 })).toBeNull();
+    expect(rateLine({ count: 2, of: 6 }, 'replied')).toBe('1 in 3 replied');
+    expect(rateLine({ count: 0, of: 6 }, 'replied')).toBe('No replies yet');
+    expect(rateLine({ count: 0, of: 6 }, 'interview')).toBe('No interview yet');
+    expect(rateLine({ count: 1, of: 3 }, 'replied')).toBeNull();
+  });
+
+  it('the funnel facts: three rates and the usual wait', () => {
+    const facts = funnelFacts({
+      rates: {
+        response: { count: 12, of: 34 },
+        interview: { count: 5, of: 34 },
+        offer: { count: 1, of: 34 },
+      },
+      usualReplyDays: 6,
+    });
+    expect(facts.map((fact) => `${fact.value} ${fact.label}`)).toEqual([
+      'About 1 in 3 got a reply',
+      'About 1 in 7 got an interview',
+      '1 in 34 got an offer',
+      '6 days usual wait for a reply',
+    ]);
+  });
+
+  it('the short change under a phone number, and what it compares with', () => {
+    expect(changeShort(34, 26)).toBe('↑ 8');
+    expect(changeShort(4, 6)).toBe('↓ 2');
+    expect(changeShort(5, 5)).toBe('Same');
+    expect(changeShort(5, null)).toBe('');
+    expect(compareText('30d')).toBe('Arrows compare with the 30 days before.');
+    expect(compareText('all')).toBeNull();
+  });
+
+  it('a phone chart keeps at most a few dates', () => {
+    const points = Array.from({ length: 90 }, (_, i) => ({
+      start: new Date(Date.UTC(2026, 8, 1) + i * 864e5).toISOString().slice(0, 10),
+      applicationsSent: 0,
+      replies: 0,
+      interviews: 0,
+      replyMails: 0,
+      interviewMails: 0,
+      rejectionMails: 0,
+      otherMails: 0,
+    }));
+    expect(axisTicks(points, 'day')).toHaveLength(13);
+    expect(axisTicks(points, 'day', 4)).toEqual(['Sep 1', 'Sep 29', 'Oct 27', 'Nov 24']);
+  });
+
+  it('keeps line-end names apart', () => {
+    expect(spreadLabels([100, 20, 95], 16)).toEqual([111, 20, 95]);
+    expect(spreadLabels([10, 50], 16)).toEqual([10, 50]);
   });
 });
