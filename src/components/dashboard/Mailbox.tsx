@@ -2,7 +2,15 @@ import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { Bar, BarChart, CartesianGrid, Cell, XAxis, YAxis } from 'recharts';
 import type { DashboardPeriod, DashboardResponse } from '../../contracts/dashboard';
-import { axisTicks, inPeriodText, pointLabel, pointTitle, seriesSpan } from '../../lib/dashboard';
+import {
+  PHONE_TICKS,
+  axisTicks,
+  jobMailsTitle,
+  mailboxStats,
+  pointLabel,
+  pointTitle,
+  seriesSpan,
+} from '../../lib/dashboard';
 import {
   ChartContainer,
   ChartLegend,
@@ -22,20 +30,45 @@ const CONFIG = {
 
 const KEYS = Object.keys(CONFIG) as (keyof typeof CONFIG)[];
 
-/** Job mails per day by kind, as stacked columns; the other days dim while one is read. */
-function JobMailsPerDay({ series }: { series: DashboardResponse['series'] }) {
+/** The chart's key in the page's flow, for phones: the chart's own key spills at the left edge. */
+function PrintedKey() {
+  return (
+    <ul className="flex flex-wrap gap-x-3.5 gap-y-1 pb-2 text-[12px] leading-4 text-text-secondary">
+      {KEYS.map((key) => (
+        <li key={key} className="flex items-center gap-1.5">
+          <span
+            aria-hidden
+            className="size-2 rounded-[2px]"
+            style={{ background: CONFIG[key].color }}
+          />
+          {CONFIG[key].label}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * Job mails per day by kind, as stacked columns; the other days dim while one is read. The legend
+ * is always printed. The phone draws the chart alone under its own heading.
+ */
+export function JobMailsChart({
+  series,
+  narrow = false,
+}: {
+  series: DashboardResponse['series'];
+  /** On a phone: the key printed above the chart in the page's flow, and fewer dates. */
+  narrow?: boolean;
+}) {
   const [active, setActive] = useState<number | null>(null);
   const data = series.points.map((point) => ({ ...point, label: pointLabel(point.start) }));
-  const title = series.bucket === 'week' ? 'Job mails per week' : 'Job mails per day';
+  const title = jobMailsTitle(series);
   return (
-    <div className="p-4 md:p-6">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h3 className="text-sm leading-5 font-semibold">{title}</h3>
-        <p className="text-xs text-text-secondary">{seriesSpan(series.points)}</p>
-      </div>
+    <>
+      {narrow && <PrintedKey />}
       <ChartContainer
         config={CONFIG}
-        className="mt-3 aspect-auto h-48 w-full @min-[600px]:h-56"
+        className="aspect-auto h-48 w-full @min-[600px]:h-56"
         aria-label={`${title}, by kind`}
       >
         <BarChart
@@ -52,7 +85,7 @@ function JobMailsPerDay({ series }: { series: DashboardResponse['series'] }) {
             dataKey="label"
             tickLine={false}
             axisLine={false}
-            ticks={axisTicks(series.points, series.bucket)}
+            ticks={axisTicks(series.points, series.bucket, narrow ? PHONE_TICKS : undefined)}
             interval={0}
           />
           <YAxis allowDecimals={false} tickLine={false} axisLine={false} width={40} />
@@ -67,11 +100,13 @@ function JobMailsPerDay({ series }: { series: DashboardResponse['series'] }) {
               />
             }
           />
-          <ChartLegend
-            itemSorter={null}
-            verticalAlign="top"
-            content={<ChartLegendContent className="flex-wrap justify-start pb-3" />}
-          />
+          {!narrow && (
+            <ChartLegend
+              itemSorter={null}
+              verticalAlign="top"
+              content={<ChartLegendContent className="flex-wrap justify-start pb-3" />}
+            />
+          )}
           {KEYS.map((key) => (
             <Bar
               key={key}
@@ -80,7 +115,7 @@ function JobMailsPerDay({ series }: { series: DashboardResponse['series'] }) {
               fill={`var(--color-${key})`}
               maxBarSize={16}
               strokeWidth={2}
-              className="stroke-surface-subtle"
+              className={narrow ? 'stroke-background' : 'stroke-surface-subtle'}
               isAnimationActive={false}
             >
               {data.map((point, i) => (
@@ -95,12 +130,24 @@ function JobMailsPerDay({ series }: { series: DashboardResponse['series'] }) {
         head={['Day', ...KEYS.map((key) => CONFIG[key].label)]}
         rows={data.map((point) => [point.label, ...KEYS.map((key) => point[key])])}
       />
+    </>
+  );
+}
+
+function JobMailsPerDay({ series }: { series: DashboardResponse['series'] }) {
+  return (
+    <div className="p-4 md:p-6">
+      <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <h3 className="text-sm leading-5 font-semibold">{jobMailsTitle(series)}</h3>
+        <p className="text-xs text-text-secondary">{seriesSpan(series.points)}</p>
+      </div>
+      <JobMailsChart series={series} />
     </div>
   );
 }
 
 /**
- * "Your mailbox" (owner, 3 Nov 2026): mails scanned and job mails since the user joined, with
+ * "Your mailbox" (owner, 3 Nov 2026): mails checked and job mails since the user joined, with
  * their count in the period, then the job mails of the period by kind.
  */
 export function Mailbox({
@@ -112,34 +159,16 @@ export function Mailbox({
   series: DashboardResponse['series'];
   period: DashboardPeriod;
 }) {
-  const stats = [
-    {
-      label: 'Mails scanned',
-      value: mailbox.scanned.total,
-      line: inPeriodText(mailbox.scanned.inPeriod, period),
-    },
-    {
-      label: 'Job mails',
-      value: mailbox.jobMails.total,
-      line: inPeriodText(mailbox.jobMails.inPeriod, period),
-    },
-    {
-      label: 'Not linked to a job',
-      value: mailbox.notLinked,
-      line: mailbox.notLinked ? (
-        <Link to="/mails" search={{ application: 'none' }} className="text-link hover:underline">
-          Link them on Mails
-        </Link>
-      ) : (
-        'Every job mail is linked'
-      ),
-    },
-    {
-      label: 'Fake offers caught',
-      value: mailbox.fakeOffers,
-      line: mailbox.fakeOffers ? 'Marked with a warning' : 'None so far',
-    },
-  ];
+  const stats = mailboxStats(mailbox, period).map((stat) => ({
+    ...stat,
+    line: stat.link ? (
+      <Link to="/mails" search={{ application: 'none' }} className="text-link hover:underline">
+        {stat.line}
+      </Link>
+    ) : (
+      stat.line
+    ),
+  }));
   return (
     <div className="@container/mailbox overflow-hidden rounded-lg bg-surface-subtle">
       {/* The 2px gaps show the page colour: lines between the numbers. */}
