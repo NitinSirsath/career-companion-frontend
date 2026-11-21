@@ -7,6 +7,7 @@ import { platformLabel } from '../../lib/eventLabels';
 import { safeHttpUrl } from '../../lib/safeUrl';
 import { SectionError } from '../ui/section-error';
 import { SkeletonList } from '../ui/skeleton';
+import { PortalAccountCard } from './PortalAccountCard';
 
 const WORK_MODE: Record<string, string> = { remote: 'Remote', hybrid: 'Hybrid', onsite: 'On-site' };
 
@@ -72,16 +73,21 @@ function SubmissionDetails({ submission }: { submission: ApplicationSubmission }
   ];
   return (
     <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-      <Card title="Submission">
-        <dl className="grid grid-cols-[112px_minmax(0,1fr)] gap-x-4 gap-y-2 text-sm">
-          {facts.map(({ label, value }) => (
-            <div key={label} className="contents">
-              <dt className="text-text-secondary">{label}</dt>
-              <dd className="min-w-0 break-words">{value}</dd>
-            </div>
-          ))}
-        </dl>
-      </Card>
+      <div className="flex min-w-0 flex-col gap-6">
+        <Card title="Submission">
+          <dl className="grid grid-cols-[112px_minmax(0,1fr)] gap-x-4 gap-y-2 text-sm">
+            {facts.map(({ label, value }) => (
+              <div key={label} className="contents">
+                <dt className="text-text-secondary">{label}</dt>
+                <dd className="min-w-0 break-words">{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </Card>
+        {submission.portalAccount && (
+          <PortalAccountCard account={submission.portalAccount} card={Card} />
+        )}
+      </div>
       <Card title={`Submitted answers (${submission.submittedAnswers.length})`}>
         {submission.submittedAnswers.length === 0 ? (
           <p className="text-sm text-text-secondary">No answers were sent.</p>
