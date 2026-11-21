@@ -11,14 +11,14 @@ const HALF_SUN = 'M2 16A14 14 0 0 1 30 16Z';
 const HEADLINE = 'Your job search, sorted from your Gmail.';
 
 /**
- * Tablets (owner, 7 Nov 2026): a short blue band on top with the name, the headline and a small
+ * Tablets (owner, 7 Nov 2026): a short dark band on top (blue until 21 Nov 2026) with the name, the headline and a small
  * picture of the Mails list that runs past the band's right and bottom edges.
  */
 function TabletBand({ step }: { step: number }) {
   return (
     <div
       aria-hidden="true"
-      className="relative hidden h-[292px] shrink-0 overflow-hidden rounded-2xl bg-[#0f62fe] px-5 pt-5 text-white md:block lg:hidden"
+      className="relative hidden h-[292px] shrink-0 overflow-hidden rounded-2xl bg-brand-panel px-5 pt-5 text-white md:block lg:hidden"
     >
       <svg
         viewBox="2 2 28 28"
@@ -58,8 +58,8 @@ function PhoneHero() {
 }
 
 /**
- * The sign-in pages (owner, 3 Nov 2026): on laptops the form on the left and a blue panel with the
- * product page headline and a picture of the Mails list on the right; tablets put a short blue band
+ * The sign-in pages (owner, 3 Nov 2026): on laptops the form on the left and a dark panel (blue until 21 Nov 2026) with the
+ * product page headline and a picture of the Mails list on the right; tablets put a short dark band
  * above the form (7 Nov 2026); phones show one calm screen that fits without scrolling, clear of
  * the notch and the home bar (15 Nov 2026). Always light, like northlist.site; the app keeps each
  * person's theme after sign-in.
@@ -106,7 +106,7 @@ export function SignInLayout({ children }: { children: ReactNode }) {
       </div>
       <aside
         aria-hidden="true"
-        className="relative hidden min-w-0 flex-col overflow-hidden rounded-2xl bg-[#0f62fe] px-14 pt-16 text-white lg:flex"
+        className="relative hidden min-w-0 flex-col overflow-hidden rounded-2xl bg-brand-panel px-14 pt-16 text-white lg:flex"
       >
         <svg
           viewBox="2 2 28 28"
