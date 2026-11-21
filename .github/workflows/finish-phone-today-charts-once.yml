@@ -1,0 +1,41 @@
+name: Finish phone-today-charts once (temporary)
+# Commits the deleted files on feat/phone-today-charts and nothing else.
+# Lives only on the throwaway branch tmp/phone-today-charts-finish, which is deleted afterwards.
+on:
+  push:
+    branches: [tmp/phone-today-charts-finish]
+permissions:
+  contents: write
+concurrency:
+  group: finish-phone-today-charts-once
+  cancel-in-progress: false
+jobs:
+  finish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: feat/phone-today-charts
+      - name: Check the commits on the branch
+        run: |
+          if [ "$(git rev-parse 'HEAD^{tree}')" != "a378272ede76daebf00a57f624d49b8cd3b88055" ]; then
+            echo "The commits on feat/phone-today-charts do not match the reviewed files. Nothing was changed."
+            exit 1
+          fi
+      - name: Make the reviewed change
+        run: |
+          git rm -q src/components/dashboard/ChartsPage.tsx
+          git rm -q src/lib/dashboardPeriod.ts
+          git add -A
+          if [ "$(git write-tree)" != "d687e48c92a12109998375d15d15bbde461657b9" ]; then
+            echo "The result does not match the reviewed tree. Nothing was pushed."
+            git status --short
+            exit 1
+          fi
+      - name: Commit only the reviewed result
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(dashboard): delete the Charts and rates page and its period store'
+          git push origin HEAD:feat/phone-today-charts
