@@ -94,6 +94,7 @@ const portalAccount = (overrides: Partial<PortalAccount> = {}): PortalAccount =>
   createdOn: '2026-11-21',
   otherApplications: 1,
   ...overrides,
+});
 const notSubmitted = (overrides: Partial<NotSubmittedJob> = {}): NotSubmittedJob => ({
   id: 'n1',
   sourceRecordRef: '2026-10-21/12:41:03',
