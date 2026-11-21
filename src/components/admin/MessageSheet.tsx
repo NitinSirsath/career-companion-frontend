@@ -104,7 +104,7 @@ function SheetRows({ label, children }: { label?: string; children: React.ReactN
   );
 }
 
-/** The send button in the sheet's title row: round, blue, an arrow up. */
+/** The send button in the sheet's title row: round, in the accent, an arrow up. */
 function SendButton({ ready, sending }: { ready: boolean; sending: boolean }) {
   return (
     <button
@@ -112,7 +112,7 @@ function SendButton({ ready, sending }: { ready: boolean; sending: boolean }) {
       form={FORM_ID}
       aria-label={sending ? 'Sending…' : 'Send'}
       disabled={!ready || sending}
-      className="flex size-[38px] cursor-pointer items-center justify-center rounded-full bg-link text-white transition-[opacity,scale] duration-200 active:scale-105 disabled:cursor-default disabled:opacity-40"
+      className="flex size-[38px] cursor-pointer items-center justify-center rounded-full bg-accent text-on-accent transition-[opacity,scale] duration-200 active:scale-105 disabled:cursor-default disabled:opacity-40"
     >
       <ArrowUpIcon size={18} strokeWidth={2.3} aria-hidden="true" />
     </button>
