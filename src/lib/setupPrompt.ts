@@ -1,5 +1,8 @@
 /** Where people get NorthList Apply, the user's own job automation. */
 export const NORTHLIST_APPLY_URL = 'https://github.com/NitinSirsath/northlist-apply';
+/** The whole folder as one download, from its default branch. */
+export const NORTHLIST_APPLY_ZIP_URL = `${NORTHLIST_APPLY_URL}/archive/refs/heads/master.zip`;
+export const NORTHLIST_APPLY_CLONE = `git clone ${NORTHLIST_APPLY_URL}.git`;
 
 /**
  * The prompt the user pastes into their AI app to connect NorthList Apply (owner, 3 Nov 2026). It
