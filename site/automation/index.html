@@ -37,7 +37,7 @@
       <h1 id="ap-title" class="ap-display">Apply with your<br>own AI agent.</h1>
       <div class="ap-hero-row">
         <div>
-          <p class="ap-lead">NorthList Apply is a free job automation for AI apps that can use your browser, like Antigravity, Claude Code or Codex. It applies to jobs one at a time with your own job-site accounts, and NorthList keeps each one with your applications.</p>
+          <p class="ap-lead">NorthList Apply is a free job automation for AI apps that can use your browser, like Antigravity (our pick, free with a Google account), Claude Code or Codex. It applies to jobs one at a time with your own job-site accounts, and NorthList keeps each one with your applications.</p>
           <p class="ap-tested">Tested on LinkedIn, Naukri, Indeed, Wellfound, Instahyre, Workday, Greenhouse, Lever and Ashby.</p>
         </div>
         <div class="ap-hero-act"><a class="btn btn-primary" href="https://github.com/NitinSirsath/northlist-apply">Start on GitHub</a><span class="ap-free">Free, in beta</span></div>
@@ -47,16 +47,17 @@
 
   <!-- 2. The run, as a glimpse (owner, 7 Nov story; 21 Nov dark look): one lit stage, two windows. Your AI app in its own
        dark look (Antigravity, Claude Code or Codex) applies in the browser it drives; the job lands in NorthList in front,
-       and the app window steps back. Played by runtime/pictures.ts through its data hooks; apply-run.css styles it all. -->
+       and the app window steps back. Owner, 22 Nov 2026: the app window takes the stage's full width; NorthList hangs off
+       its lower right corner on laptops and is left out under 1024px. Antigravity is the recommended app. Played by runtime/pictures.ts through its data hooks; apply-run.css styles it all. -->
   <section class="wrap ap-runband" aria-label="An example run">
     <div class="ap-run" data-rundemo>
       <div class="ap-pickrow">
         <div class="pick ap-pick" role="tablist" aria-label="Your AI app">
-          <button type="button" role="tab" id="run-tab-ag" aria-controls="run-app" aria-selected="true" tabindex="0" data-app="ag" data-title="Antigravity" data-ph="Ask anything, @ to mention, / for actions" data-model="Gemini 3.5 Flash" data-drive="Antigravity is using this page">Antigravity</button>
+          <button type="button" role="tab" id="run-tab-ag" aria-controls="run-app" aria-selected="true" tabindex="0" data-app="ag" data-title="Antigravity" data-ph="Ask anything, @ to mention, / for actions" data-model="Gemini 3.5 Flash" data-drive="Antigravity is using this page">Antigravity<span class="ap-rec">Recommended</span></button>
           <button type="button" role="tab" id="run-tab-cc" aria-controls="run-app" aria-selected="false" tabindex="-1" data-app="cc" data-title="Claude" data-ph="Reply to Claude…" data-model="Opus 5.5" data-drive="Claude is using this tab">Claude Code</button>
           <button type="button" role="tab" id="run-tab-cx" aria-controls="run-app" aria-selected="false" tabindex="-1" data-app="cx" data-title="Codex" data-ph="Ask Codex anything" data-model="High" data-drive="Codex is using this page">Codex</button>
         </div>
-        <p class="ap-note" data-note="ag">Open the NorthList Apply folder in Antigravity and type <b>start</b>.</p>
+        <p class="ap-note" data-note="ag"><span class="ap-rec-note">Recommended. </span>Free with a Google account. Open the NorthList Apply folder in Antigravity and type <b>start</b>.</p>
         <p class="ap-note" data-note="cc" hidden>Open the folder in Claude Code and type <b>start</b>. It uses its own browser. Chrome is only the backup.</p>
         <p class="ap-note" data-note="cx" hidden>Open the folder in Codex and type <b>start</b>. Connecting NorthList from Codex is not tested yet.</p>
       </div>
@@ -264,25 +265,33 @@
     </div>
   </section>
 
-  <!-- 5. Setup: four cells in one frame, a small still piece in each -->
+  <!-- 5. Setup (owner, 22 Nov 2026): four numbered steps in one frame, each with what to do and its link. Antigravity
+       first and recommended; the AI plan step for people without a paid AI app. A small still piece above each. -->
   <section class="wrap ap-band" id="setup" aria-labelledby="setup-title">
-    <h2 id="setup-title" class="ap-h2 rv">Set up once.</h2>
+    <div class="ap-split rv">
+      <h2 id="setup-title" class="ap-h2">Set up in<br>four steps.</h2>
+      <p class="ap-side">About ten minutes, once per computer. You need a laptop or desktop; the jobs are applied to from your AI app's browser.</p>
+    </div>
     <ol class="lg lg-4 rv apx-steps">
       <li class="lg-cell">
         <div class="lg-pic" aria-hidden="true">
-          <span class="apx-folder"><span class="lg-tile on"><i data-icon="folder" data-size="24"></i></span><em>northlist-apply</em></span>
+          <div class="lg-ui apx-get">
+            <span class="r on"><span class="lg-tile sm"><i data-icon="chat" data-size="16"></i></span><b>Antigravity</b><em>Recommended</em></span>
+            <span class="r"><span class="lg-tile sm"><i data-icon="folder" data-size="16"></i></span><b>northlist-apply</b><em>GitHub</em></span>
+          </div>
         </div>
-        <div class="lg-cap"><b><span class="n">1</span>Get the automation</b><span>Download its folder from GitHub. It's free.</span></div>
+        <div class="lg-cap"><b><span class="n">1</span>Download Antigravity and NorthList Apply</b><span>Install Antigravity, then download the NorthList Apply folder. Already use Claude Code or Codex? Use that instead of Antigravity.</span>
+          <span class="apx-links"><a href="https://antigravity.google/download">Get Antigravity <i data-icon="arrowRight" data-size="14"></i></a><a href="https://github.com/NitinSirsath/northlist-apply">NorthList Apply on GitHub <i data-icon="arrowRight" data-size="14"></i></a></span></div>
       </li>
       <li class="lg-cell">
         <div class="lg-pic" aria-hidden="true">
-          <div class="lg-ui apx-mine lg-fade-b">
-            <span class="r"><i data-icon="doc" data-size="14"></i>resume.pdf</span>
-            <span class="r"><i data-icon="user" data-size="14"></i>Your details</span>
-            <span class="r"><i data-icon="list" data-size="14"></i>Saved answers</span>
+          <div class="lg-ui apx-plan">
+            <span class="r"><span><b>Antigravity</b><span>Google account</span></span><em>Free</em></span>
+            <span class="r"><span><b>Google AI Pro</b><span>Higher limit</span></span><em>₹1,950/mo</em></span>
           </div>
         </div>
-        <div class="lg-cap"><b><span class="n">2</span>Open it in your AI app</b><span>It asks for your resume and details once, and keeps them in that folder.</span></div>
+        <div class="lg-cap"><b><span class="n">2</span>No paid AI app? Use Google's</b><span>Sign in to Antigravity with your personal Google account. It's free, with a weekly limit. For more runs, Google AI Pro raises the limit.</span>
+          <span class="apx-links"><a href="https://one.google.com/about/google-ai-plans/">Google AI plans <i data-icon="arrowRight" data-size="14"></i></a></span></div>
       </li>
       <li class="lg-cell">
         <div class="lg-pic" aria-hidden="true">
@@ -292,13 +301,14 @@
             <span class="lg-btn pri">Copy setup prompt</span>
           </div>
         </div>
-        <div class="lg-cap"><b><span class="n">3</span>Connect NorthList</b><span>In NorthList, open NorthList Apply › Setup, copy your setup prompt, and paste it into your AI app. It connects itself.</span></div>
+        <div class="lg-cap"><b><span class="n">3</span>Connect NorthList</b><span>In NorthList, open NorthList Apply › Setup, copy your setup prompt and paste it into the project chat. Then each job it applies to, with the answers it sent, shows in NorthList.</span>
+          <span class="apx-links"><a href="https://app.northlist.site/automation?tab=setup">Open Setup in NorthList <i data-icon="arrowRight" data-size="14"></i></a></span></div>
       </li>
       <li class="lg-cell">
         <div class="lg-pic" aria-hidden="true">
           <div class="lg-ui apx-start"><span class="t">start<span class="caret"></span></span><span class="send"><i data-icon="arrowUp" data-size="14"></i></span></div>
         </div>
-        <div class="lg-cap"><b><span class="n">4</span>Start a run</b><span>Pick today's sites and how many jobs, and sign in to them once in your AI app's own browser: it opens them for you. Approve the first application, and it goes on one by one.</span></div>
+        <div class="lg-cap"><b><span class="n">4</span>Type start</b><span>Open the NorthList Apply folder in your AI app and type <code>start</code> in the project chat. It asks for your resume and details once, then today's sites and how many jobs; sign in to them once in your AI app's own browser: it opens them for you. Approve the first job, and it goes on one by one.</span></div>
       </li>
     </ol>
   </section>
@@ -326,7 +336,7 @@
       <h2 id="faq-title" class="ap-h2 rv">Questions</h2>
       <div class="ap-qs">
         <div class="rv"><h3>Which job sites does it work on?</h3><p>It has been tried on LinkedIn Easy Apply, Naukri, Indeed, Wellfound, Instahyre and Workday, and on company job forms that use Greenhouse, Lever or Ashby. Its instructions name a few more sites, but those are not tested yet.</p></div>
-        <div class="rv"><h3>What does it cost?</h3><p>The automation is free, and NorthList is free while in beta. It runs in your own AI app, under that app's plan.</p></div>
+        <div class="rv"><h3>What does it cost?</h3><p>The automation is free, and NorthList is free while in beta. It runs in your own AI app, under that app's plan. Antigravity is free with a personal Google account, with a weekly limit.</p></div>
         <div class="rv"><h3>Do I need NorthList to use it?</h3><p>No. Without it, the automation keeps its record in a file on your computer. With it, each job sits next to the mails that follow.</p></div>
       </div>
     </div>
