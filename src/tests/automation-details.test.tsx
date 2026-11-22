@@ -2,14 +2,20 @@
 // COM-279: automation details in the table, on the application page and on the Automation page.
 import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { api } from '../api/client';
 import { ApplicationsTable } from '../components/applications/ApplicationsTable';
 import { ToastProvider } from '../components/ui/toast';
-import type { ApplicationSubmission, NotSubmittedJob } from '../contracts/submission';
+import type {
+  ApplicationSubmission,
+  NotSubmittedJob,
+  PortalAccount,
+} from '../contracts/submission';
+import { ApiError } from '../api/client';
+import { SHOW_FOR_MS } from '../components/applications/PortalAccountCard';
 import { routeTree } from '../routeTree.gen';
 import { makeApplication } from './fixtures';
 import { renderPart } from './render';
@@ -25,6 +31,7 @@ vi.mock('../api/client', async (importOriginal) => {
       getApplicationEvents: vi.fn(),
       getApplicationActions: vi.fn(),
       getApplicationSubmissions: vi.fn(),
+      revealPortalPassword: vi.fn(),
       listIntegrationTokens: vi.fn(),
       getMcpConnection: vi.fn(),
       getPendingSubmissions: vi.fn(),
@@ -72,6 +79,20 @@ const submission = (overrides: Partial<ApplicationSubmission> = {}): Application
     { question: 'Notice period?', answer: '30 days' },
     { question: 'Expected CTC?', answer: '15 LPA' },
   ],
+  portalAccount: null,
+  ...overrides,
+});
+const PASSWORD = 'Nl-portal!7qR2x';
+const portalAccount = (overrides: Partial<PortalAccount> = {}): PortalAccount => ({
+  id: 'acc-1',
+  company: 'Acme',
+  signInUrl: 'https://acme.wd3.myworkdayjobs.com/en-US/careers/login',
+  loginEmail: 'u@test.local',
+  hasPassword: true,
+  emailVerified: true,
+  madeBy: 'NORTHLIST_APPLY',
+  createdOn: '2026-11-21',
+  otherApplications: 1,
   ...overrides,
 });
 const notSubmitted = (overrides: Partial<NotSubmittedJob> = {}): NotSubmittedJob => ({
@@ -273,5 +294,113 @@ describe('automation page', () => {
     expect(await screen.findByText('https://cc-api.example.com/mcp')).toBeInTheDocument();
     expect(screen.getByText('- NorthList server: https://cc-api.example.com')).toBeInTheDocument();
     expect(screen.queryByText(`${window.location.origin}/mcp`)).toBeNull();
+  });
+});
+
+describe('portal account', () => {
+  const open = async (account: PortalAccount | null) => {
+    vi.mocked(api.getApplicationSubmissions).mockResolvedValue({
+      items: [submission({ portalAccount: account })],
+    });
+    show('/applications/app-1');
+    fireEvent.click(await screen.findByRole('tab', { name: 'NorthList Apply details' }));
+    await screen.findByRole('region', { name: 'Submission' });
+    return screen.queryByRole('region', { name: 'Portal account' });
+  };
+  const valueIn = (box: HTMLElement, label: string) =>
+    within(box).getByText(label).nextElementSibling as HTMLElement;
+
+  it('shows no box when no portal account was sent', async () => {
+    expect(await open(null)).toBeNull();
+  });
+
+  it('shows the account with the password hidden until Show', async () => {
+    vi.mocked(api.revealPortalPassword).mockResolvedValue({ password: PASSWORD });
+    const box = (await open(portalAccount()))!;
+    expect(within(valueIn(box, 'Sign-in page')).getByRole('link')).toHaveAttribute(
+      'href',
+      'https://acme.wd3.myworkdayjobs.com/en-US/careers/login',
+    );
+    expect(valueIn(box, 'Email')).toHaveTextContent('u@test.local');
+    expect(valueIn(box, 'Email checked')).toHaveTextContent('Yes');
+    expect(valueIn(box, 'Made')).toHaveTextContent('By NorthList Apply, 21 Nov 2026');
+    expect(box).toHaveTextContent('Also used for 1 other application at Acme.');
+    expect(box).not.toHaveTextContent(PASSWORD);
+    expect(api.revealPortalPassword).not.toHaveBeenCalled();
+    fireEvent.click(within(box).getByRole('button', { name: 'Show' }));
+    expect(await within(box).findByText(PASSWORD)).toBeInTheDocument();
+    expect(api.revealPortalPassword).toHaveBeenCalledWith('acc-1');
+    expect(within(box).getByText('Hides again in 30 seconds.')).toBeInTheDocument();
+    fireEvent.click(within(box).getByRole('button', { name: 'Hide' }));
+    expect(box).not.toHaveTextContent(PASSWORD);
+    // Shown again from what was fetched: no second request.
+    fireEvent.click(within(box).getByRole('button', { name: 'Show' }));
+    expect(await within(box).findByText(PASSWORD)).toBeInTheDocument();
+    expect(api.revealPortalPassword).toHaveBeenCalledTimes(1);
+  });
+
+  it('hides the password again after 30 seconds', async () => {
+    vi.mocked(api.revealPortalPassword).mockResolvedValue({ password: PASSWORD });
+    const box = (await open(portalAccount()))!;
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      fireEvent.click(within(box).getByRole('button', { name: 'Show' }));
+      await act(async () => {});
+      expect(within(box).getByText(PASSWORD)).toBeInTheDocument();
+      await act(async () => {
+        vi.advanceTimersByTime(SHOW_FOR_MS);
+      });
+      expect(box).not.toHaveTextContent(PASSWORD);
+      expect(within(box).getByRole('button', { name: 'Show' })).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('copies the password without showing it', async () => {
+    vi.mocked(api.revealPortalPassword).mockResolvedValue({ password: PASSWORD });
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    const box = (await open(portalAccount()))!;
+    fireEvent.click(within(box).getByRole('button', { name: 'Copy' }));
+    expect(await within(box).findByText('Copied.')).toBeInTheDocument();
+    expect(writeText).toHaveBeenCalledWith(PASSWORD);
+    expect(box).not.toHaveTextContent(PASSWORD);
+  });
+
+  it('says so when the password cannot be fetched', async () => {
+    vi.mocked(api.revealPortalPassword).mockRejectedValue(new ApiError('x', 'http', 503));
+    const box = (await open(portalAccount()))!;
+    fireEvent.click(within(box).getByRole('button', { name: 'Show' }));
+    expect(
+      await within(box).findByText('NorthList cannot open this password right now.'),
+    ).toBeInTheDocument();
+  });
+
+  it('explains an account the user made, with no password to show', async () => {
+    const box = (await open(
+      portalAccount({
+        hasPassword: false,
+        madeBy: 'USER',
+        emailVerified: false,
+        otherApplications: 0,
+      }),
+    ))!;
+    expect(valueIn(box, 'Password')).toHaveTextContent(
+      'You set it yourself. NorthList Apply did not see it.',
+    );
+    expect(within(box).queryByRole('button', { name: 'Show' })).toBeNull();
+    expect(valueIn(box, 'Email checked')).toHaveTextContent('Not yet');
+    expect(valueIn(box, 'Made')).toHaveTextContent('By you, 21 Nov 2026');
+    expect(box).toHaveTextContent('Used only for this application.');
+  });
+
+  it('shows untrusted text as text and links only http(s) sign-in pages', async () => {
+    const box = (await open(
+      portalAccount({ signInUrl: 'javascript:alert(1)', loginEmail: '<b>x</b>@y.z' }),
+    ))!;
+    expect(within(valueIn(box, 'Sign-in page')).queryByRole('link')).toBeNull();
+    expect(within(box).getByText('<b>x</b>@y.z')).toBeInTheDocument();
+    expect(box.querySelector('b')).toBeNull();
   });
 });
