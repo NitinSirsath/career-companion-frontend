@@ -30,6 +30,7 @@ const PROFILE = {
   testAccount: true,
   admin: false,
   suspension: null,
+  onboarding: null,
 };
 
 /** What the backend answers: its mode, and who is signed in (null: nobody). */
