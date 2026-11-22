@@ -19,6 +19,7 @@ import { Ring } from '../ui/ring';
 import { SectionError } from '../ui/section-error';
 import { SkeletonList } from '../ui/skeleton';
 import { AdminAccounts, ResumeButton } from './AdminAccounts';
+import { AdminInvites } from './AdminInvites';
 import { AdminMessages } from './AdminMessages';
 import { PhoneAdmin } from './PhoneAdmin';
 
@@ -368,6 +369,7 @@ export function AdminPage() {
               })()}
             />
             <AdminAccounts accounts={data.accounts} />
+            <AdminInvites />
             <SectionTitle title="AI use" note="· AI calls per day, all accounts, last 14 days" />
             <CallsChart days={data.aiCallsByDay} />
             <p className="mt-2 text-xs leading-[18px] text-text-tertiary">
