@@ -1,7 +1,5 @@
 import { useId, useState, type ReactNode } from 'react';
 import { ChevronDownIcon, ExternalLinkIcon } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { api } from '../../api/client';
 import { INTEGRATION_TOKEN_MAX_ACTIVE } from '../../contracts/integrationToken';
 import { NORTHLIST_APPLY_URL } from '../../lib/setupPrompt';
 import { cn } from '../../lib/utils';
@@ -10,6 +8,7 @@ import { CodeSnippet } from '../ui/code-snippet';
 import { Collapse } from '../ui/collapse';
 import { CreateTokenForm } from './CreateTokenForm';
 import { TokenList } from './TokenList';
+import { useServerAddress } from './useServerAddress';
 
 function Step({ number, title, children }: { number: number; title: string; children: ReactNode }) {
   return (
@@ -82,17 +81,7 @@ function ByHand({ serverAddress }: { serverAddress: string | null }) {
 
 /** How to connect the automation, and the tokens it uses. */
 export function AutomationSetup() {
-  // The backend's own public address when it has one (on Render the page and the backend differ);
-  // locally this page passes /mcp on, so its own address works.
-  const connection = useQuery({
-    queryKey: ['mcp-connection'],
-    queryFn: ({ signal }) => api.getMcpConnection({ signal }),
-    staleTime: Infinity,
-  });
-  // Nothing is shown until the answer is in, so a wrong address never flashes up.
-  const serverAddress = connection.isPending
-    ? null
-    : (connection.data?.serverAddress ?? window.location.origin);
+  const serverAddress = useServerAddress();
   return (
     <>
       <SettingsSection
