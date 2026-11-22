@@ -88,19 +88,17 @@ body[data-page='automation'] { --apx-out: cubic-bezier(0.23, 1, 0.32, 1); }
 @keyframes apx-empty { 0%, 34% { border-color: var(--lg-line-2); } 38%, 92% { border-color: rgb(255 255 255 / 0.4); } 97%, 100% { border-color: var(--lg-line-2); } }
 @keyframes apx-ask { 0%, 42% { opacity: 0; transform: translateY(12px); } 48%, 90% { opacity: 1; transform: none; } 96%, 100% { opacity: 0; transform: translateY(-4px); } }
 
-/* Asks before it applies: tap Apply, the buttons give way to the done line (7 s) */
+/* Applies on its own (owner, 22 Nov 2026: no OK step): the working line gives way to the done line (7 s) */
 .apx-ok { width: min(360px, calc(100% - 64px)); display: grid; gap: 4px; padding: 16px 18px; }
 .apx-ok > b { font-size: 16px; line-height: 24px; }
 .apx-ok .sub { font-size: 12px; line-height: 16px; color: var(--text-3); }
 .apx-ok .act { position: relative; display: flex; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--lg-line); }
-.apx-ok .btns { display: flex; gap: 8px; }
+.apx-ok .btns { display: inline-flex; align-items: center; height: 32px; font-size: 12px; color: var(--text-3); }
 .apx-ok .doneline { position: absolute; left: 0; top: 12px; height: 32px; display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text); opacity: 0; }
 @media (prefers-reduced-motion: no-preference) {
-  html:not(.no-motion) .apx-ok .yes { animation: apx-press 7s ease infinite; }
   html:not(.no-motion) .apx-ok .btns { animation: apx-btns 7s ease infinite; }
   html:not(.no-motion) .apx-ok .doneline { animation: apx-doneline 7s ease infinite; }
 }
-@keyframes apx-press { 0%, 26% { transform: none; filter: none; } 29% { transform: scale(0.95); filter: brightness(0.85); } 33%, 100% { transform: none; filter: none; } }
 @keyframes apx-btns { 0%, 33% { opacity: 1; } 36%, 90% { opacity: 0; } 95%, 100% { opacity: 1; } }
 @keyframes apx-doneline { 0%, 35% { opacity: 0; transform: translateY(4px); } 39%, 86% { opacity: 1; transform: none; } 90%, 100% { opacity: 0; } }
 
