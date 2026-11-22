@@ -112,9 +112,16 @@ describe('the NorthList Posts page', () => {
     expect(d.querySelector('.ftr a[href="/posts"]')?.textContent).toBe('NorthList Posts');
   });
 
-  it('says the app is private for now, so both main buttons ask for access by mail', () => {
+  it('opens the app from both main buttons, and still asks for access by mail while it is private', () => {
     const d = doc('posts');
     expect(d.body.textContent).toContain('Private for now');
+    const open = [...d.querySelectorAll('a')].filter(
+      (a) => a.textContent === 'Open NorthList Posts',
+    );
+    expect(open).toHaveLength(2);
+    for (const a of open) {
+      expect(a.getAttribute('href')).toBe('https://posts.northlist.site');
+    }
     const ask = [...d.querySelectorAll('a')].filter((a) => a.textContent === 'Ask for access');
     expect(ask).toHaveLength(2);
     for (const a of ask)
