@@ -161,6 +161,28 @@ body[data-page='automation'] { --apx-out: cubic-bezier(0.23, 1, 0.32, 1); }
 .apx-start .t { font-size: 14px; color: var(--text); }
 .apx-start .caret { display: inline-block; width: 1px; height: 16px; margin-left: 2px; vertical-align: -3px; background: var(--text-2); }
 .apx-start .send { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: var(--btn, #e6e6e6); color: var(--btn-text, #08090a); }
+/* Setup (owner, 22 Nov 2026): four strong steps, two by two, the usual caption size, a link row under each */
+.apx-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.apx-steps .lg-pic { height: 200px; }
+.apx-steps .lg-cap { font-size: 16px; line-height: 26px; max-width: 560px; padding-inline: 40px; }
+.apx-steps .lg-cap b { font-size: 20px; line-height: 28px; letter-spacing: -0.01em; margin-bottom: 4px; }
+.apx-steps .lg-cap .n { font-size: 14px; line-height: 28px; }
+.apx-steps .lg-cap code { font: 400 14px/1 var(--mono); color: var(--text); padding: 2px 6px; border-radius: 6px; background: rgb(255 255 255 / 0.06); }
+.apx-links { display: flex; flex-wrap: wrap; gap: 4px 24px; margin-top: 8px; }
+.apx-links a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: 16px; font-weight: 500; color: var(--text-2); text-decoration: none; transition: color 150ms var(--ap-ease); }
+.apx-links a:hover { color: var(--text); }
+.apx-get, .apx-plan { width: min(320px, calc(100% - 64px)); overflow: hidden; }
+.apx-get .r, .apx-plan .r { display: flex; align-items: center; gap: 12px; height: 60px; padding: 0 16px; border-top: 1px solid var(--lg-line); font-size: 14px; color: var(--text-2); }
+.apx-get .r:first-child, .apx-plan .r:first-child { border-top: 0; }
+.apx-get .lg-tile.sm { width: 32px; height: 32px; border-radius: 8px; box-shadow: none; }
+.apx-get .r.on .lg-tile.sm { color: var(--text); border-color: var(--lg-line-2); }
+.apx-get .r b { font-weight: 500; color: var(--text); }
+.apx-get .r:not(.on) b { font: 400 13px/1 var(--mono); color: var(--text-2); }
+.apx-get em, .apx-plan em { margin-left: auto; font-style: normal; font-size: 12px; line-height: 16px; color: var(--text-3); white-space: nowrap; }
+.apx-get .r.on em { color: var(--text-2); }
+.apx-plan .r > span { display: grid; min-width: 0; font-size: 12px; line-height: 16px; color: var(--text-3); }
+.apx-plan .r b { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--text); }
+.apx-plan .r:first-child em { color: var(--text); }
 
 /* ---------- 8. Close: one lit frame ---------- */
 .apx-close { padding-block: var(--ap-sec) 128px; }
@@ -176,7 +198,6 @@ body[data-page='automation'] { --apx-out: cubic-bezier(0.23, 1, 0.32, 1); }
   .apx-plane { left: 24%; }
   .apx-words { padding-bottom: 80px; }
   .lg-row.apx-3 { grid-template-columns: minmax(0, 1fr); }
-  .apx-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .apx-flowstage { height: 500px; }
 }
 /* ---------- Phone: the dim run on top, the words under it on the plain page; one column ---------- */
@@ -186,7 +207,9 @@ body[data-page='automation'] { --apx-out: cubic-bezier(0.23, 1, 0.32, 1); }
   /* The grain ends softly into the page above the words */
   .apx-hero::after { content: ''; position: absolute; left: 0; right: 0; top: calc(var(--film-h) - 120px); height: 121px; background: linear-gradient(to bottom, transparent, var(--bg)); pointer-events: none; }
   .apx-steps { grid-template-columns: minmax(0, 1fr); }
-  .apx-steps .lg-pic { height: 168px; }
+  .apx-steps .lg-pic { height: 200px; }
+  .apx-steps .lg-cap { padding-inline: 24px; }
+  .apx-steps .lg-cap b { font-size: 18px; line-height: 26px; }
   .apx-plane { left: 4%; top: -12%; transform: rotateX(46deg) rotateZ(-16deg) scale(0.6); }
   .apx-words { padding-top: 0; padding-bottom: 0; }
   .apx-fill { margin-top: 8px; }
