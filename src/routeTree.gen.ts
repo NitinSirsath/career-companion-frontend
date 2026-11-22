@@ -20,6 +20,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as GmailRouteImport } from './routes/gmail'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as TestLoginRouteImport } from './routes/test-login'
+import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as AdminMoneyRouteImport } from './routes/admin_.money'
 import { Route as ApplicationsIdRouteImport } from './routes/applications.$id'
 import { Route as DashboardChartsRouteImport } from './routes/dashboard_.charts'
@@ -87,6 +88,11 @@ const LoginRoute = LoginRouteImport.update({
 const TestLoginRoute = TestLoginRouteImport.update({
   id: '/test-login',
   path: '/test-login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WelcomeRoute = WelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminMoneyRoute = AdminMoneyRouteImport.update({
@@ -167,6 +173,7 @@ export interface FileRoutesByFullPath {
   '/gmail': typeof GmailRoute
   '/login': typeof LoginRoute
   '/test-login': typeof TestLoginRoute
+  '/welcome': typeof WelcomeRoute
   '/admin/money': typeof AdminMoneyRoute
   '/applications/$id': typeof ApplicationsIdRoute
   '/dashboard/charts': typeof DashboardChartsRoute
@@ -193,6 +200,7 @@ export interface FileRoutesByTo {
   '/gmail': typeof GmailRoute
   '/login': typeof LoginRoute
   '/test-login': typeof TestLoginRoute
+  '/welcome': typeof WelcomeRoute
   '/admin/money': typeof AdminMoneyRoute
   '/applications/$id': typeof ApplicationsIdRoute
   '/dashboard/charts': typeof DashboardChartsRoute
@@ -220,6 +228,7 @@ export interface FileRoutesById {
   '/gmail': typeof GmailRoute
   '/login': typeof LoginRoute
   '/test-login': typeof TestLoginRoute
+  '/welcome': typeof WelcomeRoute
   '/admin_/money': typeof AdminMoneyRoute
   '/applications/$id': typeof ApplicationsIdRoute
   '/dashboard_/charts': typeof DashboardChartsRoute
@@ -248,6 +257,7 @@ export interface FileRouteTypes {
     | '/gmail'
     | '/login'
     | '/test-login'
+    | '/welcome'
     | '/admin/money'
     | '/applications/$id'
     | '/dashboard/charts'
@@ -274,6 +284,7 @@ export interface FileRouteTypes {
     | '/gmail'
     | '/login'
     | '/test-login'
+    | '/welcome'
     | '/admin/money'
     | '/applications/$id'
     | '/dashboard/charts'
@@ -300,6 +311,7 @@ export interface FileRouteTypes {
     | '/gmail'
     | '/login'
     | '/test-login'
+    | '/welcome'
     | '/admin_/money'
     | '/applications/$id'
     | '/dashboard_/charts'
@@ -327,6 +339,7 @@ export interface RootRouteChildren {
   GmailRoute: typeof GmailRoute
   LoginRoute: typeof LoginRoute
   TestLoginRoute: typeof TestLoginRoute
+  WelcomeRoute: typeof WelcomeRoute
   AdminMoneyRoute: typeof AdminMoneyRoute
   DashboardChartsRoute: typeof DashboardChartsRoute
   GmailMailsRoute: typeof GmailMailsRoute
@@ -418,6 +431,13 @@ declare module '@tanstack/react-router' {
       path: '/test-login'
       fullPath: '/test-login'
       preLoaderRoute: typeof TestLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/welcome': {
+      id: '/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof WelcomeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin_/money': {
@@ -538,6 +558,7 @@ const rootRouteChildren: RootRouteChildren = {
   GmailRoute: GmailRoute,
   LoginRoute: LoginRoute,
   TestLoginRoute: TestLoginRoute,
+  WelcomeRoute: WelcomeRoute,
   AdminMoneyRoute: AdminMoneyRoute,
   DashboardChartsRoute: DashboardChartsRoute,
   GmailMailsRoute: GmailMailsRoute,

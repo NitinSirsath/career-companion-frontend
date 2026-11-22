@@ -1,7 +1,5 @@
 import { useId, useState, type ReactNode } from 'react';
 import { ChevronDownIcon, ExternalLinkIcon } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { api } from '../../api/client';
 import { INTEGRATION_TOKEN_MAX_ACTIVE } from '../../contracts/integrationToken';
 import { NORTHLIST_APPLY_URL } from '../../lib/setupPrompt';
 import { cn } from '../../lib/utils';
@@ -10,6 +8,7 @@ import { CodeSnippet } from '../ui/code-snippet';
 import { Collapse } from '../ui/collapse';
 import { CreateTokenForm } from './CreateTokenForm';
 import { TokenList } from './TokenList';
+import { useServerAddress } from './useServerAddress';
 
 function Step({ number, title, children }: { number: number; title: string; children: ReactNode }) {
   return (
@@ -82,17 +81,7 @@ function ByHand({ serverAddress }: { serverAddress: string | null }) {
 
 /** How to connect the automation, and the tokens it uses. */
 export function AutomationSetup() {
-  // The backend's own public address when it has one (on Render the page and the backend differ);
-  // locally this page passes /mcp on, so its own address works.
-  const connection = useQuery({
-    queryKey: ['mcp-connection'],
-    queryFn: ({ signal }) => api.getMcpConnection({ signal }),
-    staleTime: Infinity,
-  });
-  // Nothing is shown until the answer is in, so a wrong address never flashes up.
-  const serverAddress = connection.isPending
-    ? null
-    : (connection.data?.serverAddress ?? window.location.origin);
+  const serverAddress = useServerAddress();
   return (
     <>
       <SettingsSection
@@ -128,9 +117,10 @@ export function AutomationSetup() {
             <p className="max-w-160 text-xs text-text-secondary">
               For each application it sends: company, job title, platform, job and apply page links,
               job ID, where the job was found, location, work mode, time, the site’s confirmation,
-              resume file name and your submitted answers. For jobs it did not apply to: company,
-              job title, platform, job link and the reason. Your resume itself and your passwords
-              stay on your computer.
+              resume file name and your submitted answers. For Workday and company portals it also
+              sends the account it used: sign-in page, email and password. NorthList stores the
+              password encrypted. For jobs it did not apply to: company, job title, platform, job
+              link and the reason. Your resume itself stays on your computer.
             </p>
           </Step>
         </ol>

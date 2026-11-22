@@ -1,0 +1,1274 @@
+/*
+ * The first run (owner, 22 Nov 2026, approved mock `POSTS-SPACES-mock/northlist.html`): the look and
+ * motion of the mock, on the app's own colours. Flat, no glow, no blue but the logo mark and the
+ * status rings. Every movement stops with Reduce Motion.
+ */
+.ob-root {
+  --ob-stage: #f4f3f0;
+  --ob-art: var(--text-primary);
+  --ob-grain: 0.05;
+  --ob-sand: #efe4d2;
+  --ob-sage: #dbe6d6;
+  --ob-lilac: #e4ddf0;
+  --ob-peach: #f4e0d0;
+  --ob-shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 8px 24px rgb(0 0 0 / 0.06);
+  --ob-ok: var(--ok);
+  position: fixed;
+  inset: 0;
+  background: var(--background);
+  color: var(--text-primary);
+  overflow: hidden;
+}
+.dark .ob-root {
+  --ob-stage: #141416;
+  --ob-grain: 0.08;
+  --ob-sand: #2a241b;
+  --ob-sage: #1d261c;
+  --ob-lilac: #231f2c;
+  --ob-peach: #2c2119;
+  --ob-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.35);
+  --ob-ok: #47cd89;
+}
+
+/* ── Laptop: words left, a big moving picture right ─────────────────────────────── */
+.ob-laptop {
+  display: grid;
+  grid-template-columns: minmax(440px, 560px) 1fr;
+  height: 100%;
+}
+.ob-left {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 26px 48px 26px 52px;
+}
+.ob-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+.ob-prog {
+  display: flex;
+  gap: 5px;
+  margin: 26px 0 30px;
+  view-transition-name: ob-prog;
+}
+.ob-prog i {
+  position: relative;
+  flex: 1;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--border-default);
+}
+.ob-prog i.done::after,
+.ob-prog i.now::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--text-primary);
+  transform-origin: left;
+}
+.ob-prog i.now::after {
+  opacity: 0.55;
+}
+.ob-prog-space {
+  height: 80px;
+}
+.ob-step {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  view-transition-name: ob-step;
+}
+.ob-kicker {
+  margin-bottom: 8px;
+  font-size: 12.5px;
+  letter-spacing: 0.02em;
+  color: var(--text-tertiary);
+}
+.ob-title {
+  margin: 0 0 10px;
+  font-size: 30px;
+  line-height: 1.15;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+.ob-sub {
+  max-width: 440px;
+  margin: 0 0 24px;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+.ob-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  margin: 0 -2px;
+  padding: 2px;
+}
+.ob-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 18px;
+}
+.ob-right {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--ob-stage);
+}
+.ob-right::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: var(--ob-grain);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.ob-rings {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.5;
+}
+.ob-pic-slot {
+  position: relative;
+  view-transition-name: ob-pic;
+}
+.ob-pic {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 460px;
+  height: 520px;
+}
+
+/* ── Phone: the real phone app in a small iPhone, half shown, words below ─────────────── */
+.ob-phone {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  padding: calc(env(safe-area-inset-top) + 10px) 22px calc(env(safe-area-inset-bottom) + 18px);
+}
+.ob-phone .ob-prog {
+  margin: 6px 0 10px;
+}
+.ob-phone .ob-title {
+  margin-top: 14px;
+  font-size: 24px;
+}
+.ob-phone .ob-sub {
+  margin-bottom: 14px;
+  font-size: 14px;
+}
+.ob-phone .ob-foot {
+  gap: 8px;
+}
+.ob-phone .ob-foot .ob-main {
+  flex: 1;
+  justify-content: center;
+}
+.ob-phstage {
+  position: relative;
+  flex: none;
+  height: 250px;
+  margin: 0 -22px;
+  overflow: hidden;
+  background: var(--ob-stage);
+  view-transition-name: ob-pic;
+}
+.ob-phstage::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 3;
+  height: 64px;
+  background: linear-gradient(transparent, var(--ob-stage));
+  pointer-events: none;
+}
+
+/* A real iPhone, small (the product site's frames, at 236 px wide): only its top shows. */
+.ob-hpw {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  z-index: 1;
+  transform: translateX(-50%);
+}
+.ob-hpw.back {
+  top: 40px;
+  z-index: 0;
+  opacity: 0.45;
+  transform: translateX(-92%) scale(0.92);
+  transform-origin: top left;
+}
+.ob-device {
+  --dv-w: 236px;
+  --dv-h: 510px;
+  --dv-r: 38px;
+  --dv-bezel: 5px;
+  --dv-edge: 2px;
+  --dv-edge-c: #3d3d40;
+  position: relative;
+  width: calc(var(--dv-w) + 2 * (var(--dv-bezel) + var(--dv-edge)));
+  padding: var(--dv-edge);
+  border-radius: calc(var(--dv-r) + var(--dv-bezel) + var(--dv-edge));
+  background: var(--dv-edge-c);
+  box-shadow: 0 24px 50px rgb(0 0 0 / 0.22);
+}
+.dark .ob-device {
+  --dv-edge-c: #56565a;
+}
+.ob-dv-btn {
+  position: absolute;
+  width: 2px;
+  background: var(--dv-edge-c);
+}
+.ob-dv-btn.l {
+  left: -2px;
+  border-radius: 2px 0 0 2px;
+}
+.ob-dv-btn.r {
+  right: -2px;
+  border-radius: 0 2px 2px 0;
+}
+.ob-dv-body {
+  padding: var(--dv-bezel);
+  border-radius: calc(var(--dv-r) + var(--dv-bezel));
+  background: #000;
+}
+.ob-dv-screen {
+  position: relative;
+  width: var(--dv-w);
+  height: var(--dv-h);
+  overflow: hidden;
+  border-radius: var(--dv-r);
+  background: var(--background);
+  color: var(--text-primary);
+}
+.ob-dv-status {
+  display: grid;
+  grid-template-columns: 1fr 74px 1fr;
+  align-items: center;
+  height: 34px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.ob-dv-status > * {
+  justify-self: center;
+}
+.ob-dv-icons {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+}
+.ob-dv-icons svg {
+  width: auto;
+  height: 8px;
+}
+.ob-dv-cut {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  z-index: 6;
+  width: 74px;
+  height: 22px;
+  margin-left: -37px;
+  border-radius: 12px;
+  background: #000;
+}
+.ob-hp {
+  padding: 4px 14px 0;
+  font-size: 12px;
+}
+.ob-hp h4 {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  margin: 4px 0 8px;
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.ob-hp h4 small {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-tertiary);
+}
+.ob-hp .r {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.ob-hp .r b {
+  display: block;
+  font-size: 12px;
+  line-height: 1.3;
+}
+.ob-hp .r span {
+  display: block;
+  font-size: 10.5px;
+  line-height: 1.35;
+  color: var(--text-tertiary);
+}
+.ob-hp .nd {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: var(--text-primary);
+}
+.ob-hp .card {
+  margin-top: 6px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--surface-subtle);
+}
+.ob-hp .ns {
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+
+/* ── Pictures ─────────────────────────────────────────────────────────────── */
+.ob-win {
+  width: 420px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow:
+    var(--ob-shadow),
+    inset 0 0 0 1px var(--border-subtle);
+}
+.ob-win-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.ob-win-bar > i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--border-default);
+}
+.ob-url {
+  display: flex;
+  flex: 1;
+  gap: 6px;
+  align-items: center;
+  height: 22px;
+  margin-left: 10px;
+  padding: 0 10px;
+  border-radius: 7px;
+  background: var(--surface-subtle);
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+}
+.ob-url .ob-inst {
+  display: flex;
+  margin-left: auto;
+  color: var(--text-primary);
+}
+.ob-mrow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 13px;
+}
+.ob-mrow .who {
+  font-weight: 600;
+}
+.ob-mrow .s {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+.ob-mrow .tm {
+  margin-left: auto;
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+.ob-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text-primary);
+}
+.ob-avc {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--surface-subtle);
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--text-secondary);
+}
+.ob-sum {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+.ob-sum div {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--surface-subtle);
+}
+.ob-sum b {
+  display: block;
+  font-size: 20px;
+}
+.ob-sum small {
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+}
+.ob-bar {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--surface-subtle);
+}
+.ob-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--text-primary);
+  transition: width 1s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.ob-sk {
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    var(--surface-subtle) 0%,
+    var(--surface-selected) 50%,
+    var(--surface-subtle) 100%
+  );
+  background-size: 200% 100%;
+}
+
+/* Welcome: mails flow in and turn into applications. */
+.ob-flow {
+  position: relative;
+  width: 440px;
+  height: 440px;
+}
+.ob-flow .fc {
+  position: absolute;
+  right: 30px;
+  left: 30px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow:
+    var(--ob-shadow),
+    inset 0 0 0 1px var(--border-subtle);
+}
+.ob-flow .fc .k {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+.ob-flow .fc b {
+  display: block;
+  font-size: 13.5px;
+}
+.ob-flow .fc small {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+/* Alerts: a lock screen. */
+.ob-lock {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 300px;
+  height: 500px;
+  overflow: hidden;
+  border-radius: 44px;
+  background: linear-gradient(160deg, var(--ob-sand), var(--ob-lilac) 60%, var(--ob-sage));
+  box-shadow:
+    var(--ob-shadow),
+    0 0 0 8px var(--surface),
+    0 0 0 9px var(--border-default);
+}
+.ob-clock {
+  margin-top: 70px;
+  line-height: 1.1;
+  font-size: 64px;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+}
+.ob-date {
+  font-size: 15px;
+  color: var(--text-secondary);
+}
+.ob-nt {
+  position: absolute;
+  top: 200px;
+  right: 12px;
+  left: 12px;
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 20px;
+  background: rgb(255 255 255 / 0.75);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.12);
+  backdrop-filter: blur(14px);
+  text-align: left;
+}
+.dark .ob-nt {
+  background: rgb(30 30 34 / 0.8);
+}
+.ob-nt.off {
+  opacity: 0.45;
+  filter: grayscale(1);
+}
+.ob-nt .ic {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: #0b0b0c;
+}
+.ob-nt b {
+  font-size: 13px;
+}
+.ob-nt p {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* Install: a share sheet and a home screen, or a dock. */
+.ob-share {
+  width: 300px;
+  padding: 12px;
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow:
+    var(--ob-shadow),
+    inset 0 0 0 1px var(--border-subtle);
+}
+.ob-share .r {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 11px 12px;
+  border-radius: 12px;
+  font-size: 14px;
+}
+.ob-share .r.hl {
+  background: var(--surface-subtle);
+  font-weight: 600;
+}
+.ob-homescr {
+  display: grid;
+  grid-template-columns: repeat(4, 52px);
+  gap: 16px;
+  justify-content: center;
+  margin-top: 18px;
+}
+.ob-homescr i {
+  width: 52px;
+  height: 52px;
+  border-radius: 13px;
+  background: var(--surface-subtle);
+}
+.ob-app-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0b0b0c !important;
+}
+.ob-dock {
+  position: absolute;
+  bottom: 26px;
+  left: 50%;
+  display: flex;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--ob-shadow);
+  transform: translateX(-50%);
+}
+.ob-dock i {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--surface-subtle);
+}
+.ob-dock i.empty {
+  opacity: 0.25;
+  outline: 1.5px dashed var(--border-default);
+}
+.ob-flyicon {
+  --fx: -150px;
+  --fy: 330px;
+  position: absolute;
+  top: 96px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-left: 150px;
+  border-radius: 12px;
+  background: #0b0b0c;
+  opacity: 0;
+}
+
+/* Your AI: the AI app's own window. */
+.ob-term {
+  width: 420px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: #0e0e10;
+  box-shadow: var(--ob-shadow);
+  color: #d4d4d8;
+  font: 12.5px/1.6 var(--font-mono);
+}
+.ob-term .p {
+  color: #8b8b94;
+}
+.ob-term .g {
+  color: #47cd89;
+}
+
+/* ── Step parts ─────────────────────────────────────────────────────────────── */
+.ob-lines {
+  display: grid;
+  gap: 12px;
+  margin-top: 8px;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
+.ob-lines > div {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.ob-consent {
+  margin-top: 12px;
+  font-size: 12.5px;
+  color: var(--text-tertiary);
+}
+.ob-wait {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 16px;
+  border-radius: 14px;
+  box-shadow: inset 0 0 0 1px var(--border-subtle);
+}
+.ob-wait b {
+  font-size: 14px;
+}
+.ob-wait .faint {
+  font-size: 12.5px;
+  color: var(--text-tertiary);
+}
+.ob-okdot {
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--ob-ok);
+  color: #fff;
+}
+.ob-pulse {
+  position: relative;
+  flex: none;
+  width: 10px;
+  height: 10px;
+  margin: 0 6px;
+  border-radius: 50%;
+  background: var(--text-tertiary);
+}
+.ob-pulse::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border: 1.5px solid var(--text-tertiary);
+  border-radius: 50%;
+}
+.ob-pick {
+  position: relative;
+  border: 0;
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--border-default);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 0.14s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.2s;
+}
+.ob-pick:active {
+  transform: scale(0.96);
+}
+/* Above each list's own resting line. */
+.ob-root .ob-pick[aria-pressed='true'],
+.ob-root .ob-pick[aria-current='true'] {
+  box-shadow: inset 0 0 0 2px var(--text-primary);
+}
+.ob-check {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  color: var(--background);
+}
+.ob-themes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.ob-themes .ob-pick {
+  padding: 8px;
+}
+.ob-themes b {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 0 4px 4px;
+  font-size: 13.5px;
+}
+.ob-mini {
+  display: grid;
+  grid-template-columns: 30% 1fr;
+  height: 96px;
+  margin-bottom: 8px;
+  overflow: hidden;
+  border-radius: 10px;
+}
+.ob-mini.two {
+  grid-template-columns: 1fr 1fr;
+}
+.ob-mini.two > .ob-mini {
+  margin: 0;
+  border-radius: 0;
+}
+.ob-mini .sb,
+.ob-mini .mn {
+  display: grid;
+  gap: 5px;
+  align-content: start;
+  padding: 8px 6px;
+}
+.ob-mini .mn {
+  gap: 6px;
+  padding: 8px;
+}
+.ob-mini i {
+  display: block;
+  height: 6px;
+  border-radius: 3px;
+}
+.ob-feat {
+  display: grid;
+  gap: 10px;
+}
+.ob-feat .ob-pick {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border-radius: 14px;
+  box-shadow: inset 0 0 0 1px var(--border-subtle);
+}
+.ob-feat .ix {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+.ob-feat b {
+  font-size: 14px;
+}
+.ob-feat small {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.ob-tour-dots {
+  display: flex;
+  gap: 6px;
+  margin: 18px 0 0;
+}
+.ob-tour-dots i {
+  width: 7px;
+  height: 7px;
+  border-radius: 99px;
+  background: var(--border-default);
+  transition:
+    width 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 0.3s;
+}
+.ob-tour-dots i.on {
+  width: 22px;
+  background: var(--text-primary);
+}
+.ob-ais {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.ob-ais .ob-pick {
+  padding: 14px;
+}
+.ob-glyph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  background: var(--surface-subtle);
+  font: 700 13px var(--font-mono);
+}
+.ob-ais b {
+  display: block;
+  font-size: 14px;
+}
+.ob-ais small {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+.ob-ais small.rec {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.ob-tl {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  margin-top: 4px;
+}
+.ob-tl .st {
+  position: relative;
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 8px 0;
+}
+.ob-tl .n {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--surface-subtle);
+  font-size: 12.5px;
+  font-weight: 650;
+  color: var(--text-secondary);
+  transition:
+    background-color 0.3s,
+    color 0.3s;
+}
+.ob-tl .st.done .n {
+  background: var(--ob-ok);
+  color: #fff;
+}
+.ob-tl .st.cur .n {
+  background: var(--text-primary);
+  color: var(--background);
+}
+.ob-tl .st b {
+  display: block;
+  font-size: 14px;
+}
+.ob-tl .st small {
+  display: block;
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+.ob-tl .st:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 38px;
+  bottom: -6px;
+  left: 13.5px;
+  width: 1.5px;
+  background: var(--border-default);
+}
+.ob-tl .st.done:not(:last-child)::after {
+  background: var(--ob-ok);
+}
+.ob-tl .st:not(.cur):not(.done) {
+  opacity: 0.55;
+}
+.ob-tl .act {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.ob-code {
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--surface-subtle);
+  font: 12px/1.5 var(--font-mono);
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.ob-feed {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  margin-top: 10px;
+}
+.ob-frow {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 7px 0;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 12.5px;
+}
+.ob-frow .fi {
+  flex: none;
+  margin-top: 1px;
+  color: var(--text-tertiary);
+}
+.ob-frow b {
+  font-weight: 550;
+}
+.ob-frow span {
+  display: block;
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+}
+.ob-frow.skip {
+  opacity: 0.55;
+}
+.ob-card {
+  padding: 16px 18px;
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow:
+    var(--ob-shadow),
+    inset 0 0 0 1px var(--border-subtle);
+}
+.ob-text-link {
+  color: var(--text-secondary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+/* ── Motion ─────────────────────────────────────────────────────────────── */
+@keyframes ob-grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes ob-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+@keyframes ob-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+@keyframes ob-swap {
+  from {
+    opacity: 0;
+    filter: blur(6px);
+    transform: translateY(6px);
+  }
+}
+@keyframes ob-burst {
+  from {
+    opacity: 1;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.8);
+  }
+}
+@keyframes ob-caret {
+  50% {
+    opacity: 0;
+  }
+}
+@keyframes ob-notif {
+  from {
+    opacity: 0;
+    transform: translateY(-40px) scale(0.94);
+  }
+}
+@keyframes ob-skel {
+  to {
+    background-position: -200% 0;
+  }
+}
+@keyframes ob-fly {
+  0% {
+    opacity: 1;
+    transform: none;
+  }
+  60% {
+    opacity: 1;
+    transform: translate(var(--fx), var(--fy)) scale(0.5);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--fx), var(--fy)) scale(0.5);
+  }
+}
+@keyframes ob-row {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+}
+@keyframes ob-flow-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.96);
+  }
+  8%,
+  85% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+@keyframes ob-ring {
+  from {
+    transform: scale(0.4);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+@keyframes ob-shim {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ob-prog i.now::after {
+    animation: ob-grow 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  /* A step's parts come in one after another. */
+  .ob-stagger > * {
+    animation: ob-rise 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: 105ms;
+  }
+  .ob-stagger > :nth-child(2) {
+    animation-delay: 150ms;
+  }
+  .ob-stagger > :nth-child(3) {
+    animation-delay: 195ms;
+  }
+  .ob-stagger > :nth-child(4) {
+    animation-delay: 240ms;
+  }
+  .ob-stagger > :nth-child(n + 5) {
+    animation-delay: 285ms;
+  }
+  .ob-popin {
+    animation: ob-pop 0.32s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+  }
+  .ob-swap {
+    animation: ob-swap 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  .ob-burst::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border: 2px solid var(--ob-ok);
+    border-radius: 50%;
+    animation: ob-burst 0.7s ease-out both;
+  }
+  .ob-typing::after {
+    content: '';
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    margin-left: 2px;
+    vertical-align: -2px;
+    background: var(--text-primary);
+    animation: ob-caret 0.8s steps(1) infinite;
+  }
+  .ob-notif {
+    animation: ob-notif 0.7s 0.4s cubic-bezier(0.2, 0.9, 0.25, 1.15) both;
+  }
+  .ob-sk {
+    animation: ob-skel 1.3s linear infinite;
+  }
+  .ob-flyicon {
+    animation: ob-fly 1.8s 0.3s cubic-bezier(0.5, 0, 0.2, 1) both;
+  }
+  .ob-row-in {
+    animation: ob-row 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: calc(var(--d, 0) * 160ms + 0.2s);
+  }
+  .ob-flow .fc {
+    animation: ob-flow-in 6s cubic-bezier(0.2, 0.8, 0.2, 1) infinite both;
+  }
+  .ob-pulse::after {
+    animation: ob-ring 1.6s ease-out infinite;
+  }
+  .ob-reading {
+    background: linear-gradient(
+      90deg,
+      var(--text-tertiary) 0%,
+      var(--text-primary) 50%,
+      var(--text-tertiary) 100%
+    );
+    background-size: 200% 100%;
+    background-clip: text;
+    color: transparent;
+    animation: ob-shim 1.6s linear infinite;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ob-flyicon {
+    display: none;
+  }
+}
+
+/* A step change: the words slide in from the side the user moves to (view transitions). */
+::view-transition-group(ob-step),
+::view-transition-group(ob-pic),
+::view-transition-group(ob-prog) {
+  animation-duration: 0.45s;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes ob-out-left {
+  to {
+    opacity: 0;
+    transform: translateX(-36px);
+  }
+}
+@keyframes ob-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(36px);
+  }
+}
+@keyframes ob-out-right {
+  to {
+    opacity: 0;
+    transform: translateX(36px);
+  }
+}
+@keyframes ob-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-36px);
+  }
+}
+html:active-view-transition-type(forward)::view-transition-old(ob-step) {
+  animation: ob-out-left 0.3s ease both;
+}
+html:active-view-transition-type(forward)::view-transition-new(ob-step) {
+  animation: ob-in-right 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+html:active-view-transition-type(backward)::view-transition-old(ob-step) {
+  animation: ob-out-right 0.3s ease both;
+}
+html:active-view-transition-type(backward)::view-transition-new(ob-step) {
+  animation: ob-in-left 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+/* A theme change: one picture of the whole page, the new one grows as a circle from the tap. */
+html:active-view-transition-type(theme)::view-transition-old(root),
+html:active-view-transition-type(theme)::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+html:active-view-transition-type(theme) * {
+  view-transition-name: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/* Phones: the four "How it works" cards fit under the picture. */
+.ob-phone .ob-feat {
+  gap: 8px;
+}
+.ob-phone .ob-feat .ob-pick {
+  padding: 10px 12px;
+}
+.ob-phone .ob-tour-dots {
+  margin-top: 12px;
+}

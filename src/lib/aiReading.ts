@@ -1,6 +1,7 @@
 import type { AIReadingJobMail, AIReadingStatusResponse, AIReadingStep } from '../contracts/ai';
 import { clock, modelName, providerName } from './aiLabels';
 import { CATEGORY_LABEL } from './mails';
+import { isFreeAI } from './freeAI';
 
 /**
  * "AI is reading your mails" (owner, 24 Oct 2026): the words of the status at the bottom of the
@@ -30,6 +31,16 @@ export function timeLeftText(seconds: number): string {
   if (rounded < 60) return `about ${rounded} min left`;
   const hours = Math.round(minutes / 60);
   return `about ${hours} ${hours === 1 ? 'hour' : 'hours'} left`;
+}
+
+/**
+ * The first mails' progress line (owner, 15 Nov 2026), on the Dashboard's reading card and in the
+ * first run: "12 of 42 done · about 3 min left · read by NorthList free AI".
+ */
+export function firstReadingLine(status: AIReadingStatusResponse): string {
+  const time = status.secondsLeft === null ? '' : ` · ${timeLeftText(status.secondsLeft)}`;
+  const free = isFreeAI(status.provider) ? ' · read by NorthList free AI' : '';
+  return `${status.done} of ${status.total} done${time}${free}`;
 }
 
 const waits = (count: number) => `${count} ${count === 1 ? 'mail waits' : 'mails wait'}`;

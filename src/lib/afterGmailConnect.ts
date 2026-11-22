@@ -33,10 +33,19 @@ export function takeGmailConnectStarted(): boolean {
  */
 export function startGmailConnect(freeAI: boolean) {
   if (freeAI) {
-    const agreed = encodeURIComponent(FREE_AI_CONSENT);
-    window.location.href = `/api/gmail/connect?returnTo=%2Fdashboard&freeAI=${agreed}`;
+    window.location.href = gmailConnectUrl('/dashboard', true);
     return;
   }
   markGmailConnectStarted();
   window.location.href = '/api/gmail/connect';
+}
+
+/**
+ * Where "Connect Gmail" goes when the user should come back to `returnTo` (the Dashboard, or the
+ * first run, owner 22 Nov 2026). `freeAI`: the button said the free AI reads the job mails.
+ */
+export function gmailConnectUrl(returnTo: string, freeAI: boolean): string {
+  const query = new URLSearchParams({ returnTo });
+  if (freeAI) query.set('freeAI', FREE_AI_CONSENT);
+  return `/api/gmail/connect?${query.toString()}`;
 }

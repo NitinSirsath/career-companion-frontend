@@ -3,8 +3,7 @@ import { useSandboxMailbox } from '../../api/appMode';
 import { useFreeAIWithGmail } from '../../api/freeAI';
 import { startGmailConnect } from '../../lib/afterGmailConnect';
 import { gmailConnectionCopy } from '../../lib/gmailConnection';
-import { timeLeftText } from '../../lib/aiReading';
-import { isFreeAI } from '../../lib/freeAI';
+import { firstReadingLine } from '../../lib/aiReading';
 import { FreeAIConsentLine } from '../ai/FreeAIConsentLine';
 import { Button } from '../ui/button';
 import { Skeleton } from '../ui/skeleton';
@@ -75,16 +74,13 @@ export function ReadingFirstMails({ reading }: { reading: AIReadingStatusRespons
         <DashboardSkeleton />
       </div>
     );
-  const time = reading.secondsLeft === null ? '' : ` · ${timeLeftText(reading.secondsLeft)}`;
   const share = reading.total ? (reading.done / reading.total) * 100 : 0;
   return (
     <div className="flex flex-col gap-6">
       <section className="panel p-4 md:p-6" aria-live="polite">
         <p className="ai-shimmer text-sm font-semibold">The AI is reading your mails</p>
         <p className="mt-1 text-xs text-text-secondary">
-          {reading.done} of {reading.total} done{time}
-          {isFreeAI(reading.provider) && ' · read by NorthList free AI'}. The numbers fill in as
-          each mail is read.
+          {firstReadingLine(reading)}. The numbers fill in as each mail is read.
         </p>
         <div className="mt-3 h-1 overflow-hidden rounded-full bg-chart-track" aria-hidden>
           <div
