@@ -3,6 +3,7 @@ import { TRY_TIMEOUT_MS } from '../lib/startup';
 import { api } from './client';
 import {
   UserProfileSchema,
+  type OnboardingStep,
   type PasswordLoginRequest,
   type RegisterRequest,
   type SetPasswordRequest,
@@ -18,6 +19,8 @@ export interface User {
   admin?: boolean;
   /** Set while the owner has suspended the account: the app shows only the suspended page. */
   suspension?: UserProfile['suspension'];
+  /** While the first run is open: the step to continue at. Null once it is done. */
+  onboarding?: UserProfile['onboarding'];
 }
 
 export const authKeys = { profile: ['auth', 'profile'] as const };
@@ -112,4 +115,14 @@ export function useSetPassword() {
     mutationFn: setPassword,
     onSuccess: (profile) => queryClient.setQueryData(authKeys.profile, profile),
   });
+}
+
+/** The first-run step the user reached, so leaving halfway continues there. */
+export async function saveOnboardingStep(step: OnboardingStep): Promise<UserProfile> {
+  return UserProfileSchema.parse(await api.post<unknown>('/api/auth/onboarding', { step }));
+}
+
+/** Ends the first run for good, finished or skipped. */
+export async function finishOnboarding(): Promise<UserProfile> {
+  return UserProfileSchema.parse(await api.post<unknown>('/api/auth/onboarding/finish'));
 }
