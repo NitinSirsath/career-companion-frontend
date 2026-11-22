@@ -197,6 +197,17 @@ describe('the Automation page', () => {
       expect(policy).toContain(words);
     }
   });
+
+  it('says portal passwords are sent and encrypted, and job-site passwords never', () => {
+    const page = doc('automation').body.textContent ?? '';
+    const privacy = doc('privacy').body.textContent ?? '';
+    const policy = readFileSync(resolve(__dirname, '../../site/public/privacy.html'), 'utf8');
+    expect(page).toContain('The password is stored encrypted and shown only when you tap Show.');
+    expect(page).not.toMatch(/Never asked for\s*Your passwords,/);
+    for (const text of [page, privacy, policy])
+      expect(text).toContain('other job sites you sign in to yourself');
+    for (const text of [privacy, policy]) expect(text).toMatch(/encrypted with their own key/i);
+  });
 });
 
 describe('the data wording', () => {
