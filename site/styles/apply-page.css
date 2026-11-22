@@ -47,11 +47,17 @@
 .ap-note { font-size: 14px; line-height: 22px; color: var(--text-3); }
 .ap-note b { color: var(--text); font-weight: 500; }
 .ap-note[hidden] { display: none; }
+/* Antigravity is the recommended app (owner, 22 Nov 2026): a quiet word in its tab, plain text, no chip.
+   On phones the tabs have no room for it, so the note under them says it instead. */
+.ap-rec { margin-left: 8px; font-size: 12px; font-weight: 400; color: var(--text-3); }
+.ap-pick button[aria-selected='true'] .ap-rec { color: var(--text-2); }
+.ap-rec-note { display: none; color: var(--text-2); }
+@media (max-width: 599px) { .ap-rec { display: none; } .ap-rec-note { display: inline; } }
 
 /* ---------- The stage: grey light from the top, fading to the page at the foot ---------- */
 /* The frame and the lit stage are the shared .lg / .lg-stage (grid.css); here only its size and the rise */
 .ap-frame { margin-top: 24px; animation: ap-rise 700ms var(--ap-ease) 120ms backwards; }
-.ap-stage { height: 920px; }
+.ap-stage { height: 900px; }
 @keyframes ap-rise { from { opacity: 0; transform: translateY(16px); } }
 
 /* The one steady move while it plays: both windows rise a little, NorthList a bit more (it is nearer) */
@@ -61,14 +67,15 @@
 .ap-stage.rolling :is(.ap-app, .ap-nl) { transform: none; transition: transform 9s cubic-bezier(0.37, 0, 0.63, 1), opacity 600ms var(--ap-ease); }
 .ap-stage.still :is(.ap-app, .ap-nl) { transform: none; }
 
-/* Your AI app: a real-size dark window, 10% larger than the real app */
-.ap-app { position: absolute; left: 40px; top: 64px; width: 824px; height: 660px; z-index: 1; transition: opacity 600ms var(--ap-ease); }
-.ap-stage .run .aw { zoom: 1.1; height: calc(660px / 1.1); }
-/* When the job is in NorthList, the app window steps back and NorthList carries the point */
-.ap-stage:has([data-newrow]:not(.pending)) .ap-app { opacity: 0.7; }
+/* Your AI app (owner, 22 Nov 2026): the whole width of the stage, 10% larger than the real app */
+.ap-app { position: absolute; left: 40px; right: 40px; top: 64px; height: 640px; z-index: 1; transition: opacity 600ms var(--ap-ease); }
+.ap-stage .run .aw { zoom: 1.1; height: calc(640px / 1.1); }
+/* When the job is in NorthList, the app window steps back a little and NorthList carries the point */
+.ap-stage:has([data-newrow]:not(.pending)) .ap-app { opacity: 0.8; }
 
-/* ---------- NorthList, in front: its own dark look ---------- */
-.ap-nl { position: absolute; left: 856px; top: 420px; width: 320px; height: 300px; z-index: 2; display: flex; flex-direction: column; overflow: hidden;
+/* ---------- NorthList, in front: its own dark look. It hangs off the window's lower right corner, over the empty
+   foot of the job page only, clear of the chat, the dialog and the replay button ---------- */
+.ap-nl { position: absolute; right: 112px; top: 560px; width: 340px; height: 288px; z-index: 2; display: flex; flex-direction: column; overflow: hidden;
   background: linear-gradient(180deg, #141518, #0e0f11); border: 1px solid rgb(255 255 255 / 0.08); border-radius: 12px;
   box-shadow: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 32px 80px rgb(0 0 0 / 0.6), 0 2px 8px rgb(0 0 0 / 0.4); }
 .ap-nl-bar { flex: none; display: flex; align-items: center; justify-content: space-between; height: 52px; padding: 0 20px; border-bottom: 1px solid var(--line); font-size: 14px; }
@@ -109,32 +116,30 @@ html.no-motion :is(.ap-app, .ap-nl) { transform: none; transition: none; }
 
 /* ---------- Laptop, smaller: no sidebar ---------- */
 @media (max-width: 1279px) {
-  .ap-app { left: 32px; width: calc(70% - 32px); }
-  .ap-stage .run .aw { zoom: 1.05; height: calc(660px / 1.05); }
-  .ap-nl { left: auto; right: 32px; width: 34%; }
+  .ap-app { left: 32px; right: 32px; }
+  .ap-stage .run .aw { zoom: 1.05; height: calc(640px / 1.05); }
+  .ap-nl { right: 96px; width: 320px; }
 }
-/* ---------- Tablet ---------- */
+/* ---------- Tablet and phone: the window alone, the full width; NorthList is left out (the chat says it was sent) ---------- */
 @media (max-width: 1023px) {
-  .ap-app { width: calc(82% - 32px); }
-  .ap-stage .run .aw { zoom: 1; height: 660px; }
-  .ap-nl { width: 50%; top: 440px; right: 24px; }
+  .ap-stage { height: auto; padding: 32px 24px 0; display: flex; flex-direction: column; }
+  .ap-stage::after { display: none; }
+  .ap-app { position: relative; inset: auto; height: auto; }
+  .ap-stage .run .aw { zoom: 1; height: 600px; }
+  .ap-stage:has([data-newrow]:not(.pending)) .ap-app { opacity: 1; }
+  .ap-nl { display: none; }
+  .ap-stage > .lg-cap.ap-cap { position: static; padding: 24px 72px 32px 0; }
+  .ap-replay { right: 24px; bottom: 32px; }
 }
-/* ---------- Phone: the chat above the browser, the window cut at the right edge, NorthList over its foot ---------- */
+/* ---------- Phone: the chat above the browser ---------- */
 @media (max-width: 599px) {
   .ap-runband { padding-top: 48px; }
   .ap-pickrow { flex-direction: column; align-items: start; }
   .ap-pick button { height: 44px; }
-  .ap-frame { margin-right: calc(-1 * var(--gut)); border-right: 0; border-radius: 16px 0 0 16px; }
-  .ap-stage { height: auto; padding: 24px 0 0 16px; display: flex; flex-direction: column; }
-  .ap-stage::after { display: none; }
-  .ap-app { position: relative; inset: auto; width: auto; height: auto; margin-right: -40px; }
+  .ap-stage { padding: 16px 12px 0; }
   .ap-stage .run .aw { height: auto; border-radius: 10px; }
-  .ap-nl { position: relative; inset: auto; width: auto; height: 280px; margin: -32px -40px 0 24px; }
-  .ap-nl-body, .ap-nl-bar { padding-right: 56px; }
-  .ap-tabs span:nth-child(3) { display: none; }
-  .ap-row .st > span:last-child { display: none; }
-  .ap-stage > .lg-cap.ap-cap { position: static; padding: 24px 72px 32px 4px; }
-  .ap-replay { right: 24px; bottom: 32px; }
+  .ap-stage > .lg-cap.ap-cap { padding: 20px 64px 28px 4px; }
+  .ap-replay { right: 16px; bottom: 28px; }
 }
 
 /* ---------- Bands ---------- */
