@@ -3,7 +3,6 @@
  * Get an invite for the release (owner, 22 Nov 2026, approved mock `INVITE-mock/`): the form under
  * the beta-full warning, the thank-you, and the Release invites list on the Admin page.
  */
-
 import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
