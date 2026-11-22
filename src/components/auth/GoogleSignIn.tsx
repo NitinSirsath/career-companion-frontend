@@ -1,13 +1,7 @@
-import { CONTACT_EMAIL } from '../../lib/productPage';
-import {
-  BETA_FULL,
-  BETA_FULL_TEXT,
-  BETA_FULL_TITLE,
-  googleSignInProblem,
-  googleSignInUrl,
-} from '../../lib/signIn';
+import { BETA_FULL, googleSignInProblem, googleSignInUrl } from '../../lib/signIn';
 import { cn } from '../../lib/utils';
 import { InlineNotification } from '../ui/notification';
+import { BetaFullInvite } from './BetaFullInvite';
 
 /** Google's own "G" in its four colours, as Google's sign-in button rules ask. */
 function GoogleG({ className }: { className: string }) {
@@ -77,19 +71,10 @@ export function GoogleSignIn({ next, phone = false }: { next: string | null; pho
 }
 
 /**
- * Why the last Google sign-in did not work. A full beta is not the user's mistake: a warning
- * with the address to ask for a place, instead of an error.
+ * Why the last Google sign-in did not work. A full beta is not the user's mistake: a warning with
+ * the "Get an invite" form, instead of an error.
  */
-export function GoogleSignInProblem({ error }: { error: string }) {
-  if (error !== BETA_FULL)
-    return <InlineNotification kind="error">{googleSignInProblem(error)}</InlineNotification>;
-  return (
-    <InlineNotification kind="warning" title={BETA_FULL_TITLE}>
-      {BETA_FULL_TEXT}{' '}
-      <a href={`mailto:${CONTACT_EMAIL}`} className="text-link underline hover:text-link-hover">
-        {CONTACT_EMAIL}
-      </a>
-      .
-    </InlineNotification>
-  );
+export function GoogleSignInProblem({ error, phone = false }: { error: string; phone?: boolean }) {
+  if (error === BETA_FULL) return <BetaFullInvite phone={phone} />;
+  return <InlineNotification kind="error">{googleSignInProblem(error)}</InlineNotification>;
 }
