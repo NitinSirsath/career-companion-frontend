@@ -158,7 +158,7 @@ describe('the Automation page', () => {
   });
 
   it("says to sign in to the job sites in the AI app's own browser before a run", () => {
-    const steps = [...doc('automation').querySelectorAll('#setup-title ~ ol li')].map(
+    const steps = [...doc('automation').querySelectorAll('#setup ol > li')].map(
       (li) => li.textContent ?? '',
     );
     expect(steps[steps.length - 1]).toContain(
@@ -166,16 +166,57 @@ describe('the Automation page', () => {
     );
   });
 
+  it('sets up in four steps: get the apps, an AI plan, connect NorthList, type start', () => {
+    const page = doc('automation');
+    const steps = [...page.querySelectorAll('#setup ol > li')];
+    expect(
+      steps.map((li) => li.querySelector('.lg-cap b')?.textContent?.replace(/^\d/, '')),
+    ).toEqual([
+      'Download Antigravity and NorthList Apply',
+      "No paid AI app? Use Google's",
+      'Connect NorthList',
+      'Type start',
+    ]);
+    const links = (li: Element) => [...li.querySelectorAll('a')].map((a) => a.getAttribute('href'));
+    expect(links(steps[0])).toEqual([
+      'https://antigravity.google/download',
+      'https://github.com/NitinSirsath/northlist-apply',
+    ]);
+    expect(links(steps[1])).toEqual(['https://one.google.com/about/google-ai-plans/']);
+    expect(links(steps[2])).toEqual(['https://app.northlist.site/automation?tab=setup']);
+    // Google's own Antigravity plans: AI Plus gets the free limit, only AI Pro raises it (checked 22 Nov 2026).
+    expect(steps[1].textContent).toContain("It's free, with a weekly limit.");
+    expect(steps[1].textContent).toContain('Google AI Pro raises the limit.');
+    expect(page.body.textContent).not.toContain('AI Plus');
+    expect(steps[3].querySelector('code')?.textContent).toBe('start');
+  });
+
   it('shows a run in Antigravity, Claude Code or Codex, named in words only (no logos)', () => {
     const page = doc('automation');
-    expect(page.body.textContent).toContain('like Antigravity, Claude Code or Codex.');
-    const tabs = [...page.querySelectorAll('[role="tablist"] [role="tab"]')].map((t) =>
-      t.textContent?.trim(),
+    expect(page.body.textContent).toContain(
+      'like Antigravity (our pick, free with a Google account), Claude Code or Codex.',
     );
-    expect(tabs).toEqual(['Antigravity', 'Claude Code', 'Codex']);
+    const tabs = [...page.querySelectorAll('[role="tablist"] [role="tab"]')];
+    expect(tabs.map((t) => t.firstChild?.textContent?.trim())).toEqual([
+      'Antigravity',
+      'Claude Code',
+      'Codex',
+    ]);
     expect(page.querySelectorAll('.run img, .run picture, .run image')).toHaveLength(0);
     expect(page.body.textContent).toContain('It asked for your OK on the first job');
     expect(page.body.textContent).toContain('It shows you the first application of each run');
+  });
+
+  it('marks Antigravity as recommended: first, picked, and said in words (no chip)', () => {
+    const page = doc('automation');
+    const [first, ...rest] = [...page.querySelectorAll('[role="tablist"] [role="tab"]')];
+    expect(first.getAttribute('aria-selected')).toBe('true');
+    expect(first.querySelector('.ap-rec')?.textContent).toBe('Recommended');
+    for (const tab of rest) expect(tab.querySelector('.ap-rec')).toBeNull();
+    expect(page.querySelector('[data-note="ag"]')?.textContent).toContain('Recommended.');
+    expect(page.querySelector('#setup ol > li .apx-get .r.on')?.textContent).toContain(
+      'AntigravityRecommended',
+    );
   });
 
   it('says how far it is tested, and makes no claims about speed or results', () => {
