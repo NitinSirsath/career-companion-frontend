@@ -21,6 +21,7 @@ import {
 import { cn } from '../../lib/utils';
 import { BarField, PhoneBottomBar } from '../phone/BottomBar';
 import { PlainLinkRow, PlainRow, PlainSection } from '../phone/PlainList';
+import { PhoneInvites } from './AdminInvites';
 import { Pagination } from '../ui/pagination';
 import { MessageSheet } from './MessageSheet';
 
@@ -175,6 +176,7 @@ export function PhoneAdmin({ overview }: { overview: AdminOverview }) {
       <Numbers overview={overview} />
       <NeedsALook items={items} />
       <Accounts accounts={overview.accounts} />
+      <PhoneInvites />
       <PlainSection>
         <PlainLinkRow to="/admin/money" value={moneyValue(money.data, money.isLoading)}>
           Free AI money
