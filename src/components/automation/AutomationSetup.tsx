@@ -117,9 +117,10 @@ export function AutomationSetup() {
             <p className="max-w-160 text-xs text-text-secondary">
               For each application it sends: company, job title, platform, job and apply page links,
               job ID, where the job was found, location, work mode, time, the site’s confirmation,
-              resume file name and your submitted answers. For jobs it did not apply to: company,
-              job title, platform, job link and the reason. Your resume itself and your passwords
-              stay on your computer.
+              resume file name and your submitted answers. For Workday and company portals it also
+              sends the account it used: sign-in page, email and password. NorthList stores the
+              password encrypted. For jobs it did not apply to: company, job title, platform, job
+              link and the reason. Your resume itself stays on your computer.
             </p>
           </Step>
         </ol>
