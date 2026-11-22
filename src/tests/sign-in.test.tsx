@@ -145,19 +145,20 @@ describe('login page', () => {
     localStorage.removeItem('vite-ui-theme');
   });
 
-  it('says the beta is full as a warning with the address to ask for a place', async () => {
+  it('says the beta is full as a warning, with the invite form under it', async () => {
     renderWithQuery(<LoginPage error="beta_full" />);
     await waitFor(() => expect(modeFetch).toHaveBeenCalled());
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     const notice = screen.getByRole('status');
     expect(notice).toHaveTextContent(
-      'The NorthList beta is full. The beta is limited to 100 users and every place is taken. To ask for a place, write to northlist.site@gmail.com.',
-    );
-    expect(within(notice).getByRole('link', { name: 'northlist.site@gmail.com' })).toHaveAttribute(
-      'href',
-      'mailto:northlist.site@gmail.com',
+      "The NorthList beta is full. Leave your email and we'll send you an invite when NorthList opens to everyone.",
     );
     expect(googleSignInProblem('beta_full')).toBe(notice.textContent);
+    expect(screen.getByRole('form', { name: 'Get an invite' })).toBeInTheDocument();
+    // Members still sign in under the form.
+    const divider = screen.getByText('Already have an account? Sign in');
+    const google = screen.getByRole('button', { name: 'Continue with Google' });
+    expect(divider.compareDocumentPosition(google) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('offers a test user and no Google sign-in in dev mode', async () => {

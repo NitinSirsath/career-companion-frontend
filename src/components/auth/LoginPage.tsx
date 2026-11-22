@@ -1,5 +1,5 @@
 import { useDevMode } from '../../api/appMode';
-import { openApp } from '../../lib/signIn';
+import { BETA_FULL, openApp } from '../../lib/signIn';
 import { useIsPhone } from '../layout/useIsPhone';
 import { CreateTestUserForm } from './CreateTestUserForm';
 import { GoogleSignIn, GoogleSignInProblem } from './GoogleSignIn';
@@ -8,11 +8,11 @@ import { PhoneSignIn } from './PhoneSignIn';
 import { SignInLayout } from './SignInLayout';
 
 /** "or sign in with email" between Google and the password form. */
-function OrDivider() {
+function OrDivider({ words = 'or sign in with email' }: { words?: string }) {
   return (
     <div className="my-7 flex items-center gap-3 text-xs text-text-tertiary">
       <span className="h-px flex-1 bg-border-subtle" />
-      or sign in with email
+      {words}
       <span className="h-px flex-1 bg-border-subtle" />
     </div>
   );
@@ -43,7 +43,9 @@ function WideSignIn({ error, next }: { error?: string; next: string | null }) {
             <GoogleSignInProblem error={error} />
           </div>
         )}
-        <div className="mt-7">
+        {/* The beta-full invite form comes first; members still sign in below (22 Nov 2026). */}
+        {error === BETA_FULL && <OrDivider words="Already have an account? Sign in" />}
+        <div className={error === BETA_FULL ? undefined : 'mt-7'}>
           {!devMode && (
             <>
               <GoogleSignIn next={next} />

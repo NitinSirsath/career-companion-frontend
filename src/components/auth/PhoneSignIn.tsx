@@ -49,7 +49,7 @@ export function PhoneSignIn({ error, next }: { error?: string; next: string | nu
       </h1>
       {error && (
         <div className="mb-1">
-          <GoogleSignInProblem error={error} />
+          <GoogleSignInProblem error={error} phone />
         </div>
       )}
       {!devMode && <GoogleSignIn next={next} phone />}
