@@ -50,11 +50,6 @@
    action; the product comes last. Only opacity, transform and filter move, so nothing shifts.
    html.intro is set in the page head, so the hero waits hidden from the first paint; runtime/motion.ts adds
    html.intro-go once the header, sample app and font are in. */ /* no blur on the blue button */
-/* Hero build-in (owner, 1 Nov: "show it empty, then the components appear slowly", "and desktop frame
-   also"). The hero app starts empty, then its parts fade up one after another; the sync waits for it.
-   example/app.ts adds .sa-build (the parts wait hidden) and .sa-build-go (they play), then removes both.
-   Phones, in the phone frame: the screen starts empty (status bar and background), then the round
-   buttons, the big title, the mails one by one, the summary and the glass tab bar, 1.84 s. */ /* :where keeps this below the delays */ /* Dashboard, Mails, Applications, then the rest */ /* the first row */
 .rv { opacity: 0; transform: translateY(8px); transition: opacity 240ms var(--ease-in), transform 240ms var(--ease-in); }
 .rv.in { opacity: 1; transform: none; }
 html.no-motion .rv { opacity: 1; transform: none; }
