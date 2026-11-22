@@ -202,10 +202,9 @@
   .run .side { display: none; }
   .run .conv { border-left: 0; }
 }
-/* ---------- Phone: the chat above the browser, the window cut at the right edge, NorthList over its foot ---------- */
+/* ---------- Phone: the chat above the browser, the full width ---------- */
 @media (max-width: 599px) {
   .run .aw-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; }
-  .run .conv { padding-right: 40px; }
   .run .log { flex: none; height: 220px; }
   .run .brw { height: 440px; border-left: 0; }
   .run .drive { top: 48px; bottom: auto; }
