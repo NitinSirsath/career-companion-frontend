@@ -439,6 +439,7 @@ declare module '@tanstack/react-router' {
       fullPath: '/welcome'
       preLoaderRoute: typeof WelcomeRouteImport
       parentRoute: typeof rootRouteImport
+    }
     '/admin_/money': {
       id: '/admin_/money'
       path: '/admin/money'
