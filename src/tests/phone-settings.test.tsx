@@ -265,6 +265,7 @@ describe('the suspended page on phones', () => {
         reason: 'The login was shared.',
         request: { text: 'I made my own account.', sentAt: iso() },
       },
+      onboarding: null,
     });
     render(
       <QueryClientProvider client={new QueryClient()}>
