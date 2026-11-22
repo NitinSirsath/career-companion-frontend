@@ -160,7 +160,7 @@ describe('the run on the Automation page', () => {
     expect($('[data-run="note"]').classList.contains('on')).toBe(true);
     await vi.advanceTimersByTimeAsync(500);
     expect(shown()).toBe(steps().length);
-    expect($('.run .jobchip').textContent).toBe('Next job in 2 min');
+    expect($('.run .jobchip').textContent).toBe('Next job in 30 sec');
     $('[data-replay="run"]').click();
     expect(shown()).toBe(0);
     expect($('[data-newrow]').classList.contains('pending')).toBe(true);
