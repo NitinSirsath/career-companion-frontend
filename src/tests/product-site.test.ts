@@ -192,7 +192,9 @@ describe('the Automation page', () => {
     expect(links(steps[1])).toEqual(['https://one.google.com/intl/en_in/about/google-ai-plans/']);
     expect(links(steps[2])).toEqual(['https://app.northlist.site/automation?tab=setup']);
     // Owner decision 22 Nov 2026: recommend Google AI Plus (₹399 a month in India), which works with Antigravity.
-    expect(steps[1].textContent).toContain('We recommend Google AI Plus, ₹399 a month. It works with Antigravity');
+    expect(steps[1].textContent).toContain(
+      'We recommend Google AI Plus, ₹399 a month. It works with Antigravity',
+    );
     expect(steps[1].querySelector('.apx-plan .r')?.textContent).toContain('Google AI Plus');
     expect(page.body.textContent).not.toContain('AI Pro');
     expect(steps[3].querySelector('code')?.textContent).toBe('start');
