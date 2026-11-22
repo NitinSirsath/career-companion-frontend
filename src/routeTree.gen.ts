@@ -94,6 +94,7 @@ const WelcomeRoute = WelcomeRouteImport.update({
   id: '/welcome',
   path: '/welcome',
   getParentRoute: () => rootRouteImport,
+} as any)
 const AdminMoneyRoute = AdminMoneyRouteImport.update({
   id: '/admin_/money',
   path: '/admin/money',
