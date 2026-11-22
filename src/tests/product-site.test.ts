@@ -180,7 +180,7 @@ describe('the Automation page', () => {
       steps.map((li) => li.querySelector('.lg-cap b')?.textContent?.replace(/^\d/, '')),
     ).toEqual([
       'Download Antigravity and NorthList Apply',
-      "No paid AI app? Use Google's",
+      'No paid AI app? Get Google AI Plus',
       'Connect NorthList',
       'Type start',
     ]);
@@ -189,12 +189,14 @@ describe('the Automation page', () => {
       'https://antigravity.google/download',
       'https://github.com/NitinSirsath/northlist-apply',
     ]);
-    expect(links(steps[1])).toEqual(['https://one.google.com/about/google-ai-plans/']);
+    expect(links(steps[1])).toEqual(['https://one.google.com/intl/en_in/about/google-ai-plans/']);
     expect(links(steps[2])).toEqual(['https://app.northlist.site/automation?tab=setup']);
-    // Google's own Antigravity plans: AI Plus gets the free limit, only AI Pro raises it (checked 22 Nov 2026).
-    expect(steps[1].textContent).toContain("It's free, with a weekly limit.");
-    expect(steps[1].textContent).toContain('Google AI Pro raises the limit.');
-    expect(page.body.textContent).not.toContain('AI Plus');
+    // Owner decision 22 Nov 2026: recommend Google AI Plus (₹399 a month in India), which works with Antigravity.
+    expect(steps[1].textContent).toContain(
+      'We recommend Google AI Plus, ₹399 a month. It works with Antigravity',
+    );
+    expect(steps[1].querySelector('.apx-plan .r')?.textContent).toContain('Google AI Plus');
+    expect(page.body.textContent).not.toContain('AI Pro');
     expect(steps[3].querySelector('code')?.textContent).toBe('start');
   });
 
