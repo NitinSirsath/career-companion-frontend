@@ -1,6 +1,7 @@
-/* Home: the sections, the hero's film and the working example under "Try it yourself". */
+/* Home: the sections, the hero's film and the still picture of the Mails page. */
 @import './home-try.css';
 @import './home-sections.css';
 @import './home-film.css';
 @import './film-shade.css';
 @import './home-steps.css';
+@import './home-app.css';
