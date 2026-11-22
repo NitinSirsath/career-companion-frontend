@@ -2,9 +2,11 @@ import {
   createRootRouteWithContext,
   Outlet,
   redirect,
+  useRouterState,
   type ErrorComponentProps,
 } from '@tanstack/react-router';
 import type { User } from '../api/auth';
+import { ONBOARDING_PATH, onboardingOpen } from '../lib/onboarding';
 import { safeNextPath, SIGN_IN_PAGES } from '../lib/signIn';
 import { BreadcrumbProvider } from '../components/layout/Breadcrumb';
 import { LaptopShell } from '../components/layout/LaptopShell';
@@ -39,6 +41,9 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       // `href` keeps the page's own search, as the address had it.
       throw redirect({ to: '/', href: next ?? undefined });
     }
+    // A new account sees the first run before anything else (owner, 22 Nov 2026).
+    if (onboardingOpen(context.user) && location.pathname !== ONBOARDING_PATH)
+      throw redirect({ to: ONBOARDING_PATH });
   },
   errorComponent: RootRouteError,
   notFoundComponent: NotFoundPage,
@@ -77,8 +82,10 @@ function LoggedInShell({ children }: LoggedInShellProps) {
 
 function RootComponent() {
   const context = Route.useRouteContext();
+  const path = useRouterState({ select: (state) => state.location.pathname });
 
-  if (!context.user) {
+  // The first run is full screen: no menu, no tab bar.
+  if (!context.user || path === ONBOARDING_PATH) {
     return <Outlet />;
   }
 
