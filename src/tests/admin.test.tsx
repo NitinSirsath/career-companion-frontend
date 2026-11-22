@@ -255,6 +255,7 @@ describe('the suspended page', () => {
       testAccount: false,
       admin: false,
       suspension: { ...suspension, request: { text: 'Please.', sentAt: NOW.toISOString() } },
+      onboarding: null,
     };
     vi.mocked(api.post).mockResolvedValue(profile);
     showSuspended();
