@@ -138,8 +138,6 @@
 .hf-ctl .pl, .hf-ctl[aria-pressed='true'] .pz { display: none; }
 .hf-ctl[aria-pressed='true'] .pl { display: block; }
 .hf-hero[data-still] .hf-ctl { display: none; }
-/* Try it yourself: the working app under its heading */
-.hf-try { margin-top: 56px; }
 
 @media (max-width: 1023px) {
   .hf-display { font-size: 60px; }
@@ -163,5 +161,4 @@
   .hf-eyebrow { display: none; }
   .hf-row { gap: 24px; margin-top: 16px; }
   .hf-ctl { bottom: 72px; }
-  .hf-try { margin-top: 32px; }
 }
