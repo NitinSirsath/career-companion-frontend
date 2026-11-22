@@ -5,10 +5,8 @@
 .hero h1 { max-width: 900px; } /* each line moves on its own in the intro */
 .hero .lead { margin-top: 24px; }
 .hero .note { font-size: 14px; line-height: 20px; color: var(--text-3); }
-.shot-cap { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 14px; font-size: 14px; line-height: 20px; color: var(--text-3); }
 @media (max-width: 1023px) {
   .hero { padding-top: 72px; }
-  .sa-fit .sa:not(.used) .sa-main { overflow-y: hidden; }
 }
 /* Phone-only parts of the hero: hidden from 600 px up */
 /* Phones (owner, 7 Nov 2026, design E5): the header already has Sign in and Start free, so the hero does not
@@ -20,8 +18,6 @@
   .hero .lead { margin-top: 16px; }
   /* Band and phone share one grid row, so the band always ends where the phone is cut */ /* a straight cut */
   /* The "Next step" card arrives last, once the example has built itself */
-  .phone-only .sa-fit { margin: 0; flex: 1; min-height: 0; display: flex; flex-direction: column; }
-  .phone-only .sa-fit > .sa { flex: 1; min-height: 0; border: 0; }
   .phone-only .sa-p { height: 100%; }
 }
 
