@@ -90,7 +90,7 @@ function runAt(r: RunParts, done: boolean): void {
   r.page.classList.remove('driving');
   r.stage?.classList.remove('rolling');
   r.stage?.classList.toggle('still', done);
-  r.setChip(!done, done ? 'Next job in 2 min' : 'Job 2 of 10');
+  r.setChip(!done, done ? 'Next job in 30 sec' : 'Job 2 of 10');
 }
 
 /** Plans every change of one run with `later` (ms from the start). */
@@ -136,7 +136,7 @@ function runPlan(r: RunParts, later: (ms: number, fn: () => void) => void): void
     r.row.classList.add('arrive');
     r.note?.classList.add('on');
   });
-  later(t.idle, () => r.setChip(false, 'Next job in 2 min'));
+  later(t.idle, () => r.setChip(false, 'Next job in 30 sec'));
   later(t.noteOff, () => r.note?.classList.remove('on'));
 }
 
