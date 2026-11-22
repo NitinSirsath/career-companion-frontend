@@ -212,8 +212,9 @@ describe('the Automation page', () => {
       'Codex',
     ]);
     expect(page.querySelectorAll('.run img, .run picture, .run image')).toHaveLength(0);
-    expect(page.body.textContent).toContain('It asked for your OK on the first job');
-    expect(page.body.textContent).toContain('It shows you the first application of each run');
+    expect(page.body.textContent).toContain('After you reply ready, it applies on its own.');
+    expect(page.body.textContent).toContain('it applies one job at a time, with no OK needed');
+    expect(page.body.textContent).not.toMatch(/your OK|you said ok/i);
   });
 
   it('marks Antigravity as recommended: first, picked, and said in words (no chip)', () => {
