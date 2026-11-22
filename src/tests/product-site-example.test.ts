@@ -143,6 +143,10 @@ describe('the live example', () => {
       '3 mails need you. Everything else is up to date.',
     );
     expect(root.querySelector('.sa-th')).toBeNull();
+    expect(root.querySelectorAll('.sa-list [data-open]')).toHaveLength(5);
+    expect(root.querySelector('[data-open="orbitly"] .sa-step')?.textContent).toBe(
+      'Nothing needed',
+    );
   });
 
   it('gives each sender the colour the app gives them, and New only on phones', async () => {
