@@ -34,6 +34,8 @@ const LOOKS = {
     icon: 'size-[18px]',
     hint: 'text-xs',
     words: 'New here? Continuing with Google creates your account.',
+    unverified:
+      'NorthList is in early beta and not yet verified by Google. On that screen, choose Advanced, then continue to NorthList.',
   },
   // Phones (owner, 15 Nov 2026, approved mock `SIGNIN-PHONE-mock/`): a shorter hint under the button.
   phone: {
@@ -41,6 +43,7 @@ const LOOKS = {
     icon: 'size-5',
     hint: 'text-[13px] leading-[18px]',
     words: 'New here? This creates your account.',
+    unverified: 'NorthList is in early beta. Tap Advanced, then continue to NorthList.',
   },
 } as const;
 
@@ -52,6 +55,11 @@ export function GoogleSignIn({ next, phone = false }: { next: string | null; pho
   const look = LOOKS[phone ? 'phone' : 'wide'];
   return (
     <div className="flex flex-col gap-2.5">
+      {/* Owner, 22 Nov 2026: the Google app is published but not verified, so Google shows "Google
+          hasn't verified this app" first. Warn before the click, so it is not a surprise. */}
+      <InlineNotification kind="warning" title="Google will show a warning." className="mb-1">
+        {look.unverified}
+      </InlineNotification>
       <button
         type="button"
         onClick={() => {

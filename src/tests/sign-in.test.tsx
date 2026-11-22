@@ -113,6 +113,10 @@ describe('login page', () => {
     expect(
       screen.getByText('New here? Continuing with Google creates your account.'),
     ).toBeVisible();
+    expect(screen.getByText('Google will show a warning.')).toBeVisible();
+    expect(
+      screen.getByText(/not yet verified by Google\. On that screen, choose Advanced/),
+    ).toBeVisible();
     expect(screen.getByLabelText('Password')).toBeInTheDocument();
     expect(screen.queryByRole('form', { name: 'Create test user' })).not.toBeInTheDocument();
     expect(screen.getByRole('alert')).toHaveTextContent(/denied the sign-in request/);
@@ -149,7 +153,8 @@ describe('login page', () => {
     renderWithQuery(<LoginPage error="beta_full" />);
     await waitFor(() => expect(modeFetch).toHaveBeenCalled());
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-    const notice = screen.getByRole('status');
+    // The first notice; the Google warning is the second.
+    const notice = screen.getAllByRole('status')[0];
     expect(notice).toHaveTextContent(
       "The NorthList beta is full. Leave your email and we'll send you an invite when NorthList opens to everyone.",
     );
@@ -194,6 +199,10 @@ describe('login page on phones', () => {
     const email = screen.getByRole('button', { name: 'Sign in with email' });
     expect(google.compareDocumentPosition(email) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.getByText('New here? This creates your account.')).toBeVisible();
+    expect(screen.getByText('Google will show a warning.')).toBeVisible();
+    expect(
+      screen.getByText('NorthList is in early beta. Tap Advanced, then continue to NorthList.'),
+    ).toBeVisible();
     expect(screen.queryByText(/Every job mail, what it needs/)).not.toBeInTheDocument();
     expect(screen.queryByText('or sign in with email')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Email')).not.toBeInTheDocument();
@@ -230,7 +239,7 @@ describe('login page on phones', () => {
   it('shows a failed Google sign-in right above the Google button', async () => {
     renderWithQuery(<LoginPage error="beta_full" />);
     await waitFor(() => expect(modeFetch).toHaveBeenCalled());
-    const notice = screen.getByRole('status');
+    const notice = screen.getAllByRole('status')[0];
     expect(notice).toHaveTextContent(/The NorthList beta is full/);
     const google = screen.getByRole('button', { name: 'Continue with Google' });
     expect(notice.compareDocumentPosition(google) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
