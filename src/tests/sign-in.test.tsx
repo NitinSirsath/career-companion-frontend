@@ -31,6 +31,7 @@ const profile = (overrides: Partial<UserProfile> = {}): UserProfile => ({
   testAccount: false,
   admin: false,
   suspension: null,
+  onboarding: null,
   ...overrides,
 });
 
