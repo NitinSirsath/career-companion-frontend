@@ -315,11 +315,29 @@ describe("Home's hero", () => {
     expect(html('home')).toContain('<script type="module" src="/home/home.ts"></script>');
   });
 
-  it('keeps the working example of the app, under "Try it yourself"', () => {
-    const tryIt = doc('home').querySelector('#try')!;
-    expect(tryIt.querySelector('h2')?.textContent).toBe('Try it yourself.');
-    expect(tryIt.querySelector('.sa-fit[data-fit-phone] [data-sample="mails"]')).not.toBeNull();
-    expect(tryIt.textContent).toContain('Nothing you do here leaves this page.');
+  it('shows the Mails page as a still picture, not a working copy of the app', () => {
+    const home = doc('home');
+    const section = home.querySelector('#app')!;
+    expect(section.querySelector('h2')?.textContent).toBe('Every job mail,in one list.');
+    // In front the Mails page; behind it the app's sidebar, showing on the left only.
+    expect(section.querySelector('.ha-front .ha-head b')?.textContent).toBe('Mails');
+    expect(section.querySelectorAll('.ha-front .ha-row')).toHaveLength(5);
+    expect(section.querySelector('.ha-back .ha-nav.on')?.textContent).toBe('Mails');
+    expect(section.querySelector('figcaption b')?.textContent).toBe(
+      'The Mails page, with made-up mails',
+    );
+    // Nothing on Home is a working example any more, so the example's code never loads there.
+    expect(home.querySelector('[data-sample], .sa-fit, [data-replay="hero"]')).toBeNull();
+    expect(home.querySelector('#try')).toBeNull();
+  });
+
+  it('puts a real iPhone frame in the Mobile link, with a still mail list inside', () => {
+    const cell = doc('home').querySelector('.hm-links a[href="/mobile"]')!;
+    const phone = cell.querySelector('.hm-pic [data-frame]')!;
+    expect(phone).not.toBeNull(); // framed by site/example/frames.ts, from site/home/home.ts
+    expect(phone.querySelector('.hm-app .h')?.textContent).toBe('Job mails');
+    expect(phone.querySelectorAll('.hm-app .r')).toHaveLength(4);
+    expect(cell.querySelector('.pill')).toBeNull(); // status rings, no status chips
   });
 
   it('no longer hides the page for an intro on load', () => {

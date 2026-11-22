@@ -1,0 +1,85 @@
+/*
+ * Home: "Every job mail, in one list." (owner, 22 Nov 2026): a still picture of the Mails page, drawn like the
+ * app's laptop look today (person then subject on one line, one grey line for the ask and its due date, the
+ * photo with its status ring, the company with ring and word, the date), on the same lit stage as "One mail,
+ * start to finish" (.lh-stage, stage.css). Owner's sketch: two windows of the same height, the Mails page in
+ * front and the app's sidebar behind it, showing on the left only. Both are cut by the stage's bottom fade;
+ * the caption sits inside the frame. Nothing moves and nothing can be clicked. Classes start with ha-.
+ */
+.ha-stage { margin-inline: 0; } /* a figure has side margins of its own */
+.ha-win { top: 72px; height: 660px; }
+.ha-back { left: 5%; right: 20%; opacity: 0.5; }
+.ha-back .ha-side { width: 216px; height: 100%; }
+.ha-front { left: 23%; right: 5%; }
+
+
+/* The sidebar */
+.ha-side { display: flex; flex-direction: column; gap: 2px; padding: 20px 12px; border-right: 1px solid var(--line); background: #0d0e10; font-size: 14px; color: var(--text-2); }
+.ha-logo { padding: 0 10px 18px; }
+.ha-nav { display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 10px; border-radius: 8px; }
+.ha-nav svg { color: var(--text-3); }
+.ha-nav.on { background: #1a1b1e; color: var(--text); }
+.ha-nav.on svg { color: var(--text-2); }
+.ha-nav em { margin-left: auto; font-style: normal; font-size: 12px; color: var(--dim); }
+.ha-sec { padding: 18px 10px 6px; font-size: 12px; color: var(--dim); }
+
+/* The page */
+.ha-main { min-width: 0; }
+.ha-bar { display: flex; align-items: center; gap: 10px; height: 52px; padding: 0 20px 0 28px; border-bottom: 1px solid var(--line); font-size: 14px; color: var(--text-3); }
+.ha-bar b { color: var(--text); font-weight: 500; }
+.ha-synced { margin-left: auto; font-size: 12px; color: var(--dim); }
+.ha-btn { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border: 1px solid var(--line-2); border-radius: 8px; font-size: 12px; color: var(--text-2); white-space: nowrap; }
+.ha-head { display: flex; align-items: baseline; gap: 12px; padding: 28px 28px 0; }
+.ha-head b { font-size: 24px; line-height: 30px; font-weight: 560; letter-spacing: -0.015em; }
+.ha-head span { font-size: 14px; color: var(--text-3); }
+.ha-tabs { display: flex; gap: 24px; margin-top: 16px; padding: 0 28px; border-bottom: 1px solid var(--line); font-size: 14px; color: var(--text-3); }
+.ha-tabs span { padding-bottom: 10px; border-bottom: 1px solid transparent; margin-bottom: -1px; }
+.ha-tabs .on { color: var(--text); border-bottom-color: var(--text-2); }
+.ha-tabs em { font-style: normal; font-size: 12px; color: var(--dim); margin-left: 2px; }
+.ha-tools { display: flex; align-items: center; gap: 8px; padding: 14px 28px; }
+.ha-search { display: inline-flex; align-items: center; gap: 8px; width: 280px; height: 30px; margin-right: auto; padding: 0 10px; border-radius: 8px; background: #17181b; font-size: 13px; color: var(--dim); }
+
+/* One job mail */
+.ha-rows { margin: 0 18px; }
+.ha-row { display: grid; grid-template-columns: 30px minmax(0, 1fr) 190px 72px; gap: 14px; align-items: center; padding: 12px 10px; border-top: 1px solid var(--line); font-size: 14px; line-height: 20px; }
+.ha-av { position: relative; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: #1e1f22; color: var(--text-2); font-size: 11px; font-weight: 600; }
+.ha-av-ring { position: absolute; right: -3px; bottom: -3px; display: flex; padding: 1.5px; border-radius: 50%; background: #101113; }
+.ha-av-ring svg { width: 12px; height: 12px; }
+.ha-txt { display: grid; min-width: 0; }
+.ha-txt .l1 { display: flex; align-items: baseline; gap: 8px; min-width: 0; white-space: nowrap; }
+.ha-txt .l1 b { flex-shrink: 0; font-weight: 500; color: var(--text); }
+.ha-txt .s { min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--text-3); }
+.ha-row.new .l1 b { font-weight: 600; }
+.ha-row.new .s { color: var(--text-2); }
+.ha-dot { flex-shrink: 0; align-self: center; width: 7px; height: 7px; border-radius: 50%; background: var(--text-2); }
+.ha-txt .l2 { margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-3); }
+.ha-mk { color: var(--dim); }
+.ha-co { display: grid; min-width: 0; font-size: 13px; }
+.ha-co b { font-weight: 500; color: var(--text); }
+.ha-co span { display: inline-flex; align-items: center; gap: 6px; color: var(--text-3); }
+.ha-co svg { width: 12px; height: 12px; }
+.ha-date { align-self: start; padding-top: 1px; text-align: right; font-size: 12px; color: var(--dim); font-variant-numeric: tabular-nums; }
+
+/* ---------- Tablet: narrower sidebar and margins, no date column ---------- */
+@media (max-width: 1023px) {
+  .ha-win { top: 56px; }
+  .ha-back { left: 3%; right: 12%; }
+  .ha-back .ha-side { width: 180px; }
+  .ha-front { left: 25%; right: 3%; }
+  .ha-row { grid-template-columns: 30px minmax(0, 1fr) 150px; }
+  .ha-date { display: none; }
+  .ha-search { width: 200px; }
+}
+/* ---------- Phone: the Mails page alone, cut at the right edge like the story's window ---------- */
+@media (max-width: 599px) {
+  .ha-win { top: 40px; }
+  .ha-back { display: none; }
+  .ha-front { left: 16px; right: -40px; }
+  .ha-tools, .ha-co, .ha-synced { display: none; }
+  .ha-bar { padding: 0 56px 0 20px; }
+  .ha-bar .ha-btn { margin-left: auto; }
+  .ha-head { padding: 22px 20px 0; }
+  .ha-tabs { padding: 0 20px; gap: 20px; }
+  .ha-rows { margin: 0 8px; }
+  .ha-row { grid-template-columns: 30px minmax(0, 1fr); padding-right: 52px; }
+}

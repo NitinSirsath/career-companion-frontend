@@ -2,7 +2,7 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SampleApp as SampleAppType } from '../../site/example/app';
 
-/** The live example on the product site's Home: made-up mails, nothing leaves the page. */
+/** The live example in the Mobile page's phones: made-up mails, nothing leaves the page. */
 let SampleApp: typeof SampleAppType;
 
 beforeAll(async () => {
@@ -11,13 +11,6 @@ beforeAll(async () => {
     media: query,
     addEventListener: () => {},
   }));
-  vi.stubGlobal(
-    'ResizeObserver',
-    class {
-      observe() {}
-      disconnect() {}
-    },
-  );
   ({ SampleApp } = await import('../../site/example/app'));
 });
 beforeEach(() => vi.useFakeTimers());
@@ -26,9 +19,8 @@ afterEach(() => {
   document.body.innerHTML = '';
 });
 
-function start(opts: ConstructorParameters<typeof SampleAppType>[1] = {}, width = 0) {
+function start(opts: ConstructorParameters<typeof SampleAppType>[1] = {}) {
   const root = document.createElement('div');
-  Object.defineProperty(root, 'clientWidth', { value: width });
   document.body.appendChild(root);
   return { root, app: new SampleApp(root, opts) };
 }
@@ -37,7 +29,7 @@ const click = (root: HTMLElement, selector: string) =>
 
 describe('the live example', () => {
   it('opens a mail, lets the AI write the reply, sends it, and closes the step', async () => {
-    const { root, app } = start({ phone: true });
+    const { root, app } = start();
     click(root, '[data-open="brightwave"]');
     expect(root.querySelector('.sa-big')?.textContent).toBe(
       'Interview invitation: Frontend Engineer',
@@ -66,7 +58,7 @@ describe('the live example', () => {
   });
 
   it('puts a closed step back with Reopen, and Done closes a step done outside mail', () => {
-    const { root, app } = start({ phone: true });
+    const { root, app } = start();
     click(root, '[data-open="kestrel"]');
     click(root, '[data-act="did"]');
     expect(app.mail('kestrel')?.state).toBe('DONE');
@@ -78,7 +70,7 @@ describe('the live example', () => {
   });
 
   it('shows key dates and the application behind ⓘ, in a sheet', () => {
-    const { root } = start({ phone: true });
+    const { root } = start();
     click(root, '[data-open="brightwave"]');
     click(root, '[data-act="info"]');
     expect(root.querySelector('.sa-sheet')?.getAttribute('aria-label')).toBe('About this job mail');
@@ -88,7 +80,7 @@ describe('the live example', () => {
   });
 
   it('finds a new mail on the first sync, hides what the AI found until it has read it, and nothing the second time', async () => {
-    const { root, app } = start({ phone: true });
+    const { root, app } = start();
     click(root, '[data-act="sync"]');
     expect(root.querySelector('.sa-status')?.textContent).toBe('Syncing…');
     await vi.advanceTimersByTimeAsync(1200);
@@ -112,27 +104,19 @@ describe('the live example', () => {
     expect(root.querySelector('.toast')?.textContent).toContain('No new job mails');
   });
 
-  it('plays by itself, but a swipe is not a use and a tap is', async () => {
-    const { root, app } = start({ phone: true, autoplay: 'sync' });
+  it('takes a swipe as a page scroll and a tap as a use', () => {
+    const { root, app } = start();
     root.dispatchEvent(new Event('pointerdown', { bubbles: true }));
     root.dispatchEvent(new Event('pointercancel', { bubbles: true }));
     expect(app.touched).toBe(false);
     expect(root.classList.contains('used')).toBe(false);
-    app.play();
-    await vi.advanceTimersByTimeAsync(1400 + 1200);
-    expect(app.s.mails[0].id).toBe('fernhill');
-
-    app.reset();
     root.click();
     expect(app.touched).toBe(true);
     expect(root.classList.contains('used')).toBe(true);
-    app.play();
-    await vi.advanceTimersByTimeAsync(3000);
-    expect(app.s.mails[0].id).toBe('brightwave');
   });
 
   it('goes back to the start on replay: the first page, the list at its top, a swipe scrolls the page again', async () => {
-    const { root, app } = start({ phone: true, view: 'dashboard' });
+    const { root, app } = start({ view: 'dashboard' });
     click(root, '[data-go="mails"]');
     expect(root.classList.contains('used')).toBe(true);
     app.reset();
@@ -142,23 +126,19 @@ describe('the live example', () => {
     expect(app.s.mails).toHaveLength(5);
   });
 
-  it('answers a tap on a settings item with a note', () => {
-    const { root } = start({}, 1120);
-    expect(root.querySelector('.sa-grid')).not.toBeNull();
-    click(root, '[data-soon]');
+  it('answers a tap on a part that is only in the real app with a note', () => {
+    const { root } = start();
+    click(root, '[aria-label="Search"]');
     expect(root.querySelector('.toast')?.textContent).toContain(
-      'Settings are in the real app, not in this example',
+      'Search is in the real app, not in this example',
     );
   });
 
-  it('uses the phone layout below 620 px of its own width, and the laptop layout above', () => {
-    expect(start({}, 400).root.querySelector('.sa-p')).not.toBeNull();
-    expect(start({}, 800).root.classList.contains('mid')).toBe(true);
-    expect(start({}, 1120).root.querySelector('.sa-side')).not.toBeNull();
-  });
-
-  it('draws the Mails list as the app does: the summary line, one list, and the Needs action filter', () => {
-    const { root } = start({}, 1120);
+  it("draws the laptop Mails list for the hero's film as the app does: the summary line and one list", async () => {
+    const { laptop } = await import('../../site/example/laptop');
+    const { startState } = await import('../../site/example/data');
+    const root = document.createElement('div');
+    root.innerHTML = laptop(startState('mails'), null);
     expect(root.querySelector('.sa-sub')?.textContent).toBe(
       '3 mails need you. Everything else is up to date.',
     );
@@ -167,11 +147,6 @@ describe('the live example', () => {
     expect(root.querySelector('[data-open="orbitly"] .sa-step')?.textContent).toBe(
       'Nothing needed',
     );
-    click(root, '[data-act="needs"]');
-    expect(root.querySelectorAll('.sa-list [data-open]')).toHaveLength(3);
-    expect(root.querySelector('[data-act="needs"]')?.getAttribute('aria-pressed')).toBe('true');
-    click(root, '[data-act="needs"]');
-    expect(root.querySelectorAll('.sa-list [data-open]')).toHaveLength(5);
   });
 
   it('gives each sender the colour the app gives them, and New only on phones', async () => {
@@ -185,7 +160,7 @@ describe('the live example', () => {
       'Orbitly Careers',
     ])
       expect(avatarTone(name)).toContain(`--avatar-${tone(name).slice(1)})`);
-    const { root } = start({ phone: true });
+    const { root } = start();
     click(root, '[data-menu="filters"]');
     click(root, '.sa-menu [data-act="new"]');
     expect(root.querySelector('.sa-menu')).toBeNull();
@@ -203,7 +178,7 @@ describe('the live example', () => {
   it('asks the server for nothing', async () => {
     const fetchSpy = vi.fn();
     vi.stubGlobal('fetch', fetchSpy);
-    const { root } = start({ phone: true });
+    const { root } = start();
     click(root, '[data-act="sync"]');
     click(root, '[data-open="kestrel"]');
     await vi.advanceTimersByTimeAsync(5000);

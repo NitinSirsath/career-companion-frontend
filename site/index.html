@@ -171,21 +171,46 @@
     </div>
   </section>
 
-  <!-- 4. Try it yourself (owner, 20 Nov 2026: the old hero's working app, moved down) -->
-  <section class="n4-band" id="try" aria-labelledby="try-title">
-    <div class="wrap"><div class="lh-split rv">
-      <h2 id="try-title" class="n4-h2">Try it yourself.</h2>
-      <p class="lh-side">A working copy of NorthList with made-up mails. Open a mail, write a reply, press Sync now. Nothing you do here leaves this page.</p>
-    </div></div>
-  <div class="n4-shot-wrap hf-try">
-    <div class="n4-shot">
-      <div class="sa-fit" data-fit-phone><div data-sample="mails" data-autoplay="sync" role="region" aria-label="A working example of NorthList with made-up mails"></div></div>
+  <!-- 4. The app, as a still picture (owner, 22 Nov 2026: the working copy no longer matched the site; drawn in the
+       style of "One mail, start to finish": a lit stage, one window of the Mails page as it is in the app today, the
+       caption inside the frame. Nothing moves and nothing can be clicked.) -->
+  <section class="wrap n4-band" id="app" aria-labelledby="app-title">
+    <div class="lh-split rv">
+      <h2 id="app-title" class="n4-h2">Every job mail,<br>in one list.</h2>
+      <p class="lh-side">The Mails page shows who wrote, what each mail asks of you and when it is due. The company and where you stand with it sit on the right.</p>
     </div>
-    <div class="shot-cap n4-cap">
-      <span>A working example with made-up mails. Nothing you do here leaves this page.</span>
-      <button type="button" class="replay" data-replay="hero" aria-label="Play the example again" title="Play the example again"><i data-icon="renew"></i></button>
-    </div>
-  </div>
+    <figure class="lh-stage ha-stage rv">
+      <!-- Behind (owner, 22 Nov 2026): the app's sidebar, showing only on the left of the window in front -->
+      <div class="lh-win ha-win ha-back" aria-hidden="true">
+        <div class="ha-side">
+          <span class="ha-logo"><span class="wm" style="font-size:18px"><span>n</span><svg viewBox="2 2 28 28"><path d="M2 16A14 14 0 0 1 30 16ZM2.144 18H22A2 2 0 0 1 22 22H3.351A14 14 0 0 1 2.144 18ZM4.511 24H15.5A2 2 0 0 1 15.5 28H8.789A14 14 0 0 1 4.511 24Z"/></svg><span>rthlist</span></span></span>
+          <span class="ha-nav"><i data-app-icon="dashboard" data-size="16"></i>Dashboard</span>
+          <span class="ha-nav on"><i data-app-icon="mail" data-size="16"></i>Mails</span>
+          <span class="ha-nav"><i data-app-icon="doc" data-size="16"></i>Applications<em>6</em></span>
+          <span class="ha-sec">Settings</span>
+          <span class="ha-nav"><i data-app-icon="renew" data-size="16"></i>Gmail sync</span>
+          <span class="ha-nav"><i data-app-icon="ai" data-size="16"></i>AI providers</span>
+          <span class="ha-nav"><i data-app-icon="flow" data-size="16"></i>NorthList Apply</span>
+        </div>
+      </div>
+      <!-- In front: the Mails page -->
+      <div class="lh-win ha-win ha-front" aria-hidden="true">
+        <div class="ha-main">
+          <div class="ha-bar"><i data-app-icon="mail" data-size="14"></i><b>Mails</b><span class="ha-synced">Synced 9:40 AM</span><span class="ha-btn"><i data-app-icon="renew" data-size="14"></i>Sync now</span></div>
+          <div class="ha-head"><b>Mails</b><span>3 need you</span></div>
+          <div class="ha-tabs"><span class="on">Job mails <em>6</em></span><span>Whole inbox</span><span>Restricted</span></div>
+          <div class="ha-tools"><span class="ha-search"><i data-app-icon="search" data-size="14"></i>Search mails</span><span class="ha-btn"><i data-app-icon="filter" data-size="14"></i>Filters</span><span class="ha-btn">Newest first</span></div>
+          <ul class="ha-rows">
+            <li class="ha-row new"><span class="ha-av">MS<span class="ha-av-ring"><span class="lh-ring b"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 7V1.5A5.5 5.5 0 0 1 12.5 7Z" fill="currentColor"/></svg></span></span></span><span class="ha-txt"><span class="l1"><i class="ha-dot"></i><b>Meera Shah</b><span class="s">Free for a 15-minute call this week?</span></span><span class="l2"><span class="ha-mk">→</span> Suggest a time for a call · Due Fri, Nov 7</span></span><span class="ha-co"><b>Fernhill</b><span><span class="lh-ring b"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 7V1.5A5.5 5.5 0 0 1 12.5 7Z" fill="currentColor"/></svg></span>Recruiter contact</span></span><span class="ha-date">9:40 AM</span></li>
+            <li class="ha-row new"><span class="ha-av">PN<span class="ha-av-ring"><span class="lh-ring o"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 7V1.5A5.5 5.5 0 1 1 1.5 7Z" fill="currentColor"/></svg></span></span></span><span class="ha-txt"><span class="l1"><i class="ha-dot"></i><b>Priya Nair</b><span class="s">Interview invitation: Frontend Engineer</span></span><span class="l2"><span class="ha-mk">→</span> Choose an interview time · Due Mon, Nov 3</span></span><span class="ha-co"><b>Brightwave</b><span><span class="lh-ring o"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 7V1.5A5.5 5.5 0 1 1 1.5 7Z" fill="currentColor"/></svg></span>Interview</span></span><span class="ha-date">9:12 AM</span></li>
+            <li class="ha-row"><span class="ha-av">KH<span class="ha-av-ring"><span class="lh-ring y"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 7V1.5A5.5 5.5 0 0 1 7 12.5Z" fill="currentColor"/></svg></span></span></span><span class="ha-txt"><span class="l1"><b>Kestrel Hiring</b><span class="s">Your take-home test</span></span><span class="l2"><span class="ha-mk">→</span> Finish the coding test · Due Thu, Nov 6</span></span><span class="ha-co"><b>Kestrel Labs</b><span><span class="lh-ring y"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 7V1.5A5.5 5.5 0 0 1 7 12.5Z" fill="currentColor"/></svg></span>Assessment</span></span><span class="ha-date">Yesterday</span></li>
+            <li class="ha-row"><span class="ha-av">DO<span class="ha-av-ring"><span class="lh-ring b"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 7V1.5A5.5 5.5 0 0 1 12.5 7Z" fill="currentColor"/></svg></span></span></span><span class="ha-txt"><span class="l1"><b>Daniel Ortiz</b><span class="s">Quick chat about a React role?</span></span><span class="l2"><span class="ha-mk">↩</span> You replied Oct 28</span></span><span class="ha-co"><b>Lumen Health</b><span><span class="lh-ring b"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 7V1.5A5.5 5.5 0 0 1 12.5 7Z" fill="currentColor"/></svg></span>Recruiter contact</span></span><span class="ha-date">Oct 28</span></li>
+            <li class="ha-row"><span class="ha-av">OC<span class="ha-av-ring"><span class="lh-ring b"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5 5l4 4M9 5l-4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span></span></span><span class="ha-txt"><span class="l1"><b>Orbitly Careers</b><span class="s">Update on your application</span></span><span class="l2">Nothing needed</span></span><span class="ha-co"><b>Orbitly</b><span><span class="lh-ring b"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5 5l4 4M9 5l-4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>Rejected</span></span><span class="ha-date">Oct 27</span></li>
+          </ul>
+        </div>
+      </div>
+      <figcaption class="lh-stage-cap"><b>The Mails page, with made-up mails</b><span>Once you connect Gmail, your own job mails show here, each with its next step.</span></figcaption>
+    </figure>
   </section>
 
   <!-- 5. The two other pages: one frame, two cells that link (owner, 21 Nov 2026: linear.app's grid) -->
@@ -194,16 +219,19 @@
       <div class="lg-row">
         <a class="lg-cell n4-link" href="/mobile">
           <span class="lg-go"><i data-icon="arrowRight" data-size="16"></i></span>
-          <span class="lg-pic" aria-hidden="true">
-            <span class="hm-phone">
-              <span class="sb"><b>9:41</b><span class="island"></span><span class="ic"><i></i><i></i><i></i><em></em></span></span>
-              <span class="top"><span class="h">Job mails<i data-app-icon="chevronDown" data-size="14"></i></span><span class="tools"><i data-app-icon="renew" data-size="14"></i><i data-app-icon="search" data-size="14"></i></span></span>
-              <span class="sync">Synced 9:40 AM</span>
-              <span class="r new"><span class="l1"><b>Priya Nair</b><span class="t">9:12 AM</span></span><span class="s">Interview invitation: Frontend Engineer</span><span class="n"><i data-app-icon="arrowRight" data-size="12"></i>Choose an interview time</span><span class="m"><span class="pill">Interview</span>Brightwave · Due Mon, Nov 3</span></span>
-              <span class="r new"><span class="l1"><b>Kestrel Hiring</b><span class="t">Yesterday</span></span><span class="s">Your take-home test</span><span class="n"><i data-app-icon="arrowRight" data-size="12"></i>Finish the coding test</span><span class="m"><span class="pill">Assessment</span>Kestrel Labs · Due Thu, Nov 6</span></span>
-              <span class="r"><span class="l1"><b>Daniel Ortiz</b><span class="t">Oct 28</span></span><span class="s">Quick chat about a React role?</span></span>
-            </span>
-          </span>
+          <!-- A real iPhone frame (owner, 22 Nov 2026), drawn by site/example/frames.ts; a still picture inside -->
+          <div class="lg-pic hm-pic" aria-hidden="true">
+            <div class="hm-dev" data-frame>
+              <div class="hm-app">
+                <div class="top"><span class="h">Job mails<i data-app-icon="chevronDown" data-size="18"></i></span><span class="tools"><i data-app-icon="renew" data-size="18"></i><i data-app-icon="search" data-size="18"></i></span></div>
+                <div class="sync">Synced 9:40 AM</div>
+                <div class="r new"><span class="ph">MS<span class="rg"><span class="lh-ring b"><svg width="12" height="12" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 7V1.5A5.5 5.5 0 0 1 12.5 7Z" fill="currentColor"/></svg></span></span></span><span class="tx"><span class="l1"><i class="dot"></i><b>Meera Shah</b><span class="t">9:40 AM</span></span><span class="s">Free for a 15-minute call this week?</span><span class="a">Fernhill · Suggest a time for a call · Fri</span></span></div>
+                <div class="r new"><span class="ph">PN<span class="rg"><span class="lh-ring o"><svg width="12" height="12" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 7V1.5A5.5 5.5 0 1 1 1.5 7Z" fill="currentColor"/></svg></span></span></span><span class="tx"><span class="l1"><i class="dot"></i><b>Priya Nair</b><span class="t">9:12 AM</span></span><span class="s">Interview invitation: Frontend Engineer</span><span class="a">Brightwave · Choose an interview time · Mon</span></span></div>
+                <div class="r"><span class="ph">KH<span class="rg"><span class="lh-ring y"><svg width="12" height="12" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 7V1.5A5.5 5.5 0 0 1 7 12.5Z" fill="currentColor"/></svg></span></span></span><span class="tx"><span class="l1"><b>Kestrel Hiring</b><span class="t">Yesterday</span></span><span class="s">Your take-home test</span><span class="a">Kestrel Labs · Finish the coding test · Thu</span></span></div>
+                <div class="r"><span class="ph">DO<span class="rg"><span class="lh-ring b"><svg width="12" height="12" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 7V1.5A5.5 5.5 0 0 1 12.5 7Z" fill="currentColor"/></svg></span></span></span><span class="tx"><span class="l1"><b>Daniel Ortiz</b><span class="t">Oct 28</span></span><span class="s">Quick chat about a React role?</span><span class="a">Lumen Health · You replied Oct 28</span></span></div>
+              </div>
+            </div>
+          </div>
           <span class="lg-cap"><b>On your phone, like an app.</b><span>Mobile</span></span>
         </a>
         <a class="lg-cell n4-link" href="/automation">

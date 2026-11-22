@@ -1,15 +1,9 @@
 /*
  * Home's sections (owner, 19-20 Nov 2026): "One mail, start to finish" (a lit stage with two windows that plays
- * in), the four promises and "Try it yourself". Classes start with n4-.
+ * in), the four promises and the links to Mobile and NorthList Apply. Classes start with n4- and hm-.
  */
 
 /* ---------- Hero ---------- */
-.n4-shot-wrap { max-width: calc(var(--max) + 2 * var(--gut) + 48px); margin: 64px auto 0; padding-inline: var(--gut); }
-.n4-shot { padding: 8px; border: 1px solid var(--line); border-radius: 16px; background: linear-gradient(180deg, #121315, var(--bg) 70%); }
-.n4-shot .sa { border-radius: 12px; border-color: var(--line-2); }
-.n4-shot .sa-fit { border-radius: 12px; -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent); mask-image: linear-gradient(to bottom, #000 62%, transparent); }
-.n4-shot .sa-fit:has(.sa.used) { -webkit-mask-image: none; mask-image: none; }
-.n4-cap { padding: 12px 8px 0; }
 
 /* ---------- Bands ---------- */
 .n4-band { padding-top: 128px; }
@@ -109,32 +103,28 @@
 .hm-links .lg-cap b { font-size: 18px; line-height: 28px; letter-spacing: -0.01em; }
 .hm-links .lg-go svg { rotate: -45deg; }
 .hm-links .lg-pic { height: 320px; }
-.hm-links .lg-pic:has(.hm-phone) { align-items: end; }
-.hm-phone { position: relative; width: 300px; height: 272px; display: grid; align-content: start; padding: 0 0 0; overflow: hidden;
-  border: 1px solid var(--lg-line-2); border-bottom: 0; border-radius: 48px 48px 0 0; background: #0c0d0f; box-shadow: var(--lg-shadow);
-  -webkit-mask-image: linear-gradient(to bottom, #000 82%, transparent); mask-image: linear-gradient(to bottom, #000 82%, transparent); }
-.hm-phone .sb { position: relative; display: flex; justify-content: space-between; align-items: center; height: 44px; padding: 0 28px; font-size: 12px; color: var(--text); }
-.hm-phone .sb b { font-weight: 600; }
-.hm-phone .island { position: absolute; top: 12px; left: 50%; translate: -50% 0; width: 84px; height: 24px; border-radius: 12px; background: #000; }
-.hm-phone .sb .ic { display: flex; align-items: end; gap: 2px; height: 10px; }
-.hm-phone .sb .ic i { width: 3px; border-radius: 1px; background: var(--text); }
-.hm-phone .sb .ic i:nth-child(1) { height: 5px; } .hm-phone .sb .ic i:nth-child(2) { height: 7px; } .hm-phone .sb .ic i:nth-child(3) { height: 10px; }
-.hm-phone .sb .ic em { width: 20px; height: 10px; margin-left: 4px; border: 1px solid var(--text-3); border-radius: 3px; box-shadow: inset 0 0 0 1.5px #0c0d0f, inset 12px 0 0 var(--text); }
-.hm-phone .top { display: flex; justify-content: space-between; align-items: center; padding: 8px 20px 0; }
-.hm-phone .h { display: inline-flex; align-items: center; gap: 6px; font-size: 18px; line-height: 28px; font-weight: 600; color: var(--text); }
-.hm-phone .h svg { color: var(--text-3); }
-.hm-phone .tools { display: flex; gap: 6px; }
-.hm-phone .tools svg { box-sizing: content-box; padding: 7px; border-radius: 50%; background: #1a1b1e; color: var(--text-2); }
-.hm-phone .sync { padding: 0 20px 8px; font-size: 12px; line-height: 16px; color: var(--dim); }
-.hm-phone .r { position: relative; display: grid; gap: 2px; padding: 10px 20px 10px 28px; border-top: 1px solid var(--lg-line); font-size: 12px; line-height: 16px; color: var(--text-3); }
-.hm-phone .r.new::before { content: ''; position: absolute; left: 14px; top: 17px; width: 6px; height: 6px; border-radius: 50%; background: var(--text-2); }
-.hm-phone .l1 { display: flex; justify-content: space-between; gap: 8px; }
-.hm-phone .l1 b { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--text); }
-.hm-phone .l1 .t { color: var(--dim); }
-.hm-phone .s { color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.hm-phone .n { display: inline-flex; align-items: center; gap: 6px; color: var(--text-2); }
-.hm-phone .m { display: flex; align-items: center; gap: 6px; margin-top: 2px; white-space: nowrap; color: var(--dim); }
-.hm-phone .pill { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border: 1px solid var(--lg-line-2); border-radius: 10px; background: #17181b; color: var(--text-2); }
+/* The Mobile cell: a real iPhone (frames.ts, zoomed to --dv-max), its top half, fading into the cell */
+.hm-pic { align-items: start; padding-top: 40px; -webkit-mask-image: linear-gradient(to bottom, #000 78%, transparent); mask-image: linear-gradient(to bottom, #000 78%, transparent); }
+.hm-dev { --dv-max: 330px; }
+.hm-app { display: grid; align-content: start; text-align: left; }
+.hm-app .top { display: flex; justify-content: space-between; align-items: center; padding: 6px 18px 0; }
+.hm-app .h { display: inline-flex; align-items: center; gap: 6px; font-size: 28px; line-height: 34px; font-weight: 700; letter-spacing: -0.02em; }
+.hm-app .h svg { color: var(--text-3); }
+.hm-app .tools { display: flex; gap: 10px; }
+.hm-app .tools svg { box-sizing: content-box; padding: 10px; border-radius: 50%; background: #1a1b1e; color: var(--text-2); }
+.hm-app .sync { padding: 2px 18px 10px; font-size: 14px; line-height: 20px; color: var(--dim); }
+.hm-app .r { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 12px; padding: 11px 18px; border-top: 0.5px solid var(--line-2); }
+.hm-app .ph { position: relative; width: 40px; height: 40px; margin-top: 2px; border-radius: 50%; display: grid; place-items: center; background: #1e1f22; color: var(--text-2); font-size: 14px; font-weight: 600; }
+.hm-app .rg { position: absolute; right: -3px; bottom: -3px; display: flex; padding: 1.5px; border-radius: 50%; background: var(--bg); }
+.hm-app .tx { display: grid; gap: 1px; min-width: 0; font-size: 14.5px; line-height: 20px; color: var(--text-2); }
+.hm-app .l1 { display: flex; align-items: center; gap: 6px; font-size: 15.5px; line-height: 21px; }
+.hm-app .l1 b { font-weight: 500; color: var(--text); }
+.hm-app .r.new .l1 b { font-weight: 600; }
+.hm-app .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-2); }
+.hm-app .t { margin-left: auto; font-size: 13px; color: var(--dim); }
+.hm-app .s { color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hm-app .r:not(.new) .s { color: var(--text-2); }
+.hm-app .a { color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hm-apply { width: 400px; margin-top: 24px; overflow: hidden; }
 .hm-apply .bar { display: flex; justify-content: space-between; align-items: center; height: 44px; padding: 0 16px; border-bottom: 1px solid var(--lg-line); font-size: 12px; color: var(--text-3); }
 .hm-apply .bar b { font-size: 14px; }
@@ -163,10 +153,6 @@
 }
 /* ---------- Phone ---------- */
 @media (max-width: 599px) {
-  .n4-shot-wrap { margin-top: 40px; padding-right: 0; }
-  .n4-shot { padding: 6px 0 0 6px; border-right: 0; border-radius: 14px 0 0 14px; }
-  .n4-shot .sa, .n4-shot .sa-fit { border-radius: 10px 0 0 10px; }
-  .n4-cap { padding-right: var(--gut); }
   .n4-band { padding-top: 80px; }
   .n4-h2 { font-size: 30px; line-height: 1.15; }
   .n4-split { flex-direction: column; align-items: start; }
@@ -174,7 +160,8 @@
   .n4-promises .lg-pic { height: 176px; }
   .hm-eye { scale: 0.8; }
   .hm-links .lg-pic { height: 260px; }
-  .hm-phone { width: 280px; height: 232px; }
+  .hm-pic { padding-top: 28px; }
+  .hm-dev { --dv-max: 280px; }
   .hm-apply { width: calc(100% - 32px); margin-top: 0; }
   .hm-links .lg-pic:has(.hm-apply) { align-items: start; padding-top: 32px; }
   .hm-apply .r .st, .hm-apply .r:last-child { display: none; }

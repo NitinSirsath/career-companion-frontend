@@ -1,7 +1,6 @@
 import { appIcon as I } from '../parts/appIcons.ts';
-import { noMotion, whenSeen } from '../runtime/motion.ts';
+import { noMotion } from '../runtime/motion.ts';
 import { NEW_MAIL, startState, type Mail, type State, type View } from './data.ts';
-import { laptop } from './laptop.ts';
 import { phone, type Enter } from './phone.ts';
 import { esc } from './pieces.ts';
 
@@ -9,26 +8,19 @@ const wait = (ms: number) => new Promise((r) => setTimeout(r, noMotion ? Math.mi
 
 interface Options {
   view?: View;
-  /** Always the phone layout (the phone section), whatever the width. */
-  phone?: boolean;
-  /** 'sync': a moment after it is seen, Gmail is checked and a new job mail arrives, once. */
-  autoplay?: string | null;
 }
 
 /**
- * A working example of NorthList with made-up mails: open a mail, reply, let the AI write the draft,
- * send it, sync. Nothing leaves the page. A tap, a key or keyboard focus inside means the visitor is
- * using it: the autoplay stops, and from then on a swipe scrolls its list. Before that, a swipe over it
- * scrolls the page (`.used`, see the styles).
+ * A working example of NorthList with made-up mails, in the phone layout (the Mobile page's phones):
+ * open a mail, reply, let the AI write the draft, send it, sync. Nothing leaves the page. A tap, a key
+ * or keyboard focus inside means the visitor is using it: from then on a swipe scrolls its list. Before
+ * that, a swipe over it scrolls the page (`.used`, see the styles).
  */
 export class SampleApp {
   readonly root: HTMLElement;
   s: State;
-  mode: 'phone' | 'mid' | 'wide' = 'wide';
   touched = false;
   private readonly initialView: View;
-  private readonly forcePhone: boolean;
-  private readonly autoplay: string | null;
   /** Bumped by reset(), so steps of an older run stop. */
   private run = 0;
   private lastView = '';
@@ -36,18 +28,11 @@ export class SampleApp {
   private lastPage = '';
   private lastSheet = '';
   private toastTimer = 0;
-  /** The build-in (the hero only): the parts wait hidden, then appear one by one. */
-  private building = false;
-  private buildTimer = 0;
-  private built: Promise<void> = Promise.resolve();
-  private builtDone = () => {};
 
   constructor(root: HTMLElement, opts: Options = {}) {
     this.root = root;
     this.initialView = opts.view ?? 'mails';
     this.s = startState(this.initialView);
-    this.forcePhone = !!opts.phone;
-    this.autoplay = opts.autoplay ?? null;
     root.classList.add('sa');
     const use = () => {
       this.touched = true;
@@ -59,25 +44,7 @@ export class SampleApp {
     root.addEventListener('input', (e) => this.input(e.target as HTMLElement));
     // Phones: once the big title scrolls under the round buttons, the small title shows in the middle.
     root.addEventListener('scroll', (e) => this.scrolled(e.target as Element), true);
-    this.measure();
-    new ResizeObserver(() => {
-      if (this.measure()) this.render();
-    }).observe(root);
     this.render();
-    // Starts once half of it is in view, or less on short screens where half never fits.
-    const seen = Math.min(0.5, (0.8 * innerHeight) / Math.max(1, root.getBoundingClientRect().height));
-    if (this.autoplay) whenSeen(root, (still) => !still && this.play(), seen);
-  }
-
-  /** Phone layout under 620 px of its own width, a narrower table under 940 px. */
-  private measure(): boolean {
-    const w = this.root.clientWidth;
-    let mode: SampleApp['mode'] = w < 940 ? 'mid' : 'wide';
-    if (this.forcePhone || w < 620) mode = 'phone';
-    const changed = mode !== this.mode;
-    this.mode = mode;
-    this.root.classList.toggle('mid', mode === 'mid');
-    return changed;
   }
 
   mail(id = this.s.mailId): Mail | undefined {
@@ -142,12 +109,10 @@ export class SampleApp {
     this.actions[a]?.();
   }
 
-  /** Opens the reply. "AI reply" (phones) puts the cursor in the hint; the laptop hero scrolls down to the box. */
+  /** Opens the reply. "AI reply" puts the cursor in the hint. */
   private startReply(ai: boolean): void {
     this.set({ reply: { text: '', writing: false } });
-    if (ai) return this.root.querySelector<HTMLElement>('.sa-hint')?.focus({ preventScroll: true });
-    const pane = this.root.closest('.sa-fit') && this.root.querySelector('.sa-main');
-    if (pane) pane.scrollTop = pane.scrollHeight;
+    if (ai) this.root.querySelector<HTMLElement>('.sa-hint')?.focus({ preventScroll: true });
   }
 
   private key(e: KeyboardEvent): void {
@@ -172,7 +137,7 @@ export class SampleApp {
     if (!m) return;
     m.isNew = false;
     this.set({ view: 'mail', mailId: id, reply: null, sheet: null, menu: null });
-    const main = this.root.querySelector('.sa-main, .sa-pmain');
+    const main = this.root.querySelector('.sa-pmain');
     if (main) main.scrollTop = 0;
   }
 
@@ -188,45 +153,6 @@ export class SampleApp {
     this.lastPage = '';
     this.lastSheet = '';
     this.render();
-  }
-
-  /*
-   * Build-in (the hero only, styles/states.css "Hero build-in"): holdBuild() hides the app's parts,
-   * playBuild() lets them appear one by one, endBuild() shows everything. Any redraw ends it at once.
-   */
-  holdBuild(): void {
-    if (this.building) return;
-    this.building = true;
-    this.root.classList.add('sa-build');
-    this.built = new Promise((r) => (this.builtDone = r));
-  }
-
-  playBuild(): void {
-    if (!this.building || this.buildTimer) return;
-    this.root.classList.add('sa-build-go');
-    // The parts take 1.84 s on a phone and 1.9 s on the laptop picture.
-    this.buildTimer = window.setTimeout(() => this.endBuild(), 2000);
-  }
-
-  endBuild(): void {
-    if (!this.building) return;
-    clearTimeout(this.buildTimer);
-    this.building = false;
-    this.buildTimer = 0;
-    this.root.classList.remove('sa-build', 'sa-build-go');
-    this.builtDone();
-  }
-
-  /** The self-playing part: a moment after it is seen, and after any build-in, Gmail is checked and a new job mail arrives. */
-  play(): void {
-    if (this.autoplay !== 'sync') return;
-    const run = this.run;
-    const waits = this.building;
-    void (waits ? this.built : Promise.resolve()).then(() => {
-      setTimeout(() => {
-        if (run === this.run && !this.touched) void this.sync();
-      }, waits ? 900 : 1400);
-    });
   }
 
   private async sync(): Promise<void> {
@@ -347,16 +273,15 @@ export class SampleApp {
   /* ---------- Drawing ---------- */
   /** Draws the current state, keeping the list's scroll place and keyboard focus. */
   render(): void {
-    if (this.building) this.endBuild(); // new parts would start the build-in again
     const s = this.s;
-    const main = this.root.querySelector('.sa-main, .sa-pmain');
+    const main = this.root.querySelector('.sa-pmain');
     const keep = main && this.lastView === s.view + s.mailId ? main.scrollTop : 0;
     const focus = this.focused();
     const toast = this.root.querySelector('.toast');
     const m = s.view === 'mail' ? (this.mail() ?? null) : null;
-    this.root.innerHTML = this.mode === 'phone' ? phone(s, m, this.motion(m)) : laptop(s, m);
+    this.root.innerHTML = phone(s, m, this.motion(m));
     if (toast) this.root.appendChild(toast);
-    const nm = this.root.querySelector('.sa-main, .sa-pmain');
+    const nm = this.root.querySelector('.sa-pmain');
     if (nm && keep) nm.scrollTop = keep;
     if (nm) this.scrolled(nm);
     this.lastView = s.view + s.mailId;
