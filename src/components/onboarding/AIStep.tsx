@@ -94,7 +94,7 @@ function LaptopAIStep({ email }: { email: string }) {
           title={copyOnly ? 'Copy your setup prompt' : `Open ${app.name}`}
           text={buttonNote(appKey)}
         >
-          {progress < 3 && <SetupCodeButton app={app} setup={setup} withNote={false}} />}
+          {progress < 3 && <SetupCodeButton app={app} setup={setup} withNote={false} />}
         </StepRow>
         <StepRow
           index={1}
