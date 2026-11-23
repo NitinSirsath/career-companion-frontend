@@ -127,7 +127,7 @@ describe('the answers the AI reads back', () => {
   it('are records in the format of AGENTS.md section 7, under the right heading', () => {
     const block = answersBlock([NIGHT, WHY], {
       w1: { value: 'No', every: true },
-      w2: { value: 'I like design-led teams.\\nIn Pune.', every: false },
+      w2: { value: 'I like design-led teams.\nIn Pune.', every: false },
     });
     expect(block).toBe(
       [
@@ -150,7 +150,7 @@ describe('the answers the AI reads back', () => {
         '- Vesta · UI Engineer · Naukri',
         '',
         'END NORTHLIST ANSWERS',
-      ].join('\\n'),
+      ].join('\n'),
     );
   });
 
