@@ -122,32 +122,28 @@ export const AI_APPS = [
     short: 'AG',
     name: 'Antigravity',
     note: 'Recommended',
-    open: 'In Antigravity: File › Open Folder, then choose it.',
   },
   {
     key: 'claude-code',
     short: 'CC',
     name: 'Claude Code',
-    note: 'Laptop app or Code tab',
-    open: 'In the Claude app: Code tab, choose the folder.',
+    note: 'Opens in a terminal',
   },
   {
     key: 'codex',
     short: 'CX',
     name: 'Codex',
     note: "OpenAI's coding app",
-    open: 'In Codex: open the folder as a project.',
   },
 ] as const;
 export type AIAppKey = (typeof AI_APPS)[number]['key'];
 
 /**
- * The four guided steps of "Your AI", done in order: 0 none, 4 connected. Getting NorthList Apply
- * ticks the first; copying the setup prompt ticks the first three (it is pasted in the open
- * folder); the token's first use ticks the last.
+ * The three guided steps of "Your AI", done in order: 0 none, 3 connected. Opening the AI app (or
+ * copying the prompt) ticks the first; the user sends it there, then allows NorthList; the new
+ * token's first use ticks all three.
  */
-export function aiProgress(got: boolean, copied: boolean, used: boolean): number {
-  if (used) return 4;
-  if (copied) return 3;
-  return got ? 1 : 0;
+export function aiProgress(started: boolean, used: boolean): number {
+  if (used) return 3;
+  return started ? 1 : 0;
 }

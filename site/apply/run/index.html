@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Today’s run · NorthList Apply</title>
+<meta name="description" content="What NorthList Apply did today, and the questions it has for you.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles/apply-setup.css">
+<link rel="stylesheet" href="/styles/apply-setup-stage.css">
+<link rel="stylesheet" href="/styles/apply-runpage.css">
+<!-- Light or dark before the first paint: dark unless the user picked light on this computer -->
+<script>try { if (localStorage.getItem('nl-apply-theme') === 'light') document.documentElement.dataset.theme = 'light'; } catch {}</script>
+</head>
+<body>
+<!--
+  "Today's run" of NorthList Apply (owner, 23 Nov 2026). The user's AI opens it (instructions/run_page.md):
+  the run's facts come after "#", the user answers the open questions, and the AI reads the answers back
+  from this page's text. Nothing is sent anywhere.
+-->
+<div class="app">
+  <div class="left">
+    <div class="top">
+      <a class="logo" href="/"><span class="logo-mark" aria-hidden="true">N</span> NorthList Apply</a>
+      <div class="top-right"><span class="top-note" id="top-note"></span><button type="button" class="theme" id="theme" aria-label="Switch to light mode"></button></div>
+    </div>
+    <form class="step run-step" id="page" novalidate></form>
+  </div>
+  <aside class="stage" aria-hidden="true">
+    <svg class="rings" id="rings"></svg>
+    <div id="picture"></div>
+    <p class="stage-caption" id="stage-caption"></p>
+  </aside>
+</div>
+<script type="module" src="/apply/run/run.ts"></script>
+</body>
+</html>

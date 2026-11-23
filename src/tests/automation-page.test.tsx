@@ -77,6 +77,9 @@ const browserState = () =>
   ]);
 
 async function createToken(name = 'Work laptop', days?: string) {
+  // The token form is part of "Set it up by hand instead" since one-click setup (23 Nov 2026).
+  const byHand = await screen.findByRole('button', { name: 'Set it up by hand instead' });
+  if (byHand.getAttribute('aria-expanded') !== 'true') fireEvent.click(byHand);
   fireEvent.change(await screen.findByLabelText('Name'), { target: { value: name } });
   if (days)
     await chooseOption(screen.getByRole('combobox', { name: 'Expires after' }), `${days} days`);
@@ -141,7 +144,8 @@ describe('creating a token', () => {
     expect(shown.value).toContain('Follow instructions/northlist_connect.md in this folder.');
     expect(shown).toHaveAttribute('readonly');
     expect(screen.getByText(/is not shown again/)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Copy setup prompt' }));
+    const created = within(screen.getByRole('region', { name: 'Setup prompt created' }));
+    fireEvent.click(created.getByRole('button', { name: 'Copy setup prompt' }));
     await waitFor(() => expect(writeText).toHaveBeenCalledWith(shown.value));
     expect(await screen.findByText('Copied.')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Copy token only' }));
@@ -165,6 +169,7 @@ describe('creating a token', () => {
     await screen.findByLabelText('Setup prompt');
     view.unmount();
     renderPage();
+    await openByHand();
     await screen.findByLabelText('Name');
     expect(document.body.innerHTML).not.toContain('SENTINEL');
     expect(browserState()).not.toContain('SENTINEL');
@@ -179,10 +184,6 @@ describe('creating a token', () => {
       plaintextToken: PLAINTEXT,
     });
     renderPage();
-    expect(await screen.findByRole('link', { name: /NorthList Apply on GitHub/ })).toHaveAttribute(
-      'href',
-      'https://github.com/NitinSirsath/northlist-apply',
-    );
     await createToken('Laptop');
     expect(api.createIntegrationToken).toHaveBeenCalledWith({ name: 'Laptop', expiresInDays: 365 });
     const shown = (await screen.findByLabelText('Setup prompt')) as HTMLTextAreaElement;

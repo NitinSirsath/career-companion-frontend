@@ -23,6 +23,7 @@ const PAGES = [
   'changelog/index',
   'about/index',
   'apply/setup/index',
+  'apply/run/index',
 ];
 
 const sharedFiles: Plugin = {
