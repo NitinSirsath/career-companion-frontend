@@ -1,12 +1,15 @@
 import { useId, useState, type ReactNode } from 'react';
-import { ChevronDownIcon, ExternalLinkIcon } from 'lucide-react';
+import { ChevronDownIcon } from 'lucide-react';
 import { INTEGRATION_TOKEN_MAX_ACTIVE } from '../../contracts/integrationToken';
-import { NORTHLIST_APPLY_URL } from '../../lib/setupPrompt';
+import { AI_APPS, type AIAppKey } from '../../lib/onboarding';
 import { cn } from '../../lib/utils';
 import { SettingsSection } from '../layout/SettingsSection';
 import { CodeSnippet } from '../ui/code-snippet';
 import { Collapse } from '../ui/collapse';
+import { inAppText } from '../../lib/setupPrompt';
+import { AIAppChoice, SetupCodeButton } from './ConnectAIApp';
 import { CreateTokenForm } from './CreateTokenForm';
+import { useSetupCode } from './useSetupCode';
 import { TokenList } from './TokenList';
 import { useServerAddress } from './useServerAddress';
 
@@ -54,9 +57,10 @@ function ByHand({ serverAddress }: { serverAddress: string | null }) {
       <Collapse open={open} id={panelId}>
         <div className="flex flex-col gap-3 pt-4">
           <p className="max-w-160 text-sm">
-            Create the prompt above and copy the token from it. Then add NorthList as an MCP server
-            in your AI app’s user-level settings:
+            Create a token here and copy it. Then add NorthList as an MCP server in your AI app’s
+            user-level settings:
           </p>
+          <CreateTokenForm serverAddress={serverAddress} />
           {serverAddress && (
             <CodeSnippet code={`${serverAddress}/mcp`} label="the server address" />
           )}
@@ -82,38 +86,27 @@ function ByHand({ serverAddress }: { serverAddress: string | null }) {
 /** How to connect the automation, and the tokens it uses. */
 export function AutomationSetup() {
   const serverAddress = useServerAddress();
+  const [key, setKey] = useState<AIAppKey>('antigravity');
+  const app = AI_APPS.find((a) => a.key === key) ?? AI_APPS[0];
+  const setup = useSetupCode();
   return (
     <>
       <SettingsSection
-        title="Connect your automation"
-        help="Three steps, once per computer. Your AI app does the setup."
+        title="Connect your AI app"
+        help="Once per computer. One click, then your AI app does the rest: it finds or downloads NorthList Apply and connects it."
       >
         <ol className="flex flex-col gap-6">
-          <Step number={1} title="Get NorthList Apply">
-            <p className="max-w-160 text-sm">
-              Download it from GitHub, then open its folder in your AI app: Claude Code, Codex or
-              Antigravity.
-            </p>
-            <a
-              href={NORTHLIST_APPLY_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex h-8 w-fit items-center gap-2 rounded-full border border-link px-3.5 text-sm font-medium text-link transition-colors duration-70 ease-standard hover:bg-link hover:text-background"
-            >
-              NorthList Apply on GitHub
-              <ExternalLinkIcon size={16} aria-hidden="true" />
-            </a>
+          <Step number={1} title="Pick your AI app">
+            <AIAppChoice chosen={key} onPick={setKey} />
           </Step>
-          <Step number={2} title="Create your setup prompt">
-            <CreateTokenForm serverAddress={serverAddress} />
+          <Step
+            number={2}
+            title={key === 'antigravity' ? 'Copy your setup prompt' : `Open ${app.name}`}
+          >
+            <SetupCodeButton app={app} setup={setup} />
           </Step>
-          <Step number={3} title="Paste it into your AI app">
-            <p className="max-w-160 text-sm">
-              Paste the prompt into a chat in the NorthList Apply folder. The app adds NorthList to
-              its own settings and asks you to allow the change. When it says so, open a new chat or
-              restart the app, then type <Code>start</Code> and send it. When it first asks to use
-              NorthList, allow it.
-            </p>
+          <Step number={3} title="In your AI app">
+            <p className="max-w-160 text-sm">{inAppText(key, app.name)}</p>
             <p className="max-w-160 text-xs text-text-secondary">
               For each application it sends: company, job title, platform, job and apply page links,
               job ID, where the job was found, location, work mode, time, the site’s confirmation,
