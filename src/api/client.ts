@@ -28,6 +28,7 @@ import {
   ApplicationResponseSchema,
   CheckAIProviderResponseSchema,
   CreateIntegrationTokenResponseSchema,
+  CreateSetupCodeResponseSchema,
   IntegrationTokenSchema,
   ListApplicationsResponseSchema,
   ListIntegrationTokensResponseSchema,
@@ -67,6 +68,8 @@ import type {
   SaveAIProviderResponse,
   CreateIntegrationTokenRequest,
   CreateIntegrationTokenResponse,
+  CreateSetupCodeRequest,
+  CreateSetupCodeResponse,
   IntegrationToken,
   ListIntegrationTokensResponse,
   McpConnectionResponse,
@@ -558,6 +561,18 @@ export class ApiClient {
       '/api/integration-tokens',
       { method: 'POST', body: JSON.stringify(data) },
       CreateIntegrationTokenResponseSchema,
+    );
+  }
+
+  /**
+   * A setup code for one-click setup: it works once, for 10 minutes. Called directly from an event
+   * handler and kept only in component state, like a token. Never retried automatically.
+   */
+  async createSetupCode(data: CreateSetupCodeRequest): Promise<CreateSetupCodeResponse> {
+    return this.request(
+      '/api/integration-tokens/setup-codes',
+      { method: 'POST', body: JSON.stringify(data) },
+      CreateSetupCodeResponseSchema,
     );
   }
 
