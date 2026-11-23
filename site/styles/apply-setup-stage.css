@@ -1,0 +1,144 @@
+/* NorthList Apply setup page: the pictures on the right (or above on phones), the narrow layouts and the motion. */
+/* ── Stage (right side) ───────────────────────────── */
+.stage { position: relative; overflow: hidden; background: var(--stage); display: flex; align-items: center; justify-content: center; }
+.stage .rings { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+#picture { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+.float { border-radius: 20px; background: var(--surface); box-shadow: var(--shadow), inset 0 0 0 1px var(--border-subtle); }
+.pcard { width: 380px; padding: 20px; }
+.pcard .me-head { margin-bottom: 14px; }
+.prow { display: grid; grid-template-columns: 96px 1fr; gap: 12px; padding: 10px 8px; margin: 0 -8px; border-top: 1px solid var(--border-subtle); font-size: 13.5px; border-radius: 8px; transition: background .3s; }
+.prow dt { color: var(--text-tertiary); }
+.prow dd { margin: 0; min-height: 18px; }
+.prow.now { background: var(--surface-subtle); }
+.skel { display: inline-block; height: 9px; width: 70%; border-radius: 6px; background: linear-gradient(90deg, var(--surface-subtle) 0%, var(--surface-selected) 50%, var(--surface-subtle) 100%); background-size: 200% 100%; }
+.paper { position: relative; width: 300px; height: 388px; padding: 30px 28px; overflow: hidden; }
+.paper .l { height: 8px; border-radius: 4px; background: var(--surface-selected); margin-bottom: 11px; transition: background .5s; }
+.paper .l.h { height: 14px; width: 55%; margin-bottom: 8px; }
+.paper .l.s { width: 38%; margin-bottom: 22px; }
+.paper .gap { height: 14px; }
+.paper.read .l { background: var(--tint-sage); }
+.beam { position: absolute; left: 0; right: 0; height: 70px; top: -70px; background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--text-primary) 10%, transparent)); border-bottom: 2px solid color-mix(in srgb, var(--text-primary) 35%, transparent); }
+.paper .badge { position: absolute; right: 18px; bottom: 18px; width: 40px; height: 40px; border-radius: 999px; background: var(--text-primary); color: var(--canvas); display: grid; place-items: center; transform: scale(0); }
+.paper .badge svg { width: 20px; height: 20px; stroke-width: 3; }
+.paper.read .badge { transform: scale(1); transition: transform .4s var(--spring); }
+.drop-hint { position: absolute; bottom: 48px; left: 0; right: 0; text-align: center; font-size: 13px; color: var(--text-tertiary); }
+/* NorthList scene */
+.scene { position: relative; width: 740px; height: 540px; flex: none; transform-origin: center; }
+.win { position: absolute; left: 0; top: 40px; width: 500px; overflow: hidden; }
+.win-bar { display: flex; align-items: center; gap: 6px; padding: 12px 14px; border-bottom: 1px solid var(--border-subtle); }
+.win-bar i { width: 9px; height: 9px; border-radius: 999px; background: var(--surface-selected); }
+.win-bar b { margin-left: 10px; font-size: 12.5px; }
+.win-bar small { margin-left: auto; font-size: 11.5px; color: var(--text-tertiary); }
+.win-body { padding: 14px; }
+.platforms { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.platforms span { font-size: 11.5px; padding: 4px 9px; border-radius: 7px; background: var(--surface-subtle); color: var(--text-secondary); font-weight: 600; }
+.app-row { display: grid; grid-template-columns: 34px 1fr auto; gap: 12px; align-items: center; padding: 10px 6px; font-size: 13px; }
+.app-row + .app-row { border-top: 1px solid var(--border-subtle); }
+.logo-tile { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; font-weight: 700; font-size: 13px; }
+.app-row b { display: block; font-size: 13.5px; }
+.app-row span { color: var(--text-tertiary); font-size: 12px; }
+.app-row em { font-style: normal; font-size: 12px; color: var(--text-tertiary); text-align: right; }
+.app-row em strong { display: block; color: var(--text-primary); font-weight: 600; }
+.ai-live { position: absolute; left: 230px; top: -6px; width: 290px; padding: 12px 14px; z-index: 2; }
+.ai-live .live-top { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 600; }
+.ai-live .pulse { width: 8px; height: 8px; border-radius: 999px; background: var(--ok); }
+.ai-live p { margin: 6px 0 8px; font-size: 12.5px; color: var(--text-secondary); }
+.bar { height: 5px; border-radius: 4px; background: var(--surface-selected); overflow: hidden; }
+.bar i { display: block; height: 100%; width: 60%; border-radius: inherit; background: var(--text-primary); }
+.phone { position: absolute; right: 0; bottom: 6px; width: 210px; height: 420px; padding: 9px; border-radius: 38px; background: #0b0b0c; box-shadow: var(--shadow), inset 0 0 0 1px #2e2e33; }
+.phone-screen { position: relative; height: 100%; border-radius: 30px; overflow: hidden; background: var(--canvas); padding: 34px 12px 12px; }
+.phone-screen::before { content: ""; position: absolute; top: 9px; left: 50%; width: 64px; height: 18px; margin-left: -32px; border-radius: 999px; background: #0b0b0c; }
+.phone-screen h3 { margin: 62px 2px 8px; font-size: 17px; letter-spacing: -.01em; }
+.ph-row { display: grid; grid-template-columns: 26px 1fr; gap: 9px; align-items: center; padding: 8px 2px; border-bottom: 1px solid var(--border-subtle); font-size: 11.5px; }
+.ph-row .logo-tile { width: 26px; height: 26px; border-radius: 8px; font-size: 10.5px; }
+.ph-row b { display: block; font-size: 11.5px; }
+.ph-row span { color: var(--text-tertiary); font-size: 10.5px; }
+.notif { position: absolute; left: 8px; right: 8px; top: 34px; padding: 10px; border-radius: 14px; background: var(--surface); box-shadow: 0 6px 20px rgb(0 0 0 / .18), inset 0 0 0 1px var(--border-subtle); font-size: 11px; }
+.notif b { display: flex; align-items: center; gap: 5px; font-size: 11px; margin-bottom: 2px; }
+.notif b svg { width: 12px; height: 12px; }
+.notif span { color: var(--text-secondary); }
+
+.stats { position: absolute; left: 40px; bottom: 0; display: flex; gap: 22px; padding: 14px 18px; }
+.stats div b { display: block; font-size: 22px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.stats div span { font-size: 11.5px; color: var(--text-tertiary); }
+.strip { display: none; }
+
+/* ── Narrow windows and tablets: one centred column ── */
+@media (max-width: 900px) {
+  .app { grid-template-columns: 1fr; height: auto; min-height: 100dvh; }
+  .stage { display: none; }
+  .left { width: 100%; max-width: 640px; margin: 0 auto; min-height: 100dvh; padding: calc(env(safe-area-inset-top) + 18px) 28px calc(env(safe-area-inset-bottom) + 14px); }
+  .progress { margin: 20px 0 18px; }
+  .strip { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; padding: 10px 12px; border-radius: 14px; background: var(--stage); font-size: 13px; }
+  .strip .avatar { width: 30px; height: 30px; font-size: 12px; }
+  .strip.scene-strip { display: block; position: relative; padding: 0; overflow: hidden; border-radius: 18px; }
+  .strip.scene-strip .scene { position: absolute; top: 12px; transform-origin: top left; }
+  .content { overflow: visible; flex: 1 0 auto; }
+  .footer { position: sticky; bottom: 0; z-index: 3; background: var(--canvas); padding-bottom: calc(env(safe-area-inset-bottom) + 6px); }
+  .footer::before { content: ""; position: absolute; left: 0; right: 0; top: -28px; height: 28px; background: linear-gradient(transparent, var(--canvas)); pointer-events: none; }
+}
+/* ── Phones ───────────────────────────────────────── */
+@media (max-width: 600px) {
+  .left { padding-left: 20px; padding-right: 20px; }
+  h1 { font-size: 26px; }
+  .sub { font-size: 14.5px; margin-bottom: 22px; }
+  .footer .right { flex: 1; justify-content: flex-end; }
+  .footer .btn-primary { flex: 1; height: 48px; }
+  .kbd { display: none; }
+  .cards, .cards.four { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .skills { grid-template-columns: 1fr; }
+  .seg.full label { padding: 7px 8px; font-size: 12.5px; }
+}
+
+/* ── Motion (only when not reduced) ───────────────── */
+@media (prefers-reduced-motion: no-preference) {
+  .stagger > * { animation: rise .55s var(--ease) both; }
+  .stagger > *:nth-child(2) { animation-delay: 50ms; } .stagger > *:nth-child(3) { animation-delay: 100ms; }
+  .stagger > *:nth-child(4) { animation-delay: 150ms; } .stagger > *:nth-child(5) { animation-delay: 200ms; }
+  .stagger > *:nth-child(n+6) { animation-delay: 250ms; }
+  .cards .card, .chips .chip { animation: pop .4s var(--spring) both; }
+  .cards .card:nth-child(2), .chips .chip:nth-child(2) { animation-delay: 30ms; } .cards .card:nth-child(3), .chips .chip:nth-child(3) { animation-delay: 60ms; }
+  .cards .card:nth-child(4), .chips .chip:nth-child(4) { animation-delay: 90ms; } .chips .chip:nth-child(n+5) { animation-delay: 120ms; }
+  .skel { animation: shimmer 1.4s linear infinite; }
+  .shimmer { background: linear-gradient(90deg, var(--text-tertiary) 0%, var(--text-primary) 50%, var(--text-tertiary) 100%); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimmer 1.6s linear infinite; }
+  .reading li.now .st { animation: spin .9s linear infinite; box-shadow: inset 0 0 0 1.5px var(--border-default), inset 0 2px 0 -0.5px var(--text-primary); }
+  .reading li.ok { animation: rise .35s var(--ease) both; }
+  .beam { animation: scan 1.8s var(--ease) infinite; }
+  .float { animation: lift .7s var(--ease) both; }
+  .prow.flash dd { animation: flash .6s var(--ease); }
+  .dot.live, .ai-live .pulse { animation: pulse 1.3s ease-in-out infinite; }
+  .done-mark circle { animation: draw-c .7s var(--ease) both; }
+  .done-mark path { animation: draw-p .4s .5s var(--ease) both; }
+  .scene .ai-live { animation: lift .7s .25s var(--ease) both, bob 5s 1s ease-in-out infinite; }
+  .scene .phone { animation: lift .8s .4s var(--ease) both; }
+  .scene .stats { animation: lift .7s .6s var(--ease) both; }
+  .scene .app-row { animation: row-in .5s var(--ease) both; }
+  .scene .app-row:nth-child(1) { animation-delay: .3s; } .scene .app-row:nth-child(2) { animation-delay: .45s; } .scene .app-row:nth-child(3) { animation-delay: .6s; }
+  .scene .app-row:nth-child(4) { animation-delay: .75s; } .scene .app-row:nth-child(5) { animation-delay: .9s; }
+  .scene .bar i { animation: load 3.2s var(--ease) infinite; }
+  .scene .notif { animation: drop-in .6s 1.4s var(--spring) both; }
+}
+@keyframes rise { from { opacity: 0; transform: translateY(12px); } }
+@keyframes pop { from { opacity: 0; transform: scale(.92); } }
+@keyframes shimmer { to { background-position: -200% 0; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes scan { from { top: -70px; } to { top: 100%; } }
+@keyframes lift { from { opacity: 0; transform: translateY(24px) scale(.98); } }
+@keyframes flash { from { opacity: 0; transform: translateX(-6px); } }
+@keyframes pulse { 50% { opacity: .35; } }
+@keyframes draw-c { from { stroke-dashoffset: 190; } }
+@keyframes draw-p { from { stroke-dashoffset: 40; } }
+@keyframes bob { 50% { transform: translateY(-6px); } }
+@keyframes row-in { from { opacity: 0; transform: translateY(-10px); } }
+@keyframes load { 0% { width: 8%; } 70%, 100% { width: 92%; } }
+@keyframes drop-in { from { opacity: 0; transform: translateY(-20px) scale(.96); } }
+::view-transition-group(setup-step) { animation-duration: .45s; animation-timing-function: var(--ease); }
+@keyframes vt-out-left { to { opacity: 0; transform: translateX(-36px); } }
+@keyframes vt-in-right { from { opacity: 0; transform: translateX(36px); } }
+@keyframes vt-out-right { to { opacity: 0; transform: translateX(36px); } }
+@keyframes vt-in-left { from { opacity: 0; transform: translateX(-36px); } }
+html:active-view-transition-type(forward)::view-transition-old(setup-step) { animation: vt-out-left .28s ease both; }
+html:active-view-transition-type(forward)::view-transition-new(setup-step) { animation: vt-in-right .45s var(--ease) both; }
+html:active-view-transition-type(backward)::view-transition-old(setup-step) { animation: vt-out-right .28s ease both; }
+html:active-view-transition-type(backward)::view-transition-new(setup-step) { animation: vt-in-left .45s var(--ease) both; }
+@media (prefers-reduced-motion: reduce) { ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; } }
