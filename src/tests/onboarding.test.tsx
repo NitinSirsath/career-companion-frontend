@@ -79,11 +79,10 @@ describe('the first run steps', () => {
     expect(onboardingOpen({ onboarding: { step: 'tour' } })).toBe(false);
   });
 
-  it('ticks the AI steps: getting the folder, copying the prompt, the first use', () => {
-    expect(aiProgress(false, false, false)).toBe(0);
-    expect(aiProgress(true, false, false)).toBe(1);
-    expect(aiProgress(false, true, false)).toBe(3);
-    expect(aiProgress(true, true, true)).toBe(4);
+  it('ticks the AI steps: opening the app, then the first use', () => {
+    expect(aiProgress(false, false)).toBe(0);
+    expect(aiProgress(true, false)).toBe(1);
+    expect(aiProgress(true, true)).toBe(3);
   });
 });
 
@@ -294,8 +293,8 @@ describe('the first run page', () => {
     expect(
       await screen.findByRole('heading', { name: 'Apply to jobs with your AI' }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Antigravity/ })).toHaveAttribute(
-      'aria-pressed',
+    expect(screen.getByRole('radio', { name: /Antigravity/ })).toHaveAttribute(
+      'aria-checked',
       'true',
     );
     expect(screen.getByText('Recommended')).toBeInTheDocument();
