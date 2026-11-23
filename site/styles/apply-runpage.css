@@ -1,0 +1,82 @@
+/* "Today's run" page, northlist.site/apply/run (owner, 23 Nov 2026): questions waiting for the user, today's report, NorthList. */
+.run-main { flex: 1; min-height: 0; overflow-y: auto; margin: 0 -6px; padding: 2px 6px 24px; scrollbar-width: thin; }
+.run-main h1 { margin-top: 4px; }
+.section { margin-top: 34px; }
+.section:first-child { margin-top: 0; }
+.section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.section-head h2 { margin: 0; font-size: 18px; font-weight: 650; letter-spacing: -.01em; }
+.section-head span { font-size: 13px; color: var(--text-tertiary); }
+
+/* Questions */
+.qcards { display: grid; gap: 12px; }
+.qcard { padding: 16px; border-radius: 18px; box-shadow: inset 0 0 0 1px var(--border-default); background: var(--surface); transition: box-shadow .2s; }
+.qcount { margin-left: auto; font-size: 12px; }
+.qitem + .qitem { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-subtle); }
+.qjob { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 13px; color: var(--text-tertiary); }
+.qjob .logo-tile { width: 28px; height: 28px; border-radius: 8px; font-size: 11px; color: var(--text-primary); }
+.qjob b { color: var(--text-primary); font-weight: 600; }
+.qtext { margin: 0 0 12px; font-size: 15px; font-weight: 600; line-height: 1.4; }
+.qfoot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-subtle); font-size: 13px; color: var(--text-secondary); }
+.qfoot .seg label { padding: 5px 10px; font-size: 12.5px; }
+.draft-note { display: flex; align-items: center; gap: 6px; margin: 8px 0 0; font-size: 12.5px; color: var(--text-tertiary); }
+.draft-note svg { width: 13px; height: 13px; }
+.qcard textarea { min-height: 96px; }
+.num-box { width: 180px; height: 44px; padding: 0 14px; border: 0; border-radius: 12px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--border-default); font-size: 15px; }
+.num-box:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--text-primary); }
+.ok-mark { display: none; color: var(--ok); font-size: 12.5px; font-weight: 600; }
+.qitem.answered .ok-mark { display: inline-flex; align-items: center; gap: 4px; }
+.ok-mark svg { width: 13px; height: 13px; stroke-width: 3; }
+
+/* Report */
+.hero-num { display: flex; align-items: flex-end; gap: 14px; margin: 2px 0 20px; }
+.hero-num b { font-size: 64px; line-height: .9; font-weight: 700; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+.hero-num span { padding-bottom: 6px; font-size: 15px; color: var(--text-secondary); line-height: 1.35; }
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-bottom: 22px; }
+.tile-n { padding: 12px; border-radius: 14px; background: var(--surface-subtle); }
+.tile-n b { display: block; font-size: 20px; font-variant-numeric: tabular-nums; }
+.tile-n span { font-size: 12px; color: var(--text-tertiary); }
+.bars { display: grid; gap: 12px; margin-bottom: 8px; }
+.bar-row { display: grid; grid-template-columns: 96px 1fr 56px; gap: 12px; align-items: center; font-size: 13.5px; }
+.bar-row .track { height: 8px; border-radius: 6px; background: var(--surface-selected); overflow: hidden; }
+.bar-row .fill { height: 100%; border-radius: inherit; background: var(--text-primary); transform-origin: left; }
+.bar-row em { font-style: normal; text-align: right; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+.list { margin: 0; padding: 0; list-style: none; border-radius: 16px; box-shadow: inset 0 0 0 1px var(--border-default); }
+.list li { display: grid; grid-template-columns: 30px 1fr auto; gap: 12px; align-items: center; padding: 11px 14px; border-top: 1px solid var(--border-subtle); font-size: 13.5px; }
+.list li:first-child { border-top: 0; }
+.list .logo-tile { width: 30px; height: 30px; border-radius: 9px; font-size: 11.5px; color: var(--text-primary); }
+.list b { display: block; font-weight: 600; }
+.list span { font-size: 12.5px; color: var(--text-tertiary); }
+.list em { font-style: normal; font-size: 12.5px; color: var(--text-tertiary); text-align: right; }
+.list .reason { color: var(--text-secondary); }
+.more { margin-top: 8px; }
+.stopline { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 14px; background: var(--surface-subtle); font-size: 13.5px; color: var(--text-secondary); }
+.stopline svg { width: 16px; height: 16px; margin-top: 2px; flex: none; }
+
+/* NorthList (in the column on phones; the picture is on the right on a laptop) */
+.nl-card { padding: 18px; border-radius: 20px; background: var(--stage); }
+.nl-card h2 { margin: 0 0 6px; font-size: 18px; letter-spacing: -.01em; }
+.nl-card p { margin: 0 0 14px; font-size: 14px; color: var(--text-secondary); line-height: 1.5; }
+.nl-card .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.nl-sent { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.nl-sent .dot { background: var(--ok); }
+.nl-card .nl-after { margin-top: 8px; }
+.nl-scene { display: none; position: relative; overflow: hidden; margin: -4px -4px 14px; border-radius: 14px; }
+.nl-scene .scene { position: absolute; top: 12px; transform-origin: top left; }
+.stage-caption { position: absolute; left: 0; right: 0; bottom: 34px; text-align: center; font-size: 13px; color: var(--text-tertiary); }
+
+/* Done */
+.saved-note { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-radius: 16px; box-shadow: inset 0 0 0 1px var(--border-default); font-size: 14px; margin-bottom: 16px; }
+
+@media (max-width: 900px) {
+  .nl-scene { display: block; }
+  .run-main { overflow: visible; flex: 1 0 auto; }
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hero-num b { font-size: 52px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .bar-row .fill { animation: grow .9s .2s var(--ease) both; }
+  .qcard { animation: rise .5s var(--ease) both; }
+  .qcard:nth-child(2) { animation-delay: 60ms; } .qcard:nth-child(3) { animation-delay: 120ms; } .qcard:nth-child(4) { animation-delay: 180ms; }
+}
+@keyframes grow { from { transform: scaleX(0); } }
+.run-step { margin-top: 26px; }
