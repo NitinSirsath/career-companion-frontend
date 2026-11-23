@@ -5,7 +5,7 @@ import { fillParts } from './site/parts/index.ts';
 
 /**
  * The product site on northlist.site (owner, 31 Oct and 1 Nov 2026): `npm run build:site` writes it to
- * `dist-site`. Eight plain pages (dark only, since 19-20 Nov 2026), each with its words in its HTML: the shared parts (header, footer,
+ * `dist-site`. Nine plain pages (dark only since 19-20 Nov 2026, except the NorthList Apply setup page, which has a light switch), each with its words in its HTML: the shared parts (header, footer,
  * data promises, icons) are filled in here. It also holds `site/public` (privacy policy, page not found,
  * Google's file, `sw.js`) and the icons and link-preview image it shares with the app. No server calls,
  * no service worker of its own and no web manifest.
@@ -22,6 +22,7 @@ const PAGES = [
   'privacy/index',
   'changelog/index',
   'about/index',
+  'apply/setup/index',
 ];
 
 const sharedFiles: Plugin = {
