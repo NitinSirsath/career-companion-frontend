@@ -18,7 +18,7 @@ export function setupPrompt(serverAddress: string, token: string): string {
     `Token: ${token}`,
     '',
     "Follow instructions/northlist_connect.md in this folder. Keep the token only in this app's own MCP settings, never in a file in this folder. If that file is missing, tell me to download NorthList Apply again.",
-  ].join('\\n');
+  ].join('\n');
 }
 
 type AIApp = 'antigravity' | 'codex' | 'claude-code';
@@ -34,10 +34,10 @@ export function codeSetupPrompt(serverAddress: string, code: string): string {
     `NorthList server: ${serverAddress}`,
     `Setup code: ${code} (works once, for 10 minutes)`,
     '',
-    '1. Find my NorthList Apply folder: this chat\\'s folder if it has AGENTS.md and instructions/northlist_connect.md, else "Documents/NorthList Apply" in my home folder. Look nowhere else.',
+    '1. Find my NorthList Apply folder: this chat\'s folder if it has AGENTS.md and instructions/northlist_connect.md, else "Documents/NorthList Apply" in my home folder. Look nowhere else.',
     `2. If there is none, ask me: "I can't find NorthList Apply. Reply with its folder, or reply download and I'll put it in Documents/NorthList Apply." To download: get ${NORTHLIST_APPLY_ZIP_URL}, unzip it, and put the files of its northlist-apply-master folder into "Documents/NorthList Apply".`,
     '3. Then read instructions/northlist_connect.md in that folder and follow it.',
-  ].join('\\n');
+  ].join('\n');
 }
 
 /**
