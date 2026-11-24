@@ -288,7 +288,7 @@ describe('the answers', () => {
 
 describe('the page', () => {
   const html = site('apply/setup/index.html');
-  const code = ['data.ts', 'views.ts', 'northlist.ts', 'setup.ts'
+  const code = ['data.ts', 'views.ts', 'northlist.ts', 'setup.ts']
     .map((f) => site(`apply/setup/${f}`))
     .join('\n');
 
