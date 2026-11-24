@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -12,32 +12,22 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/styles/apply-setup.css">
-<link rel="stylesheet" href="/styles/apply-setup-stage.css">
-<!-- Light or dark before the first paint: dark unless the user picked light on this computer -->
-<script>try { if (localStorage.getItem('nl-apply-theme') === 'light') document.documentElement.dataset.theme = 'light'; } catch {}</script>
+<link rel="stylesheet" href="/styles/apply-onboard.css">
+<!-- Light or dark before the first paint: light unless the user picked dark on this computer -->
+<script>try { if (localStorage.getItem('nl-apply-theme') === 'dark') document.documentElement.dataset.theme = 'dark'; } catch {}</script>
 </head>
 <body>
 <!--
-  The setup page of NorthList Apply (owner, 23 Nov 2026). The user's AI opens it (instructions/setup_page.md):
-  the resume facts come after "#", the user answers, and the AI reads the answers back from this page's text.
-  Nothing is sent anywhere.
+  The setup page of NorthList Apply (owner, 23 Nov 2026; clean light look, 24 Nov). The user's AI opens it
+  (instructions/setup_page.md): the resume facts come after "#", the user answers, and the AI reads the
+  answers back from this page's text. Nothing is sent anywhere.
 -->
-<div class="app">
-  <div class="left">
-    <div class="top">
-      <a class="logo" href="/"><span class="logo-mark" aria-hidden="true">N</span> NorthList Apply</a>
-      <div class="top-right"><span class="top-note" id="top-note"></span><button type="button" class="theme" id="theme" aria-label="Switch to light mode"></button></div>
-    </div>
-    <div class="progress" id="progress" role="img"></div>
-    <div class="strip" id="strip" aria-hidden="true"></div>
-    <form class="step" id="step" novalidate></form>
-  </div>
-  <aside class="stage" aria-hidden="true">
-    <svg class="rings" id="rings"></svg>
-    <div id="picture"></div>
-  </aside>
-</div>
+<header class="top">
+  <a class="logo" href="/"><span class="logo-mark" aria-hidden="true">N</span> NorthList Apply</a>
+  <div class="top-right"><span class="top-note" id="top-note"></span><button type="button" class="theme" id="theme" aria-label="Switch to dark mode"></button></div>
+</header>
+<div class="progress" role="presentation"><i><b id="bar"></b></i></div>
+<main><form class="step" id="step" novalidate></form></main>
 <script type="module" src="/apply/setup/setup.ts"></script>
 </body>
 </html>
