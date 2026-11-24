@@ -37,6 +37,7 @@ vi.mock('../api/client', async (importOriginal) => {
       getPendingSubmissions: vi.fn(),
       listApplications: vi.fn(),
       getNotSubmittedJobs: vi.fn(),
+      getApplyTasks: vi.fn(),
     },
   };
 });
@@ -139,6 +140,20 @@ beforeEach(() => {
   vi.mocked(api.getPendingSubmissions).mockResolvedValue(page([]));
   vi.mocked(api.listApplications).mockResolvedValue(page([automationApp]));
   vi.mocked(api.getNotSubmittedJobs).mockResolvedValue(page([notSubmitted()]));
+  vi.mocked(api.getApplyTasks).mockResolvedValue({
+    ...page([
+      {
+        id: '7b0a7c43-58b6-4d64-9f6b-3a0b1c2d3e4f',
+        startedAt: '2026-10-20T08:30:00.000Z',
+        utcOffsetMinutes: 330,
+        lastAt: SUBMITTED,
+        sent: 1,
+        notSent: 0,
+        plan: [{ site: 'linkedin', planned: 1, sent: 1 }],
+      },
+    ]),
+    summary: { tasks: 1, sent: 1, minutes: 14, earlier: 0 },
+  });
 });
 afterEach(cleanup);
 
