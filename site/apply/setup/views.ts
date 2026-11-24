@@ -1,10 +1,12 @@
 /*
- * The setup page's screens (owner, 23 Nov 2026): one function per step, each returning its words and its
- * questions as HTML. Almost no typing: pills, cards, switches, steppers and lists.
+ * The setup page's screens (owner, 23 Nov 2026; clean look, 24 Nov): one function per step, each returning
+ * its words and its questions as HTML. One column and no boxes: thin lines between rows, fields as a line,
+ * choices as plain words with a dark pill on the picked ones. Almost no typing.
  */
 import {
   COUNTRIES,
   DONE,
+  GENDERS,
   MONTHS,
   answers,
   badDates,
@@ -12,6 +14,7 @@ import {
   esc,
   expectedAmount,
   fmtDate,
+  grouped,
   num,
   permissionLine,
   settleExpected,
@@ -23,6 +26,7 @@ import {
   type Resume,
   type State,
 } from './data.ts';
+import { picture } from './northlist.ts';
 
 /** Connect = the NorthList Setup tab (sign-in first when needed, which comes back to it); the film is on Home. */
 export const NL_SETUP = 'https://app.northlist.site/automation?tab=setup';
@@ -67,47 +71,26 @@ const P: Record<string, string> = {
 export const icon = (n: string, cls = 'i') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${P[n]}</svg>`;
 
 /* Small builders */
+/** A question: its words, then its control. A real fieldset, so the choices are announced as one group. */
 const q = (label: string, html: string, note = '') =>
-  `<div class="q"><p class="q-label">${esc(label)}${note ? `<span>${esc(note)}</span>` : ''}</p>${html}</div>`;
-/** One answer to pick: a radio (one of a group) or a checkbox (any of a group). */
+  `<fieldset class="q"><legend>${esc(label)}${note ? `<small>${esc(note)}</small>` : ''}</legend>${html}</fieldset>`;
+/** One answer to pick: a radio (one of a group) or a checkbox (any of a group), shown as a plain word. */
 interface Choice {
   type: 'radio' | 'checkbox';
   name: string;
   value: string;
   on: boolean;
 }
-const input = (c: Choice) => `<input type="${c.type}" name="${c.name}" value="${esc(c.value)}"${c.on ? ' checked' : ''}>`;
-interface CardOpts {
-  small?: string;
-  ic?: string;
-  cls?: string;
-}
-const card = (c: Choice, title: string, o: CardOpts = {}) =>
-  `<label class="card ${o.cls ?? ''}">${input(c)}` +
-  `${o.ic ? `<span class="ic">${icon(o.ic)}</span>` : ''}<b>${esc(title)}</b>${o.small ? `<small>${esc(o.small)}</small>` : ''}` +
-  `<span class="tick">${icon('check')}</span></label>`;
-const chip = (c: Choice, label = c.value) => `<label class="chip">${input(c)}${icon('check')}${esc(label)}</label>`;
-const seg = (name: string, items: [string, string][], value: string, full = false) =>
-  `<div class="seg ${full ? 'full' : ''}" role="radiogroup">${items
-    .map(([v, l]) => `<label><input type="radio" name="${name}" value="${esc(v)}"${v === value ? ' checked' : ''}>${esc(l)}</label>`)
-    .join('')}</div>`;
+const opt = (c: Choice, label = c.value) =>
+  `<label><input class="vh" type="${c.type}" name="${c.name}" value="${esc(c.value)}"${c.on ? ' checked' : ''}><span>${esc(label)}</span></label>`;
+const opts = (html: string) => `<div class="opts">${html}</div>`;
+const radios = (name: string, items: [string, string][], value: string) =>
+  opts(items.map(([v, l]) => opt({ type: 'radio', name, value: v, on: v === value }, l)).join(''));
 const addBox = (kind: string, placeholder: string) =>
-  `<div class="add"><input type="text" id="add-${kind}" placeholder="${placeholder}" aria-label="${placeholder}">` +
-  `<button type="button" class="btn btn-ghost" data-add="${kind}">${icon('plus')} Add</button></div>`;
-export const initials = (R: Resume) => esc((R.firstName || '?')[0] + (R.lastName || ' ')[0]);
-const CODES: Record<string, string> = {
-  India: 'IN',
-  'United States': 'US',
-  'United Kingdom': 'UK',
-  Canada: 'CA',
-  'United Arab Emirates': 'AE',
-  Singapore: 'SG',
-  Germany: 'DE',
-  Netherlands: 'NL',
-  Australia: 'AU',
-  Ireland: 'IE',
-};
-const code = (c: string) => CODES[c] ?? c.slice(0, 2).toUpperCase();
+  `<div class="add"><input class="field" type="text" id="add-${kind}" placeholder="${placeholder}" aria-label="${placeholder}" autocomplete="off">` +
+  `<button type="button" class="link" data-add="${kind}">Add</button></div>`;
+const toggle = (id: string, on: boolean, title: string, small: string) =>
+  `<ul class="rows"><li><label class="grow" for="${id}">${esc(title)}<small>${esc(small)}</small></label><input class="switch" type="checkbox" id="${id}" ${on ? 'checked' : ''}></li></ul>`;
 const fromNote = (S: State, k: string) => (S.from[k] ? 'from your resume' : '');
 
 function noticeOptions(S: State): [string, string][] {
@@ -116,111 +99,99 @@ function noticeOptions(S: State): [string, string][] {
   return base.sort((a, b) => Number(a[0]) - Number(b[0]));
 }
 
+/** What the picked raise comes to, in words. */
+export function expectedWords(S: State): string {
+  const n = expectedAmount(S);
+  return n ? words(n, S.currency, S.period) : '';
+}
+
 /** The raise picks under "What you want". Settles what "expected" is, so it runs before the step is checked. */
 export function expectedHTML(S: State): string {
   settleExpected(S);
   const c = currentAmount(S);
-  const raise = (v: string) => words(Math.round(c * (1 + Number(v) / 100)), S.currency, S.period, true);
-  const cards = c
-    ? `<div class="cards four">${['20', '30', '40', '50'].map((v) => card({ type: 'radio', name: 'expected', value: v, on: S.expected === v }, `+${v}%`, { small: raise(v), cls: 'big' })).join('')}</div>`
-    : '';
-  return `${cards}
-    <div class="chips gap-top">${chip({ type: 'radio', name: 'expected', value: 'other', on: S.expected === 'other' }, 'Type an amount')}${chip({ type: 'radio', name: 'expected', value: 'none', on: S.expected === 'none' }, 'Prefer not to say')}</div>
-    <div id="other-box" class="gap-top" ${S.expected === 'other' ? '' : 'hidden'}>
-      <div class="field"><span class="field-tag">${esc(S.currency)}</span><span class="sep"></span><input type="text" id="expected-other" inputmode="numeric" autocomplete="off" aria-label="Amount you want" placeholder="Amount you want" value="${esc(S.expectedOther)}"></div>
-      <p class="words" id="other-words">${num(S.expectedOther) ? esc(words(num(S.expectedOther), S.currency, S.period)) : ''}</p>
-    </div>`;
+  const raises = c ? ['20', '30', '40', '50'].map((v) => opt({ type: 'radio', name: 'expected', value: v, on: S.expected === v }, `+${v}%`)).join('') : '';
+  return `${opts(
+    `${raises}${opt({ type: 'radio', name: 'expected', value: 'other', on: S.expected === 'other' }, 'Type an amount')}${opt({ type: 'radio', name: 'expected', value: 'none', on: S.expected === 'none' }, 'Prefer not to say')}`,
+  )}
+    <input class="field gap-top" type="text" id="expected-other" inputmode="numeric" autocomplete="off" aria-label="Amount you want" placeholder="Amount you want, numbers only" value="${esc(grouped(S.expectedOther, S.currency))}" ${S.expected === 'other' ? '' : 'hidden'}>
+    <p class="words" id="expected-words">${esc(expectedWords(S))}</p>`;
 }
 
 /* ── 0 Resume ───────────────────────────────────────── */
-/** One line of the "reading your resume" list: ticked once read, the first one turning while reading. */
-function readingRow(label: string, i: number, read: boolean): string {
-  const delay = `style="animation-delay:${i * 140}ms"`;
-  if (read) return `<li class="ok" ${delay}><span class="st">${icon('check')}</span>${esc(label)}</li>`;
-  const first = i === 0;
-  return `<li class="${first ? 'now' : ''}" ${delay}><span class="st"></span><span class="${first ? 'shimmer' : ''}">${esc(label)}</span></li>`;
-}
-
 function resumeView(S: State, demo: boolean): View {
   const R = S.resume;
   const checks = ['Name and contact', 'Work history', 'Skills and years', 'Education'];
-  const drop = `<div class="stagger">
-      <label class="drop" id="drop" tabindex="0">
-        <span class="up">${icon('upload')}</span>
+  const drop = `<label class="drop" id="drop" tabindex="0">
         <b>Drop your resume here</b>
-        <span class="hint">or <u>choose a file</u> · PDF</span>
+        <span>or <u>choose a file</u> · PDF</span>
         <input type="file" id="file" accept="application/pdf,.pdf" class="vh">
       </label>
-      ${demo ? `<p class="note center"><button type="button" class="btn btn-ghost" id="sample">No resume handy? Try a sample</button></p>` : `<p class="note">Already gave it to your AI in the chat? This fills in by itself.</p>`}
-    </div>`;
+      ${demo ? `<p class="note"><button type="button" class="link" id="sample">No resume handy? Try a sample</button></p>` : `<p class="note">Already gave it to your AI in the chat? This fills in by itself.</p>`}`;
   const file = S.file;
   const reading = file
-    ? `<div class="stagger">
-      <div class="file"><span class="ic">${icon('file')}</span><div><b>${esc(file.name)}</b><small>${file.size ? `${(file.size / 1024).toFixed(0)} KB · ` : ''}${R ? 'Read' : 'Reading…'}</small></div>
-        <button type="button" class="btn btn-plain" id="change-file">Change</button></div>
-      <ul class="reading">${checks.map((c, i) => readingRow(c, i, Boolean(R))).join('')}</ul>
+    ? `<div class="filed"><span><b>${esc(file.name)}</b> <small>${file.size ? `· ${(file.size / 1024).toFixed(0)} KB ` : ''}· ${R ? 'Read' : 'Reading…'}</small></span>
+        <button type="button" class="link" id="change-file">Change</button></div>
+      <ul class="read ${R ? '' : 'busy'}">${checks.map((c) => `<li>${esc(c)}</li>`).join('')}</ul>
       ${R ? '' : `<p class="note">Your AI is reading it now. Nothing after a minute? Go back to the chat and type <b>done</b>.</p>`}
-      <p class="vh">RESUME FILE: ${esc(file.name)} | ${file.size} bytes</p>
-    </div>`
+      <p class="vh">RESUME FILE: ${esc(file.name)} | ${file.size} bytes</p>`
     : '';
   return {
     title: R ? `Nice to meet you, ${R.firstName}.` : "Let's start with your resume",
-    sub: R ? 'We read your resume. Next, check what we found.' : 'Your AI reads it and fills in most answers for you. It stays on your computer.',
+    sub: R ? 'Your AI read your resume. Next, check what it found.' : 'Your AI reads it and fills in most answers for you. It stays on your computer.',
     blocked: !R,
     body: file ? reading : drop,
   };
 }
 
-/* ── 1 About you: facts from the resume; dates fixed with pickers, never typed ── */
-const pick = (attrs: string, list: [number, string | number][], val: unknown, label: string) =>
-  `<select ${attrs} aria-label="${label}">${list.map(([v, l]) => `<option value="${v}"${String(v) === String(val) ? ' selected' : ''}>${l}</option>`).join('')}</select>`;
+/* ── 1 About you: facts from the resume; dates fixed with two short lists, never typed ── */
+const pick = (attrs: string, list: [number | string, string | number][], val: unknown, label: string) =>
+  `<select class="field" ${attrs} aria-label="${label}">${list.map(([v, l]) => `<option value="${v}"${String(v) === String(val) ? ' selected' : ''}>${l}</option>`).join('')}</select>`;
 
 function jobRow(S: State, j: Job, i: number): string {
-  if (!S.editJobs) return `<li class="${j.end ? '' : 'cur'}"><div>${esc(j.title)}<span>${esc(j.company)}</span></div><small>${fmtDate(j.start)} – ${fmtDate(j.end)}</small></li>`;
+  const head = `<span class="k">${j.end ? 'Before' : 'Now'}</span>`;
+  const what = `${esc(j.title)}, ${esc(j.company)}`;
+  if (!S.editJobs) return `<div>${head}<span class="v">${what}<small>${fmtDate(j.start)} to ${j.end ? fmtDate(j.end) : 'now'}</small></span></div>`;
   const today = new Date();
   const monthList = MONTHS.map((m, k): [number, string] => [k, m]);
   const yearList = Array.from({ length: today.getFullYear() - 1979 }, (_, k): [number, number] => [today.getFullYear() - k, today.getFullYear() - k]);
-  const remove = S.jobs.length > 1 ? `<button type="button" class="btn btn-plain icon-btn" data-remove-job="${i}" aria-label="Remove ${esc(j.company)}">${icon('x')}</button>` : '';
-  const end = j.end ?? { y: today.getFullYear(), m: today.getMonth() };
-  return `<li class="edit ${j.end ? '' : 'cur'}">
-    <div class="job-top"><div>${esc(j.title)}<span>${esc(j.company)}</span></div>${remove}</div>
-    <div class="dates">
-      <div class="date"><small>${j.check ? 'Started · please check' : 'Started'}</small><div class="date-pick">${pick(`data-job="${i}" data-part="sm"`, monthList, j.start.m, 'Start month')}${pick(`data-job="${i}" data-part="sy"`, yearList, j.start.y, 'Start year')}</div></div>
-      <div class="date"><small>Left</small><div class="date-pick" ${j.end ? '' : 'hidden'}>${pick(`data-job="${i}" data-part="em"`, monthList, end.m, 'End month')}${pick(`data-job="${i}" data-part="ey"`, yearList, end.y, 'End year')}</div>
-        <label class="mini-switch"><input type="checkbox" data-job="${i}" data-part="now" ${j.end ? '' : 'checked'}>I work here now</label></div>
-    </div></li>`;
+  const endMonths: [number | string, string][] = [['now', 'now'], ...monthList];
+  const remove = S.jobs.length > 1 ? `<button type="button" class="link" data-remove-job="${i}" aria-label="Remove ${esc(j.company)}">Remove</button>` : '';
+  return `<div>${head}<span class="v">${what}
+      <span class="dates">${pick(`data-job="${i}" data-part="sm"`, monthList, j.start.m, 'Start month')}${pick(`data-job="${i}" data-part="sy"`, yearList, j.start.y, 'Start year')}<span>to</span>${pick(`data-job="${i}" data-part="em"`, endMonths, j.end ? j.end.m : 'now', 'End month')}${j.end ? pick(`data-job="${i}" data-part="ey"`, yearList, j.end.y, 'End year') : ''}${j.check ? '<span>please check the start</span>' : ''}</span>
+    </span>${remove}</div>`;
 }
 
 function educationRows(S: State, R: Resume): string {
   const thisYear = new Date().getFullYear();
   const yearList = Array.from({ length: thisYear - 1969 }, (_, k): [number, number] => [thisYear + 1 - k, thisYear + 1 - k]);
   return (R.education ?? [])
-    .map((e, i) =>
-      S.editJobs
-        ? `<li class="edit"><div class="job-top"><div>${esc(e.degree)} ${esc(e.field ?? '')}<span>${esc(e.institution)}</span></div></div><div class="dates"><div class="date"><small>Finished</small><div class="date-pick">${pick(`data-edu="${i}"`, yearList, e.year, 'Year finished')}</div></div></div></li>`
-        : `<li><div>${esc(e.degree)} ${esc(e.field ?? '')}<span>${esc(e.institution)}</span></div><small>${esc(e.year)}</small></li>`,
-    )
+    .map((e, i) => {
+      const what = `${esc(e.degree)} ${esc(e.field ?? '')}, ${esc(e.institution)}`;
+      const year = S.editJobs ? `<span class="dates">${pick(`data-edu="${i}"`, yearList, e.year, 'Year finished')}</span>` : `<small>${esc(e.year)}</small>`;
+      return `<div><span class="k">${i ? '' : 'Education'}</span><span class="v">${what}${year}</span></div>`;
+    })
     .join('');
 }
 
+const linkRow = (id: string, label: string, value: string) =>
+  `<li><label class="k" for="${id}">${label}</label><input class="field v" type="text" id="${id}" value="${esc(value)}" placeholder="None" autocomplete="off" autocapitalize="none" spellcheck="false"></li>`;
+
 function aboutView(S: State): View {
   const R = S.resume ?? { firstName: '' };
-  const fix = S.editJobs
-    ? `<p class="note flush">Name, email or phone wrong? Tell your AI in the chat.</p>`
-    : `<button type="button" class="btn btn-plain flush-left" id="edit-jobs">${icon('pencil')} Fix dates</button>`;
   return {
     title: 'Is this you?',
     sub: 'From your resume. Forms use these facts as they are.',
     cta: S.editJobs ? 'Save and continue' : "Yes, that's me",
     blocked: badDates(S.jobs),
-    body: `<div class="stagger">
-      <div class="me">
-        <div class="me-head"><span class="avatar">${initials(R)}</span><div><b>${esc(R.firstName)} ${esc(R.lastName)}</b><small>${esc(R.currentTitle)} · <span id="total-years">${totalYears(S.jobs)}</span></small></div></div>
-        <div class="me-meta"><span>${icon('mail')}${esc(R.email)}</span><span>${icon('phone')}${esc(R.phoneCountryCode)} ${esc(R.phoneNumber)}</span><span>${icon('pin')}${esc(R.city)}, ${esc(R.country)}</span></div>
-        <ul class="timeline">${S.jobs.map((j, i) => jobRow(S, j, i)).join('')}${educationRows(S, R)}</ul>
-      </div>
-      <div class="fixlink">${fix}</div>
-    </div>`,
+    body: `<dl class="rows">
+        <div><span class="k">Name</span><span class="v"><b>${esc(R.firstName)} ${esc(R.lastName)}</b></span></div>
+        ${S.jobs.map((j, i) => jobRow(S, j, i)).join('')}
+        <div><span class="k">Experience</span><span class="v" id="total-years">${totalYears(S.jobs)}</span><button type="button" class="link" id="edit-jobs">${S.editJobs ? 'Done' : 'Fix dates'}</button></div>
+        ${educationRows(S, R)}
+        <div><span class="k">Contact</span><span class="v">${esc(R.email)}<small>${esc(R.phoneCountryCode)} ${esc(R.phoneNumber)} · ${esc(R.city)}, ${esc(R.country)}</small></span></div>
+      </dl>
+      <p class="note">Name, email or phone wrong? Tell your AI in the chat.</p>
+      ${q('Your links', `<ul class="rows">${linkRow('linkedin', 'LinkedIn', S.linkedin)}${linkRow('github', 'GitHub', S.github)}${linkRow('portfolio', 'Portfolio', S.portfolio)}</ul>`, 'from your resume')}`,
   };
 }
 
@@ -229,17 +200,15 @@ function skillsView(S: State): View {
   const steppers = Object.entries(S.skills)
     .map(
       ([k, v]) =>
-        `<div class="skill"><span>${esc(k)}</span><div class="stepper"><button type="button" data-step="-1" data-skill="${esc(k)}" aria-label="Fewer years of ${esc(k)}">${icon('minus')}</button><output aria-live="polite">${yrs(v)}</output><button type="button" data-step="1" data-skill="${esc(k)}" aria-label="More years of ${esc(k)}">${icon('plus')}</button></div></div>`,
+        `<li><span class="v"><b>${esc(k)}</b></span><span class="stepper"><button type="button" data-step="-1" data-skill="${esc(k)}" aria-label="Fewer years of ${esc(k)}">${icon('minus')}</button><output aria-live="polite">${yrs(v)}</output><button type="button" data-step="1" data-skill="${esc(k)}" aria-label="More years of ${esc(k)}">${icon('plus')}</button></span></li>`,
     )
     .join('');
   return {
     title: 'Your skills',
-    sub: 'Forms ask how many years you have with each one. We guessed from your resume.',
-    body: `<div class="stagger">
-      ${q('Years per skill', `<div class="skills">${steppers}</div>`, 'guessed')}
-      ${q('Your English', seg('english', [['Native', 'Native'], ['Fluent', 'Fluent'], ['Professional', 'Work level'], ['Basic', 'Basic']], S.english, true))}
-      ${q("When a form asks about a skill you don't have", seg('unlisted', [['Answer 0 years', 'Answer 0 years'], ['Ask me first', 'Ask me first']], S.unlisted, true))}
-    </div>`,
+    sub: 'Forms ask how many years you have with each one. Guessed from your resume; change what is off.',
+    body: `${q('Years per skill', `<ul class="rows">${steppers}</ul>`, 'guessed')}
+      ${q('Your English', radios('english', [['Native', 'Native'], ['Fluent', 'Fluent'], ['Professional', 'Work level'], ['Basic', 'Basic']], S.english))}
+      ${q("When a form asks about a skill you don't have", radios('unlisted', [['Answer 0 years', 'Answer 0 years'], ['Ask me first', 'Ask me first']], S.unlisted))}`,
   };
 }
 
@@ -252,21 +221,16 @@ function payView(S: State): View {
     title: 'Notice and pay',
     sub: 'Almost every form asks these three.',
     blocked: !S.notice || (!S.currentNone && !num(S.current)) || (S.expected === 'other' && !num(S.expectedOther)),
-    body: `<div class="stagger">
-      ${q('When can you start?', `<div class="chips">${noticeOptions(S).map(([v, l]) => chip({ type: 'radio', name: 'notice', value: v, on: S.notice === v }, l)).join('')}</div>`, fromNote(S, 'notice'))}
+    body: `${q('When can you start?', radios('notice', noticeOptions(S), S.notice), fromNote(S, 'notice'))}
       ${q(
         'What you earn now',
-        `<div class="money-row">
-          <div class="field"><select id="currency" aria-label="Currency">${currencies}</select><span class="sep"></span>
-            <input type="text" id="current" inputmode="numeric" autocomplete="off" aria-label="What you earn now" placeholder="${S.currentNone ? 'Not shared' : 'Amount'}" value="${esc(S.current)}" ${S.currentNone ? 'disabled' : ''}></div>
-          ${seg('period', [['annual', 'A year'], ['monthly', 'A month']], S.period)}
-        </div>
+        `<div class="inline"><select class="field" id="currency" aria-label="Currency">${currencies}</select>
+          <input class="field grow" type="text" id="current" inputmode="numeric" autocomplete="off" aria-label="What you earn now" placeholder="${S.currentNone ? 'Not shared' : 'Amount, numbers only'}" value="${esc(grouped(S.current, S.currency))}" ${S.currentNone ? 'disabled' : ''}></div>
         <p class="words" id="current-words">${cur ? esc(words(cur, S.currency, S.period)) : ''}</p>
-        <div class="chips">${chip({ type: 'checkbox', name: 'currentNone', value: '1', on: S.currentNone }, 'Prefer not to say')}</div>`,
+        ${opts(`${opt({ type: 'radio', name: 'period', value: 'annual', on: S.period === 'annual' }, 'A year')}${opt({ type: 'radio', name: 'period', value: 'monthly', on: S.period === 'monthly' }, 'A month')}${opt({ type: 'checkbox', name: 'currentNone', value: '1', on: S.currentNone }, 'Prefer not to say')}`)}`,
         fromNote(S, 'current'),
       )}
-      ${q('What you want', `<div id="expected-box">${expBox}</div>`, S.from.expected ? 'from your resume' : 'pick a raise')}
-    </div>`,
+      ${q('What you want', `<div id="expected-box">${expBox}</div>`, S.from.expected ? 'from your resume' : 'pick a raise')}`,
   };
 }
 
@@ -274,20 +238,14 @@ function payView(S: State): View {
 function whereView(S: State): View {
   const R = S.resume;
   const cities = [...new Set([...(R?.suggestedLocations ?? []), ...S.locations])].filter((l) => !/^remote$/i.test(l));
-  const modes: [string, string, string, string][] = [
-    ['remote', 'Remote', 'From home', 'home'],
-    ['hybrid', 'Hybrid', 'Some days in', 'swap'],
-    ['onsite', 'Office', 'Every day', 'building'],
-  ];
+  const modes: [string, string][] = [['remote', 'Remote'], ['hybrid', 'Hybrid'], ['onsite', 'Office']];
   return {
     title: 'Where do you want to work?',
-    sub: 'Picked from your resume. Tap to change.',
+    sub: 'Everything is picked. Tap one to take it away.',
     blocked: !S.modes.length || (!S.locations.length && !S.modes.includes('remote')),
-    body: `<div class="stagger">
-      ${q('How', `<div class="cards">${modes.map(([v, l, s, ic]) => card({ type: 'checkbox', name: 'mode', value: v, on: S.modes.includes(v) }, l, { small: s, ic })).join('')}</div>`, fromNote(S, 'modes') || 'one or more')}
-      ${q('Cities', `<div class="chips">${cities.map((l) => chip({ type: 'checkbox', name: 'location', value: l, on: S.locations.includes(l) })).join('')}</div>${addBox('location', 'Add a city')}`)}
-      ${q('Moving', `<label class="switch"><span>Open to moving to another city<small>Jobs in other cities show up too</small></span><input type="checkbox" id="relocate" ${S.relocate ? 'checked' : ''}></label>`, fromNote(S, 'relocate'))}
-    </div>`,
+    body: `${q('How', opts(modes.map(([v, l]) => opt({ type: 'checkbox', name: 'mode', value: v, on: S.modes.includes(v) }, l)).join('')), fromNote(S, 'modes') || 'one or more')}
+      ${q('Cities', `${opts(cities.map((l) => opt({ type: 'checkbox', name: 'location', value: l, on: S.locations.includes(l) })).join(''))}${addBox('location', 'Add a city')}`)}
+      ${toggle('relocate', S.relocate, 'Open to moving to another city', 'Jobs in other cities fit too')}`,
   };
 }
 
@@ -296,66 +254,75 @@ function permissionView(S: State): View {
   const left = COUNTRIES.filter((c) => !S.countries.some((x) => x.name === c));
   const rows = S.countries
     .map((c, i) => {
-      const remove = i ? `<button type="button" class="btn btn-plain icon-btn" data-remove="${i}" aria-label="Remove ${esc(c.name)}">${icon('x')}</button>` : '';
-      const choice = seg(`country-${i}`, [['yes', 'No visa needed'], ['later', 'Visa later'], ['need', 'Need a visa']], c.value, true);
-      return `<div class="country"><div class="country-head"><span class="code">${code(c.name)}</span>${esc(c.name)}${remove}</div>${choice}</div>`;
+      const remove = i ? `<button type="button" class="link" data-remove="${i}" aria-label="Remove ${esc(c.name)}">Remove</button>` : '';
+      return `<fieldset class="q"><legend>${esc(c.name)}${remove}</legend>${radios(`country-${i}`, [['yes', 'No visa needed'], ['later', 'Visa later'], ['need', 'Need a visa']], c.value)}</fieldset>`;
     })
     .join('');
   return {
     title: 'Where can you work without a visa?',
     sub: 'Forms ask about work permission and visa sponsorship for each country.',
     blocked: !S.countries.length,
-    body: `<div class="stagger">
-      <div class="countries">${rows}</div>
-      <select class="add-country" id="add-country" aria-label="Add a country"><option value="">+ Add a country you would move to</option>${left.map((c) => `<option>${c}</option>`).join('')}</select>
-    </div>`,
+    body: `${rows}
+      <select class="field" id="add-country" aria-label="Add a country"><option value="">Add a country you would move to</option>${left.map((c) => `<option>${c}</option>`).join('')}</select>`,
   };
 }
 
-/* ── 6 Jobs ─────────────────────────────────────────── */
+/* ── 6 Details: what company sites require; every one can be skipped ── */
+function detailsView(S: State): View {
+  const thisYear = new Date().getFullYear();
+  const list = (first: string, items: [number | string, string | number][]): [number | string, string | number][] => [['', first], ...items];
+  const days = list('Day', Array.from({ length: 31 }, (_, k): [number, number] => [k + 1, k + 1]));
+  const months = list('Month', MONTHS.map((m, k): [number, string] => [k + 1, m]));
+  const years = list('Year', Array.from({ length: 60 }, (_, k): [number, number] => [thisYear - 16 - k, thisYear - 16 - k]));
+  const yesNo = (name: string, value: string) => radios(name, [['No', 'No'], ['Yes', 'Yes'], ['Skip', 'Skip']], value);
+  const row = (id: string, label: string, value: string, extra = '') =>
+    `<li><label class="k" for="${id}">${label}</label><input class="field v" type="text" id="${id}" value="${esc(value)}" placeholder="Optional" autocomplete="off" ${extra}></li>`;
+  return {
+    title: 'Details forms ask',
+    sub: 'Company sites often require these. Answer once, so your AI never has to stop for them. Skip any you like.',
+    body: `${q('Date of birth', `<div class="inline">${pick('id="dob-d"', days, S.dob.d, 'Day')}${pick('id="dob-m"', months, S.dob.m, 'Month')}${pick('id="dob-y"', years, S.dob.y, 'Year')}</div>`)}
+      ${q('Gender', opts(GENDERS.map((g) => opt({ type: 'radio', name: 'gender', value: g, on: S.gender === g })).join('')))}
+      <ul class="rows gap-bottom">${row('nationality', 'Nationality', S.nationality)}${row('postal', 'Postal code', S.postal, 'inputmode="numeric"')}${row('marks', 'Marks or CGPA', S.marks)}</ul>
+      ${q('Have you ever been convicted of a crime?', yesNo('convicted', S.convicted))}
+      ${q('Are you bound by a non-compete agreement?', yesNo('compete', S.compete))}
+      <p class="note">ID numbers (PAN, Aadhaar, passport) are never saved. A form that needs one waits for you.</p>`,
+  };
+}
+
+/* ── 7 Jobs ─────────────────────────────────────────── */
 function jobsView(S: State): View {
   const titles = [...new Set([...(S.resume?.suggestedTitles ?? []), ...S.extraTitles])];
   const now = S.jobs.find((j) => !j.end);
-  const current = now
-    ? `<label class="switch"><span>Never apply to ${esc(now.company)}<small>Where you work now</small></span><input type="checkbox" id="skip-current" ${S.skipCurrent ? 'checked' : ''}></label>`
-    : '';
-  const others = S.skipOthers.length ? `<div class="chips gap-top">${S.skipOthers.map((c) => chip({ type: 'checkbox', name: 'skipOther', value: c, on: true })).join('')}</div>` : '';
+  const current = now ? toggle('skip-current', S.skipCurrent, `Never apply to ${now.company}`, 'Where you work now') : '';
+  const others = S.skipOthers.length ? opts(S.skipOthers.map((c) => opt({ type: 'checkbox', name: 'skipOther', value: c, on: true })).join('')) : '';
   return {
     title: 'Which jobs should it apply to?',
     sub: 'Suggested from your resume. Pick one or more.',
     blocked: !S.titles.length,
-    body: `<div class="stagger">
-      ${q('Job titles', `<div class="chips">${titles.map((t) => chip({ type: 'checkbox', name: 'title', value: t, on: S.titles.includes(t) })).join('')}</div>${addBox('title', 'Add a job title')}`, 'one or more')}
-      ${q('Companies to skip', `${current}${others}${addBox('skip', 'Another company to skip')}`, 'optional')}
-    </div>`,
+    body: `${q('Job titles', `${opts(titles.map((t) => opt({ type: 'checkbox', name: 'title', value: t, on: S.titles.includes(t) })).join(''))}${addBox('title', 'Add a job title')}`, 'one or more')}
+      ${q('Companies to skip', `${current}${others}${addBox('skip', 'Another company to skip')}`, 'optional')}`,
   };
 }
 
-/* ── 7 NorthList ────────────────────────────────────── */
+/* ── 8 NorthList: a working picture of the app, not a list of claims ── */
 const northListView = (): View => ({
-  title: 'Track every application in one place',
-  sub: 'Connect NorthList, and everything your AI sends shows up there by itself.',
+  title: 'See every application in one place',
+  sub: 'Connect NorthList, and every job your AI applies to shows up there by itself, with the answers it sent and the replies from your Gmail.',
   cta: 'Connect NorthList',
   skip: true,
-  body: `<div class="stagger">
-    <ul class="perks">
-      <li><span class="ic">${icon('layers')}</span><div><b>From every site</b><span>LinkedIn, Naukri, Indeed, Workday, company pages and more, in one list</span></div></li>
-      <li><span class="ic">${icon('pulse')}</span><div><b>See where your AI is applying</b><span>Each job it sends, with the answers it gave</span></div></li>
-      <li><span class="ic">${icon('mail')}</span><div><b>Replies, sorted for you</b><span>Interview calls and rejections from your Gmail, next to each job</span></div></li>
-      <li><span class="ic">${icon('phone')}</span><div><b>On your phone too</b><span>Install NorthList and get an alert when a company replies. <a class="inline-link" href="${NL_MOBILE}" target="_blank" rel="noopener">See it on a phone</a></span></div></li>
-    </ul>
-    <a class="film" href="${NL_HOME}" target="_blank" rel="noopener"><span class="film-thumb"><span>${icon('play')}</span></span><span><b>Watch NorthList in 60 seconds</b><small>northlist.site</small></span></a>
-  </div>`,
+  body: `${picture()}
+    <p class="try"><span>Try it: tap a job to see what your AI sent, or pick a site. Also <a href="${NL_MOBILE}" target="_blank" rel="noopener">on your phone</a>.</span>
+      <a class="film" href="${NL_HOME}" target="_blank" rel="noopener">${icon('play')}Watch NorthList in 60 seconds</a></p>`,
 });
 
-/* ── 8 Done ─────────────────────────────────────────── */
+/* ── 9 Done ─────────────────────────────────────────── */
 function doneView(S: State): View {
   const exp = expectedAmount(S);
   const pay = S.currentNone ? 'Not shared' : `${words(currentAmount(S), S.currency, S.period)}${exp ? ` → ${words(exp, S.currency, S.period, true)}` : ''}`;
   const rows: [string, string][] = [
     ['Notice', S.notice === '0' ? 'Right away' : `${S.notice} days`],
     ['Pay', pay],
-    ['Where', whereLine(S)],
+    ['Where', `${whereLine(S)}${S.relocate ? ', open to moving' : ''}`],
     ['Can work in', permissionLine(S)],
     ['Jobs', S.titles.join(', ')],
   ];
@@ -363,17 +330,14 @@ function doneView(S: State): View {
     title: "You're all set.",
     sub: 'Go back to your AI chat. It is saving your answers now, so there is nothing to type.',
     done: true,
-    body: `<div class="stagger">
-      <svg class="done-mark" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30"/><path d="M20 33l8 8 16-17"/></svg>
-      <p class="status"><span class="dot live"></span><span class="shimmer">Your AI is saving your answers…</span></p>
-      <dl class="saved">${rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
-      <div class="for-ai"><p>For your AI · Nothing after a minute? Type <b>done</b> in the chat.</p><pre id="northlist-answers">${esc(answers(S))}</pre></div>
-    </div>`,
+    body: `<p class="status"><i></i>Your AI is saving your answers…</p>
+      <dl class="rows">${rows.map(([k, v]) => `<div><span class="k">${k}</span><span class="v">${esc(v)}</span></div>`).join('')}</dl>
+      <div class="for-ai"><p>For your AI · Nothing after a minute? Type <b>done</b> in the chat.</p><pre id="northlist-answers">${esc(answers(S))}</pre></div>`,
   };
 }
 
 /** The screen for the current step. */
 export function view(S: State, demo: boolean): View {
-  const views = [() => resumeView(S, demo), () => aboutView(S), () => skillsView(S), () => payView(S), () => whereView(S), () => permissionView(S), () => jobsView(S), northListView, () => doneView(S)];
+  const views = [() => resumeView(S, demo), () => aboutView(S), () => skillsView(S), () => payView(S), () => whereView(S), () => permissionView(S), () => detailsView(S), () => jobsView(S), northListView, () => doneView(S)];
   return views[Math.min(S.step, DONE)]();
 }
