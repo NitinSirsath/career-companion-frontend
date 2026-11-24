@@ -5,6 +5,15 @@ import { appIcon } from './appIcons.ts';
 import { icon, mark } from './icons.ts';
 
 /**
+ * Loads the next page early (Chrome, Edge): when a link to another page of the site is held under the
+ * pointer for a moment, or pressed, the browser readies that page in the background, so the click shows it
+ * at once. Other browsers ignore it.
+ */
+const SPECULATION = `<script type="speculationrules">${JSON.stringify({
+  prerender: [{ where: { and: [{ href_matches: '/*' }, { not: { href_matches: '/*.*' } }] }, eagerness: 'moderate' }],
+})}</script>`;
+
+/**
  * Fills a page's placeholders with the shared parts, when the site is built (and in the dev server),
  * so every page's words are in its HTML before any script runs:
  * `<div data-site-header></div>`, `<div data-site-footer></div>`, `<p data-lead></p>`,
@@ -17,6 +26,7 @@ export function fillParts(html: string): string {
   const inside = (hook: string, content: string) =>
     html.replace(new RegExp(`(<div[^>]* ${hook}[^>]*>)(</div>)`, 'g'), (_, open: string, close: string) => open + content + close);
   html = html
+    .replace('</head>', () => `${SPECULATION}\n</head>`)
     .replace('<div data-site-header></div>', () => header(page))
     .replace('<div data-site-footer></div>', () => footer())
     .replace(/<p data-lead><\/p>/g, () => `<p>${DATA_LEAD}</p>`);
