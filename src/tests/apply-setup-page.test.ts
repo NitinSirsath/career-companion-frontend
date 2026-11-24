@@ -1,20 +1,26 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
+  DONE,
+  STEPS,
   answers,
   applyResume,
   badDates,
+  birthDate,
+  digits,
+  grouped,
   newState,
   parseDate,
   readFacts,
   settleExpected,
+  totalYears,
   totalYearsCount,
   words,
   type Resume,
 } from '../../site/apply/setup/data';
 
-/** The NorthList Apply setup page, northlist.site/apply/setup (owner, 23 Nov 2026). */
+/** The NorthList Apply setup page, northlist.site/apply/setup (owner, 23 Nov 2026; clean look, 24 Nov). */
 const site = (name: string) => readFileSync(resolve(__dirname, '../../site', name), 'utf8');
 const TODAY = new Date(2026, 10, 23);
 const facts = (extra: Partial<Resume> = {}): Resume => ({
@@ -105,6 +111,100 @@ describe('the resume facts in the link', () => {
   });
 });
 
+describe('what is picked from the start', () => {
+  it('picks every way of working, every suggested city and "open to moving"', () => {
+    const S = newState();
+    expect([S.modes, S.relocate]).toEqual([['remote', 'hybrid', 'onsite'], true]);
+    applyResume(
+      S,
+      facts({ suggestedLocations: ['Pune', 'Mumbai', 'Bengaluru'], checkedLocations: ['Pune'] }),
+      TODAY,
+    );
+    expect(S.locations).toEqual(['Pune', 'Mumbai', 'Bengaluru']);
+    expect(answers(S)).toContain('- **Willing to Relocate:** Yes');
+  });
+
+  it('still lets the resume win when it states the way of working or moving', () => {
+    const S = newState();
+    applyResume(S, facts({ workModes: ['hybrid'], relocate: false }), TODAY);
+    expect([S.modes, S.relocate]).toEqual([['hybrid'], false]);
+  });
+});
+
+describe('the details company sites ask', () => {
+  it('has its own step before Jobs, nine steps in all', () => {
+    expect(STEPS.indexOf('Details')).toBe(6);
+    expect(DONE).toBe(9);
+  });
+
+  it('writes None for everything the user skipped, and never a guess', () => {
+    const S = newState();
+    applyResume(S, facts({ noticeDays: 30 }), TODAY);
+    const block = answers(S);
+    for (const line of [
+      '- **LinkedIn Profile URL:** None',
+      '- **Date of Birth:** None',
+      '- **Gender:** None',
+      '- **Nationality:** Indian',
+      '- **Postal Code:** None',
+      '- **Marks or CGPA (highest degree):** None',
+      '- **Ever convicted of a crime:** None',
+      '- **Bound by a non-compete agreement:** None',
+    ])
+      expect(block).toContain(line);
+  });
+
+  it('takes links and details the resume states, and what the user answers', () => {
+    const S = newState();
+    applyResume(
+      S,
+      facts({
+        linkedinUrl: 'https://www.linkedin.com/in/rahul-verma',
+        githubUrl: 'https://github.com/rahulv',
+        dateOfBirth: '1998-04-07',
+        gender: 'Man',
+        postalCode: '411001',
+      }),
+      TODAY,
+    );
+    expect(S.dob).toEqual({ y: '1998', m: '4', d: '7' });
+    Object.assign(S, { convicted: 'No', compete: 'No', marks: '8.4 CGPA' });
+    const block = answers(S);
+    for (const line of [
+      '- **LinkedIn Profile URL:** https://www.linkedin.com/in/rahul-verma',
+      '- **GitHub Profile URL:** https://github.com/rahulv',
+      '- **Personal Portfolio URL:** None',
+      '- **Date of Birth:** 1998-04-07',
+      '- **Gender:** Man',
+      '- **Postal Code:** 411001',
+      '- **Marks or CGPA (highest degree):** 8.4 CGPA',
+      '- **Ever convicted of a crime:** No',
+    ])
+      expect(block).toContain(line);
+    expect(birthDate({ d: '7', m: '', y: '1998' })).toBe('None'); // a half-picked date is not a date
+  });
+});
+
+describe('skill years', () => {
+  it('rounds a half year the AI wrote to whole years, so the page never shows a blank', () => {
+    const S = newState();
+    applyResume(S, facts({ skillYears: { 'Node.js': 3.5, Java: 1.9, Go: 40 } }), TODAY);
+    expect(S.skills).toEqual({ 'Node.js': 4, Java: 2, Go: 15 });
+    expect(answers(S)).toContain(
+      '- **Years of experience per skill:** Node.js: 4, Java: 2, Go: 15+',
+    );
+  });
+});
+
+describe('money', () => {
+  it('takes digits only and shows them grouped', () => {
+    expect(digits('sfdd18sf00,0x00')).toBe('1800000');
+    expect(grouped('1800000', 'INR')).toBe('18,00,000');
+    expect(grouped('135000', 'USD')).toBe('135,000');
+    expect(grouped('abc', 'INR')).toBe('');
+  });
+});
+
 describe('the answers', () => {
   it('counts overlapping jobs once and leaves out a career break', () => {
     const S = newState();
@@ -119,10 +219,30 @@ describe('the answers', () => {
       }),
       TODAY,
     );
-    expect(totalYearsCount(S.jobs, TODAY)).toBe(9);
+    expect(totalYearsCount(S.jobs, TODAY)).toBe(9.3);
     expect(badDates(S.jobs)).toBe(false);
     S.jobs[1].end = { y: 2018, m: 0 };
     expect(badDates(S.jobs)).toBe(true);
+  });
+
+  it('keeps half years: 18 months is 1.5, never rounded down to 1', () => {
+    const S = newState();
+    applyResume(
+      S,
+      facts({
+        employers: [{ company: 'Nova', title: 'Developer', start: '2025-05', end: 'Present' }],
+      }),
+      TODAY,
+    );
+    expect(totalYearsCount(S.jobs, TODAY)).toBe(1.5);
+    expect(totalYears(S.jobs, TODAY)).toBe('1.5 years');
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(TODAY);
+    try {
+      expect(answers(S)).toContain('- **Total Years of Experience:** 1.5');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('writes money in lakh and crore for rupees', () => {
@@ -168,17 +288,49 @@ describe('the answers', () => {
 
 describe('the page', () => {
   const html = site('apply/setup/index.html');
-  const code = ['data.ts', 'views.ts', 'stage.ts', 'setup.ts']
+  const code = ['data.ts', 'views.ts', 'northlist.ts', 'setup.ts'
     .map((f) => site(`apply/setup/${f}`))
     .join('\n');
 
-  it('is built with the site, kept out of search, and dark unless the user picks light', () => {
+  it('is built with the site, kept out of search, and light unless the user picks dark', () => {
     expect(readFileSync(resolve(__dirname, '../../vite.site.config.ts'), 'utf8')).toContain(
       "'apply/setup/index'",
     );
     expect(html).toContain('<meta name="robots" content="noindex">');
-    expect(html).toContain('data-theme="dark"');
+    expect(html).toContain('<html lang="en" data-theme="light">');
+    expect(html).toContain("localStorage.getItem('nl-apply-theme') === 'dark'");
     expect(html).toContain('id="theme"');
+  });
+
+  it('is one column with its own styles, and leaves the run page its own', () => {
+    expect(html).toContain('/styles/apply-onboard.css');
+    expect(html).not.toContain('apply-setup.css');
+    expect(html).not.toContain('class="stage"');
+    expect(site('apply/run/index.html')).toContain('/styles/apply-setup.css');
+  });
+
+  it('tells the AI which step the page is on, and has no Enter hint', () => {
+    expect(code).toContain('`Step ${S.step + 1} of ${DONE} · ${STEPS[S.step]}`');
+    expect(code).not.toMatch(/Press <b>Enter<\/b>|Enter to continue/);
+  });
+
+  it('draws NorthList with its own logo, and the phone as an iPhone lock screen', () => {
+    const logo = readFileSync(resolve(__dirname, '../components/layout/Logo.tsx'), 'utf8');
+    const small = /const SMALL =\s*'([^']+)'/.exec(logo)?.[1] ?? 'no mark found';
+    expect(code).toContain(small); // the same mark as the app, never a look-alike
+    expect(code).toContain('aria-label="NorthList"');
+    for (const part of ['ph-cut', 'ph-status', 'ph-widgets', 'ph-keys', 'ph-home', 'ph-btn'])
+      expect(code).toContain(`class="${part}`);
+    // The phone's parts carry their own prefix: a part named "btn" or "status" would pick up the page's styles
+    const drawing = /const phone = `([\s\S]*?)`/.exec(site('apply/setup/northlist.ts'))?.[1] ?? '';
+    const classes = [...drawing.matchAll(/class="([^"]+)"/g)].map((c) => c[1].split(' ')[0]);
+    expect(classes.length).toBeGreaterThan(12);
+    expect(classes.filter((c) => !/^(ph-|w-|nl-)/.test(c))).toEqual([]);
+  });
+
+  it('shows NorthList as a working picture: sites to pick, jobs to open, a phone alert', () => {
+    for (const hook of ['data-nl-tab', 'data-nl-row', 'data-nl-open', 'Your AI is applying now'])
+      expect(code).toContain(hook);
   });
 
   it('sends nothing anywhere: no server calls, no tracking', () => {
