@@ -13,17 +13,17 @@ export const POLICY = '/privacy.html';
 
 /** The main links, centred in the header: label, address, and the page they mark as current. */
 const NAV: [string, string, string][] = [
-  ['Features', '/#features', 'features'],
+  ['Home', '/', 'home'],
   ['Mobile', '/mobile', 'mobile'],
   ['NorthList Apply', '/automation', 'automation'],
   ['NorthList Posts', '/posts', 'posts'],
-  ['Pricing', '/pricing', 'pricing'],
+  ['About', '/about', 'about'],
 ];
-/** Footer-only pages, also listed in the phone menu. */
+/** Pages linked from the footer only on laptops, also listed in the phone menu. */
 const MORE: [string, string, string][] = [
   ['Privacy', '/privacy/', 'privacy'],
+  ['Pricing', '/pricing', 'pricing'],
   ['Changelog', '/changelog', 'changelog'],
-  ['About', '/about', 'about'],
 ];
 
 /** The header, and the full-screen menu that phones open from it. Dark only, so no theme switch (owner, 19 Nov 2026). */
