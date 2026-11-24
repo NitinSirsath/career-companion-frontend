@@ -39,8 +39,6 @@ svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-widt
 .app { display: grid; grid-template-columns: minmax(500px, 580px) 1fr; height: 100dvh; }
 .left { display: flex; flex-direction: column; min-height: 0; padding: 26px 52px 22px; }
 .top { display: flex; align-items: center; justify-content: space-between; }
-.logo { display: flex; align-items: center; gap: 9px; color: inherit; text-decoration: none; font-weight: 650; font-size: 15px; letter-spacing: -.01em; }
-.logo-mark { width: 24px; height: 24px; border-radius: 7px; background: var(--text-primary); color: var(--canvas); display: grid; place-items: center; font-size: 12px; font-weight: 700; }
 .top-note { font-size: 12.5px; color: var(--text-tertiary); }
 .top-right { display: flex; align-items: center; gap: 12px; }
 .theme { width: 32px; height: 32px; border: 0; border-radius: 999px; display: grid; place-items: center; background: transparent; color: var(--text-secondary); cursor: pointer; box-shadow: inset 0 0 0 1px var(--border-default); transition: background .15s, color .15s, transform .2s var(--spring); }
