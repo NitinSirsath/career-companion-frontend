@@ -149,7 +149,7 @@ export type NotSubmittedJob = z.infer<typeof NotSubmittedJobSchema>;
 export const ListNotSubmittedJobsResponseSchema =
   createPaginatedResponseSchema(NotSubmittedJobSchema);
 export type ListNotSubmittedJobsResponse = z.infer<typeof ListNotSubmittedJobsResponseSchema>;
- 
+
 // ─── GET /api/submissions/tasks ─────────────────────────────────────────────
 
 /**
