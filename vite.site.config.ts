@@ -24,6 +24,7 @@ const PAGES = [
   'about/index',
   'apply/setup/index',
   'apply/run/index',
+  'apply/plan/index',
 ];
 
 const sharedFiles: Plugin = {
