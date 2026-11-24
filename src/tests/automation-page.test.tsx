@@ -21,6 +21,7 @@ vi.mock('../api/client', async (importOriginal) => {
       getPendingSubmissions: vi.fn(),
       listApplications: vi.fn(),
       getNotSubmittedJobs: vi.fn(),
+      getApplyTasks: vi.fn(),
     },
   };
 });
@@ -102,6 +103,10 @@ beforeEach(() => {
   vi.mocked(api.getPendingSubmissions).mockResolvedValue(page([]));
   vi.mocked(api.listApplications).mockResolvedValue(page([]));
   vi.mocked(api.getNotSubmittedJobs).mockResolvedValue(page([]));
+  vi.mocked(api.getApplyTasks).mockResolvedValue({
+    ...page([]),
+    summary: { tasks: 0, sent: 0, minutes: 0, earlier: 0 },
+  });
   storageWrites = [];
   vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (key: string, value: string) {
     storageWrites.push(`${key}=${value}`);

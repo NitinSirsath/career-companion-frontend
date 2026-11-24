@@ -35,6 +35,7 @@ import {
   McpConnectionResponseSchema,
   ListApplicationSubmissionsResponseSchema,
   ListNotSubmittedJobsResponseSchema,
+  ListApplyTasksResponseSchema,
   ListPendingSubmissionsResponseSchema,
   PortalPasswordResponseSchema,
   ResolveSubmissionResponseSchema,
@@ -75,6 +76,7 @@ import type {
   McpConnectionResponse,
   ListApplicationSubmissionsResponse,
   ListNotSubmittedJobsResponse,
+  ListApplyTasksResponse,
   ListPendingSubmissionsResponse,
   PortalPasswordResponse,
   ResolveSubmissionRequest,
@@ -289,6 +291,7 @@ export class ApiClient {
     if (params?.submittedVia) urlParams.append('submittedVia', params.submittedVia);
     if (params?.group) urlParams.append('group', params.group);
     if (params?.reply) urlParams.append('reply', params.reply);
+    if (params?.applyTask) urlParams.append('applyTask', params.applyTask);
     if (params?.sort) urlParams.append('sort', params.sort);
     const q = urlParams.toString();
     return this.request(
@@ -625,6 +628,18 @@ export class ApiClient {
       `/api/submissions/not-submitted?offset=${params.offset ?? 0}&limit=${params.limit ?? 20}`,
       { method: 'GET', cache: 'no-store', signal: options?.signal },
       ListNotSubmittedJobsResponseSchema,
+    );
+  }
+
+  /** NorthList Apply runs, newest first, with totals over all runs (25 Nov 2026). */
+  async getApplyTasks(
+    params: { offset?: number; limit?: number } = {},
+    options?: RequestOptions,
+  ): Promise<ListApplyTasksResponse> {
+    return this.request(
+      `/api/submissions/tasks?offset=${params.offset ?? 0}&limit=${params.limit ?? 20}`,
+      { method: 'GET', cache: 'no-store', signal: options?.signal },
+      ListApplyTasksResponseSchema,
     );
   }
 

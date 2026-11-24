@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="/styles/apply-setup.css">
 <link rel="stylesheet" href="/styles/apply-setup-stage.css">
 <link rel="stylesheet" href="/styles/apply-runpage.css">
+<link rel="stylesheet" href="/styles/apply-logo.css">
 <!-- Light or dark before the first paint: dark unless the user picked light on this computer -->
 <script>try { if (localStorage.getItem('nl-apply-theme') === 'light') document.documentElement.dataset.theme = 'light'; } catch {}</script>
 </head>
@@ -27,7 +28,7 @@
 <div class="app">
   <div class="left">
     <div class="top">
-      <a class="logo" href="/"><span class="logo-mark" aria-hidden="true">N</span> NorthList Apply</a>
+      <a class="logo" href="/"><i data-wordmark="18"></i><span class="logo-app">Apply</span></a>
       <div class="top-right"><span class="top-note" id="top-note"></span><button type="button" class="theme" id="theme" aria-label="Switch to light mode"></button></div>
     </div>
     <form class="step run-step" id="page" novalidate></form>

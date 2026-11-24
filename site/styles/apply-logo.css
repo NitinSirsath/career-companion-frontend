@@ -1,0 +1,8 @@
+/* The NorthList logo on the NorthList Apply pages (owner, 25 Nov 2026): the site's wordmark, then "Apply".
+   Same wordmark and mark colours as the site header (chrome.css, base.css); loaded after each page's own CSS. */
+:root { --mark: #0f62fe; --logo-text: #18181b; --logo-app: #6b6b70; }
+:root[data-theme="dark"] { --mark: #4c86ff; --logo-text: #f7f8f8; --logo-app: #8a8f98; }
+.logo { display: inline-flex; align-items: baseline; gap: 6px; color: var(--logo-text); text-decoration: none; }
+.logo .wm { display: inline-block; font-weight: 700; letter-spacing: -0.045em; white-space: nowrap; line-height: 1; color: var(--logo-text); }
+.logo .wm svg { display: inline-block; width: 0.57em; height: 0.57em; margin: 0 -0.031em 0 0.011em; vertical-align: -0.017em; fill: var(--mark); }
+.logo-app { font-size: 15px; font-weight: 500; letter-spacing: -0.01em; color: var(--logo-app); line-height: 1; }

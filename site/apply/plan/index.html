@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Today’s plan · NorthList Apply</title>
+<meta name="description" content="Pick the job sites and how many jobs NorthList Apply applies to today.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles/apply-onboard.css">
+<link rel="stylesheet" href="/styles/apply-plan.css">
+<link rel="stylesheet" href="/styles/apply-logo.css">
+<!-- Light or dark before the first paint: light unless the user picked dark on this computer -->
+<script>try { if (localStorage.getItem('nl-apply-theme') === 'dark') document.documentElement.dataset.theme = 'dark'; } catch {}</script>
+</head>
+<body>
+<!--
+  Today's plan of NorthList Apply (owner, 25 Nov 2026). The user's AI opens it at `start`
+  (instructions/plan_page.md): the last plan comes after "#", the user picks sites and numbers, and the AI
+  reads the plan back from this page's text. Nothing is sent anywhere.
+-->
+<header class="top">
+  <a class="logo" href="/"><i data-wordmark="18"></i><span class="logo-app">Apply</span></a>
+  <div class="top-right"><button type="button" class="theme" id="theme" aria-label="Switch to dark mode"></button></div>
+</header>
+<main id="main" class="plan-main"></main>
+<div class="pl-foot" id="foot"><div class="pl-foot-in">
+  <div class="pl-total" id="total" aria-live="polite"></div>
+  <div class="pl-actions">
+    <button type="button" class="quiet" id="reset" hidden>Same as last time</button>
+    <button type="button" class="btn" id="go">Start with this plan</button>
+  </div>
+</div></div>
+<script type="module" src="/apply/plan/plan.ts"></script>
+</body>
+</html>

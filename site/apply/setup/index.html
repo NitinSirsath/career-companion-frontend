@@ -13,6 +13,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/styles/apply-onboard.css">
+<link rel="stylesheet" href="/styles/apply-logo.css">
 <!-- Light or dark before the first paint: light unless the user picked dark on this computer -->
 <script>try { if (localStorage.getItem('nl-apply-theme') === 'dark') document.documentElement.dataset.theme = 'dark'; } catch {}</script>
 </head>
@@ -23,7 +24,7 @@
   answers back from this page's text. Nothing is sent anywhere.
 -->
 <header class="top">
-  <a class="logo" href="/"><span class="logo-mark" aria-hidden="true">N</span> NorthList Apply</a>
+  <a class="logo" href="/"><i data-wordmark="18"></i><span class="logo-app">Apply</span></a>
   <div class="top-right"><span class="top-note" id="top-note"></span><button type="button" class="theme" id="theme" aria-label="Switch to dark mode"></button></div>
 </header>
 <div class="progress" role="presentation"><i><b id="bar"></b></i></div>

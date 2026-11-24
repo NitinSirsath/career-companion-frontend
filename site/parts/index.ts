@@ -2,7 +2,7 @@ import { releases } from './changelogPage.ts';
 import { footer, header } from './chrome.ts';
 import { DATA_LEAD, flow, promises } from './data.ts';
 import { appIcon } from './appIcons.ts';
-import { icon, mark } from './icons.ts';
+import { icon, mark, wordmark } from './icons.ts';
 
 /**
  * Loads the next page early (Chrome, Edge): when a link to another page of the site is held under the
@@ -19,7 +19,8 @@ const SPECULATION = `<script type="speculationrules">${JSON.stringify({
  * `<div data-site-header></div>`, `<div data-site-footer></div>`, `<p data-lead></p>`,
  * `<div … data-promises></div>`, `<div … data-flow></div>`, `<div … data-changelog></div>`,
  * `<i data-icon="name" data-size="16"></i>`, `<i data-app-icon="name" data-size="16"></i>` (the app's own
- * icons, inside the pictures of the app) and `<i data-mark="16"></i>`.
+ * icons, inside the pictures of the app), `<i data-mark="16"></i>` and `<i data-wordmark="18"></i>` (the
+ * whole logo, on the NorthList Apply pages).
  */
 export function fillParts(html: string): string {
   const page = /<body data-page="([a-z]+)"/.exec(html)?.[1] ?? '';
@@ -40,5 +41,6 @@ export function fillParts(html: string): string {
     .replace(/<i data-app-icon="([A-Za-z]+)"(?: data-size="(\d+)")?><\/i>/g, (_, name: string, size?: string) =>
       appIcon(name, Number(size) || 16),
     )
-    .replace(/<i data-mark="(\d+)"><\/i>/g, (_, size: string) => mark(Number(size)));
+    .replace(/<i data-mark="(\d+)"><\/i>/g, (_, size: string) => mark(Number(size)))
+    .replace(/<i data-wordmark="(\d+)"><\/i>/g, (_, size: string) => wordmark(Number(size)));
 }
