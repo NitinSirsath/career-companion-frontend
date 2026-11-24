@@ -1,8 +1,8 @@
 /*
- * NorthList Apply setup page, northlist.site/apply/setup (owner, 23 Nov 2026). The user's AI opens it from
- * NorthList Apply (instructions/setup_page.md): the resume first, then 8 short screens, then Done. The page
- * sends nothing anywhere: the resume facts arrive after "#", the answers stay in this browser until Done,
- * and the AI reads them back from the page text. Dark by default, with a light/dark switch.
+ * NorthList Apply setup page, northlist.site/apply/setup (owner, 23 Nov 2026; clean look, 24 Nov). The user's
+ * AI opens it from NorthList Apply (instructions/setup_page.md): the resume first, then 9 short screens, then
+ * Done. The page sends nothing anywhere: the resume facts arrive after "#", the answers stay in this browser
+ * until Done, and the AI reads them back from the page text. Light by default, with a light/dark switch.
  */
 import {
   DONE,
@@ -11,9 +11,10 @@ import {
   applyResume,
   badDates,
   currentAmount,
+  digits,
   esc,
+  grouped,
   newState,
-  num,
   readFacts,
   totalYears,
   words,
@@ -21,14 +22,15 @@ import {
   type FileInfo,
   type Resume,
   type State,
+  type TextKey,
 } from './data.ts';
-import { drawPicture, drawStrip, fitScene, fitStrip, rings } from './stage.ts';
-import { NL_SETUP, expectedHTML, icon, view, type View } from './views.ts';
+import { pictureClick, play } from './northlist.ts';
+import { NL_SETUP, expectedHTML, expectedWords, icon, view, type View } from './views.ts';
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector<T>(s);
 const params = new URLSearchParams(location.search);
 const DEMO = params.has('demo');
-const KEY = 'nl-apply-setup';
+const KEY = 'nl-apply-setup-2';
 const THEME_KEY = 'nl-apply-theme';
 const S: State = newState();
 const form = $<HTMLFormElement>('#step');
@@ -55,6 +57,8 @@ const SAMPLE: Resume = {
   suggestedLocations: ['Pune', 'Bengaluru', 'Mumbai', 'Hyderabad'],
   checkedLocations: ['Pune'],
   englishGuess: 'Professional',
+  linkedinUrl: 'https://www.linkedin.com/in/asha-rao',
+  githubUrl: 'https://github.com/asharao',
 };
 
 /* ── Keeping the answers until Done ─────────────────── */
@@ -87,15 +91,11 @@ function restore(R: Resume | null): boolean {
 /* ── Drawing ────────────────────────────────────────── */
 function footer(v: View): string {
   if (v.done) return '';
-  const back = S.step > 0 ? '<button type="button" class="btn btn-ghost" id="back">Back</button>' : '<span class="kbd">Press <b>Enter</b> to continue</span>';
-  const skip = v.skip ? '<button type="button" class="btn btn-plain" id="skip">Not now</button>' : '';
-  return `<div class="footer">${back}<div class="right">${skip}<button type="submit" class="btn btn-primary" ${v.blocked ? 'disabled' : ''}>${esc(v.cta ?? 'Continue')}</button></div></div>`;
+  const back = S.step > 0 ? '<button type="button" class="quiet" id="back">Back</button>' : '<span></span>';
+  const skip = v.skip ? '<button type="button" class="quiet" id="skip">Not now</button>' : '';
+  return `<div class="foot">${back}<div class="right">${skip}<button type="submit" class="btn" ${v.blocked ? 'disabled' : ''}>${esc(v.cta ?? 'Continue')}</button></div></div>`;
 }
 
-const barClass = (i: number) => {
-  if (S.step > i) return 'done';
-  return S.step === i ? 'now' : '';
-};
 /** The AI waits for this title: "Resume added" tells it to look for the dropped file, "Done" to read the answers. */
 function pageTitle(v: View): string {
   if (v.done) return 'Done · NorthList Apply setup';
@@ -104,34 +104,27 @@ function pageTitle(v: View): string {
 
 function render() {
   current = view(S, DEMO);
-  const progress = $('#progress');
-  if (progress) {
-    progress.innerHTML = STEPS.slice(0, DONE)
-      .map((_, i) => `<i class="${barClass(i)}"></i>`)
-      .join('');
-    progress.setAttribute('aria-label', `Step ${Math.min(S.step + 1, DONE)} of ${DONE}`);
-  }
+  const bar = $('#bar');
+  if (bar) bar.style.width = `${(Math.min(S.step, DONE) / DONE) * 100}%`;
+  // The AI reads this line when the user says "done" too early (instructions/setup_page.md, step 4)
   const note = $('#top-note');
-  if (note) note.textContent = S.step === DONE ? 'Done' : `About ${Math.max(1, Math.ceil((DONE - S.step) * 0.4))} min left`;
+  if (note) note.textContent = S.step === DONE ? 'Done' : `Step ${S.step + 1} of ${DONE} · ${STEPS[S.step]}`;
   if (form)
-    form.innerHTML = `${S.step < DONE ? `<p class="kicker">Step ${S.step + 1} of ${DONE} · ${STEPS[S.step]}</p>` : ''}
-      <h1>${esc(current.title)}</h1><p class="sub">${esc(current.sub)}</p>
-      <div class="content">${current.body}</div><p class="error" id="err" role="alert"></p>${footer(current)}`;
+    form.innerHTML = `<h1 tabindex="-1">${esc(current.title)}</h1><p class="lead">${esc(current.sub)}</p>
+      ${current.body}<p class="error" id="err" role="alert"></p>${footer(current)}`;
   document.title = pageTitle(current);
-  drawPicture(S, true);
-  drawStrip(S);
+  if (S.step === NL) play();
   save();
 }
 
-/** After an answer: only the button and the picture change, so nothing jumps. */
+/** After an answer: only the button changes, so nothing jumps. */
 function refresh() {
   current = view(S, DEMO);
-  const b = form?.querySelector<HTMLButtonElement>('.btn-primary');
+  const b = form?.querySelector<HTMLButtonElement>('.btn');
   if (b) {
     b.disabled = Boolean(current.blocked);
     b.textContent = current.cta ?? 'Continue';
   }
-  drawPicture(S, false);
   save();
 }
 
@@ -140,17 +133,28 @@ function go(to: number) {
   if (next === NL && S.northlist === 'connected') next = next > S.step ? DONE : NL - 1; // already connected: no pitch
   if (next === S.step) return;
   const forward = next > S.step;
+  let moved = false;
   const update = () => {
+    if (moved) return;
+    moved = true;
     S.step = next;
     render();
+    form?.querySelector<HTMLElement>('h1')?.focus({ preventScroll: true });
   };
   scrollTo(0, 0);
-  if (!document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) return update();
+  // In a hidden tab (the AI app's browser is often in the background) a transition can be dropped with its update: no motion there
+  if (!document.startViewTransition || document.hidden || matchMedia('(prefers-reduced-motion: reduce)').matches) return update();
+  const quiet = (t: ViewTransition) => {
+    t.ready.catch(() => {});
+    t.finished.catch(() => {});
+  };
   try {
-    document.startViewTransition({ update, types: [forward ? 'forward' : 'backward'] });
+    quiet(document.startViewTransition({ update, types: [forward ? 'forward' : 'backward'] }));
   } catch {
-    document.startViewTransition(update);
+    quiet(document.startViewTransition(update));
   }
+  // A tab that is shown but not painting never runs the transition's update: move on without the motion
+  setTimeout(update, 400);
 }
 
 /* ── Answers ────────────────────────────────────────── */
@@ -179,31 +183,28 @@ function addItem(kind: string) {
   $(`#add-${kind}`)?.focus();
 }
 
-/** Typing the salary only updates the numbers; the raise cards are rebuilt only when they appear or go. */
+/** Typing the salary only updates the words; the raise picks are rebuilt only when they appear or go. */
 function moneyUpdate() {
   const n = currentAmount(S);
   const out = $('#current-words');
   if (out) out.textContent = n ? words(n, S.currency, S.period) : '';
   const box = $('#expected-box');
   if (!box) return;
-  const cards = box.querySelectorAll<HTMLElement>('.card');
-  if (n && cards.length) {
-    cards.forEach((c) => {
-      const raise = Number(c.querySelector('input')?.value);
-      const small = c.querySelector('small');
-      if (small) small.textContent = words(Math.round(n * (1 + raise / 100)), S.currency, S.period, true);
-    });
-  } else if (Boolean(n) !== Boolean(cards.length)) box.innerHTML = expectedHTML(S);
+  const hasRaises = Boolean(box.querySelector('input[name="expected"][value="30"]'));
+  if (Boolean(n) !== hasRaises) box.innerHTML = expectedHTML(S);
+  const want = $('#expected-words');
+  if (want) want.textContent = expectedWords(S);
 }
 
 const checkedValues = (name: string) => [...(form?.querySelectorAll<HTMLInputElement>(`input[name="${name}"]:checked`) ?? [])].map((x) => x.value);
 
+/** A job's dates: two short lists each, and "now" for the job the user still has. */
 function onJobDate(t: HTMLInputElement) {
   const j = S.jobs[Number(t.dataset.job)];
   const today = new Date();
   const part = t.dataset.part;
-  if (part === 'now') {
-    j.end = t.checked ? null : { y: today.getFullYear(), m: today.getMonth() };
+  if (part === 'em' && (t.value === 'now' || !j.end)) {
+    j.end = t.value === 'now' ? null : { y: today.getFullYear(), m: Number(t.value) };
     return render();
   }
   const value = Number(t.value);
@@ -229,9 +230,11 @@ function onChoice(t: HTMLInputElement): boolean {
     expected: () => {
       S.expected = t.value;
       S.expectedTouched = true;
-      const other = $('#other-box');
+      const other = $<HTMLInputElement>('#expected-other');
       if (other) other.hidden = S.expected !== 'other';
-      if (S.expected === 'other') $('#expected-other')?.focus();
+      if (S.expected === 'other') other?.focus();
+      const want = $('#expected-words');
+      if (want) want.textContent = expectedWords(S);
     },
     mode: () => (S.modes = checkedValues('mode')),
     location: () => (S.locations = checkedValues('location')),
@@ -239,23 +242,30 @@ function onChoice(t: HTMLInputElement): boolean {
     skipOther: () => (S.skipOthers = checkedValues('skipOther')),
     english: () => (S.english = t.value),
     unlisted: () => (S.unlisted = t.value),
+    gender: () => (S.gender = t.value),
+    convicted: () => (S.convicted = t.value),
+    compete: () => (S.compete = t.value),
   };
   const byId: Record<string, () => void> = {
     currency: () => {
       S.currency = t.value;
-      moneyUpdate();
+      render();
     },
     relocate: () => (S.relocate = t.checked),
     'skip-current': () => (S.skipCurrent = t.checked),
+    'dob-d': () => (S.dob.d = t.value),
+    'dob-m': () => (S.dob.m = t.value),
+    'dob-y': () => (S.dob.y = t.value),
   };
   if (t.name === 'currentNone') {
     S.currentNone = t.checked;
+    if (t.checked) S.current = '';
     render();
     return true;
   }
   if (t.name.startsWith('country-')) S.countries[Number(t.name.slice(8))].value = t.value as State['countries'][number]['value'];
   else (byName[t.name] ?? byId[t.id])?.();
-  return false;
+  return t.id === 'currency';
 }
 
 function onChange(e: Event) {
@@ -276,16 +286,28 @@ function onChange(e: Event) {
   refresh();
 }
 
+/** Text the user types. Money takes digits only and is shown grouped (18,00,000). */
+const TEXT: Record<string, TextKey> = {
+  linkedin: 'linkedin',
+  github: 'github',
+  portfolio: 'portfolio',
+  nationality: 'nationality',
+  postal: 'postal',
+  marks: 'marks',
+};
 function onInput(e: Event) {
   const t = e.target as HTMLInputElement;
   if (t.id === 'current') {
-    S.current = t.value;
+    S.current = digits(t.value);
+    t.value = grouped(S.current, S.currency);
     moneyUpdate();
   } else if (t.id === 'expected-other') {
-    S.expectedOther = t.value;
-    const out = $('#other-words');
-    if (out) out.textContent = num(S.expectedOther) ? words(num(S.expectedOther), S.currency, S.period) : '';
-  } else return;
+    S.expectedOther = digits(t.value);
+    t.value = grouped(S.expectedOther, S.currency);
+    const want = $('#expected-words');
+    if (want) want.textContent = expectedWords(S);
+  } else if (TEXT[t.id]) S[TEXT[t.id]] = t.value;
+  else return;
   refresh();
 }
 
@@ -307,6 +329,7 @@ function onSkillStep(t: HTMLElement) {
 function onClick(e: Event) {
   const t = (e.target as HTMLElement).closest<HTMLElement>('button');
   if (!t) return;
+  if (pictureClick(t)) return;
   const actions: Record<string, () => void> = {
     back: () => go(S.step - 1),
     skip: () => {
@@ -314,7 +337,7 @@ function onClick(e: Event) {
       go(S.step + 1);
     },
     'edit-jobs': () => {
-      S.editJobs = true;
+      S.editJobs = !S.editJobs;
       render();
     },
     'change-file': startOver,
@@ -357,13 +380,6 @@ function wire() {
       $('#file')?.click();
     }
   });
-  // Enter continues from anywhere, except in a text box, a list, a link or on a button
-  document.addEventListener('keydown', (e) => {
-    const t = e.target as HTMLElement;
-    if (e.key !== 'Enter' || e.defaultPrevented || t.closest('textarea, input[type=text], button, select, a, #drop')) return;
-    e.preventDefault();
-    form.requestSubmit();
-  });
   const onDrop = (e: DragEvent) => {
     if (!(e.target as HTMLElement).closest('#drop')) return;
     e.preventDefault();
@@ -372,10 +388,6 @@ function wire() {
     if (f) takeFile(f);
   };
   for (const type of ['dragover', 'dragleave', 'drop'] as const) form.addEventListener(type, onDrop);
-  addEventListener('resize', () => {
-    fitScene();
-    fitStrip();
-  });
   // The AI fills in the page by changing the link; the page then moves on by itself
   addEventListener('hashchange', () => {
     const R = readFacts(location.hash);
@@ -386,35 +398,31 @@ function wire() {
   });
 }
 
-/* ── Light / dark: dark by default, the choice remembered on this computer ── */
+/* ── Light / dark: light by default (owner, 24 Nov 2026), the choice remembered on this computer ── */
 function drawTheme() {
-  const light = document.documentElement.dataset.theme === 'light';
+  const dark = document.documentElement.dataset.theme === 'dark';
   const b = $('#theme');
   if (!b) return;
-  b.innerHTML = icon(light ? 'moon' : 'sun');
-  b.setAttribute('aria-label', light ? 'Switch to dark mode' : 'Switch to light mode');
+  b.innerHTML = icon(dark ? 'sun' : 'moon');
+  b.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode');
 }
 function wireTheme() {
   $('#theme')?.addEventListener('click', () => {
     const root = document.documentElement;
-    const light = root.dataset.theme !== 'light';
-    root.classList.add('theme-swap');
-    root.dataset.theme = light ? 'light' : 'dark';
+    const dark = root.dataset.theme !== 'dark';
+    root.dataset.theme = dark ? 'dark' : 'light';
     try {
-      localStorage.setItem(THEME_KEY, light ? 'light' : 'dark');
+      localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light');
     } catch {
       /* not remembered */
     }
     drawTheme();
-    setTimeout(() => root.classList.remove('theme-swap'), 350);
   });
   drawTheme();
 }
 
 /* ── Start ──────────────────────────────────────────── */
 if (params.has('fresh')) forget();
-const ringsEl = $('#rings');
-if (ringsEl) ringsEl.innerHTML = rings();
 wire();
 wireTheme();
 const first = readFacts(location.hash);
