@@ -81,25 +81,27 @@ describe('the product site pages', () => {
   );
 
   it('marks the open page in the header', () => {
-    expect(doc('pricing').querySelector('.nav [aria-current="page"]')?.textContent).toBe('Pricing');
+    expect(doc('about').querySelector('.nav [aria-current="page"]')?.textContent).toBe('About');
+    expect(doc('pricing').querySelector('.nav [aria-current="page"]')).toBeNull();
     expect(doc('automation').querySelector('.nav [aria-current="page"]')?.textContent).toBe(
       'NorthList Apply',
     );
     expect(doc('mobile').querySelector('.nav [aria-current="page"]')?.textContent).toBe('Mobile');
-    expect(doc('home').querySelector('.nav [aria-current="page"]')).toBeNull();
+    expect(doc('home').querySelector('.nav [aria-current="page"]')?.textContent).toBe('Home');
   });
 
-  it('shows five links in the header; Privacy, Changelog and About sit in the footer and the phone menu', () => {
+  it('shows five links in the header; Privacy, Pricing and Changelog sit in the footer and the phone menu', () => {
     const d = doc('pricing');
     expect([...d.querySelectorAll('.nav a')].map((a) => a.textContent)).toEqual([
-      'Features',
+      'Home',
       'Mobile',
       'NorthList Apply',
       'NorthList Posts',
-      'Pricing',
+      'About',
     ]);
     const menu = [...d.querySelectorAll('#site-sheet a.row')].map((a) => a.textContent?.trim());
-    for (const label of ['Privacy', 'Changelog', 'About']) expect(menu).toContain(label);
+    for (const label of ['Privacy', 'Pricing', 'Changelog', 'About']) expect(menu).toContain(label);
+    expect(new Set(menu).size).toBe(menu.length);
   });
 });
 
