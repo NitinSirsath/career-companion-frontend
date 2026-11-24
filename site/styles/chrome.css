@@ -54,3 +54,19 @@
 .ftr .base { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; padding-top: 16px; font-size: 13px; color: var(--text-3); }
 @media (max-width: 1023px) { .ftr-in { grid-template-columns: repeat(3, minmax(0, 1fr)); } .ftr .brandcol { grid-column: 1 / -1; } }
 @media (max-width: 599px) { .ftr-in { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 48px var(--gut) 28px; gap: 32px 16px; } }
+
+/*
+ * Page changes (owner, 25 Nov 2026): the site is plain pages, so each link loads a new page. Browsers that
+ * can (Chrome, Edge, Safari 18.2+) fade the old page into the new one and keep the header still; others
+ * change page as before. Off when the visitor asks for less motion.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+}
+.hdr { view-transition-name: site-header; }
+::view-transition-group(root),
+::view-transition-old(root),
+::view-transition-new(root) { animation-duration: 180ms; animation-timing-function: var(--ease); }
+::view-transition-group(site-header) { animation: none; }
+::view-transition-old(site-header) { display: none; }
+::view-transition-new(site-header) { animation: none; }
