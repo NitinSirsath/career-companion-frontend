@@ -23,7 +23,6 @@ vi.mock('../api/client', async (importOriginal) => {
       getNotSubmittedJobs: vi.fn(),
       getApplyTasks: vi.fn(),
     },
-
   };
 });
 
