@@ -341,7 +341,7 @@ function detailsFrom(S: State, R: Resume) {
     ['marks', R.marks],
   ];
   for (const [key, value] of text) if (!S[key] && value) S[key] = value;
-  const born = String(R.dateOfBirth ?? '').match(/^(\\d{4})-(\\d{1,2})-(\\d{1,2})/);
+  const born = String(R.dateOfBirth ?? '').match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
   if (born && !S.dob.y) S.dob = { y: born[1], m: String(+born[2]), d: String(+born[3]) };
   if (!S.gender && R.gender && GENDERS.includes(R.gender)) S.gender = R.gender;
 }
