@@ -1,6 +1,6 @@
 /*
- * NorthList Apply setup page (owner, 23 Nov 2026): the state and the plain rules, with no page code, so the
- * tests can check them. The user's AI puts what it read from the resume after "#" in the link (never sent to
+ * NorthList Apply setup page (owner, 23 Nov 2026; clean light look and more questions, 24 Nov): the state and
+ * the plain rules, with no page code, so the tests can check them. The user's AI puts what it read from the resume after "#" in the link (never sent to
  * a server); the page asks the rest; the AI reads the answers back from the block between
  * BEGIN/END NORTHLIST ANSWERS (instructions/setup_page.md in northlist-apply).
  */
@@ -51,8 +51,25 @@ export interface Resume {
   workModes?: string[];
   relocate?: boolean;
   workAuth?: { country: string; value: string }[];
+  /** Links the resume shows, also the ones behind words like "LinkedIn". */
+  linkedinUrl?: string;
+  githubUrl?: string;
+  portfolioUrl?: string;
+  /** Only when the resume says them: many resumes list these under "Personal details". */
+  dateOfBirth?: string;
+  gender?: string;
+  nationality?: string;
+  postalCode?: string;
+  marks?: string;
   resumeFile?: FileInfo;
   northlistConnected?: boolean;
+}
+/** The answers that are plain text the user may type or fix. */
+export type TextKey = 'linkedin' | 'github' | 'portfolio' | 'nationality' | 'postal' | 'marks';
+export interface Dob {
+  d: string;
+  m: string;
+  y: string;
 }
 export interface Job {
   company: string;
@@ -96,6 +113,16 @@ export interface State {
   previous: string;
   northlist: NorthList;
   from: Record<string, boolean>;
+  linkedin: string;
+  github: string;
+  portfolio: string;
+  dob: Dob;
+  gender: string;
+  nationality: string;
+  postal: string;
+  marks: string;
+  convicted: string;
+  compete: string;
 }
 
 export const newState = (): State => ({
@@ -113,9 +140,10 @@ export const newState = (): State => ({
   expectedTouched: false,
   expectedOther: '',
   countries: [],
-  modes: ['remote', 'hybrid'],
+  // Everything is picked from the start (owner, 24 Nov 2026): the user only takes away what does not fit
+  modes: ['remote', 'hybrid', 'onsite'],
   locations: [],
-  relocate: false,
+  relocate: true,
   titles: [],
   extraTitles: [],
   skipCurrent: true,
@@ -126,16 +154,43 @@ export const newState = (): State => ({
   previous: 'No, unless the company is in my work history',
   northlist: 'later',
   from: {},
+  linkedin: '',
+  github: '',
+  portfolio: '',
+  dob: { d: '', m: '', y: '' },
+  gender: '',
+  nationality: '',
+  postal: '',
+  marks: '',
+  convicted: '',
+  compete: '',
 });
 
-/** 8 short screens, 1 to 4 related questions each, then Done. */
-export const STEPS = ['Resume', 'About you', 'Skills', 'Notice and pay', 'Where', 'Work permission', 'Jobs', 'NorthList', 'Done'];
+/** 9 short screens, then Done. "Details" holds the facts company sites require (birth date, gender and so on). */
+export const STEPS = ['Resume', 'About you', 'Skills', 'Notice and pay', 'Where', 'Work permission', 'Details', 'Jobs', 'NorthList', 'Done'];
 export const DONE = STEPS.length - 1;
 export const NL = DONE - 1;
 export const YEARS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15+'];
 export const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 export const COUNTRIES = ['India', 'United States', 'United Kingdom', 'Canada', 'United Arab Emirates', 'Singapore', 'Germany', 'Netherlands', 'Australia', 'Ireland'];
 export const MODE_NAMES: Record<string, string> = { remote: 'Remote', hybrid: 'Hybrid', onsite: 'Office' };
+export const GENDERS = ['Woman', 'Man', 'Another', 'Prefer not to say'];
+const NATIONALITY: Record<string, string> = {
+  India: 'Indian',
+  'United States': 'American',
+  'United Kingdom': 'British',
+  Canada: 'Canadian',
+  'United Arab Emirates': 'Emirati',
+  Singapore: 'Singaporean',
+  Germany: 'German',
+  Netherlands: 'Dutch',
+  Australia: 'Australian',
+  Ireland: 'Irish',
+};
+
+/** Money fields take digits only; they are shown grouped the way the country writes them. */
+export const digits = (s: unknown) => String(s ?? '').replace(/\D/g, '').slice(0, 11);
+export const grouped = (s: unknown, cur: string) => (digits(s) ? Number(digits(s)).toLocaleString(cur === 'INR' ? 'en-IN' : 'en-US') : '');
 
 export const num = (s: unknown) => Number(String(s ?? '').replace(/[^\d.]/g, '')) || 0;
 export const esc = (s: unknown) =>
@@ -182,7 +237,7 @@ export const iso = (d: Ym | null) => (d ? `${d.y}-${String(d.m + 1).padStart(2, 
 const monthIndex = (d: Ym) => d.y * 12 + d.m;
 export const badDates = (jobs: Job[]) => jobs.some((j) => j.end && monthIndex(j.start) > monthIndex(j.end));
 
-/** Whole years worked; overlapping jobs count once. */
+/** Years worked with one decimal (18 months = 1.5); overlapping jobs count once. */
 export function totalYearsCount(jobs: Job[], today = new Date()): number {
   const cur = { y: today.getFullYear(), m: today.getMonth() };
   const spans = jobs.map((j) => [monthIndex(j.start), monthIndex(j.end ?? cur)]).sort((a, b) => a[0] - b[0]);
@@ -193,7 +248,7 @@ export function totalYearsCount(jobs: Job[], today = new Date()): number {
     if (b > from) months += b - from;
     edge = Math.max(edge, b);
   }
-  return Math.floor(months / 12);
+  return Math.round((months * 10) / 12) / 10;
 }
 export const totalYears = (jobs: Job[], today = new Date()) => {
   const n = totalYearsCount(jobs, today);
@@ -275,6 +330,22 @@ function permissionFrom(S: State, R: Resume) {
   S.from.auth = true;
 }
 
+/** Links and personal details: what the resume says, never a guess (the nationality follows the country and can be changed). */
+function detailsFrom(S: State, R: Resume) {
+  const text: [TextKey, string | undefined][] = [
+    ['linkedin', R.linkedinUrl],
+    ['github', R.githubUrl],
+    ['portfolio', R.portfolioUrl],
+    ['nationality', R.nationality ?? NATIONALITY[R.country ?? '']],
+    ['postal', R.postalCode],
+    ['marks', R.marks],
+  ];
+  for (const [key, value] of text) if (!S[key] && value) S[key] = value;
+  const born = String(R.dateOfBirth ?? '').match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (born && !S.dob.y) S.dob = { y: born[1], m: String(+born[2]), d: String(+born[3]) };
+  if (!S.gender && R.gender && GENDERS.includes(R.gender)) S.gender = R.gender;
+}
+
 function normalize(R: Resume) {
   R.country = fullCountry(R.country);
   for (const a of R.workAuth ?? []) if (a) a.country = fullCountry(a.country);
@@ -286,20 +357,44 @@ export function applyResume(S: State, R: Resume | null, today = new Date()): boo
   normalize(R);
   S.resume = R;
   S.currency = R.currency || S.currency;
-  if (!S.locations.length) S.locations = (R.checkedLocations ?? []).filter((l) => !/^remote$/i.test(l));
+  if (!S.locations.length) S.locations = [...new Set([...(R.checkedLocations ?? []), ...(R.suggestedLocations ?? [])])].filter((l) => !/^remote$/i.test(l));
   if (!S.titles.length) S.titles = [...(R.checkedTitles ?? [])];
-  S.skills = Object.fromEntries(Object.entries(R.skillYears ?? {}).map(([k, v]) => [k, Math.min(15, Number(v) || 0)]));
+  // Whole years only: an AI may write 3.5, and the steppers count in years
+  S.skills = Object.fromEntries(Object.entries(R.skillYears ?? {}).map(([k, v]) => [k, Math.max(0, Math.min(15, Math.round(Number(v) || 0)))]));
   S.english = R.englishGuess || S.english;
   if (!S.jobs.length) S.jobs = jobsFrom(R, today);
   if (S.jobs.some((j) => j.check)) S.editJobs = true;
   S.northlist = R.northlistConnected ? 'connected' : S.northlist;
   statedFacts(S, R);
   permissionFrom(S, R);
+  detailsFrom(S, R);
   return true;
 }
 
 export const whereLine = (S: State) => [...S.modes.map((m) => MODE_NAMES[m]), ...S.locations].join(', ');
 export const permissionLine = (S: State) => S.countries.map((c) => c.name + (c.value === 'yes' ? '' : ' (visa)')).join(', ');
+
+/** A yes/no the user may skip: only a real Yes or No is written. */
+const yesNo = (v: string) => (v === 'Yes' || v === 'No' ? v : 'None');
+/** YYYY-MM-DD, or None until day, month and year are all picked. */
+export const birthDate = (b: Dob) => (b.d && b.m && b.y ? `${b.y}-${b.m.padStart(2, '0')}-${b.d.padStart(2, '0')}` : 'None');
+
+/** Links and the details company sites ask: `None` for everything the user left out. */
+function detailLines(S: State): string[] {
+  const or = (v: string) => v.trim() || 'None';
+  return [
+    `- **LinkedIn Profile URL:** ${or(S.linkedin)}`,
+    `- **GitHub Profile URL:** ${or(S.github)}`,
+    `- **Personal Portfolio URL:** ${or(S.portfolio)}`,
+    `- **Date of Birth:** ${birthDate(S.dob)}`,
+    `- **Gender:** ${or(S.gender)}`,
+    `- **Nationality:** ${or(S.nationality)}`,
+    `- **Postal Code:** ${or(S.postal)}`,
+    `- **Marks or CGPA (highest degree):** ${or(S.marks)}`,
+    `- **Ever convicted of a crime:** ${yesNo(S.convicted)}`,
+    `- **Bound by a non-compete agreement:** ${yesNo(S.compete)}`,
+  ];
+}
 
 function profileLines(S: State): string[] {
   const cur = currentAmount(S);
@@ -321,6 +416,7 @@ function profileLines(S: State): string[] {
     `- **Work Modes Accepted:** ${S.modes.join(' / ')}`,
     `- **Willing to Relocate:** ${S.relocate ? 'Yes' : 'No'}`,
     `- **Companies to Skip:** ${skip.join(', ') || 'None'}`,
+    ...detailLines(S),
   ];
 }
 

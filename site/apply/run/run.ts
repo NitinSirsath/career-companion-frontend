@@ -166,12 +166,23 @@ function fit() {
   sc.style.left = `${(box.clientWidth - 740 * k) / 2}px`;
   box.style.height = `${Math.round(540 * k + 24)}px`;
 }
+/** Numbers count up on screen only: a hidden page (or the AI reading it) always gets the real numbers. */
 function countUp() {
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  document.querySelectorAll<HTMLElement>('[data-count]').forEach((b) => {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches || document.visibilityState !== 'visible') return;
+  const nums = [...document.querySelectorAll<HTMLElement>('[data-count]')];
+  let done = false;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    nums.forEach((b) => (b.textContent = b.dataset.count ?? b.textContent));
+  };
+  document.addEventListener('visibilitychange', finish, { once: true });
+  setTimeout(finish, 1200);
+  nums.forEach((b) => {
     const end = Number(b.dataset.count);
     const t0 = performance.now() + 150;
     const tick = (now: number) => {
+      if (done) return;
       const k = Math.min(1, Math.max(0, (now - t0) / 900));
       b.textContent = String(Math.round(end * (1 - (1 - k) ** 3)));
       if (k < 1) requestAnimationFrame(tick);
