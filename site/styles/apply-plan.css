@@ -1,0 +1,63 @@
+/* NorthList Apply plan page, northlist.site/apply/plan (owner, 25 Nov 2026; mock APPLY-TASKS-mock/plan.html).
+   Built on the setup page's clean look (apply-onboard.css): one column, thin lines, no boxes, no blue.
+   Its own parts start with pl- so they never meet the setup page's classes. */
+main.plan-main { padding-bottom: 168px; }
+.pl-enter { animation: pl-in .28s var(--ease); }
+@keyframes pl-in { from { opacity: 0; transform: translateY(8px); } }
+.lead b { color: var(--text); font-weight: 500; }
+
+.pl-group { margin: 0 0 32px; }
+.pl-group h2 { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 14px; font-weight: 600; margin: 0 0 6px; }
+.pl-group h2 small { font-weight: 400; color: var(--faint); font-size: 12px; text-align: right; }
+.pl-group .rows > li { min-height: 56px; }
+
+.pick { display: flex; align-items: center; gap: 12px; border: 0; background: none; padding: 4px 0; text-align: left; flex: 1; min-width: 0; }
+.pick[aria-disabled="true"] { cursor: default; }
+.box { width: 18px; height: 18px; border-radius: 6px; box-shadow: inset 0 0 0 1.5px var(--soft-2); display: grid; place-items: center; flex: none; transition: background .15s, box-shadow .15s; }
+.box svg { width: 12px; height: 12px; opacity: 0; transform: scale(.6); transition: opacity .15s, transform .2s var(--ease); }
+.pick[aria-pressed="true"] .box { background: var(--btn); box-shadow: none; color: var(--btn-text); }
+.pick[aria-pressed="true"] .box svg { opacity: 1; transform: none; }
+.nm { display: grid; min-width: 0; }
+.nm b { font-weight: 500; color: var(--muted); transition: color .15s; }
+.pick[aria-pressed="true"] .nm b, .pick:hover .nm b { color: var(--text); }
+.nm small { color: var(--faint); font-size: 12px; }
+
+.pl-group .stepper { gap: 2px; transition: opacity .2s; }
+.pl-group .stepper[data-off] { visibility: hidden; opacity: 0; }
+.pl-group .stepper button { width: 30px; height: 30px; font-size: 18px; line-height: 1; }
+.pl-group .stepper button:disabled { color: var(--soft-2); cursor: default; background: none; }
+.pl-group .stepper output { min-width: 34px; font-weight: 600; display: inline-block; }
+.pl-group .stepper output.tick { animation: pl-tick .3s var(--ease); }
+@keyframes pl-tick { from { translate: 0 -4px; opacity: .3; } }
+.cap { color: var(--faint); font-size: 12px; min-width: 52px; text-align: right; font-variant-numeric: tabular-nums; }
+.note code, .pl-done code { font: 13px ui-monospace, "SF Mono", Menlo, monospace; background: var(--soft); padding: 1px 6px; border-radius: 6px; color: var(--text); }
+
+/* The total and the one main action stay at the bottom of the window. */
+.pl-foot { position: fixed; inset: auto 0 0 0; background: linear-gradient(to bottom, transparent, var(--bg) 28px); padding: 36px 24px calc(24px + env(safe-area-inset-bottom)); }
+.pl-foot-in { max-width: 600px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.pl-total { display: grid; font-size: 14px; }
+.pl-total b { font-weight: 600; font-variant-numeric: tabular-nums; }
+.pl-total small { color: var(--muted); font-size: 13px; }
+.pl-total .warn { color: var(--text); }
+.pl-actions { display: flex; align-items: center; gap: 20px; flex: none; }
+
+/* Done */
+.pl-check { width: 40px; height: 40px; border-radius: 50%; background: var(--btn); color: var(--btn-text); display: grid; place-items: center; margin-bottom: 24px; animation: pl-pop .4s var(--ease); }
+.pl-check svg { width: 20px; height: 20px; }
+@keyframes pl-pop { from { transform: scale(.6); opacity: 0; } }
+.pl-plan { font-size: 20px; font-weight: 600; margin: 0 0 28px; line-height: 1.5; }
+.pl-plan span { display: block; }
+.pl-plan small { color: var(--muted); font-weight: 400; font-size: 14px; }
+.pl-readback-label { font-size: 12px; color: var(--faint); margin: 40px 0 6px; }
+.pl-readback { margin: 0; padding: 14px 16px; border-radius: 12px; background: var(--soft); color: var(--muted); font: 12px/1.6 ui-monospace, "SF Mono", Menlo, monospace; white-space: pre-wrap; }
+
+@media (prefers-reduced-motion: reduce) { .pl-enter, .pl-check, .pl-group .stepper output.tick { animation: none; } }
+@media (max-width: 520px) {
+  .cap { display: none; }
+  .pl-group h2 { display: grid; gap: 0; }
+  .pl-group h2 small { text-align: left; }
+  .pl-foot { padding: 28px 16px calc(16px + env(safe-area-inset-bottom)); }
+  .pl-foot-in { flex-direction: column; align-items: stretch; gap: 12px; }
+  .pl-actions { justify-content: space-between; }
+  .pl-actions .btn { flex: 1; }
+}
