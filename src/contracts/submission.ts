@@ -198,4 +198,3 @@ export const ListApplyTasksResponseSchema = createPaginatedResponseSchema(ApplyT
   summary: ApplyTaskSummarySchema,
 });
 export type ListApplyTasksResponse = z.infer<typeof ListApplyTasksResponseSchema>;
-
