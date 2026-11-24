@@ -322,7 +322,7 @@ describe('the page', () => {
     for (const part of ['ph-cut', 'ph-status', 'ph-widgets', 'ph-keys', 'ph-home', 'ph-btn'])
       expect(code).toContain(`class="${part}`);
     // The phone's parts carry their own prefix: a part named "btn" or "status" would pick up the page's styles
-    const drawing = /const phone = `([\s\S]*?)`/.exec(site('apply/setup/northlist.ts'))?.[1] ?? '';
+    const drawing = /const phone = `([\s\S]*?)`;/.exec(site('apply/setup/northlist.ts'))?.[1] ?? '';
     const classes = [...drawing.matchAll(/class="([^"]+)"/g)].map((c) => c[1].split(' ')[0]);
     expect(classes.length).toBeGreaterThan(12);
     expect(classes.filter((c) => !/^(ph-|w-|nl-)/.test(c))).toEqual([]);
