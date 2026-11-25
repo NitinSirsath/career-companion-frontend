@@ -44,3 +44,6 @@
   /* The flat grain ends softly into the page above the words */
   .hf-hero::after, .mb-hero::after { top: calc(var(--film-h) - 120px); bottom: auto; height: 121px; }
 }
+/* The film heroes start right under the see-through header: a short fade from the page colour at the top, so the
+   grain has no hard edge and the header and hero read as one (owner, 26 Nov 2026, after linear.app/intake). */
+.hf-hero::before, .mb-hero::before, .apx-hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 96px; z-index: 1; background: linear-gradient(to bottom, var(--bg), transparent); pointer-events: none; }
