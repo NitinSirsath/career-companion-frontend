@@ -10,6 +10,10 @@
   border-bottom: 1px solid transparent; transition: border-color 150ms var(--ease);
 }
 .hdr.scrolled { border-bottom-color: var(--line); }
+/* At the very top the header is part of the hero, as on linear.app: no fill, no blur, no line.
+   Its glass fill and line come in once the page scrolls (owner, 26 Nov 2026). */
+.hdr:not(.scrolled) { background: transparent; backdrop-filter: none; border-bottom-color: transparent; }
+.hdr { transition: border-color 150ms var(--ease), background-color 150ms var(--ease); }
 /* While the phone menu is open the header matches the solid sheet below it */
 .hdr:has(+ .sheet.open) { background: var(--bg); }
 /* No blur support, or the visitor asked for less see-through: solid header */

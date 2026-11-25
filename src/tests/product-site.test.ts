@@ -306,7 +306,7 @@ describe('the changelog', () => {
 describe("Home's hero", () => {
   it('has the words alone at the bottom left, one action, and a film of the app behind them', () => {
     const hero = doc('home').querySelector('.hf-hero')!;
-    expect(hero.querySelector('h1')?.textContent).toBe('Your job search,sorted from your Gmail.');
+    expect(hero.querySelector('h1')?.textContent).toBe('Your job search, sorted from your Gmail.');
     expect(hero.querySelectorAll('.btn')).toHaveLength(1);
     expect(hero.querySelector('.btn')?.textContent).toBe('Start free');
     const stage = hero.querySelector('.hf-stage')!;
