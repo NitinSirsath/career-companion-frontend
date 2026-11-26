@@ -9,6 +9,8 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="theme-color" content="#ffffff" />
     <meta name="apple-mobile-web-app-title" content="NorthList" />
+    <!-- The build writes this version in: a fingerprint of the app's own files (vite.config.ts). -->
+    <meta name="app-version" content="dev" />
     <!-- No apple-mobile-web-app-status-bar-style tag: without it the installed iPhone app colours
          its status bar like the page (theme-color), so bar and header read as one surface. -->
     <title>NorthList</title>
@@ -32,6 +34,54 @@
         }
       })();
     </script>
+    <script id="startup-guard">
+      // Start-up safety net. If the app has drawn nothing 10 seconds after the page opened (its
+      // code did not load, or the phone woke the page with a dead connection), the page loads once
+      // more. Only once: a second failure stays as it is, so this can never loop. Offline nothing
+      // is tried, since loading again cannot help. It lives here, outside the app, because it has
+      // to work when the app's code never runs.
+      (function () {
+        var KEY = 'northlist-startup-retry';
+        var WAIT_MS = 10000;
+        function drawn() {
+          var root = document.getElementById('root');
+          return !!(root && root.firstChild);
+        }
+        function retry() {
+          if (drawn() || navigator.onLine === false) return;
+          try {
+            if (sessionStorage.getItem(KEY)) return;
+            sessionStorage.setItem(KEY, '1');
+          } catch (e) {
+            // Nothing to remember the try with: better no second load than a loop.
+            return;
+          }
+          location.reload();
+        }
+        function check() {
+          // In the background the clock is no measure: count again once the page shows.
+          if (document.visibilityState === 'hidden')
+            return document.addEventListener('visibilitychange', wait, { once: true });
+          if (!drawn()) return retry();
+          try {
+            sessionStorage.removeItem(KEY);
+          } catch (e) {
+            // No storage: nothing was remembered.
+          }
+        }
+        function wait() {
+          setTimeout(check, WAIT_MS);
+        }
+        wait();
+        // The app's own script could not be loaded at all: no need to wait the 10 seconds.
+        window.addEventListener(
+          'error',
+          function (event) {
+            var el = event.target;
+            if (el && el.tagName === 'SCRIPT' && el.type === 'module') retry();
+          },
+          true,
+        );
     <style>
       /* The start-up mark (owner, 19 Nov 2026, mock `APP-LOADER-mock/`, direction A). It lives here,
          outside the app, so it shows the moment the page opens and keeps moving without a restart
