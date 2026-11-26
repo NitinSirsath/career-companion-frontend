@@ -5,6 +5,14 @@ import { MAIL_REPLY_TEXT_LIMIT } from '../contracts/mailbox';
 import { parseSender } from './mails';
 import { isEmptyDoc } from './replyDoc';
 
+/**
+ * In place of the reply box when a reply would reach nobody (owner, 26 Nov 2026): a no-reply or
+ * system address, or one whose own mail says that nobody reads replies. The server decides
+ * (`canReply` of the conversation read from Gmail). `NO_REPLY_SHORT` is the phone's bottom bar.
+ */
+export const NO_REPLY_SHORT = "This sender can't get a reply";
+export const NO_REPLY_NOTE = `${NO_REPLY_SHORT}. Nobody reads mail sent to this address.`;
+
 export const REPLY_TEXT_PROBLEM = 'Write your reply.';
 export const REPLY_TOO_LONG = 'This reply is too long to send from here.';
 
