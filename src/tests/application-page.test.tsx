@@ -436,7 +436,7 @@ describe('on a phone (owner, 7 Nov 2026)', () => {
     expect(todo.getByRole('heading', { name: 'To do' }).nextElementSibling).toHaveTextContent('0');
     expect(todo.queryByText('Nothing to do now.')).not.toBeInTheDocument();
     expect(
-      todo.getByText(/^A missed step is not counted\\. Tap it to say it is still open\\./),
+      todo.getByText(/^A missed step is not counted\. Tap it to say it is still open\./),
     ).toBeInTheDocument();
     fireEvent.click(row);
     const sheet = within(await screen.findByRole('dialog', { name: 'Next step' }));
