@@ -48,6 +48,7 @@ function step(overrides: Partial<ApplicationActionListItem> = {}): ApplicationAc
     createdAt: '2026-10-01T10:00:00Z',
     repliedAt: null,
     askKind: null,
+    missed: null,
     closedReason: null,
     ...overrides,
   };
@@ -183,6 +184,47 @@ describe('next steps', () => {
         expectedActionRevision: 4,
       }),
     );
+  });
+
+  it('lists a missed step under the open ones, not counted, with "Still open"', async () => {
+    const missed = step({
+      id: 'step-2',
+      description: 'Fill in the survey',
+      askKind: 'OUTSIDE_MAIL',
+      deadline: '2026-11-17T00:00:00.000Z',
+      deadlinePrecision: 'DATE',
+      missed: { reason: 'DEADLINE_PASSED', since: '2026-11-19T00:00:00.000Z' },
+    });
+    vi.mocked(api.getApplicationActions).mockResolvedValue(page([missed]));
+    vi.mocked(api.updateAction).mockResolvedValue({
+      ...missed,
+      application: { companyName: 'Quanta Labs', jobTitle: null },
+      email: null,
+    } as ActionWithContextResponse);
+    show();
+    const steps = within(await screen.findByRole('region', { name: 'Next steps' }));
+    expect(await steps.findByText('Missed · was due Nov 17, 2026')).toBeInTheDocument();
+    expect(steps.getByText('0 open')).toBeInTheDocument();
+    expect(steps.queryByText('Nothing to do now.')).not.toBeInTheDocument();
+    expect(steps.queryByText(/Past due/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'More for Fill in the survey' }));
+    expect((await screen.findAllByRole('menuitem')).map((item) => item.textContent)).toEqual([
+      'I did this',
+      'Dismiss',
+    ]);
+    fireEvent.keyDown(screen.getByRole('menu'), { key: 'Escape' });
+    await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
+    fireEvent.click(steps.getByRole('button', { name: 'Still open: Fill in the survey' }));
+    // The step is pending already: the same state again is "Still open" to the server.
+    await waitFor(() =>
+      expect(api.updateAction).toHaveBeenCalledWith('step-2', {
+        status: 'PENDING',
+        expectedActionRevision: 4,
+      }),
+    );
+    // Nothing sets a step back to missed: no Undo.
+    expect(await screen.findByText('Still open: Fill in the survey')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Undo' })).not.toBeInTheDocument();
   });
 
   it('says why each finished step closed', async () => {
@@ -377,6 +419,41 @@ describe('on a phone (owner, 7 Nov 2026)', () => {
     const fromMail = within(await screen.findByRole('dialog', { name: 'Next step' }));
     expect(fromMail.queryByRole('button', { name: 'Complete' })).not.toBeInTheDocument();
     expect(fromMail.getByRole('button', { name: 'Open the mail' })).toBeInTheDocument();
+  });
+
+  it('shows a missed step dim and not counted, and opens it in a sheet with Still open', async () => {
+    vi.mocked(api.getApplicationActions).mockResolvedValue(
+      page([
+        step({
+          askKind: 'OUTSIDE_MAIL',
+          missed: { reason: 'QUIET', since: '2026-11-19T00:00:00.000Z' },
+        }),
+      ]),
+    );
+    show();
+    const row = await screen.findByRole('button', { name: 'Confirm the interview time, Missed' });
+    const todo = within(row.closest('section')!);
+    expect(todo.getByRole('heading', { name: 'To do' }).nextElementSibling).toHaveTextContent('0');
+    expect(todo.queryByText('Nothing to do now.')).not.toBeInTheDocument();
+    expect(
+      todo.getByText(/^A missed step is not counted\\. Tap it to say it is still open\\./),
+    ).toBeInTheDocument();
+    fireEvent.click(row);
+    const sheet = within(await screen.findByRole('dialog', { name: 'Next step' }));
+    expect(sheet.getByText('Missed · nothing new for 7 days')).toBeInTheDocument();
+    expect(
+      sheet.getByText(/^Nothing happened here for 7 days, so this left Needs action/),
+    ).toBeInTheDocument();
+    for (const name of ['Still open', 'I did this', 'Dismiss', 'Open the mail'])
+      expect(sheet.getByRole('button', { name })).toBeInTheDocument();
+    expect(sheet.queryByRole('button', { name: 'Snooze…' })).not.toBeInTheDocument();
+    fireEvent.click(sheet.getByRole('button', { name: 'Still open' }));
+    await waitFor(() =>
+      expect(api.updateAction).toHaveBeenCalledWith('step-1', {
+        status: 'PENDING',
+        expectedActionRevision: 4,
+      }),
+    );
   });
 
   it('has the status as a pill and Archive and Delete under ··· (owner, 18 Nov 2026)', async () => {
