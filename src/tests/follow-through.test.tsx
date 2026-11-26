@@ -42,6 +42,7 @@ const action: ActionWithContextResponse = {
   snoozedUntil: null,
   application: { companyName: 'Fixture', jobTitle: null },
   email: null,
+  missed: null,
 };
 function show(ui: React.ReactNode) {
   const client = new QueryClient({
