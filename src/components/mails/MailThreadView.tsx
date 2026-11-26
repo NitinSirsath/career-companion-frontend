@@ -145,6 +145,8 @@ export function MailThreadView({
             subject={data.subject}
             replyTo={data.replyTo}
             replyCc={data.replyCc}
+            canReply={data.canReply}
+            barSaysNoReply={phone && !!job}
             onCheck={() => void refetch()}
             onSending={setSending}
             replyAsks={replyAsks}
