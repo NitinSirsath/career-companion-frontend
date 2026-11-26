@@ -119,6 +119,7 @@ it('recovers to page one when a later action page becomes empty', async () => {
     createdAt: '2026-09-01',
     application: { companyName: 'Older Company', jobTitle: null },
     email: null,
+    missed: null,
   };
   vi.mocked(api.getWorkspaceActions).mockImplementation(async (params) =>
     workspacePage(params.offset ? [] : [action], {
@@ -194,6 +195,7 @@ it('shows a failed action mutation and permits retry', async () => {
     createdAt: '2026-09-01',
     application: { companyName: 'Older Company', jobTitle: null },
     email: null,
+    missed: null,
   };
   vi.mocked(api.getWorkspaceActions).mockResolvedValue(workspacePage([action]));
   vi.mocked(api.updateAction).mockRejectedValue(new Error('Network unavailable'));
