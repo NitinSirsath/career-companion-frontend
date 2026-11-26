@@ -215,6 +215,36 @@ describe('phone lists', () => {
     expect(within(row).getByText('Past due Jan 10')).toHaveClass('text-late');
   });
 
+  it('shows a missed mail dim, ending with "Missed", and a swipe says it is still open', async () => {
+    const conversation = makeConversation({ company: 'Quanta Labs', application: null });
+    detail.conversation = {
+      ...conversation,
+      request: {
+        ...conversation.request!,
+        deadline: '2020-01-10T00:00:00.000Z',
+        deadlinePrecision: 'DATE',
+        missed: { reason: 'DEADLINE_PASSED', since: '2020-01-12T00:00:00.000Z' },
+      },
+    };
+    show('/mails?request=missed');
+    const row = await screen.findByRole('link', { name: ROW_NAME });
+    // Never the red "Past due": the row is dim and its last word is grey.
+    expect(within(row).getByText('Missed')).not.toHaveClass('text-late');
+    expect(within(row).queryByText(/Past due/)).not.toBeInTheDocument();
+    expect(
+      within(row).getByText('Send your available dates').closest('.opacity-55'),
+    ).not.toBeNull();
+    // Under the Missed filter the line under the list says what these mails are.
+    expect(screen.getByText(/^These left Needs action by themselves: /)).toBeInTheDocument();
+    swipeRight(row, 110);
+    await waitFor(() =>
+      expect(api.patch).toHaveBeenCalledWith('/api/conversations/thread-1/request', {
+        emailId: '11111111-1111-4111-8111-111111111111',
+        state: 'OPEN',
+      }),
+    );
+  });
+
   it('marks a new mail with a blue dot before the name, and the status ring on the photo', async () => {
     detail.conversation = makeConversation({
       isNew: true,
@@ -628,6 +658,69 @@ describe('phone mail details', () => {
       expect(api.patch).toHaveBeenCalledWith('/api/conversations/thread-1/request', {
         emailId: '11111111-1111-4111-8111-111111111111',
         state: 'DONE',
+      }),
+    );
+  });
+
+  it('shows a missed step dim, with Still open on top, in its sheet and its date in the user own time', async () => {
+    const due = new Date(2026, 10, 17, 11, 0).toISOString();
+    const conversation = makeConversation();
+    detail.conversation = {
+      ...conversation,
+      request: {
+        ...conversation.request!,
+        askKind: 'OUTSIDE_MAIL',
+        deadline: due,
+        deadlinePrecision: 'DATETIME',
+        missed: { reason: 'DEADLINE_PASSED', since: new Date(2026, 10, 18, 11, 0).toISOString() },
+      },
+    };
+    detail.mails = [
+      makeConversationMail({
+        actionDeadline: '2026-11-17 05:30:00 GMT',
+        actionDue: { at: due, precision: 'DATETIME' },
+      }),
+    ];
+    show('/mails/thread-1');
+    const step = await screen.findByRole('button', {
+      name: 'Next step: Send your available dates, Missed',
+    });
+    // No red due date anywhere on the page, and the AI's read names the date, not the raw words.
+    expect(screen.queryByText(/Past due/)).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /^AI read: .* · due Nov 17, 2026 11:00 AM$/ }),
+    ).toBeInTheDocument();
+    fireEvent.click(step);
+    const sheet = within(await screen.findByRole('dialog', { name: 'Next step' }));
+    expect(sheet.getByText('Missed · was due Nov 17, 2026 11:00 AM')).toBeInTheDocument();
+    expect(
+      sheet.getByText(
+        'Its deadline passed, so this left Needs action by itself. Still open puts it back on your list for 7 days.',
+      ),
+    ).toBeInTheDocument();
+    expect(sheet.getAllByRole('button').map((button) => button.textContent)).toEqual(
+      expect.arrayContaining(['Still open', 'I did this']),
+    );
+    fireEvent.click(sheet.getByRole('button', { name: 'Close' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+
+    await openInfo();
+    const info = within(await screen.findByRole('dialog', { name: 'About this job mail' }));
+    expect(info.getByText('Reply by').nextElementSibling).toHaveTextContent(
+      'Nov 17, 2026 11:00 AM · Missed',
+    );
+    expect(info.getByText('In your own time.')).toBeInTheDocument();
+    fireEvent.click(info.getByRole('button', { name: 'Close' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+
+    // The top button, where Done is for an open step.
+    const tools = within(screen.getByRole('group', { name: 'Mail tools' }));
+    expect(tools.queryByRole('button', { name: 'Done' })).not.toBeInTheDocument();
+    fireEvent.click(tools.getByRole('button', { name: 'Still open' }));
+    await waitFor(() =>
+      expect(api.patch).toHaveBeenCalledWith('/api/conversations/thread-1/request', {
+        emailId: '11111111-1111-4111-8111-111111111111',
+        state: 'OPEN',
       }),
     );
   });
