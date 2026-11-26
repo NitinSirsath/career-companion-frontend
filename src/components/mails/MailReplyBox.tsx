@@ -5,7 +5,7 @@ import { useSandboxMailbox } from '../../api/appMode';
 import { useCanSendMail } from '../../api/mailbox';
 import type { DraftDoc } from '../../contracts/conversation';
 import { useKeptReply } from '../../lib/keptReply';
-import { allowSendingUrl, replyHint } from '../../lib/mailReply';
+import { allowSendingUrl, NO_REPLY_NOTE, replyHint } from '../../lib/mailReply';
 import { parseSender } from '../../lib/mails';
 import { docWords } from '../../lib/replyDoc';
 import { useIsPhone } from '../layout/useIsPhone';
@@ -16,6 +16,9 @@ import { MailReplyForm } from './MailReplyForm';
 import { Sheet, SheetCenterHeader } from '../ui/sheet';
 import { PhoneReplySlots } from './phoneReplySlots';
 import type { ReplyAi } from './ReplyAiHelp';
+
+const NOBODY_WROTE =
+  'Nobody else wrote in this conversation, so there is no mail to reply to here.';
 
 /** A reply box that cannot send yet: says why, and offers the way out. */
 function ReplyNotice({ text, children }: { text: string; children: React.ReactNode }) {
@@ -251,6 +254,8 @@ export function MailReplyBox({
   subject,
   replyTo,
   replyCc,
+  canReply,
+  barSaysNoReply,
   onCheck,
   onSending,
   replyAsks = 0,
@@ -262,6 +267,10 @@ export function MailReplyBox({
   replyTo: string | null;
   /** The other people on the answered mail. */
   replyCc: string[];
+  /** False when a reply to `replyTo` would reach nobody: no reply box then. An older server does not say. */
+  canReply?: boolean;
+  /** A job mail on a phone: its bottom bar says so, so no second note under the mails. */
+  barSaysNoReply?: boolean;
   onCheck: () => void;
   onSending?: (doc: DraftDoc | null) => void;
   /** Goes up each time the page's Reply button is clicked: the box opens. */
@@ -281,12 +290,10 @@ export function MailReplyBox({
   const elsewhere = <Elsewhere sandbox={!!sandbox} threadId={threadId} subject={subject} />;
 
   let box: React.ReactNode;
-  if (!replyTo)
-    box = (
-      <ReplyNotice text="Nobody else wrote in this conversation, so there is no mail to reply to here.">
-        {elsewhere}
-      </ReplyNotice>
-    );
+  if (!replyTo) box = <ReplyNotice text={NOBODY_WROTE}>{elsewhere}</ReplyNotice>;
+  // Nobody reads mail sent to this address.
+  else if (canReply === false)
+    box = barSaysNoReply ? null : <ReplyNotice text={NO_REPLY_NOTE}>{elsewhere}</ReplyNotice>;
   else if (canSend === false)
     box = (
       <ReplyNotice text="NorthList may read your Gmail, but not send from it yet. Allow sending to reply from here. Google asks you once.">
