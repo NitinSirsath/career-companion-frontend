@@ -36,9 +36,21 @@ function partsNamedIn(script) {
  */
 const ANY = { ignoreVary: true };
 
+/**
+ * True for an answer that is the file itself. The server answers a file it no longer has with the
+ * app's page (HTTP 200, HTML). Kept under a script's name, that page would break the script until
+ * the kept files are dropped, so an HTML answer never counts as a file.
+ */
+function isFile(response) {
+  return response.ok && !(response.headers.get('content-type') || '').includes('text/html');
+}
+
 /** A file that cannot be fetched now is fetched and kept on first use instead. */
 async function keepFile(kept, file) {
-  if (!(await kept.match(file, ANY))) await kept.add(file).catch(() => undefined);
+  const has = await kept.match(file, ANY);
+  if (has && isFile(has)) return;
+  const response = await fetch(file).catch(() => undefined);
+  if (response && isFile(response)) await kept.put(file, response);
 }
 
 /**
@@ -77,15 +89,18 @@ async function page(event) {
   }
 }
 
-/** Kept first: a hashed file never changes under the same name. */
+/**
+ * Kept first: a hashed file never changes under the same name. The app's page in place of a file
+ * is neither kept nor handed on: the load fails, as for a file that is not there.
+ */
 async function file(event) {
   const kept = await caches.match(event.request, { ...ANY, cacheName: FILE_CACHE });
-  if (kept) return kept;
+  if (kept && isFile(kept)) return kept;
   const response = await fetch(event.request);
-  if (response.ok) {
-    const copy = response.clone();
-    event.waitUntil(caches.open(FILE_CACHE).then((cache) => cache.put(event.request, copy)));
-  }
+  if (!response.ok) return response;
+  if (!isFile(response)) return Response.error();
+  const copy = response.clone();
+  event.waitUntil(caches.open(FILE_CACHE).then((cache) => cache.put(event.request, copy)));
   return response;
 }
 

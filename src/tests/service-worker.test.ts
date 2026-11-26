@@ -161,6 +161,39 @@ describe('the app files for offline pages', () => {
     expect(caches.stores.get('northlist-files-v1')!.has('/assets/chunk-x.js')).toBe(true);
   });
 
+  it('never keeps or hands on the app page in place of a missing file', async () => {
+    // The server answers a file it no longer has with the app's page: HTTP 200, HTML.
+    network.mockImplementation(async () => html());
+    await run('install');
+    expect([...caches.stores.get('northlist-files-v1')!.keys()]).toEqual([]);
+    const response = await request('/assets/index-old.js');
+    expect(response!.type).toBe('error');
+    expect(caches.stores.get('northlist-files-v1')!.has('/assets/index-old.js')).toBe(false);
+  });
+
+  it('fetches a file again when a page was kept under its name before', async () => {
+    const files = await caches.api.open('northlist-files-v1');
+    await files.put('/assets/index-new.js', html());
+    expect(await (await request('/assets/index-new.js'))!.text()).toBe('file /assets/index-new.js');
+    expect(await (await files.match('/assets/index-new.js'))!.text()).toBe(
+      'file /assets/index-new.js',
+    );
+    await files.put('/assets/index-new.css', html());
+    await run('install');
+    expect(await (await files.match('/assets/index-new.css'))!.text()).toBe(
+      'file /assets/index-new.css',
+    );
+  });
+
+  it('hands on a "not found" answer as it is, and does not keep it', async () => {
+    network.mockImplementation(async () => new Response('Not found', { status: 404 }));
+    const response = await request('/assets/index-old.js');
+    expect(response!.status).toBe(404);
+    expect(caches.stores.get('northlist-files-v1')?.has('/assets/index-old.js') ?? false).toBe(
+      false,
+    );
+  });
+
   it('never answers for the API, version.json, other files, other sites or changes', async () => {
     for (const [path, mode, method] of [
       ['/api/conversations', 'cors', 'GET'],
