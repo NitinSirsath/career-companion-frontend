@@ -21,8 +21,8 @@ export const Route = createFileRoute('/mails/')({
 });
 
 /**
- * The Mails page (owner, 3 Nov 2026): the title with "4 mails need you, 2 are past due", a slim AI
- * notice, then the lists. Laptops: tabs, search, Filters and Sort on one line that stays on screen.
+ * The Mails page (owner, 3 Nov 2026): the title with "4 mails need you, 2 are past due. 2 missed",
+ * a slim AI notice, then the lists. Laptops: tabs, search, Filters and Sort on one line that stays on screen.
  * Phones: the lists switch in the top bar title, the top bar's search button opens a search row
  * under it, and one row of chips sits above the mails.
  */
@@ -39,7 +39,6 @@ function MailsPage() {
   // A changed filter starts again at the first page.
   const filter = (changes: Partial<MailsSearch>) => change({ ...changes, offset: undefined });
   const tab = search.tab ?? 'job';
-  const needsActionOn = search.request === 'open';
 
   // Remembered so the breadcrumb on a mail returns to this exact view.
   useEffect(() => rememberListSearch('/mails', search), [search]);
@@ -53,10 +52,7 @@ function MailsPage() {
         title="Mails"
         description={
           !search.tab && (
-            <MailSummary
-              needsActionOn={needsActionOn}
-              onToggleNeedsAction={() => filter({ request: needsActionOn ? undefined : 'open' })}
-            />
+            <MailSummary request={search.request} onRequest={(request) => filter({ request })} />
           )
         }
         actions={<SyncLine />}

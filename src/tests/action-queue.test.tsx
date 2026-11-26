@@ -42,6 +42,7 @@ const makeAction = (
   createdAt: '2026-01-15T10:00:00.000Z',
   application: { companyName: 'Acme Corp', jobTitle: 'Senior Engineer' },
   email: null,
+  missed: null,
   ...overrides,
 });
 const empty = { items: [], metadata: { limit: 20, offset: 0, nextOffset: null } };

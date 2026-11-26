@@ -107,6 +107,7 @@ const notSubmitted = (overrides: Partial<NotSubmittedJob> = {}): NotSubmittedJob
   reason: 'Required question with no saved answer',
   loggedAt: '2026-10-21T07:11:03.000Z',
   receivedAt: '2026-10-21T09:30:00.000Z',
+  missed: false,
   ...overrides,
 });
 
@@ -297,7 +298,26 @@ describe('automation page', () => {
       within(rows[0]).getByText(format(new Date('2026-10-21T07:11:03.000Z'), 'h:mm a')),
     ).toBeInTheDocument();
     expect(within(rows[1]).getByText('Skipped')).toBeInTheDocument();
+    expect(screen.queryByText(/is missed 7 days after the run/)).not.toBeInTheDocument();
     expect(within(rows[1]).queryByRole('link')).toBeNull();
+  });
+
+  it('shows a job left for the user over 7 days ago as "Missed", dim, and says why', async () => {
+    vi.mocked(api.getNotSubmittedJobs).mockResolvedValue(
+      page([notSubmitted(), notSubmitted({ id: 'n2', company: 'Litware', missed: true })]),
+    );
+    show('/automation?tab=not-submitted');
+    const table = await screen.findByRole('table', { name: 'Jobs not submitted' });
+    const tag = await within(table).findByText('Missed');
+    const row = within(tag.closest<HTMLElement>('[role="row"]')!);
+    expect(row.getByText('Litware')).toBeInTheDocument();
+    expect(row.queryByText('Needs you')).not.toBeInTheDocument();
+    expect(row.getByText('Litware').closest('.opacity-55')).not.toBeNull();
+    // The other job still needs the user.
+    expect(within(table).getAllByText('Needs you')).toHaveLength(1);
+    expect(
+      screen.getByText(/^A job left for you is missed 7 days after the run/),
+    ).toBeInTheDocument();
   });
 
   it('shows the backend address and the profile line under Setup', async () => {

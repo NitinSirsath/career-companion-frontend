@@ -6,6 +6,8 @@ import { format } from 'date-fns';
 import { api } from '../../api/client';
 import type { NotSubmittedJob } from '../../contracts/submission';
 import { platformLabel } from '../../lib/eventLabels';
+import { MISSED } from '../../lib/missed';
+import { cn } from '../../lib/utils';
 import { DataTable } from '../ui/data-table';
 import { EmptyState } from '../ui/empty-state';
 import { Pagination } from '../ui/pagination';
@@ -20,6 +22,15 @@ const OUTCOME = {
   NEEDS_USER: { label: 'Needs you', color: 'yellow' },
 } as const;
 
+/**
+ * A job left for the user more than 7 days ago is "Missed" (owner, 26 Nov 2026): grey, dim, and
+ * no longer counted as "Needs you".
+ */
+const outcomeOf = (job: NotSubmittedJob) =>
+  job.missed ? ({ label: MISSED.label, color: 'gray' } as const) : OUTCOME[job.outcome];
+
+const dim = (job: NotSubmittedJob) => (job.missed ? 'opacity-55' : undefined);
+
 // Every field comes from the user's automation and is untrusted: rendered as plain text only.
 const COLUMNS: ColumnDef<NotSubmittedJob>[] = [
   {
@@ -27,7 +38,7 @@ const COLUMNS: ColumnDef<NotSubmittedJob>[] = [
     header: 'Company',
     meta: { count: true },
     cell: ({ row: { original: job } }) => (
-      <div className="flex flex-col gap-0.5 break-words">
+      <div className={cn('flex flex-col gap-0.5 break-words', dim(job))}>
         <span className="font-semibold">{job.company}</span>
         <span className="text-xs text-text-secondary">{job.jobTitle}</span>
       </div>
@@ -37,7 +48,7 @@ const COLUMNS: ColumnDef<NotSubmittedJob>[] = [
     id: 'platform',
     header: 'Platform',
     cell: ({ row: { original: job } }) => (
-      <span className="flex items-center gap-1">
+      <span className={cn('flex items-center gap-1', dim(job))}>
         {platformLabel(job.platform)}
         <JobLink url={job.jobUrl} label={`Open the job post for ${job.company} in a new tab`} />
       </span>
@@ -48,8 +59,8 @@ const COLUMNS: ColumnDef<NotSubmittedJob>[] = [
     id: 'reason',
     header: 'Reason',
     cell: ({ row: { original: job } }) => (
-      <div className="flex flex-col items-start gap-1">
-        <Tag color={OUTCOME[job.outcome].color}>{OUTCOME[job.outcome].label}</Tag>
+      <div className={cn('flex flex-col items-start gap-1', dim(job))}>
+        <Tag color={outcomeOf(job).color}>{outcomeOf(job).label}</Tag>
         <span className="break-words whitespace-pre-wrap">{job.reason}</span>
       </div>
     ),
@@ -59,7 +70,7 @@ const COLUMNS: ColumnDef<NotSubmittedJob>[] = [
     id: 'time',
     header: 'Time',
     cell: ({ row: { original: job } }) => (
-      <div className="flex flex-col">
+      <div className={cn('flex flex-col', dim(job))}>
         <span>{format(new Date(job.loggedAt), 'd MMM yyyy')}</span>
         <span className="text-xs text-text-secondary">
           {format(new Date(job.loggedAt), 'h:mm a')}
@@ -121,6 +132,9 @@ export function NotSubmittedJobs() {
           )
         }
       />
+      {!error && data?.items.some((job) => job.missed) && (
+        <p className="text-xs text-text-secondary">{MISSED.applyNote}</p>
+      )}
     </section>
   );
 }

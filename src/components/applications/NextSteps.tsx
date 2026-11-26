@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { CheckIcon, ChevronRightIcon, ClockIcon, MailIcon, XIcon } from 'lucide-react';
 import { api } from '../../api/client';
 import type { ApplicationActionListItem } from '../../contracts/application';
@@ -8,6 +8,7 @@ import { dateAndTime, stepSource, stepText } from '../../lib/applicationDetail';
 import { deadlineLabel, deadlineOverdue, shortDue } from '../../lib/deadline';
 import { CLOSED_REASON_LABEL, closesByHand, repliedLine } from '../../lib/mails';
 import { dueIn } from '../../lib/mailThread';
+import { MISSED } from '../../lib/missed';
 import { cn } from '../../lib/utils';
 import { SnoozeControl } from '../FollowThrough';
 import type { DialogHandle } from '../../lib/dialogs';
@@ -15,6 +16,8 @@ import { CircleCheckIcon as DoneIcon } from 'lucide-react';
 import { useIsPhone } from '../layout/useIsPhone';
 import { TodoState } from '../mails/TodoState';
 import { DETAIL_ROW, DetailSection } from './DetailSection';
+import { MissedStepRow, PhoneMissedStepRow } from './MissedSteps';
+import { useStepChange } from './useStepChange';
 import { Ring } from '../ui/ring';
 import { Sheet, SheetAction, SheetBody, SheetGroup } from '../ui/sheet';
 import { Button } from '../ui/button';
@@ -24,31 +27,34 @@ import { InlineNotification } from '../ui/notification';
 import { Pagination } from '../ui/pagination';
 import { SectionError } from '../ui/section-error';
 import { SkeletonList } from '../ui/skeleton';
-import { showToast } from '../ui/toast';
 import { isOfflineError } from '../../lib/offline';
 
 const PAGE = 20;
 
-/** Completes, dismisses or reopens one step, and reads every list that shows it again. */
-function useStepUpdate(action: ApplicationActionListItem) {
-  const queryClient = useQueryClient();
-  const refresh = () => {
-    for (const key of ['application-actions', 'applications', 'actions', 'workspace'])
-      void queryClient.invalidateQueries({ queryKey: [key] });
-    void queryClient.invalidateQueries({ queryKey: ['application', action.applicationId] });
+/**
+ * A page of steps in the order shown: those that need the user, the missed ones (open, but they
+ * left Needs action by themselves and are not counted), then the finished ones.
+ */
+function sortSteps(items: readonly ApplicationActionListItem[]) {
+  const pending = items.filter((action) => action.status === 'PENDING');
+  const open = pending.filter((action) => !action.missed);
+  const missed = pending.filter((action) => action.missed);
+  return {
+    open,
+    /** Both, in the order shown. */
+    shown: [...open, ...missed],
+    done: items.filter((action) => action.status !== 'PENDING'),
   };
-  return useMutation({
-    retry: false,
-    mutationFn: ({
-      status,
-      revision,
-    }: {
-      status: 'PENDING' | 'COMPLETED' | 'DISMISSED';
-      revision: number;
-    }) => api.updateAction(action.id, { status, expectedActionRevision: revision }),
-    onSettled: refresh,
-  });
 }
+
+/** The small note under a phone's steps: about its missed step, else how mail steps close. */
+function phoneStepsNote(shown: readonly ApplicationActionListItem[]): string | null {
+  if (shown.some((action) => action.missed)) return MISSED.stepsNote;
+  return shown.some((action) => action.emailId) ? CLOSES_BY_ITSELF : null;
+}
+
+const CLOSES_BY_ITSELF =
+  'Steps from mails close by themselves when your reply or a newer mail settles them. Setting the application to Rejected or Closed closes them too.';
 
 function StepMeta({
   action,
@@ -103,23 +109,6 @@ function StepMeta({
       ))}
     </span>
   );
-}
-
-/** Changes a step and says so, with Undo. */
-function useStepChange(action: ApplicationActionListItem) {
-  const update = useStepUpdate(action);
-  const text = stepText(action);
-  const change = (status: 'COMPLETED' | 'DISMISSED') =>
-    update.mutate(
-      { status, revision: action.actionRevision },
-      {
-        onSuccess: (saved) =>
-          showToast(`${status === 'COMPLETED' ? 'Done' : 'Dismissed'}: ${text}`, {
-            undo: () => update.mutate({ status: 'PENDING', revision: saved.actionRevision }),
-          }),
-      },
-    );
-  return { update, change };
 }
 
 /**
@@ -392,39 +381,40 @@ function DoneSteps({ actions }: { actions: ApplicationActionListItem[] }) {
   );
 }
 
-/** The to-dos on a phone (mock screen 6): open ones with their due date, then the finished ones. */
+/**
+ * The to-dos on a phone (mock screen 6): open ones with their due date, the missed ones, then the
+ * finished ones.
+ */
 function PhoneNextSteps({ applicationId, archived, senders }: NextStepsProps) {
   const [offset, onOffset] = useState(0);
   const query = useQuery({
     queryKey: ['application-actions', applicationId, offset],
     queryFn: ({ signal }) => api.getApplicationActions(applicationId, { offset }, { signal }),
   });
-  const items = query.data?.items ?? [];
-  const open = items.filter((action) => action.status === 'PENDING');
-  const done = items.filter((action) => action.status !== 'PENDING');
+  const { open, shown, done } = sortSteps(query.data?.items ?? []);
   const nextOffset = query.data?.metadata.nextOffset ?? null;
-  const note = open.some((action) => action.emailId)
-    ? 'Steps from mails close by themselves when your reply or a newer mail settles them. Setting the application to Rejected or Closed closes them too.'
-    : null;
   return (
-    <DetailSection title="To do" count={query.data && open.length} note={note}>
+    <DetailSection title="To do" count={query.data && open.length} note={phoneStepsNote(shown)}>
       {query.isLoading && <SkeletonList rows={2} label="Loading next steps" />}
       {query.isError && (
         <SectionError title="Could not load next steps" onRetry={() => void query.refetch()} />
       )}
-      {query.data && open.length === 0 && (
+      {query.data && shown.length === 0 && (
         <p className="px-[18px] py-[9px] text-[15px] text-text-secondary">
           {offset > 0 ? 'No open steps on this page.' : 'Nothing to do now.'}
         </p>
       )}
-      {open.map((action) => (
-        <PhoneStepRow
-          key={action.id}
-          action={action}
-          archived={archived}
-          source={stepSource(action, senders)}
-        />
-      ))}
+      {shown.map((action) => {
+        const Row = action.missed ? PhoneMissedStepRow : PhoneStepRow;
+        return (
+          <Row
+            key={action.id}
+            action={action}
+            archived={archived}
+            source={stepSource(action, senders)}
+          />
+        );
+      })}
       <PhoneDoneSteps actions={done} />
       {(offset > 0 || nextOffset !== null) && (
         <Pagination
@@ -440,8 +430,8 @@ function PhoneNextSteps({ applicationId, archived, senders }: NextStepsProps) {
 }
 
 /**
- * The application's to-dos: open ones first, each with Complete and a "…" menu; finished ones
- * folded below.
+ * The application's to-dos: open ones first, each with Complete and a "…" menu; then the missed
+ * ones, dim, with "Still open"; finished ones folded below.
  */
 function PanelNextSteps({
   applicationId,
@@ -458,9 +448,7 @@ function PanelNextSteps({
     queryKey: ['application-actions', applicationId, offset],
     queryFn: ({ signal }) => api.getApplicationActions(applicationId, { offset }, { signal }),
   });
-  const items = query.data?.items ?? [];
-  const open = items.filter((action) => action.status === 'PENDING');
-  const done = items.filter((action) => action.status !== 'PENDING');
+  const { open, shown, done } = sortSteps(query.data?.items ?? []);
   const nextOffset = query.data?.metadata.nextOffset ?? null;
 
   return (
@@ -475,27 +463,29 @@ function PanelNextSteps({
       {query.isError && (
         <SectionError title="Could not load next steps" onRetry={() => void query.refetch()} />
       )}
-      {query.data && open.length === 0 && (
+      {query.data && shown.length === 0 && (
         <p className="border-t border-border-subtle py-3.5 text-sm text-text-secondary">
           {offset > 0 ? 'No open steps on this page.' : 'Nothing to do now.'}
         </p>
       )}
-      {open.length > 0 && (
+      {shown.length > 0 && (
         <ul>
-          {open.map((action) => (
-            <StepRow
-              key={action.id}
-              action={action}
-              archived={archived}
-              source={stepSource(action, senders)}
-            />
-          ))}
+          {shown.map((action) => {
+            const Row = action.missed ? MissedStepRow : StepRow;
+            return (
+              <Row
+                key={action.id}
+                action={action}
+                archived={archived}
+                source={stepSource(action, senders)}
+              />
+            );
+          })}
         </ul>
       )}
       {open.some((action) => action.emailId) && (
         <p className="border-t border-border-subtle py-3 text-xs text-text-secondary">
-          Steps from mails close by themselves when your reply or a newer mail settles them. Setting
-          the application to Rejected or Closed closes them too.
+          {CLOSES_BY_ITSELF}
         </p>
       )}
       <DoneSteps actions={done} />

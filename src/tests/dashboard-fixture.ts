@@ -32,7 +32,7 @@ export function dashboardFixture(over: Partial<DashboardResponse> = {}): Dashboa
     dataStartsAt: '2026-09-26T00:00:00.000Z',
     now: {
       newJobMails: { count: 5, today: 2 },
-      needsAction: { count: 3, waitingOverADay: 1 },
+      needsAction: { count: 3, waitingOverADay: 1, missed: 0 },
       interviews: {
         count: 2,
         next: {
@@ -97,6 +97,7 @@ export function dashboardFixture(over: Partial<DashboardResponse> = {}): Dashboa
       sent: 0,
       skipped: 0,
       needsYou: 0,
+      missed: 0,
       topSkipReasons: [],
     },
     ...over,

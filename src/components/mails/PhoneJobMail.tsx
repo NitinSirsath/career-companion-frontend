@@ -3,9 +3,9 @@ import { Link } from '@tanstack/react-router';
 import { ChevronRightIcon, CircleCheckIcon, MailIcon, RotateCcwIcon } from 'lucide-react';
 import { useSetRequestState } from '../../api/conversations';
 import { useReanalyzing } from '../../api/reanalysis';
-import type { ConversationDetail } from '../../contracts/conversation';
+import type { ConversationDetail, ConversationRequest } from '../../contracts/conversation';
 import { reopenNote, showMail, stepNote, stepSource } from '../../lib/jobStep';
-import { keyDates } from '../../lib/mailThread';
+import { keyDates, keyDatesNote } from '../../lib/mailThread';
 import {
   CAREER_CONTACT,
   FAKE_OFFER,
@@ -19,6 +19,7 @@ import {
   scheduleLine,
   shortDue,
 } from '../../lib/mails';
+import { MISSED, missedNote } from '../../lib/missed';
 import { isOfflineError } from '../../lib/offline';
 import { cn } from '../../lib/utils';
 import { Ring, StatusBadge } from '../ui/ring';
@@ -40,7 +41,10 @@ import { ReanalyzeLine } from '../reanalysis/ReanalyzeLine';
 
 const ROW = 'flex min-h-10 items-center gap-[11px] -mx-4 px-[18px] py-[9px] text-[15px]';
 
-/** The step's actions: "I did this" or Reopen, and the way to the mail that asks or closed it. */
+/**
+ * The step's actions: "I did this" or Reopen, "Still open" first while it is missed, and the way
+ * to the mail that asks or closed it.
+ */
 function StepActions({ detail, onClose }: { detail: ConversationDetail; onClose: () => void }) {
   const { conversation } = detail;
   const change = useSetRequestState(conversation.key);
@@ -67,6 +71,15 @@ function StepActions({ detail, onClose }: { detail: ConversationDetail; onClose:
         </InlineNotification>
       )}
       <SheetGroup>
+        {asked.missed && (
+          <SheetAction
+            icon={<RotateCcwIcon size={22} aria-hidden="true" />}
+            disabled={change.isPending}
+            onClick={() => setState('OPEN', `${MISSED.stillOpen}: ${title}`)}
+          >
+            {MISSED.stillOpen}
+          </SheetAction>
+        )}
         {canDo && (
           <SheetAction
             icon={<CircleCheckIcon size={22} aria-hidden="true" />}
@@ -114,9 +127,7 @@ function StepSheet({
 }) {
   const asked = detail.conversation.request!;
   const fake = fakeOfferStep(detail.conversation);
-  const note = fake
-    ? FAKE_OFFER.stepNote
-    : (stepNote(asked, requestPastDue(asked), true) ?? reopenNote(asked));
+  const note = fake ? FAKE_OFFER.stepNote : sheetNote(asked);
   return (
     <Sheet open={open} onOpenChange={onOpenChange} title="Next step">
       <p className="text-[19px] leading-[25px] break-words">{requestTitle(asked)}</p>
@@ -127,6 +138,18 @@ function StepSheet({
       {note && <p className="text-[13px] leading-[18px] text-text-tertiary">{note}</p>}
     </Sheet>
   );
+}
+
+/** Under the step's actions: why a missed step left the list, else what closes or reopens it. */
+function sheetNote(asked: ConversationRequest): string | null {
+  if (asked.missed) return missedNote(asked.missed);
+  return stepNote(asked, requestPastDue(asked), true) ?? reopenNote(asked);
+}
+
+/** The right end of the step's row: "Missed", when it is due, or what closed it. */
+function stepWhen(asked: ConversationRequest): string | null {
+  if (asked.missed) return MISSED.label;
+  return asked.state === 'OPEN' ? shortDue(asked) : requestDetail(asked);
 }
 
 /**
@@ -154,7 +177,8 @@ function StepHeading() {
 /**
  * The next step as one plain row (owner, 18 Nov 2026, mock `PHONE-LINEAR-mock/` #2, Linear's
  * sub-issue row): an open ring, what it asks, and when it is due, red once past; a tap opens its
- * sheet. With nothing asked, the row only says so. The AI's reading of the mail sits under it.
+ * sheet. A missed step is dim and says "Missed". With nothing asked, the row only says so. The AI's
+ * reading of the mail sits under it.
  */
 function PhoneNextStep({ detail }: { detail: ConversationDetail }) {
   const { conversation } = detail;
@@ -175,7 +199,8 @@ function PhoneNextStep({ detail }: { detail: ConversationDetail }) {
     );
   const title = requestTitle(asked);
   const closed = asked.state !== 'OPEN';
-  const due = asked.state === 'OPEN' ? shortDue(asked) : requestDetail(asked);
+  const missed = asked.missed !== null;
+  const due = stepWhen(asked);
   return (
     <section aria-label="Next step">
       <StepHeading />
@@ -188,11 +213,11 @@ function PhoneNextStep({ detail }: { detail: ConversationDetail }) {
           'w-full cursor-pointer text-left transition-colors duration-450 active:bg-surface-selected active:duration-0',
         )}
       >
-        <Ring kind={closed ? 'offer' : 'todo'} size={17} />
+        <Ring kind={closed ? 'offer' : 'todo'} size={17} className={cn(missed && 'opacity-55')} />
         <span
           className={cn(
             'min-w-0 flex-1 truncate transition-colors duration-240',
-            closed && 'text-text-secondary',
+            (closed || missed) && 'text-text-secondary',
           )}
         >
           <span className="strike-done" data-done={asked.state === 'DONE' ? '' : undefined}>
@@ -300,9 +325,9 @@ function ApplicationRow({
   );
 }
 
-/** The dates the mails name, as they wrote them. */
+/** The dates the mails name: in the user's own time where the app could read them. */
 function KeyDates({ detail }: { detail: ConversationDetail }) {
-  const dates = keyDates(detail.mails);
+  const dates = keyDates(detail.mails, detail.conversation.request);
   if (!dates.length) return <p className="text-text-secondary">The mails name no dates.</p>;
   return (
     <>
@@ -310,11 +335,14 @@ function KeyDates({ detail }: { detail: ConversationDetail }) {
         {dates.map((date) => (
           <div key={date.label} className="contents">
             <dt className="text-text-secondary">{date.label}</dt>
-            <dd className="break-words">{date.value}</dd>
+            <dd className="break-words">
+              {date.value}
+              {date.state && <span className="text-text-tertiary"> · {date.state}</span>}
+            </dd>
           </div>
         ))}
       </dl>
-      <p className="text-[13px] text-text-tertiary">As the mails wrote them.</p>
+      <p className="text-[13px] text-text-tertiary">{keyDatesNote(dates)}</p>
     </>
   );
 }

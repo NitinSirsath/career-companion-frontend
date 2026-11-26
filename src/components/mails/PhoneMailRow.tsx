@@ -13,6 +13,7 @@ import {
   scheduleLine,
   shortDue,
 } from '../../lib/mails';
+import { MISSED } from '../../lib/missed';
 import { shortAgo } from '../../lib/shortAgo';
 import { statusTag } from '../../lib/statusTags';
 import { cn } from '../../lib/utils';
@@ -24,8 +25,8 @@ import { useRequestChange } from './useRequestChange';
 
 /**
  * The third line (owner, 18 Nov 2026, mock `PHONE-LINEAR-mock/` #1): the company, what the mail
- * asks, and when it is due; red only once past due. With nothing asked: the date the mail names,
- * or "Nothing needed".
+ * asks, and when it is due; red only once past due. A missed ask ends with "Missed" instead. With
+ * nothing asked: the date the mail names, or "Nothing needed".
  */
 type Part = { text: string; late?: boolean; done?: boolean };
 
@@ -39,8 +40,9 @@ function askParts(c: Conversation): Part[] {
   const parts: Part[] = where ? [{ text: where }] : [];
   if (!asked) return [...parts, { text: scheduleLine(c) ?? 'Nothing needed' }];
   if (asked.state === 'OPEN') {
-    const due = shortDue(asked);
     parts.push({ text: requestTitle(asked) });
+    if (asked.missed) return [...parts, { text: MISSED.label }];
+    const due = shortDue(asked);
     if (due) parts.push({ text: due, late: requestPastDue(asked) });
     return parts;
   }
@@ -88,10 +90,13 @@ function AskLine({ conversation: c }: { conversation: Conversation }) {
   );
 }
 
+/** A missed mail is dim: it left Needs action by itself (owner, 26 Nov 2026). */
+const dimClass = (c: Conversation) => (c.request?.missed ? 'opacity-55' : undefined);
+
 /** The person's picture with the application's status as a small ring on its corner. */
 function Photo({ conversation: c, name }: { conversation: Conversation; name: string }) {
   return (
-    <span className="relative mt-0.5 flex size-10 shrink-0">
+    <span className={cn('relative mt-0.5 flex size-10 shrink-0', dimClass(c))}>
       <Avatar name={name} className="size-10 text-sm" />
       {c.application && (
         <span className="absolute -right-[3px] -bottom-[3px] flex rounded-full bg-background p-[1.5px]">
@@ -106,7 +111,8 @@ function Photo({ conversation: c, name }: { conversation: Conversation; name: st
  * A job mail on a phone (owner, 18 Nov 2026, mock `PHONE-LINEAR-mock/` #1, Linear Inbox): the
  * person's picture with the status ring, then three lines: the person and how long ago, the
  * subject, and the company · ask · due date. A new mail has a blue dot before the name. Swiping it
- * to the right does its first action: Done for a step done outside mail, Reopen once closed.
+ * to the right does its first action: Done for a step done outside mail, Reopen once closed, Still
+ * open while it is missed.
  */
 export function PhoneMailRow({ conversation: c }: { conversation: Conversation }) {
   const request = useRequestChange(c);
@@ -141,7 +147,7 @@ export function PhoneMailRow({ conversation: c }: { conversation: Conversation }
         {...swipe.handlers}
       >
         <Photo conversation={c} name={sender} />
-        <span className="flex min-w-0 flex-col gap-px">
+        <span className={cn('flex min-w-0 flex-col gap-px', dimClass(c))}>
           <span className="flex items-baseline gap-2">
             <span
               className={cn(

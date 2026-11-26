@@ -7,7 +7,7 @@ import type {
   ConversationRequest,
 } from '../../contracts/conversation';
 import { closedByYourReply, showMail, stepNote } from '../../lib/jobStep';
-import { askingMessageId, keyDates } from '../../lib/mailThread';
+import { askingMessageId, keyDates, keyDatesNote } from '../../lib/mailThread';
 import {
   CAREER_CONTACT,
   careerContact,
@@ -23,6 +23,7 @@ import {
   requestTitle,
   scheduleLine,
 } from '../../lib/mails';
+import { MISSED, missedNote, missedWhy } from '../../lib/missed';
 import { cn } from '../../lib/utils';
 import { useIsPhone } from '../layout/useIsPhone';
 import { Button } from '../ui/button';
@@ -133,10 +134,19 @@ function StepSourceLink({ detail }: { detail: ConversationDetail }) {
 
 /**
  * Where the step stands, in grey words under it: "Needs action", "↩ You replied Nov 13", "Done ·
- * Your reply answered it". No coloured label; a fake offer's open step says Probably fake.
+ * Your reply answered it", "Missed · was due Nov 17, 2026 11:00 AM". No coloured label; a fake
+ * offer's open step says Probably fake.
  */
 function StepStateLine({ asked, fake }: { asked: ConversationRequest; fake: boolean }) {
   if (asked.state === 'OPEN' && fake) return <FakeOfferTag />;
+  if (asked.missed)
+    return (
+      <p className="flex flex-wrap gap-x-1 text-xs text-text-secondary">
+        <span>{MISSED.label}</span>
+        <span aria-hidden="true">·</span>
+        <span>{missedWhy(asked)}</span>
+      </p>
+    );
   const detail = asked.state === 'OPEN' ? null : requestDetail(asked);
   return (
     <p className="flex flex-wrap gap-x-1 text-xs text-text-secondary">
@@ -181,7 +191,46 @@ function StepMenu({
   );
 }
 
-/** What the conversation needs now: the request, its due date, its state and what closes it. */
+/**
+ * The way back to the list, under a step: Reopen once it is closed, and Still open, in the same
+ * place, while it is missed.
+ */
+function StepBack({
+  asked,
+  busy,
+  onBack,
+}: {
+  asked: ConversationRequest;
+  busy: boolean;
+  onBack: (said: string) => void;
+}) {
+  if (asked.state === 'OPEN' && !asked.missed) return null;
+  const label = asked.missed ? MISSED.stillOpen : 'Reopen';
+  return (
+    <div className="flex flex-wrap gap-2 pt-1">
+      <Button
+        size="sm"
+        variant="ghost"
+        aria-label={`${label}: ${requestTitle(asked)}`}
+        loading={busy}
+        onClick={() => onBack(asked.missed ? MISSED.stillOpen : 'Reopened')}
+      >
+        {label}
+      </Button>
+    </div>
+  );
+}
+
+/** Under the step: why a missed one left the list (and the day), else what closes it. */
+function panelNote(asked: ConversationRequest): string | null {
+  if (asked.missed) return missedNote(asked.missed, true);
+  return stepNote(asked, requestPastDue(asked));
+}
+
+/**
+ * What the conversation needs now: the request, its due date, its state and what closes it. A
+ * closed step has Reopen; a missed one is dim and has Still open in the same place.
+ */
 function NextStep({ detail }: { detail: ConversationDetail }) {
   const { conversation } = detail;
   const change = useSetRequestState(conversation.key);
@@ -197,7 +246,8 @@ function NextStep({ detail }: { detail: ConversationDetail }) {
   }
   const title = requestTitle(asked);
   const fake = fakeOfferStep(conversation);
-  const note = fake ? null : stepNote(asked, requestPastDue(asked));
+  const note = fake ? null : panelNote(asked);
+  const missed = asked.missed !== null;
   const setState = (state: 'DONE' | 'OPEN', toast: string) =>
     change.mutate({ emailId: asked.emailId, state }, { onSuccess: () => showToast(toast) });
   const menu = (
@@ -212,9 +262,18 @@ function NextStep({ detail }: { detail: ConversationDetail }) {
     <PanelSection title="Next step" menu={menu}>
       {/* Laptop v2 (18 Nov 2026): a ring before the step, its state in grey words under it. */}
       <div className="flex items-start gap-2.5">
-        <Ring kind={asked.state === 'OPEN' ? 'todo' : 'offer'} size={14} className="mt-[3px]" />
+        <Ring
+          kind={asked.state === 'OPEN' ? 'todo' : 'offer'}
+          size={14}
+          className={cn('mt-[3px]', missed && 'opacity-55')}
+        />
         <div className="min-w-0 flex-1">
-          <p className={cn('text-sm break-words', asked.state === 'DONE' && 'text-text-secondary')}>
+          <p
+            className={cn(
+              'text-sm break-words',
+              (asked.state === 'DONE' || missed) && 'text-text-secondary',
+            )}
+          >
             {title}
           </p>
           <StepStateLine asked={asked} fake={fake} />
@@ -224,19 +283,11 @@ function NextStep({ detail }: { detail: ConversationDetail }) {
       <ReadingReply detail={detail} />
       <ReanalyzeLine target={{ kind: 'conversation', key: conversation.key }} />
       {note && <p className="text-xs text-text-secondary">{note}</p>}
-      {asked.state !== 'OPEN' && (
-        <div className="flex flex-wrap gap-2 pt-1">
-          <Button
-            size="sm"
-            variant="ghost"
-            aria-label={`Reopen: ${title}`}
-            loading={change.isPending}
-            onClick={() => setState('OPEN', `Reopened: ${title}`)}
-          >
-            Reopen
-          </Button>
-        </div>
-      )}
+      <StepBack
+        asked={asked}
+        busy={change.isPending}
+        onBack={(said) => setState('OPEN', `${said}: ${title}`)}
+      />
       {fake && <p className="text-xs text-text-secondary">{FAKE_OFFER.stepNote}</p>}
       {change.isError && !isOfflineError(change.error) && (
         <InlineNotification kind="error">
@@ -259,7 +310,7 @@ export function JobMailPanel({ detail }: { detail: ConversationDetail }) {
   // Later mails never join a probable fake offer's application by themselves.
   const oneClick = canCreate && conversation.fakeOfferWarning === null;
   const offered = conversation.sameCompanyApplications.length > 0;
-  const dates = keyDates(mails);
+  const dates = keyDates(mails, conversation.request);
   // Phones: a mail with no application yet keeps this card open, right under the next step, so
   // "Create application" is in view (owner, 7 Nov 2026). A probable fake offer stays folded.
   const openOnPhone = useIsPhone() && oneClick;
@@ -293,11 +344,14 @@ export function JobMailPanel({ detail }: { detail: ConversationDetail }) {
             {dates.map((date) => (
               <div key={date.label} className="contents">
                 <dt className="text-text-secondary">{date.label}</dt>
-                <dd className="break-words">{date.value}</dd>
+                <dd className="break-words">
+                  {date.value}
+                  {date.state && <span className="text-text-tertiary"> · {date.state}</span>}
+                </dd>
               </div>
             ))}
           </dl>
-          <p className="text-xs text-text-secondary">As the mails wrote them.</p>
+          <p className="text-xs text-text-secondary">{keyDatesNote(dates)}</p>
         </PanelSection>
       )}
       {!openOnPhone && applicationCard}

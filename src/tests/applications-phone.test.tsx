@@ -142,6 +142,7 @@ describe('Applications on a phone (owner, 18 Nov 2026, mock `PHONE-LINEAR-mock/`
       createdAt: '2026-11-01T10:00:00.000Z',
       application: { companyName: 'x', jobTitle: null },
       email: null,
+      missed: null,
     });
     vi.mocked(api.getActions).mockResolvedValue({
       items: [
@@ -158,6 +159,51 @@ describe('Applications on a phone (owner, 18 Nov 2026, mock `PHONE-LINEAR-mock/`
     expect(late).toHaveTextContent(/Past due · Reply with your decision$/);
     expect(late).not.toHaveTextContent('1 to do');
     expect(within(late as HTMLElement).getByText('Past due')).toHaveClass('text-late');
+  });
+
+  it('says "1 missed" in the row when its only open step is missed', async () => {
+    vi.mocked(api.listApplications).mockResolvedValue({
+      items: [
+        makeApp({
+          id: 'a1',
+          companyName: 'Brightwave',
+          aiStatus: 'INTERVIEW',
+          effectiveStatus: 'INTERVIEW',
+          statusSource: 'AI',
+          pendingActionCount: 0,
+          recentEvent: null,
+        }),
+      ],
+      metadata: { limit: 20, offset: 0, nextOffset: null },
+    });
+    vi.mocked(api.getActions).mockResolvedValue({
+      items: [
+        {
+          origin: 'EMAIL' as const,
+          actionRevision: 0,
+          clientRequestId: null,
+          snoozedUntil: null,
+          id: 's1',
+          applicationId: 'a1',
+          emailId: 'mail-1',
+          type: 'SCHEDULE_INTERVIEW',
+          description: 'Fill the availability survey',
+          deadline: '2020-01-05T00:00:00Z',
+          deadlinePrecision: 'DATE' as const,
+          status: 'PENDING',
+          createdAt: '2026-11-01T10:00:00.000Z',
+          application: { companyName: 'x', jobTitle: null },
+          email: null,
+          missed: { reason: 'DEADLINE_PASSED' as const, since: '2020-01-07T00:00:00.000Z' },
+        },
+      ],
+      metadata: { limit: 20, offset: 0, nextOffset: null },
+    });
+    renderWithProviders(queryClient, '/applications');
+
+    const row = (await screen.findByText('Brightwave')).closest('a');
+    await waitFor(() => expect(row).toHaveTextContent(/Interview · 1 missed$/));
+    expect(row).not.toHaveTextContent('Past due');
   });
 
   it('keeps the filters and refresh in one capsule; the tab bar Search opens the search', async () => {

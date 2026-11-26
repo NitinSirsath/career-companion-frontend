@@ -109,8 +109,8 @@ describe('what the AI read, in one line', () => {
       followUpDate: null,
     });
     expect(keyDates([older, newer])).toEqual([
-      { label: 'Interview', value: '3 Nov' },
-      { label: 'Assessment due', value: '30 Oct, 11:59 PM IST' },
+      { label: 'Interview', value: '3 Nov', own: false, state: null },
+      { label: 'Assessment due', value: '30 Oct, 11:59 PM IST', own: false, state: null },
     ]);
   });
 

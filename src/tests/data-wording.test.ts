@@ -39,6 +39,19 @@ describe('the connected Gmail address', () => {
   });
 });
 
+describe('the two yes/no notes kept for a job mail (owner, 26 Nov 2026)', () => {
+  it('are named on the privacy policy and the Your data page, with what NorthList keeps', () => {
+    const notes =
+      'whether the mail was sent to many people as a mailing, and whether it says not to reply';
+    expect(policy).toContain(`It also keeps two yes/no notes that it makes itself: ${notes}.`);
+    expect(yourData).toContain('<b>Two yes/no notes</b>');
+    expect(yourData.toLowerCase()).toContain(notes);
+    // With the kept things, not with what goes to the AI: nothing new is sent.
+    for (const page of [policy, yourData])
+      expect(page.indexOf('yes/no notes')).toBeGreaterThan(page.indexOf('What NorthList keeps'));
+  });
+});
+
 describe('what NorthList keeps from the automation', () => {
   it('is named in full on the privacy policy and the Your data page', () => {
     for (const page of [policy, yourData]) {

@@ -15,7 +15,7 @@ export const PROMISES: [string, string, string][] = [
   ],
   [
     'mailOff',
-    'Never the text of your mails',
+    'The text of your mails is never kept',
     "For each job mail, NorthList keeps the subject, sender, date, Gmail's ids and what the AI found, sometimes with a short quote for interview times. Not the text or the attachments. Ask, and everything is deleted within 7 days.",
   ],
   ['shield', 'The AI keeps nothing', "NorthList asks the AI service to keep nothing, so it can't store your mail or train on it."],

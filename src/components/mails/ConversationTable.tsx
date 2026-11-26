@@ -44,7 +44,11 @@ const COLUMNS: ColumnDef<Conversation>[] = [
     'To-do',
     (c) =>
       c.request ? (
-        <TodoState state={c.request.state} fakeOffer={fakeOfferStep(c)} />
+        <TodoState
+          state={c.request.state}
+          fakeOffer={fakeOfferStep(c)}
+          missed={c.request.missed !== null}
+        />
       ) : (
         <span className="text-xs text-text-secondary">None</span>
       ),

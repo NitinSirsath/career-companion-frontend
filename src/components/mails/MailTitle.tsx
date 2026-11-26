@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Link } from '@tanstack/react-router';
 import { ExternalLinkIcon, ReplyIcon } from 'lucide-react';
 import { useSandboxMailbox } from '../../api/appMode';
+import { useCanReply } from '../../api/mailbox';
 import { useKeptReply } from '../../lib/keptReply';
 import { cn } from '../../lib/utils';
 import { TopBarActions } from '../layout/Breadcrumb';
@@ -60,6 +61,8 @@ export function MailTitle({
   const phone = useIsPhone();
   // Unsent reply text kept on this device: the phone's button opens it again.
   const kept = useKeptReply(threadId ?? '');
+  // No Reply button for a sender no reply can reach: the reply area says why.
+  const canReply = useCanReply(threadId);
   return (
     <PageHeader
       breadcrumb={breadcrumb}
@@ -75,7 +78,7 @@ export function MailTitle({
       }
       actions={
         <>
-          {threadId && onReply && (
+          {onReply && canReply && (
             // On phones the Reply button floats above the bottom bar, in reach of the thumb.
             <Button
               onClick={onReply}

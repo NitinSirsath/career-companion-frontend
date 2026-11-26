@@ -11,6 +11,7 @@ import {
   type ConversationRequest,
   type ListConversationsResponse,
   type MailCategory,
+  type MailDue,
   type RequestClosedReason,
   type RequestState,
 } from '../contracts/conversation';
@@ -21,6 +22,7 @@ import {
   type MailMessage,
 } from '../contracts/mailbox';
 import { deadlineLabel, deadlineOverdue } from './deadline';
+import { MISSED } from './missed';
 
 /** What the user reads for each mail type. A confirmation or status mail is an "Update". */
 export const CATEGORY_LABEL: Record<MailCategory, string> = {
@@ -75,6 +77,7 @@ export const fakeOfferStep = (
 
 export const ACTION_FILTERS = [
   { value: 'open', label: REQUEST_STATE_LABEL.OPEN },
+  { value: 'missed', label: MISSED.label },
   { value: 'replied', label: REQUEST_STATE_LABEL.REPLIED },
   { value: 'done', label: REQUEST_STATE_LABEL.DONE },
   { value: 'none', label: 'Nothing needed' },
@@ -250,9 +253,12 @@ export const CLOSED_REASON_LABEL: Record<RequestClosedReason, string> = {
   YOU_DECLINED: 'You declined',
 };
 
-/** An open request whose deadline has passed: it stays open and says so. */
+/**
+ * An open request whose deadline has passed: it stays open and says so. A missed one has left the
+ * list, so it is never "past due" (and never red).
+ */
 export const requestPastDue = (asked: ConversationRequest, now = new Date()) =>
-  asked.state === 'OPEN' && deadlineOverdue(asked, now);
+  asked.state === 'OPEN' && !asked.missed && deadlineOverdue(asked, now);
 
 /** The line beside the state: when it is due or was due, when the user replied, or why it closed. */
 export function requestDetail(asked: ConversationRequest): string | null {
@@ -278,13 +284,26 @@ export interface RequestControl {
  * What the user can change on a request, in the "⋯" menus and the phone swipe. There is no "Mark
  * done": a reply or a newer mail closes a request by itself (owner, 24 Oct 2026). One word,
  * "Reopen", puts any closed step back on the list, whether a reply or the user closed it (owner,
- * 13 Nov 2026).
+ * 13 Nov 2026). A missed request has "Still open" first: it goes back to Needs action.
  */
 export function requestControls(asked: ConversationRequest): RequestControl[] {
-  if (asked.state === 'OPEN')
-    return closesByHand(asked) ? [{ label: 'I did this', state: 'DONE' }] : [];
-  return [{ label: 'Reopen', state: 'OPEN' }];
+  if (asked.state !== 'OPEN') return [{ label: 'Reopen', state: 'OPEN' }];
+  const done: RequestControl[] = closesByHand(asked)
+    ? [{ label: 'I did this', state: 'DONE' }]
+    : [];
+  return asked.missed ? [{ label: MISSED.stillOpen, state: 'OPEN' }, ...done] : done;
 }
+
+/**
+ * A deadline the app could read from the mail, in the user's own time: "Nov 17, 2026 11:00 AM",
+ * or the day alone when the mail names no time.
+ */
+export const dueLabel = (due: MailDue) =>
+  deadlineLabel({ deadline: due.at, deadlinePrecision: due.precision });
+
+/** A date the mail names: in the user's own time when the app could read it, else the mail's words. */
+export const dueOrWords = (due: MailDue | null, words: string | null) =>
+  due ? dueLabel(due) : words;
 
 /**
  * What a conversation that asks for nothing still tells: an interview or an assessment date, in
@@ -337,8 +356,8 @@ export function aiReading(mail: ConversationMail): { label: string; value: strin
     ['Rejection', [mail.rejectionInfo]],
     // A fake offer's request is a payment: never shown as something to do.
     ['Asked for', [fake ? null : mail.requestedAction]],
-    ['Deadline', [fake ? null : mail.actionDeadline]],
-    ['Follow up', [mail.followUpDate]],
+    ['Deadline', [fake ? null : dueOrWords(mail.actionDue, mail.actionDeadline)]],
+    ['Follow up', [dueOrWords(mail.followUpDue, mail.followUpDate)]],
   ];
   return rows.flatMap(([label, parts]) => {
     const value = parts.filter(Boolean).join(', ');

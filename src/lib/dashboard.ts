@@ -5,6 +5,7 @@ import {
   type DashboardResponse,
 } from '../contracts/dashboard';
 import { platformLabel } from './eventLabels';
+import { MISSED } from './missed';
 
 /**
  * The Dashboard's words and choices (owner, 27 Oct 2026; reworked 3 Nov 2026). The numbers come
@@ -269,11 +270,17 @@ export function mailboxStats(mailbox: DashboardResponse['mailbox'], period: Dash
   ];
 }
 
-/** What the automation did with the jobs it looked at, in the bar's colours. */
+/**
+ * What the automation did with the jobs it looked at, in the bar's colours. A job left for the
+ * user more than 7 days ago is "Missed", in grey, and only named when there is one.
+ */
 export const coverageParts = (automation: DashboardResponse['automation']) => [
   { label: 'Sent', count: automation.sent, color: 'bg-chart-1' },
   { label: 'Skipped', count: automation.skipped, color: 'bg-chart-4' },
   { label: 'Needs you', count: automation.needsYou, color: 'bg-chart-3' },
+  ...(automation.missed > 0
+    ? [{ label: MISSED.label, count: automation.missed, color: 'bg-text-disabled' }]
+    : []),
 ];
 
 export const lookedAtText = (count: number) => `${count} ${count === 1 ? 'job' : 'jobs'} looked at`;

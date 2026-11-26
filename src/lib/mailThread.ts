@@ -1,7 +1,20 @@
 import { differenceInCalendarDays, format, isThisYear, isToday, isYesterday } from 'date-fns';
-import type { ConversationDetail, ConversationMail } from '../contracts/conversation';
+import type {
+  ConversationDetail,
+  ConversationMail,
+  ConversationRequest,
+  MailDue,
+} from '../contracts/conversation';
 import type { MailMessage } from '../contracts/mailbox';
-import { CATEGORY_LABEL, FAKE_OFFER, snippetText } from './mails';
+import {
+  CATEGORY_LABEL,
+  FAKE_OFFER,
+  dueLabel,
+  dueOrWords,
+  requestPastDue,
+  snippetText,
+} from './mails';
+import { MISSED } from './missed';
 import { splitQuote } from './sandbox';
 
 /** A conversation folds its older mails to one line each once it has more than this many. */
@@ -39,13 +52,15 @@ export function askingMessageId(detail: ConversationDetail): string | null {
 
 /**
  * The AI's reading in one line, in its own words where it gave any:
- * "Interview · Video · 14 Oct 11:00 · asks: confirm the time · due 13 Oct".
+ * "Interview · Video · 14 Oct 11:00 · asks: confirm the time · due 13 Oct". A deadline the app
+ * could read shows as a date in the user's own time (owner, 26 Nov 2026).
  */
 export function readingSummary(mail: ConversationMail): string {
   const interview = [mail.interviewDate, mail.interviewTime].filter(Boolean).join(' ');
   // A fake offer asks for a payment: the line points to the warning instead of repeating it.
   const fake = mail.fakeOfferWarning !== null;
-  const due = fake ? mail.assessmentDeadline : mail.actionDeadline || mail.assessmentDeadline;
+  const asked = dueOrWords(mail.actionDue, mail.actionDeadline);
+  const due = fake ? mail.assessmentDeadline : asked || mail.assessmentDeadline;
   return [
     mail.category && CATEGORY_LABEL[mail.category],
     mail.interviewType || mail.interviewStage,
@@ -59,24 +74,79 @@ export function readingSummary(mail: ConversationMail): string {
     .join(' · ');
 }
 
+export interface KeyDate {
+  label: string;
+  value: string;
+  /** The app could read it as a date: `value` is in the user's own time, not the mail's words. */
+  own: boolean;
+  /** "Missed" or "Past due", on the deadline of the request that is still open. */
+  state: string | null;
+}
+
+/** Where the open request stands, for the date row of the mail that asks for it. */
+function dueState(
+  mail: ConversationMail | undefined,
+  asked: ConversationRequest | null,
+  kind: ConversationRequest['kind'],
+): string | null {
+  if (!mail || !asked || asked.emailId !== mail.id || asked.kind !== kind) return null;
+  if (asked.missed) return MISSED.label;
+  return requestPastDue(asked) ? 'Past due' : null;
+}
+
+const dateRow = (
+  label: string,
+  words: string | null | undefined,
+  due: MailDue | null = null,
+  state: string | null = null,
+): KeyDate[] =>
+  words ? [{ label, value: due ? dueLabel(due) : words, own: due !== null, state }] : [];
+
 /**
- * The dates the mails name, newest mail first, as the mails wrote them: these are not checked
- * calendar times.
+ * The dates the mails name, newest mail first. A deadline the app could read is a date in the
+ * user's own time (owner, 26 Nov 2026); the others stay as the mails wrote them: those are not
+ * checked calendar times. `asked`: the conversation's request, so its deadline says when it is
+ * past due or missed.
  */
-export function keyDates(mails: readonly ConversationMail[]): { label: string; value: string }[] {
+export function keyDates(
+  mails: readonly ConversationMail[],
+  asked: ConversationRequest | null = null,
+): KeyDate[] {
   const newestFirst = [...mails].reverse();
   const first = (pick: (mail: ConversationMail) => string | null) =>
     newestFirst.map(pick).find(Boolean) ?? null;
   const interview = first((mail) =>
     mail.interviewDate ? [mail.interviewDate, mail.interviewTime].filter(Boolean).join(', ') : null,
   );
-  const rows: [string, string | null][] = [
-    ['Interview', interview],
-    ['Assessment due', first((mail) => mail.assessmentDeadline)],
-    ['Reply by', first((mail) => mail.actionDeadline)],
-    ['Follow up', first((mail) => mail.followUpDate)],
+  const replyBy = newestFirst.find((mail) => mail.actionDeadline);
+  const followUp = newestFirst.find((mail) => mail.followUpDate);
+  return [
+    ...dateRow('Interview', interview),
+    ...dateRow(
+      'Assessment due',
+      first((mail) => mail.assessmentDeadline),
+    ),
+    ...dateRow(
+      'Reply by',
+      replyBy?.actionDeadline,
+      replyBy?.actionDue,
+      dueState(replyBy, asked, 'ACTION'),
+    ),
+    ...dateRow(
+      'Follow up',
+      followUp?.followUpDate,
+      followUp?.followUpDue,
+      dueState(followUp, asked, 'FOLLOW_UP'),
+    ),
   ];
-  return rows.flatMap(([label, value]) => (value ? [{ label, value }] : []));
+}
+
+/** The small line under the key dates: which of them are the user's own time. */
+export function keyDatesNote(dates: readonly KeyDate[]): string {
+  const own = dates.filter((date) => date.own).map((date) => date.label);
+  if (own.length === dates.length) return 'In your own time.';
+  if (own.length === 0) return 'As the mails wrote them.';
+  return `${own.join(' and ')} in your own time. The rest as the mails wrote them.`;
 }
 
 /** "in 13 days", "today", "2 days late": how far a due date is from now. */

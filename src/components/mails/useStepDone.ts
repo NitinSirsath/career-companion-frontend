@@ -1,11 +1,15 @@
 import { useSetRequestState } from '../../api/conversations';
 import type { ConversationDetail } from '../../contracts/conversation';
 import { closesByHand, fakeOfferStep, requestTitle } from '../../lib/mails';
+import { MISSED } from '../../lib/missed';
 import { showToast } from '../ui/toast';
 
-/** What a step's button does on a phone: Done while it may be done by hand, Reopen once closed. */
+/**
+ * What a step's button does on a phone: Done while it may be done by hand, Reopen once closed,
+ * and Still open while it is missed.
+ */
 export function useStepDone(detail: ConversationDetail): {
-  label: 'Done' | 'Reopen';
+  label: 'Done' | 'Reopen' | typeof MISSED.stillOpen;
   run: () => void;
   busy: boolean;
 } | null {
@@ -15,6 +19,16 @@ export function useStepDone(detail: ConversationDetail): {
   if (!asked) return null;
   const title = requestTitle(asked);
   const fake = fakeOfferStep(conversation);
+  if (asked.missed)
+    return {
+      label: MISSED.stillOpen,
+      busy: change.isPending,
+      run: () =>
+        change.mutate(
+          { emailId: asked.emailId, state: 'OPEN' },
+          { onSuccess: () => showToast(`${MISSED.stillOpen}: ${title}`) },
+        ),
+    };
   if (asked.state === 'OPEN' && closesByHand(asked) && !fake)
     return {
       label: 'Done',

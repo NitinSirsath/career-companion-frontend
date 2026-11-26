@@ -38,6 +38,7 @@ function step(fields: Partial<ActionWithContextResponse>): ActionWithContextResp
     createdAt: `2026-11-0${(n % 9) + 1}T10:00:00.000Z`,
     application: { companyName: 'Brightwave', jobTitle: null },
     email: null,
+    missed: null,
     ...fields,
   };
 }

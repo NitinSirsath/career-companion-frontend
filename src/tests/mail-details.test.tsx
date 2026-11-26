@@ -455,6 +455,55 @@ describe('job mail details', () => {
     );
   });
 
+  it('shows a missed step in grey with why, and "Still open" where Reopen is', async () => {
+    const due = new Date(2026, 10, 17, 11, 0).toISOString();
+    const { conversation } = detail;
+    detail = {
+      ...detail,
+      conversation: {
+        ...conversation,
+        request: {
+          ...conversation.request!,
+          deadline: due,
+          deadlinePrecision: 'DATETIME',
+          missed: { reason: 'DEADLINE_PASSED', since: new Date(2026, 10, 18, 11, 0).toISOString() },
+        },
+      },
+      mails: [
+        makeConversationMail({
+          actionDeadline: 'Tuesday, Nov 17, 2026 05:30:00 AM +0000 GMT',
+          actionDue: { at: due, precision: 'DATETIME' },
+        }),
+      ],
+    };
+    show('/mails/thread-1');
+    const panel = within(await screen.findByRole('complementary', { name: 'About this job mail' }));
+    expect(panel.getByText('was due Nov 17, 2026 11:00 AM')).toBeInTheDocument();
+    expect(
+      panel.getByText(
+        'Its deadline passed, so this left Needs action by itself on Nov 18. Still open puts it back on your list for 7 days.',
+      ),
+    ).toBeInTheDocument();
+    // Not past due, not red, and no "closes when" note of an open step.
+    expect(panel.queryByText(/Past due|days late|Closes/)).not.toBeInTheDocument();
+    expect(panel.queryByRole('button', { name: /^Reopen/ })).not.toBeInTheDocument();
+    // The mail's raw date words are gone from Key dates.
+    const dates = within(panel.getByRole('region', { name: 'Key dates' }));
+    expect(dates.getByText('Reply by').nextElementSibling).toHaveTextContent(
+      'Nov 17, 2026 11:00 AM · Missed',
+    );
+    expect(dates.getByText('In your own time.')).toBeInTheDocument();
+    expect(screen.queryByText(/\+0000 GMT/)).not.toBeInTheDocument();
+    vi.mocked(api.patch).mockResolvedValue(detail.conversation);
+    fireEvent.click(panel.getByRole('button', { name: 'Still open: Send your available dates' }));
+    await waitFor(() =>
+      expect(api.patch).toHaveBeenCalledWith('/api/conversations/thread-1/request', {
+        emailId: '11111111-1111-4111-8111-111111111111',
+        state: 'OPEN',
+      }),
+    );
+  });
+
   it('names the company, role, status and mail count under the title, and the way to Gmail', async () => {
     detail = {
       ...detail,

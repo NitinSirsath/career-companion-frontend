@@ -1,5 +1,6 @@
 import type { DashboardResponse } from '../../contracts/dashboard';
 import { interviewWhen } from '../../lib/dashboard';
+import { missedCount } from '../../lib/missed';
 
 type Now = DashboardResponse['now'];
 
@@ -16,12 +17,17 @@ export function newMailsLine({ count, today }: Now['newJobMails']) {
   );
 }
 
-export function needsActionLine({ count, waitingOverADay }: Now['needsAction']) {
-  if (!count) return 'Nothing is waiting on you';
-  if (!waitingOverADay) return 'Answer them, or mark them done';
+/**
+ * Under "Needs action". The requests that left it by themselves are named at the end, "· 2 missed"
+ * (owner, 26 Nov 2026): they are not in the number above.
+ */
+export function needsActionLine({ count, waitingOverADay, missed }: Now['needsAction']) {
+  const tail = missed > 0 ? ` · ${missedCount(missed)}` : '';
+  if (!count) return `Nothing is waiting on you${tail}`;
+  if (!waitingOverADay) return `Answer them, or mark them done${tail}`;
   return (
     <>
-      <strong className={STRONG}>{waitingOverADay}</strong> waiting over a day
+      <strong className={STRONG}>{waitingOverADay}</strong> waiting over a day{tail}
     </>
   );
 }

@@ -8,6 +8,7 @@ import { useNextSteps, type NextStep } from '../../api/nextSteps';
 import type { ApplicationResponse } from '../../contracts/application';
 import { activityLine } from '../../lib/applicationsView';
 import { platformLabel } from '../../lib/eventLabels';
+import { missedCount } from '../../lib/missed';
 import { shortAgo } from '../../lib/shortAgo';
 import { cn } from '../../lib/utils';
 import { applicationTag, ARCHIVED_TAG } from '../../lib/statusTags';
@@ -166,14 +167,20 @@ interface ApplicationsTableProps {
 /**
  * A phone row's third line: the status, the open to-dos (a red "Past due" in their place when the
  * next step is late, mock screen 5), then the next step, or the latest news when nothing is open.
+ * With nothing open but a missed step, it says "1 missed" in the line's own grey.
  */
-function statusLine(app: ApplicationResponse, step: NextStep | undefined): ReactNode[] {
+function statusLine(
+  app: ApplicationResponse,
+  step: NextStep | undefined,
+  missed: number,
+): ReactNode[] {
   const parts: ReactNode[] = [applicationTag(app).label];
   if (step?.pastDue) parts.push(<span className="font-medium text-late">Past due</span>);
   else if (app.pendingActionCount > 0)
     parts.push(
       <span className="font-medium text-text-primary">{app.pendingActionCount} to do</span>,
     );
+  else if (missed > 0) parts.push(missedCount(missed));
   if (app.archivedAt) parts.push(ARCHIVED_TAG.label);
   const news = step?.text ?? activityLine(app.recentEvent)?.what;
   if (news) parts.push(news);
@@ -191,7 +198,8 @@ function PhoneApplicationRow({ app }: { app: ApplicationResponse }) {
   const ended =
     !!app.archivedAt || app.effectiveStatus === 'REJECTED' || app.effectiveStatus === 'CLOSED';
   const when = app.recentEvent?.sourceEmail?.receivedAt ?? app.recentEvent?.recordedAt;
-  const parts = statusLine(app, useNextSteps().steps?.get(app.id));
+  const next = useNextSteps();
+  const parts = statusLine(app, next.steps?.get(app.id), next.missed?.get(app.id) ?? 0);
   return (
     <Link
       to="/applications/$id"

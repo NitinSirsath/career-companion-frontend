@@ -185,7 +185,7 @@ describe('the Dashboard', () => {
       dashboardFixture({
         now: {
           newJobMails: { count: 0, today: 0 },
-          needsAction: { count: 0, waitingOverADay: 0 },
+          needsAction: { count: 0, waitingOverADay: 0, missed: 0 },
           interviews: { count: 0, next: null },
         },
       }),
