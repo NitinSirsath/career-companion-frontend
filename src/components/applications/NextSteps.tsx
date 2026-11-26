@@ -109,6 +109,7 @@ function StepMeta({
       ))}
     </span>
   );
+}
 
 /**
  * One open step: what to do, when, where it came from, and more in "…". Only the user's own
