@@ -211,7 +211,7 @@ function StepBack({
       <Button
         size="sm"
         variant="ghost"
-        aria-label={\`${label}: ${requestTitle(asked)}\`}
+        aria-label={`${label}: ${requestTitle(asked)}`}
         loading={busy}
         onClick={() => onBack(asked.missed ? MISSED.stillOpen : 'Reopened')}
       >
@@ -286,7 +286,7 @@ function NextStep({ detail }: { detail: ConversationDetail }) {
       <StepBack
         asked={asked}
         busy={change.isPending}
-        onBack={(said) => setState('OPEN', \`${said}: ${title}\`)}
+        onBack={(said) => setState('OPEN', `${said}: ${title}`)}
       />
       {fake && <p className="text-xs text-text-secondary">{FAKE_OFFER.stepNote}</p>}
       {change.isError && !isOfflineError(change.error) && (
