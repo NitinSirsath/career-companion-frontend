@@ -57,6 +57,7 @@ function makeAction(overrides: Partial<ApplicationActionListItem> = {}): Applica
     createdAt: '2026-02-01T10:00:00Z',
     repliedAt: null,
     askKind: null,
+    missed: null,
     closedReason: null,
     ...overrides,
   };
@@ -229,6 +230,7 @@ describe('Applications Dashboard (/applications)', () => {
       createdAt: '2026-10-01T10:00:00.000Z',
       application: { companyName: 'x', jobTitle: null },
       email: null,
+      missed: null,
     };
     vi.mocked(api.getActions).mockResolvedValueOnce({
       items: [
@@ -249,6 +251,31 @@ describe('Applications Dashboard (/applications)', () => {
     expect(screen.getByText('Past due · Let them know your decision')).toHaveClass(
       'text-danger-text',
     );
+  });
+
+  it('says "1 missed" in grey when the only open step is missed, and never names it', async () => {
+    vi.mocked(api.listApplications).mockResolvedValue({
+      items: [makeApp({ id: 'app-1', companyName: 'Brightwave', pendingActionCount: 0 })],
+      metadata: { limit: 20, offset: 0, nextOffset: null },
+    });
+    vi.mocked(api.getActions).mockResolvedValueOnce({
+      items: [
+        {
+          ...makeAction({
+            description: 'Fill the survey',
+            missed: { reason: 'DEADLINE_PASSED', since: '2026-02-17T00:00:00.000Z' },
+          }),
+          application: { companyName: 'Brightwave', jobTitle: null },
+          email: null,
+        },
+      ],
+      metadata: { limit: 20, offset: 0, nextOffset: null },
+    });
+    renderWithProviders(queryClient, '/applications');
+
+    expect(await screen.findByText('1 missed')).toHaveClass('text-text-tertiary');
+    expect(screen.queryByText(/Fill the survey/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Past due/)).not.toBeInTheDocument();
   });
 
   it('names each value on phones, where the header row is hidden', async () => {
