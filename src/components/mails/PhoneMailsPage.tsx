@@ -1,6 +1,7 @@
 import { AIAccessNotice } from '../ai/AIAccessNotice';
 import { useConversations } from '../../api/conversations';
 import { filtersFromSearch, type MailsSearch } from '../../lib/mails';
+import { MISSED } from '../../lib/missed';
 import { GmailInbox } from './GmailInbox';
 import { JobMails } from './JobMails';
 import { PhoneMailsTools } from './MailsBars';
@@ -12,7 +13,8 @@ import { RestrictedList } from './RestrictedList';
 /**
  * The Mails page on phones (owner, 13 Nov 2026, approved mock `IOS-LOOK-mock/`): "Job mails ⌄" as
  * the big title with the status line under it, the tools in the glass capsule, the filters in use
- * as pills, then the mails edge to edge and the day's summary under them.
+ * as pills, then the mails edge to edge and the day's summary under them. Under the Missed filter
+ * the line says what those mails are instead (owner, 26 Nov 2026).
  */
 export function PhoneMailsPage({
   search,
@@ -26,7 +28,6 @@ export function PhoneMailsPage({
   onFilter: (changes: Partial<MailsSearch>) => void;
   onChange: (changes: Partial<MailsSearch>) => void;
 }) {
-  const needsActionOn = search.request === 'open';
   // The same list JobMails shows (one shared request): with no rows, its empty state says it all.
   const list = useConversations(filtersFromSearch(search), search.offset ?? 0);
   const emptyList = list.data?.items.length === 0;
@@ -44,10 +45,11 @@ export function PhoneMailsPage({
       </div>
       {!search.tab && !emptyList && (
         <p className="px-1 pt-3.5 text-[13px] leading-[18px] text-text-tertiary">
-          <MailSummary
-            needsActionOn={needsActionOn}
-            onToggleNeedsAction={() => onFilter({ request: needsActionOn ? undefined : 'open' })}
-          />
+          {search.request === 'missed' ? (
+            MISSED.listNote.phone
+          ) : (
+            <MailSummary request={search.request} onRequest={(request) => onFilter({ request })} />
+          )}
         </p>
       )}
     </div>
