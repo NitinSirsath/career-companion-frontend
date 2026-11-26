@@ -12,6 +12,7 @@ import { useSandboxMailbox } from '../../api/appMode';
 import { useMailThread } from '../../api/mailbox';
 import type { ConversationDetail } from '../../contracts/conversation';
 import { useKeptReply } from '../../lib/keptReply';
+import { NO_REPLY_SHORT } from '../../lib/mailReply';
 import {
   CATEGORY_LABEL,
   FAKE_OFFER,
@@ -111,7 +112,8 @@ export function PhoneMailPills({
 }) {
   const { conversation: c } = detail;
   const asked = c.request;
-  const due = asked && asked.state === 'OPEN' ? shortDue(asked) : null;
+  // A missed step has left the list: its row below says "Missed", so no due date here.
+  const due = asked && asked.state === 'OPEN' && !asked.missed ? shortDue(asked) : null;
   const sender = c.sender ? parseSender(c.sender).name : null;
   const company = mailCompany(c);
   const TypeIcon = c.category ? MAIL_TYPE_ICON[c.category] : null;
@@ -207,6 +209,17 @@ function BottomBar({
 }) {
   const kept = useKeptReply(threadId);
   const thread = useMailThread(threadId);
+  // Nobody reads mail sent to this address (owner, 26 Nov 2026): no AI reply and no Reply field.
+  // The bar only says so, with no glass behind the words, and Open in Gmail stays.
+  if (thread.data?.canReply === false)
+    return (
+      <PhoneBottomBar label="Mail actions">
+        <p className="min-w-0 flex-1 truncate pl-2 text-[16px] text-text-tertiary">
+          {NO_REPLY_SHORT}
+        </p>
+        <MailboxCircle threadId={threadId} />
+      </PhoneBottomBar>
+    );
   const to = thread.data?.replyTo ?? sender;
   const name = to ? parseSender(to).name : null;
   let words: ReactNode = name ? `Reply to ${name}` : 'Reply';
