@@ -10,6 +10,7 @@ import {
   requestTitle,
   scheduleLine,
 } from '../../lib/mails';
+import { MISSED, missedWhy } from '../../lib/missed';
 import { statusTag } from '../../lib/statusTags';
 import { cn } from '../../lib/utils';
 import { getGmailConversationUrl } from '../../utils/gmail';
@@ -51,13 +52,22 @@ const STEP_MARK = { OPEN: '→', REPLIED: '↩', DONE: '✓' } as const;
 /**
  * The row's one grey line (laptop v2, owner 18 Nov 2026): "→ Pick a time · Due Mon" while open,
  * "↩ You replied Nov 13" once replied, else an interview or test date, or "Nothing needed". Red
- * only when past due.
+ * only when past due. A missed step: "Missed · Pick a time · was due Nov 17", in lighter grey.
  */
 export function StepLine({ conversation: c }: { conversation: Conversation }) {
   const asked = c.request;
   if (!asked)
     return (
       <p className="mt-0.5 truncate text-text-secondary">{scheduleLine(c) ?? 'Nothing needed'}</p>
+    );
+  if (asked.missed)
+    return (
+      <p className="mt-0.5 flex min-w-0 items-center gap-2 text-text-tertiary">
+        <span className="min-w-0 truncate">
+          {MISSED.label} · {requestTitle(asked)} · {missedWhy(asked, true)}
+        </span>
+        {fakeOfferStep(c) && <FakeOfferTag />}
+      </p>
     );
   const detail = requestDetail(asked);
   const due = detail && (
@@ -81,13 +91,15 @@ export function StepLine({ conversation: c }: { conversation: Conversation }) {
  * One job mail on a laptop (laptop v2, owner 18 Nov 2026, `PHONE-LINEAR-mock/desktop.html`): the
  * photo with the status ring on it; the person, then the subject on the same line; one grey line
  * for the ask and its due date; the company with the status ring and word; the date; the "…" menu
- * when pointed at. A blue dot marks a new mail. The whole row opens the mail.
+ * when pointed at. A blue dot marks a new mail. The whole row opens the mail. A missed mail is dim
+ * (owner, 26 Nov 2026).
  */
 export function MailRow({ conversation: c }: { conversation: Conversation }) {
   const sender = parseSender(c.sender).name;
+  const dim = c.request?.missed ? 'opacity-55' : undefined;
   return (
     <div className="group relative grid grid-cols-[30px_minmax(0,1fr)_210px_64px_32px] items-center gap-3.5 border-b border-border-subtle px-2.5 py-2.5 transition-colors duration-70 ease-standard hover:bg-layer-hover">
-      <span className="relative size-[30px] shrink-0">
+      <span className={cn('relative size-[30px] shrink-0', dim)}>
         <Avatar name={sender} className="size-[30px] text-[11px]" />
         {c.application && (
           // The application's status as a small ring on the photo, as on the phone.
@@ -96,7 +108,7 @@ export function MailRow({ conversation: c }: { conversation: Conversation }) {
           </span>
         )}
       </span>
-      <div className="min-w-0">
+      <div className={cn('min-w-0', dim)}>
         <p className="flex min-w-0 items-baseline gap-2 whitespace-nowrap">
           <span
             className={cn(
@@ -122,7 +134,7 @@ export function MailRow({ conversation: c }: { conversation: Conversation }) {
         </p>
         <StepLine conversation={c} />
       </div>
-      <div className={cn('min-w-0 text-[13px]', ABOVE_LINK)}>
+      <div className={cn('min-w-0 text-[13px]', ABOVE_LINK, dim)}>
         <ConversationApplication conversation={c} appearance="row" />
       </div>
       <p className="self-start pt-0.5 text-right text-xs leading-5 text-text-tertiary tabular-nums">
