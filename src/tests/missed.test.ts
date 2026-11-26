@@ -86,7 +86,7 @@ describe('a missed request on Mails', () => {
   it('offers Still open first, and is never past due', () => {
     const missed = { ...missedAsk, missed: since('DEADLINE_PASSED') };
     const labels = (askKind: 'REPLY_BY_MAIL' | 'OUTSIDE_MAIL') =>
-      requestControls({ ...missed, askKind }).map((control) => \`\${control.label}>\${control.state}\`);
+      requestControls({ ...missed, askKind }).map((control) => `${control.label}>${control.state}`);
     expect(labels('REPLY_BY_MAIL')).toEqual(['Still open>OPEN']);
     expect(labels('OUTSIDE_MAIL')).toEqual(['Still open>OPEN', 'I did this>DONE']);
     expect(requestPastDue(missed)).toBe(false);
