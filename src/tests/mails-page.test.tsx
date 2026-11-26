@@ -20,9 +20,16 @@ vi.mock('../api/client', async (importOriginal) => ({
   },
 }));
 
+// The page under test has no toast list: what a toast would say is read from the call.
+vi.mock('../components/ui/toast', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../components/ui/toast')>()),
+  showToast: vi.fn(),
+}));
+
 import { routeTree } from '../routeTree.gen';
 import { chooseOption, pressOption } from './choose';
 import { listSearch } from '../lib/listMemory';
+import { showToast } from '../components/ui/toast';
 
 const APP_ID = '33333333-3333-4333-8333-333333333333';
 const page = <T,>(items: T[], nextOffset: number | null = null) => ({
@@ -43,7 +50,7 @@ const thread = (overrides: Partial<MailboxThread> = {}): MailboxThread => ({
 
 let conversations: Conversation[];
 let inbox: Record<string, { items: MailboxThread[]; nextPageToken: string | null }>;
-let summary: { needsAction: number; pastDue: number };
+let summary: { needsAction: number; pastDue: number; missed: number };
 const get = vi.mocked(api.get);
 const listCalls = () =>
   get.mock.calls.map(([path]) => path).filter((path) => path.startsWith('/api/conversations?'));
@@ -79,7 +86,7 @@ const openRowMenu = async (cells: ReturnType<typeof within>) => {
 beforeEach(() => {
   vi.resetAllMocks();
   conversations = [makeConversation()];
-  summary = { needsAction: 1, pastDue: 1 };
+  summary = { needsAction: 1, pastDue: 1, missed: 0 };
   inbox = { '': { items: [thread()], nextPageToken: null } };
   get.mockImplementation(async (path: string) => {
     if (path.startsWith('/api/conversations?')) return page(conversations);
@@ -431,7 +438,7 @@ describe('Job mails tab', () => {
   });
 
   it('lists newest first, and says how many mails need the user, counted by the server', async () => {
-    summary = { needsAction: 4, pastDue: 2 };
+    summary = { needsAction: 4, pastDue: 2, missed: 0 };
     show();
     await row('Interview: first round availability');
     // The list asks for newest first; the tab count asks for the whole list, unsorted.
@@ -455,11 +462,85 @@ describe('Job mails tab', () => {
     );
     cleanup();
 
-    summary = { needsAction: 0, pastDue: 0 };
+    summary = { needsAction: 0, pastDue: 0, missed: 0 };
     show();
     expect(
       await screen.findByText('Nothing needs you right now. Everything is up to date.'),
     ).toBeInTheDocument();
+  });
+
+  it('counts missed mails apart, and "2 missed" turns the Missed filter on and off', async () => {
+    summary = { needsAction: 1, pastDue: 0, missed: 2 };
+    show();
+    const missed = await screen.findByRole('button', { name: '2 missed' });
+    expect(missed.parentElement).toHaveTextContent(
+      '1 mail needs you. 2 missed. Everything else is up to date.',
+    );
+    fireEvent.click(missed);
+    await waitFor(() => expect(router.state.location.search).toEqual({ request: 'missed' }));
+    await waitFor(() =>
+      expect(
+        listCalls().some(
+          (call) => new URLSearchParams(call.split('?')[1]).get('request') === 'missed',
+        ),
+      ).toBe(true),
+    );
+    expect(screen.getByRole('button', { name: '2 missed' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(screen.getByText(/^They left Needs action by themselves\./)).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /^Remove filter:? Action: Missed$/ }),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '2 missed' }));
+    await waitFor(() => expect(router.state.location.search).toEqual({}));
+    cleanup();
+
+    summary = { needsAction: 0, pastDue: 0, missed: 1 };
+    show();
+    const one = await screen.findByRole('button', { name: '1 missed' });
+    expect(one.parentElement).toHaveTextContent(
+      'Nothing needs you right now. 1 missed. Everything else is up to date.',
+    );
+  });
+
+  it('shows a missed mail dim, with why, and puts it back with "Still open"', async () => {
+    const conversation = makeConversation();
+    const missedMail: Conversation = {
+      ...conversation,
+      request: {
+        ...conversation.request!,
+        askKind: 'OUTSIDE_MAIL',
+        deadline: '2026-11-17T00:00:00.000Z',
+        deadlinePrecision: 'DATE',
+        missed: { reason: 'DEADLINE_PASSED', since: '2026-11-19T00:00:00.000Z' },
+      },
+    };
+    conversations = [missedMail];
+    vi.mocked(api.patch).mockResolvedValue(missedMail);
+    show('/mails?request=missed');
+    const cells = await row('Interview: first round availability');
+    // The year shows once it is no longer this year.
+    const line = cells.getByText(/^Missed · Send your available dates · was due Nov 17(, 2026)?$/);
+    // Grey, never the red of a past due step; the words around it are dim.
+    expect(line.closest('p')).toHaveClass('text-text-tertiary');
+    expect(line.closest('.opacity-55')).not.toBeNull();
+    expect(cells.queryByText(/Past due/)).not.toBeInTheDocument();
+    expect(await openRowMenu(cells)).toEqual(['Still open', 'I did this', 'Open in Gmail']);
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Still open' }));
+    await waitFor(() =>
+      expect(api.patch).toHaveBeenCalledWith('/api/conversations/thread-1/request', {
+        emailId: '11111111-1111-4111-8111-111111111111',
+        state: 'OPEN',
+      }),
+    );
+    // Nothing sets a request back to missed, so this toast has no Undo.
+    await waitFor(() =>
+      expect(showToast).toHaveBeenCalledWith('Still open: Send your available dates', {
+        undo: undefined,
+      }),
+    );
   });
 
   it('says so when there are no job mails yet, and when nothing matches', async () => {
