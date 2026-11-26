@@ -5,6 +5,7 @@ import { CONVERSATION_PAGE_SIZE, useConversations } from '../../api/conversation
 import { useGmailStatus } from '../../api/gmail';
 import { gmailConnectionCopy } from '../../lib/gmailConnection';
 import { filtersFromSearch, type MailsSearch } from '../../lib/mails';
+import { MISSED } from '../../lib/missed';
 import { useIsPhone } from '../layout/useIsPhone';
 import { EMPTY_ACTION, EMPTY_ACTION_QUIET, EmptyState } from '../ui/empty-state';
 import { Pagination } from '../ui/pagination';
@@ -61,10 +62,29 @@ function NoJobMails({
   );
 }
 
+/**
+ * Under the list while the Missed filter is on (owner, 26 Nov 2026): what these mails are. Phones
+ * say it in the line under the list, in the summary's place.
+ */
+function MissedListNote({ search, phone }: { search: MailsSearch; phone: boolean }) {
+  if (phone || search.request !== 'missed') return null;
+  return <p className="px-2.5 pt-4 text-xs text-text-secondary">{MISSED.listNote.laptop}</p>;
+}
+
 /** A search, a filter or a later page: the empty list then says nothing matches. */
 const isNarrowed = (search: MailsSearch) =>
   [search.q, search.request, search.category, search.application, search.unseen].some(Boolean) ||
   (search.offset ?? 0) > 0;
+
+/** The search and every filter off, back at the first page. */
+const NOTHING_NARROWED: Partial<MailsSearch> = {
+  q: undefined,
+  request: undefined,
+  category: undefined,
+  application: undefined,
+  unseen: undefined,
+  offset: undefined,
+};
 
 interface JobMailsProps {
   search: MailsSearch;
@@ -103,20 +123,7 @@ export function JobMails({ search, onChange }: JobMailsProps) {
   if (isLoading) return <SkeletonRows label="Loading job mails" />;
   if (data && items.length === 0)
     return (
-      <NoJobMails
-        narrowed={narrowed}
-        words={search.q}
-        onClear={() =>
-          onChange({
-            q: undefined,
-            request: undefined,
-            category: undefined,
-            application: undefined,
-            unseen: undefined,
-            offset: undefined,
-          })
-        }
-      />
+      <NoJobMails narrowed={narrowed} words={search.q} onClear={() => onChange(NOTHING_NARROWED)} />
     );
   return (
     <div>
@@ -155,6 +162,7 @@ export function JobMails({ search, onChange }: JobMailsProps) {
           onNext={() => nextOffset !== null && goTo(nextOffset)}
         />
       )}
+      <MissedListNote search={search} phone={phone} />
     </div>
   );
 }
