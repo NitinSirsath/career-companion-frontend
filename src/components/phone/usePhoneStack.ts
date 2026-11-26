@@ -17,13 +17,16 @@ import {
   type PhoneTab,
   type StackEntry,
 } from '../../lib/phoneStack';
-import { animateSpring, NAV_SPRING } from '../../lib/spring';
+import { isAppleMobile } from '../../lib/alerts';
+import { animateSpring, NAV_SPRING, type SpringMove } from '../../lib/spring';
+import { browserDrewBack } from '../../lib/systemBack';
 import { rememberedSearch } from '../layout/navItems';
 import type { BarMode } from './phoneNav';
 import {
   clearFrame,
   hideLayer,
   scrollerOf,
+  settleEntrances,
   showSnapshot,
   slideFrame,
   tabFade,
@@ -41,11 +44,12 @@ export interface PhoneView {
 /** An intent older than this was for a navigation that never came. */
 const INTENT_MS = 2000;
 
-/** Safari already drew its own back swipe for this history step: the app then adds none. */
-let browserDrewBack = 0;
-const noteBrowserBack = (event: PopStateEvent) => {
-  if (event.hasUAVisualTransition) browserDrewBack = performance.now();
-};
+/**
+ * A touch at the left edge of an iPhone is the system's own back swipe, which draws its own slide.
+ * Not every iPhone says so on the history step (`lib/systemBack.ts`), so a step back this soon
+ * after such a touch counts as drawn by the system too.
+ */
+const EDGE_BACK_MS = 3000;
 
 /** One page's look and scroll, kept while it is under another page or in another tab. */
 class PageMemory {
@@ -100,6 +104,12 @@ export class PhoneStackCore {
   private busy = false;
   private ownPop = false;
   private swipeAt = 1;
+  /** True while a finger drags the page, and while a slide or a tab fade runs. */
+  private dragging = false;
+  private moving = false;
+  /** Counts the slides: one whose number is no longer this has been stopped. */
+  private run = 0;
+  private edgeTouchAt = -Infinity;
   /** Tells the bottom bar what it is about to be while a page slides back (null: as the page says). */
   private barHint: ((mode: BarMode | null) => void) | null = null;
   /** The live page, and the layers for the still copies under it and over it. */
@@ -168,22 +178,49 @@ export class PhoneStackCore {
   private draw(move: PhoneMove, before: StackEntry, next: PhoneStacks) {
     const look = this.pending;
     const page = this.layers.page;
+    // Same page, new address: a slide, fade or drag of this page goes on. With none, the page comes
+    // to rest: the app's own Back may have slid it off screen for a page that is already shown.
+    if (move === 'stay') {
+      if (!this.moving && !this.dragging) this.finish();
+      return;
+    }
+    // Another page is shown now: what slid or was dragged belonged to the page that left.
+    this.finish();
     if (move === 'push') {
       this.memory.keep(before.id, look, true);
       restoreScroll(page, 0);
       return this.slideIn(look);
     }
     if (move === 'tab') this.memory.keep(before.id, look, false);
-    if (move === 'pop' || move === 'tab') restoreScroll(page, this.memory.scrollOf(topOf(next).id));
+    restoreScroll(page, this.memory.scrollOf(topOf(next).id));
     if (move === 'tab') return this.crossFade(look);
-    if (move !== 'pop') return;
-    const browserDrew = performance.now() - browserDrewBack < 1000;
-    if (this.ownPop || browserDrew) this.finish();
-    else this.slideAway(look);
+    this.settle();
+    if (!this.ownPop && !this.systemDrewBack()) this.slideAway(look);
   }
 
+  /** The page Back shows is not new: nothing on it rises or fades in again, now or a frame later. */
+  private settle() {
+    const page = this.layers.page;
+    if (!page) return;
+    settleEntrances(page);
+    requestAnimationFrame(() => {
+      if (page === this.layers.page) settleEntrances(page);
+    });
+  }
+
+  /** True when the system already showed this step back with its own slide. */
+  private systemDrewBack() {
+    const afterEdgeTouch = performance.now() - this.edgeTouchAt < EDGE_BACK_MS;
+    this.edgeTouchAt = -Infinity;
+    return afterEdgeTouch || browserDrewBack();
+  }
+
+  /** Back to rest: nothing slides or is dragged, the live page is in place, the copies are gone. */
   finish = () => {
     const { page, under, over } = this.layers;
+    this.run += 1;
+    this.dragging = false;
+    this.moving = false;
     this.barHint?.(null);
     if (page) clearFrame(page);
     if (under) hideLayer(under);
@@ -191,51 +228,75 @@ export class PhoneStackCore {
     this.busy = false;
   };
 
+  /**
+   * Runs one slide. It stops for good when the page comes to rest or another slide starts: a
+   * spring that went on would move the page that is shown by then.
+   */
+  private slide(move: SpringMove, frame: (p: number) => void, then: () => void) {
+    this.run += 1;
+    const run = this.run;
+    this.busy = true;
+    this.moving = true;
+    void animateSpring(move, NAV_SPRING, (p) => {
+      if (run === this.run) frame(p);
+    }).then(() => {
+      if (run !== this.run) return;
+      this.moving = false;
+      then();
+    });
+  }
+
   /** Another tab: the old page fades out over the new one with a soft blur, nothing slides. */
   private crossFade(from: PageSnapshot | null) {
     const { page, over } = this.layers;
     if (!page || !over || !from) return;
+    const run = this.run;
+    this.moving = true;
     showSnapshot(over, from);
-    void tabFade(over, page).then(() => hideLayer(over));
+    // A slide that started meanwhile uses the layers itself, and puts them away when it ends.
+    void tabFade(over, page).then(() => {
+      if (run !== this.run) return;
+      this.moving = false;
+      hideLayer(over);
+    });
   }
 
   /** A new page slides in over the copy of the one it covers. */
   private slideIn(from: PageSnapshot | null) {
     const { page, under } = this.layers;
     if (!page || !under || !from) return;
-    this.busy = true;
     showSnapshot(under, from);
     slideFrame(under, page, 0);
-    void animateSpring({ from: 0, to: 1 }, NAV_SPRING, (p) => slideFrame(under, page, p)).then(
-      this.finish,
-    );
+    this.slide({ from: 0, to: 1 }, (p) => slideFrame(under, page, p), this.finish);
   }
 
   /** The browser went back: the copy of the page that left slides away over the live one. */
   private slideAway(leaving: PageSnapshot | null) {
     const { page, over } = this.layers;
     if (!page || !over || !leaving) return;
-    this.busy = true;
     showSnapshot(over, leaving);
     slideFrame(page, over, 1);
-    void animateSpring({ from: 1, to: 0 }, NAV_SPRING, (p) => slideFrame(page, over, p)).then(
-      this.finish,
-    );
+    this.slide({ from: 1, to: 0 }, (p) => slideFrame(page, over, p), this.finish);
   }
 
   /** Shows page `to` of this tab again: through history when it is right there, else in place. */
   private goBackTo(to: number) {
     const target = this.stack[to];
-    if (!target || !this.stacks) return this.finish();
+    // No page under the top one any more (the browser went back meanwhile): only come to rest.
+    if (!target || !this.stacks || to >= this.stack.length - 1) return this.finish();
     const here = this.where().index;
+    const run = this.run;
     this.intent = { value: { kind: 'pop', to }, at: performance.now() };
     this.ownPop = true;
     if (target.index !== null && target.key !== null && target.index < here)
       this.router.history.go(target.index - here);
     else void this.router.navigate({ href: hrefOf(target, this.stacks.tab), replace: true });
-    // A navigation that never lands must not leave the page slid away.
+    // A navigation that never lands must not leave the page slid away: unless the page came to
+    // rest or another slide started meanwhile, it comes to rest now.
     window.setTimeout(() => {
-      if (this.busy && this.ownPop) this.finish();
+      if (run !== this.run) return;
+      this.ownPop = false;
+      this.finish();
     }, INTENT_MS);
   }
 
@@ -243,13 +304,14 @@ export class PhoneStackCore {
   private popTo(to: number, from = 1, velocity = 0) {
     const { page, under } = this.layers;
     const target = this.stack[to];
-    if (!page || !under || !target) return;
-    this.busy = true;
+    if (!page || !under || !target) return this.finish();
     if (to === 0) this.barHint?.('tabs');
     showSnapshot(under, this.memory.snapshots.get(target.id));
-    void animateSpring({ from, to: 0, velocity }, NAV_SPRING, (p) =>
-      slideFrame(under, page, p),
-    ).then(() => this.goBackTo(to));
+    this.slide(
+      { from, to: 0, velocity },
+      (p) => slideFrame(under, page, p),
+      () => this.goBackTo(to),
+    );
   }
 
   back = () => {
@@ -274,6 +336,7 @@ export class PhoneStackCore {
     const { page, under } = this.layers;
     if (this.busy || this.stack.length < 2 || !page || !under) return false;
     this.busy = true;
+    this.dragging = true;
     this.swipeAt = 1;
     showSnapshot(under, this.memory.snapshots.get(this.stack[this.stack.length - 2].id));
     return true;
@@ -281,6 +344,8 @@ export class PhoneStackCore {
 
   swipeMove = (p: number) => {
     const { page, under } = this.layers;
+    // The page changed under the finger (the system went back): it no longer follows it.
+    if (!this.dragging) return;
     this.swipeAt = p;
     if (page && under) slideFrame(under, page, p);
   };
@@ -288,11 +353,20 @@ export class PhoneStackCore {
   /** Let go: far or fast enough goes back, else the page springs back into place. */
   swipeEnd = (go: boolean, velocity: number) => {
     const { page, under } = this.layers;
+    if (!this.dragging) return;
+    this.dragging = false;
     if (!page || !under) return this.finish();
     if (go) return this.popTo(this.stack.length - 2, this.swipeAt, velocity);
-    void animateSpring({ from: this.swipeAt, to: 1, velocity }, NAV_SPRING, (p) =>
-      slideFrame(under, page, p),
-    ).then(this.finish);
+    this.slide(
+      { from: this.swipeAt, to: 1, velocity },
+      (p) => slideFrame(under, page, p),
+      this.finish,
+    );
+  };
+
+  /** A touch began at the left edge, where the system has its own back swipe (`useSwipeBack`). */
+  edgeTouch = () => {
+    if (isAppleMobile({ navigator, window })) this.edgeTouchAt = performance.now();
   };
 }
 
@@ -305,10 +379,6 @@ export function usePhoneStack() {
     () => router.subscribe('onBeforeNavigate', (event) => core.beforeNavigate(event.pathChanged)),
     [router, core],
   );
-  useEffect(() => {
-    window.addEventListener('popstate', noteBrowserBack, { capture: true });
-    return () => window.removeEventListener('popstate', noteBrowserBack, { capture: true });
-  }, []);
   const leaf = useRouterState({
     select: (state) => {
       const match = state.matches[state.matches.length - 1];

@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import type { User } from '../../api/auth';
+import { appVersion } from '../../lib/appVersion';
 import {
   browserCopyStore,
   keepCopies,
@@ -49,7 +50,7 @@ function openFor(check: SignInCheck, copy: SavedCopy | null | undefined): User |
 export function SignInGate({
   children,
   store = browserCopyStore,
-  version = __APP_VERSION__,
+  version = appVersion(),
 }: {
   children: (user: User | null) => ReactNode;
   store?: CopyStore;

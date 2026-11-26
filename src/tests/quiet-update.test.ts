@@ -1,9 +1,13 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { appVersion } from '../lib/appVersion';
 import {
+  AWAY_MS,
   CHECK_EVERY_MS,
   fetchLiveVersion,
   hasUnsentText,
+  reloadInPlace,
+  RETURN_MS,
   startQuietUpdates,
 } from '../lib/quietUpdate';
 
@@ -20,16 +24,17 @@ const store = {
   setItem: (key: string, value: string) => void stored.set(key, value),
 };
 
-const start = () => {
+const start = (installed = false, liveVersion = async () => live) => {
   stop = startQuietUpdates({
     current: 'v1',
-    liveVersion: async () => live,
+    liveVersion,
     onNavigate: (next) => {
       listener = next;
       return () => {};
     },
     load,
     store,
+    installed,
   });
 };
 const settle = () => vi.advanceTimersByTimeAsync(0);
@@ -138,7 +143,107 @@ describe('quiet update (owner, 26 Oct 2026)', () => {
   });
 });
 
+describe('quiet update in the installed app', () => {
+  const away = async (ms: number) => {
+    await setVisibility('hidden');
+    await vi.advanceTimersByTimeAsync(ms);
+    await setVisibility('visible');
+  };
+
+  it('never reloads on a page move, nor when the app goes to the background', async () => {
+    live = 'v2';
+    start(true);
+    await settle();
+    moveTo('/applications');
+    await setVisibility('hidden');
+    await vi.advanceTimersByTimeAsync(CHECK_EVERY_MS);
+    expect(load).not.toHaveBeenCalled();
+  });
+
+  it('keeps the place after a short time away', async () => {
+    live = 'v2';
+    start(true);
+    await settle();
+    await away(AWAY_MS - 1000);
+    expect(load).not.toHaveBeenCalled();
+  });
+
+  it('takes the new version when it comes back after a long time away', async () => {
+    live = 'v2';
+    start(true);
+    await settle();
+    await away(AWAY_MS);
+    expect(load).toHaveBeenCalledExactlyOnceWith(null);
+  });
+
+  it('takes a version it only learns of on coming back, in the first moments', async () => {
+    let answer: (version: string) => void = () => {};
+    start(true, () => new Promise<string | null>((resolve) => (answer = resolve)));
+    answer('v1');
+    await away(AWAY_MS);
+    await vi.advanceTimersByTimeAsync(RETURN_MS - 1000);
+    answer('v2');
+    await settle();
+    expect(load).toHaveBeenCalledExactlyOnceWith(null);
+  });
+
+  it('leaves the app alone once it is touched', async () => {
+    let answer: (version: string) => void = () => {};
+    start(true, () => new Promise<string | null>((resolve) => (answer = resolve)));
+    answer('v1');
+    await away(AWAY_MS);
+    document.dispatchEvent(new Event('pointerdown'));
+    answer('v2');
+    await settle();
+    expect(load).not.toHaveBeenCalled();
+  });
+
+  it('leaves the app alone when the answer comes late, until the next long time away', async () => {
+    let answer: (version: string) => void = () => {};
+    start(true, () => new Promise<string | null>((resolve) => (answer = resolve)));
+    answer('v1');
+    await away(AWAY_MS);
+    await vi.advanceTimersByTimeAsync(RETURN_MS);
+    answer('v2');
+    await settle();
+    moveTo('/mails');
+    expect(load).not.toHaveBeenCalled();
+    await away(AWAY_MS);
+    expect(load).toHaveBeenCalledExactlyOnceWith(null);
+  });
+
+  it('waits while something typed is not sent', async () => {
+    document.body.innerHTML = '<textarea></textarea>';
+    document.querySelector('textarea')!.value = 'Hi Priya, Tuesday works';
+    live = 'v2';
+    start(true);
+    await settle();
+    await away(AWAY_MS);
+    expect(load).not.toHaveBeenCalled();
+  });
+});
+
 describe('the pieces', () => {
+  it('loads a page in place, so the history gets no new step', () => {
+    const at = { pathname: '/mails', search: '?request=open', hash: '' };
+    const reload = vi.fn();
+    const replace = vi.fn();
+    // The router has already put the next address in place: load it again where it is.
+    reloadInPlace('/mails?request=open', { ...at, reload, replace });
+    reloadInPlace(null, { ...at, reload, replace });
+    expect(reload).toHaveBeenCalledTimes(2);
+    expect(replace).not.toHaveBeenCalled();
+    reloadInPlace('/applications', { ...at, reload, replace });
+    expect(replace).toHaveBeenCalledExactlyOnceWith('/applications');
+  });
+
+  it('reads the version the build wrote into the page, and is "dev" without one', () => {
+    expect(appVersion()).toBe('dev');
+    document.head.innerHTML = '<meta name="app-version" content="d470b8a61ed98b37">';
+    expect(appVersion()).toBe('d470b8a61ed98b37');
+    document.head.innerHTML = '';
+  });
+
   it('reads the live version without the cache, and null when it cannot', async () => {
     const fetch = vi
       .spyOn(globalThis, 'fetch')
