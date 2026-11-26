@@ -5,6 +5,8 @@ export interface SwipeTarget {
   swipeStart: () => boolean;
   swipeMove: (p: number) => void;
   swipeEnd: (go: boolean, velocity: number) => void;
+  /** A touch began in the left edge zone, where the system has its own back swipe. */
+  edgeTouch?: () => void;
 }
 
 /** A finger must move this far before the page follows it. */
@@ -12,6 +14,12 @@ const SLOP_PX = 9;
 /** Let go past this share of the width, or flung, and the page goes back. */
 const GO_SHARE = 0.42;
 const FLING_PX_PER_S = 500;
+/**
+ * The left edge belongs to the system's own back swipe: an installed iPhone app and Safari have
+ * one, and so does Android. A touch that starts there never starts the app's swipe too, or two
+ * slides fight over one page. A little wider than the iPhone's own zone, which is about 20px.
+ */
+export const EDGE_PX = 30;
 
 interface Gesture {
   id: number;
@@ -40,8 +48,9 @@ function speed(points: [number, number][]) {
 /**
  * Swipe back from anywhere on a page, not only the edge (owner, 13 Nov 2026): the page follows the
  * finger to the right; let go halfway and it springs back, past that or with a fling it goes back.
- * Pages scroll up and down as usual, since a mostly-vertical move never starts it. Returns the
- * callback that hands it the page.
+ * Pages scroll up and down as usual, since a mostly-vertical move never starts it. At the left
+ * edge itself the system's own back swipe works alone (`EDGE_PX`). Returns the callback that
+ * hands it the page.
  */
 export function useSwipeBack(target: SwipeTarget) {
   const [page, setPage] = useState<HTMLElement | null>(null);
@@ -51,8 +60,25 @@ export function useSwipeBack(target: SwipeTarget) {
     let swallowClick = false;
     const width = () => page.clientWidth || window.innerWidth;
 
+    /** The finger lifts at `x`, or its touch was taken away. */
+    const letGo = (x: number, cancelled: boolean) => {
+      const done = gesture;
+      gesture = null;
+      if (!done?.dragging) return;
+      page.style.userSelect = '';
+      swallowClick = true;
+      window.setTimeout(() => (swallowClick = false), 60);
+      const dx = x - done.x;
+      const vx = done.points.length > 1 ? speed(done.points) : 0;
+      const go = !cancelled && (dx > width() * GO_SHARE || (vx > FLING_PX_PER_S && dx > 16));
+      target.swipeEnd(go, -vx / width());
+    };
     const down = (event: PointerEvent) => {
-      if (gesture || (event.pointerType === 'mouse' && event.button !== 0)) return;
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
+      // A first finger while an older drag never ended (the system took that touch): it ends now.
+      if (gesture && event.isPrimary) letGo(gesture.x, true);
+      if (gesture) return;
+      if (event.clientX < EDGE_PX) return void target.edgeTouch?.();
       if (ownsDrag(event.target as Element, page)) return;
       gesture = {
         id: event.pointerId,
@@ -80,17 +106,7 @@ export function useSwipeBack(target: SwipeTarget) {
       target.swipeMove(Math.max(0, Math.min(1, 1 - dx / width())));
     };
     const end = (event: PointerEvent, cancelled: boolean) => {
-      if (!gesture || event.pointerId !== gesture.id) return;
-      const done = gesture;
-      gesture = null;
-      if (!done.dragging) return;
-      page.style.userSelect = '';
-      swallowClick = true;
-      window.setTimeout(() => (swallowClick = false), 60);
-      const dx = event.clientX - done.x;
-      const vx = done.points.length > 1 ? speed(done.points) : 0;
-      const go = !cancelled && (dx > width() * GO_SHARE || (vx > FLING_PX_PER_S && dx > 16));
-      target.swipeEnd(go, -vx / width());
+      if (gesture && event.pointerId === gesture.id) letGo(event.clientX, cancelled);
     };
     const up = (event: PointerEvent) => end(event, false);
     const cancel = (event: PointerEvent) => end(event, true);
