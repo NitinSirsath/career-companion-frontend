@@ -13,16 +13,23 @@ import { NotFoundPage } from './components/errors/NotFoundPage';
 import { ToastProvider } from './components/ui/toast';
 import { SignInGate } from './components/startup/SignInGate';
 import { SuspendedPage } from './components/admin/SuspendedPage';
-import { fetchLiveVersion, startQuietUpdates } from './lib/quietUpdate';
+import { fetchLiveVersion, reloadInPlace, startQuietUpdates } from './lib/quietUpdate';
+import { appVersion } from './lib/appVersion';
+import { watchMissingParts } from './lib/missingPart';
+import { isInstalledApp } from './lib/alerts';
 import { createQueryClient } from './components/queryClient';
 import { startFromBrowserOnlineState } from './lib/offline';
 import { startServiceWorker } from './lib/serviceWorker';
 import { startInstallWatch } from './lib/install';
+import { watchSystemBack } from './lib/systemBack';
 
 startFromBrowserOnlineState();
 // Keeps the browser's install offer for the "Install NorthList" card (owner, 18 Nov 2026).
 startInstallWatch();
 const queryClient = createQueryClient();
+// Notes when the browser drew a step back itself. Before the router is made: it has to hear of
+// the step first.
+watchSystemBack();
 
 // Create router outside the component tree
 const router = createRouter({
@@ -33,13 +40,19 @@ const router = createRouter({
 });
 
 // A new version is taken by itself at a safe moment (owner, 26 Oct 2026); not in local dev mode.
+// The installed app is never reloaded while it is in use.
 if (import.meta.env.PROD)
   startQuietUpdates({
-    current: __APP_VERSION__,
+    current: appVersion(),
     liveVersion: fetchLiveVersion,
     onNavigate: (listener) => router.subscribe('onBeforeNavigate', listener),
-    load: (href) => (href ? window.location.assign(href) : window.location.reload()),
+    load: reloadInPlace,
+    installed: isInstalledApp({ navigator, window }),
   });
+
+// A part that loads later (the reply box) and is gone from the server: load the page again, once.
+if (import.meta.env.PROD)
+  watchMissingParts({ current: appVersion(), load: () => reloadInPlace(null) });
 
 // Keeps the app's files for offline pages and shows push alerts (owner, 30 Oct 2026).
 if (import.meta.env.PROD) startServiceWorker();
