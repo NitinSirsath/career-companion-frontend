@@ -77,7 +77,7 @@ export function readingSummary(mail: ConversationMail): string {
 export interface KeyDate {
   label: string;
   value: string;
-  /** The app could read it as a date: \`value\` is in the user's own time, not the mail's words. */
+  /** The app could read it as a date: `value` is in the user's own time, not the mail's words. */
   own: boolean;
   /** "Missed" or "Past due", on the deadline of the request that is still open. */
   state: string | null;
@@ -105,7 +105,7 @@ const dateRow = (
 /**
  * The dates the mails name, newest mail first. A deadline the app could read is a date in the
  * user's own time (owner, 26 Nov 2026); the others stay as the mails wrote them: those are not
- * checked calendar times. \`asked\`: the conversation's request, so its deadline says when it is
+ * checked calendar times. `asked`: the conversation's request, so its deadline says when it is
  * past due or missed.
  */
 export function keyDates(
@@ -146,7 +146,7 @@ export function keyDatesNote(dates: readonly KeyDate[]): string {
   const own = dates.filter((date) => date.own).map((date) => date.label);
   if (own.length === dates.length) return 'In your own time.';
   if (own.length === 0) return 'As the mails wrote them.';
-  return \`${own.join(' and ')} in your own time. The rest as the mails wrote them.\`;
+  return `${own.join(' and ')} in your own time. The rest as the mails wrote them.`;
 }
 
 /** "in 13 days", "today", "2 days late": how far a due date is from now. */
