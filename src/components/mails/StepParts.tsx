@@ -3,12 +3,13 @@ import type { ConversationDetail, ConversationRequest } from '../../contracts/co
 import { modelName } from '../../lib/aiLabels';
 import { dueIn } from '../../lib/mailThread';
 import { CLOSED_REASON_LABEL, mailDateTime, requestDetail, requestPastDue } from '../../lib/mails';
+import { missedLine } from '../../lib/missed';
 import { cn } from '../../lib/utils';
 import { TodoState } from './TodoState';
 
-/** When an open request is due, in red once it is past due. */
+/** When an open request is due, in red once it is past due. A missed one says so in its state. */
 export function StepDue({ asked }: { asked: ConversationRequest }) {
-  if (asked.state !== 'OPEN' || !asked.deadline) return null;
+  if (asked.state !== 'OPEN' || asked.missed || !asked.deadline) return null;
   const pastDue = requestPastDue(asked);
   return (
     <p className={cn('flex items-center gap-2 text-sm', pastDue && 'text-danger-text')}>
@@ -21,8 +22,13 @@ export function StepDue({ asked }: { asked: ConversationRequest }) {
   );
 }
 
-/** Where the request stands: its state, with when the user replied or why it closed. */
+/**
+ * Where the request stands: its state, with when the user replied or why it closed. A missed one
+ * is one grey line: "Missed · was due Nov 17, 2026 11:00 AM".
+ */
 export function StepState({ asked, fake }: { asked: ConversationRequest; fake: boolean }) {
+  if (asked.missed)
+    return <p className="text-[13px] leading-[18px] text-text-secondary">{missedLine(asked)}</p>;
   const replied = asked.state === 'REPLIED' && requestDetail(asked);
   return (
     <div className="flex flex-wrap items-center gap-2">
