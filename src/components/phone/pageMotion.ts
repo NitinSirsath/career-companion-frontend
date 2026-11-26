@@ -42,8 +42,18 @@ function makeShade() {
   return shade;
 }
 
+/**
+ * A tab fade ends at "not seen" and holds it. Left on a layer, it would keep the next copy shown
+ * there (a page sliding away) invisible, so it is taken off whenever the layer is used or put away.
+ */
+function stopAnimations(layer: HTMLElement) {
+  if (typeof layer.getAnimations !== 'function') return;
+  for (const animation of layer.getAnimations()) animation.cancel();
+}
+
 /** Puts a copy into a layer, with its own shade, and scrolls it to where the page was. */
 export function showSnapshot(layer: HTMLElement, snapshot: PageSnapshot | undefined) {
+  stopAnimations(layer);
   layer.replaceChildren(...(snapshot ? [snapshot.element] : []), makeShade());
   layer.hidden = false;
   const scroller = snapshot && scrollerOf(snapshot.element);
@@ -51,9 +61,12 @@ export function showSnapshot(layer: HTMLElement, snapshot: PageSnapshot | undefi
 }
 
 export function hideLayer(layer: HTMLElement) {
+  stopAnimations(layer);
   layer.hidden = true;
   layer.replaceChildren();
   layer.style.transform = '';
+  // With less motion asked for, a slide fades the layer: it must not stay faded out.
+  layer.style.opacity = '';
   setShade(layer, 0);
 }
 
@@ -83,6 +96,18 @@ export function clearFrame(...pages: HTMLElement[]) {
     page.style.transform = '';
     page.style.opacity = '';
     setShade(page, 0);
+  }
+}
+
+/**
+ * A page shown again by Back is not new: what rises or fades in when a page opens is put at its
+ * end at once, so nothing plays again. Loaders that run without end are left alone.
+ */
+export function settleEntrances(page: HTMLElement) {
+  if (typeof page.getAnimations !== 'function') return;
+  for (const animation of page.getAnimations({ subtree: true })) {
+    const endless = animation.effect?.getComputedTiming().endTime === Infinity;
+    if ('animationName' in animation && !endless) animation.finish();
   }
 }
 
