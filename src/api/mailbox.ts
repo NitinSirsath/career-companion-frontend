@@ -82,6 +82,22 @@ export function useMailThread(threadId: string) {
   });
 }
 
+/**
+ * Whether the page offers Reply: false with no conversation, and once the conversation is read and
+ * a reply to it would reach nobody (a no-reply or system address, or one whose own mail says so).
+ * True until then, and for an older server that does not say. The same read as `useMailThread`,
+ * so the page asks Gmail once.
+ */
+export function useCanReply(threadId: string | null): boolean {
+  const { data } = useQuery({
+    queryKey: mailboxKeys.thread(threadId ?? ''),
+    queryFn: ({ signal }) => readMailThread(threadId ?? '', signal),
+    enabled: !!threadId,
+    ...LIVE_READ,
+  });
+  return !!threadId && data?.canReply !== false;
+}
+
 const GMAIL_STATUS_KEY = ['gmailStatus'] as const;
 
 /** The Gmail connection status, which the app shell already keeps fresh. */
