@@ -33,6 +33,8 @@ describe('the product site pages', () => {
       expect(d.querySelector('meta[name="description"]')?.getAttribute('content')).toBeTruthy();
       expect(d.querySelector('.hdr')).not.toBeNull();
       expect(d.querySelector('.ftr')).not.toBeNull();
+      // The big name closes every footer; it is decoration, so screen readers skip it.
+      expect(d.querySelector('.ftr .ftr-mark[aria-hidden="true"] .wm')).not.toBeNull();
       expect(
         d.querySelector(
           'i[data-icon], i[data-mark], [data-site-header], [data-site-footer], p[data-lead]',
