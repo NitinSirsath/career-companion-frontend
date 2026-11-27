@@ -57,5 +57,6 @@ export function footer(): string {
     <div><h4>Trust</h4><ul><li><a href="/privacy/">Privacy</a></li><li><a href="${POLICY}">Privacy policy</a></li></ul></div>
     <div><h4>Company</h4><ul><li><a href="/about">About</a></li><li><a href="mailto:${CONTACT}">Contact</a></li>${SOCIAL.map(([label, href]) => `<li><a href="${href}" target="_blank" rel="noopener">${label}</a></li>`).join('')}</ul></div>
     <div class="base"><span>© 2026 NorthList</span></div>
-  </div></footer>`;
+  </div>
+  <div class="ftr-mark" data-footmark aria-hidden="true">${wordmark(28)}</div></footer>`;
 }
