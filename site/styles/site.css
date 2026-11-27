@@ -6,6 +6,7 @@
  */
 @import './base.css';
 @import './chrome.css';
+@import './footmark.css';
 @import './look.css';
 @import './sections.css';
 @import './pages.css';
