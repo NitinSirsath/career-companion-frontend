@@ -12,8 +12,12 @@ if (noMotion) document.documentElement.classList.add('no-motion');
 function start(): void {
   startChrome();
   startReveal();
-  if (document.querySelector('[data-sample]')) void import('./example/index.ts').then((m) => m.startExamples());
-  if (document.querySelector('[data-rundemo]')) void import('./runtime/pictures.ts').then((m) => m.startPictures());
+  if (document.querySelector('[data-sample]'))
+    void import('./example/index.ts').then((m) => m.startExamples());
+  if (document.querySelector('[data-footmark]'))
+    void import('./runtime/footmark.ts').then((m) => m.startFootmark());
+  if (document.querySelector('[data-rundemo]'))
+    void import('./runtime/pictures.ts').then((m) => m.startPictures());
 }
 
 // A page readied early in the background (speculation rules in site/parts) starts its motion only once it is shown.
