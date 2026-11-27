@@ -1,0 +1,17 @@
+/* Product site: the big NorthList name at the very bottom of the footer (owner, 27 Nov 2026, after trae.ai / zed.dev).
+   The name is plain text first; site/runtime/footmark.ts draws it into a canvas that bends softly under the
+   pointer and swaps it in. No pointer, no WebGL or less motion: the plain name stays. */
+.ftr-mark {
+  position: relative; overflow: hidden; touch-action: pan-y;
+  padding: 24px var(--gut) 0; line-height: 0;
+}
+.ftr-mark .wm {
+  display: block; width: max-content; margin: 0 auto;
+  font-size: var(--fm-size, 20vw) !important; /* beats the small size wordmark() writes inline */
+  color: var(--line-2);
+  /* the empty space under the baseline is cut, so the letters stand near the page edge */
+  margin-bottom: -0.12em;
+}
+.ftr-mark .wm svg { fill: color-mix(in srgb, var(--mark) 45%, var(--bg)); }
+.ftr-mark canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.ftr-mark.live .wm { visibility: hidden; }
